@@ -141,10 +141,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Attempting sign in:', email);
       setLoading(true);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   
       if (error) {
         console.error('Sign in error:', error);
@@ -157,57 +155,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toast.error("Erro ao fazer login. Verifique suas credenciais.");
         return;
       }
-
-      // Fetch user roles after successful login
+  
+      // Busca os papéis do usuário
       const { data: userRoles, error: rolesError } = await supabase
         .from('papeis_usuarios')
         .select(`
           perfis (
             id,
-            nome,
-            descricao
+            nome
           )
         `)
         .eq('usuario_id', data.user.id);
-
+  
       if (rolesError) {
         console.error('Error fetching user roles:', rolesError);
         toast.error('Erro ao carregar perfis do usuário');
         return;
       }
-
+  
       const roles = userRoles?.map((ur: any) => ur.perfis.nome) || [];
       console.log('User roles:', roles);
-
-      // Check if user is confirmed
+  
+      // Busca a confirmação do usuário
       const { data: userProfile, error: profileError } = await supabase
         .from('usuarios')
         .select('confirmado')
         .eq('id', data.user.id)
         .single();
-
+  
       if (profileError) {
         console.error('Error fetching user profile:', profileError);
         toast.error('Erro ao carregar perfil do usuário');
         return;
       }
-
+  
       if (!userProfile?.confirmado) {
         console.log('User not confirmed, redirecting to pending approval');
         toast.warning('Seu cadastro está pendente de aprovação.');
         navigate('/pending-approval');
         return;
       }
-
-      // Handle multiple roles
+  
+      // Atualiza o estado do usuário
+      setUser({ ...data.user, papeis: roles });
+  
+      // Redireciona conforme os papéis do usuário
       if (roles.length > 1) {
         console.log('User has multiple roles, redirecting to role selection');
         navigate('/role-selection', { state: { roles } });
         toast.success('Login realizado com sucesso! Selecione seu perfil.');
         return;
       }
-
-      // Single role - direct redirect
+  
+      // Redirecionamento direto para o painel correto
       let redirectPath = '/dashboard';
       if (roles.includes('Atleta')) {
         redirectPath = '/athlete-dashboard';
@@ -216,17 +216,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (roles.includes('Organizador')) {
         redirectPath = '/admin-dashboard';
       }
-
+  
       console.log('Redirecting to:', redirectPath);
       toast.success("Login realizado com sucesso!");
       navigate(redirectPath);
+  
     } catch (error) {
       console.error("Unexpected Login Error:", error);
       toast.error("Ocorreu um erro inesperado. Tente novamente.");
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   const signOut = async () => {
     try {

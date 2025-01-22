@@ -16,15 +16,15 @@ function App() {
       <Router>
         <AuthProvider>
           <main>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/pending-approval" element={<PendingApproval />} />
-              <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
-              <Route path="/athlete-dashboard" element={<Dashboard />} />
-              <Route path="/referee-dashboard" element={<Dashboard />} />
-              <Route path="/admin-dashboard" element={<Dashboard />} />
-              <Route path="/" element={<Login />} />
-            </Routes>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/pending-approval" element={<PendingApproval />} />
+            <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
+            <Route path="/athlete-dashboard" element={<Dashboard />} />
+            <Route path="/referee-dashboard" element={<Dashboard />} />
+            <Route path="/admin-dashboard" element={<Dashboard />} />
+            <Route path="/" element={<Login />} />
+          </Routes>
           </main>
           <Toaster />
         </AuthProvider>

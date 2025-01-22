@@ -10,7 +10,14 @@ interface RoleSelectionProps {
 export default function RoleSelection({ roles: propRoles }: RoleSelectionProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const roles = location.state?.roles || propRoles;
+  const roles = location.state?.roles || propRoles || [];
+
+  if (roles.length === 0) {
+    console.error('No roles available for selection');
+    toast.error('Erro ao carregar perfis disponíveis');
+    navigate('/login');
+    return null;
+  }
   
   console.log('Available roles:', roles);
 
