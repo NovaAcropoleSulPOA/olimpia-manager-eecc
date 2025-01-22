@@ -1,17 +1,27 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const { userEmail, userName, branch, roles, modalities, attachment } = await req.json()
+
+    console.log('Received request with data:', {
+      userEmail,
+      userName,
+      branch,
+      roles,
+      modalities,
+    })
 
     // Construct email content
     const emailContent = `
@@ -37,12 +47,20 @@ serve(async (req) => {
         to: 'admin@olimpiadas.com.br', // Replace with actual admin email
         subject: 'Novo Comprovante de Pagamento - Olimpíadas RS 2025',
         text: emailContent,
-        attachments: [attachment],
+        attachments: [
+          {
+            content: attachment.content,
+            filename: attachment.filename,
+            type: attachment.type,
+          }
+        ],
       }),
     })
 
     if (!emailResponse.ok) {
-      throw new Error('Failed to send email')
+      const errorData = await emailResponse.text()
+      console.error('Email sending failed:', errorData)
+      throw new Error(`Failed to send email: ${errorData}`)
     }
 
     return new Response(
@@ -53,6 +71,7 @@ serve(async (req) => {
       },
     )
   } catch (error) {
+    console.error('Error processing request:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
