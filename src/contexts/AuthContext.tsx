@@ -148,7 +148,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error('Sign in error:', error);
   
-        // Handle unconfirmed email error
         if (error.code === "email_not_confirmed") {
           toast.error("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e ative sua conta antes de fazer login.");
           return;
@@ -157,9 +156,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toast.error("Erro ao fazer login. Verifique suas credenciais.");
         return;
       }
-  
+
+      // Fetch user roles after successful login
+      const { data: userRoles } = await supabase
+        .from('papeis_usuarios')
+        .select(`
+          perfis (
+            id,
+            nome,
+            descricao
+          )
+        `)
+        .eq('usuario_id', data.user.id);
+
+      const roles = userRoles?.map((ur: any) => ur.perfis.nome) || [];
+      console.log('User roles:', roles);
+
+      // Check if user is confirmed
+      const { data: userProfile } = await supabase
+        .from('usuarios')
+        .select('confirmado')
+        .eq('id', data.user.id)
+        .single();
+
+      if (!userProfile?.confirmado) {
+        toast.warning('Seu cadastro está pendente de aprovação.');
+        navigate('/pending-approval');
+        return;
+      }
+
+      // Determine redirect path based on roles
+      let redirectPath = '/dashboard';
+      if (roles.includes('Atleta')) {
+        redirectPath = '/athlete-dashboard';
+      } else if (roles.includes('Juiz')) {
+        redirectPath = '/referee-dashboard';
+      } else if (roles.includes('Organizador')) {
+        redirectPath = '/admin-dashboard';
+      }
+
       toast.success("Login realizado com sucesso!");
-      navigate('/dashboard');
+      navigate(redirectPath);
     } catch (error) {
       console.error("Unexpected Login Error:", error);
       toast.error("Ocorreu um erro inesperado. Tente novamente.");
