@@ -145,10 +145,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Sign in error:', error);
+        
+        // Check if the error is due to unconfirmed email
+        if (error.message.includes('Email not confirmed') || 
+            (error as any)?.body?.includes('email_not_confirmed')) {
+          toast.error('Por favor, confirme seu email antes de fazer login.');
+          navigate('/verify-email', { state: { email } });
+          return;
+        }
+        
+        throw error;
+      }
 
       if (!data.user.email_confirmed_at) {
-        toast.error('Por favor, verifique seu email antes de fazer login.');
+        toast.error('Por favor, confirme seu email antes de fazer login.');
+        navigate('/verify-email', { state: { email } });
         return;
       }
 

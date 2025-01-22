@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,10 +7,13 @@ import { Loader2, Mail } from 'lucide-react';
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { resendVerificationEmail } = useAuth();
   const [isResending, setIsResending] = useState(false);
-  const email = searchParams.get('email');
+  
+  // Get email from either search params or location state
+  const email = searchParams.get('email') || (location.state as any)?.email;
 
   useEffect(() => {
     // Check if this is a redirect back from email verification
