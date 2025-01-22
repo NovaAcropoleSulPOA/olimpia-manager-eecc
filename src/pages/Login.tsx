@@ -110,6 +110,25 @@ const Login = () => {
         return;
       }
 
+      // Try to create bucket first (will do nothing if it already exists)
+      console.log('Creating storage bucket if it does not exist');
+      const { data: bucketData, error: bucketError } = await supabase
+        .storage
+        .createBucket('payment-proofs', {
+          public: false,
+          allowedMimeTypes: ['image/jpeg', 'image/png'],
+          fileSizeLimit: 5242880, // 5MB in bytes
+        });
+
+      if (bucketError) {
+        console.error('Error creating bucket:', bucketError);
+        // Ignore error if bucket already exists
+        if (!bucketError.message.includes('already exists')) {
+          toast.error('Erro ao configurar armazenamento. Por favor, contate o suporte.');
+          return;
+        }
+      }
+
       // Upload payment proof with proper error handling
       console.log('Uploading payment proof');
       const fileExt = selectedFile.name.split('.').pop();
@@ -124,13 +143,7 @@ const Login = () => {
 
       if (uploadError) {
         console.error('Error uploading payment proof:', uploadError);
-        
-        // Check if bucket doesn't exist using error message instead of statusCode
-        if (uploadError.message.includes('not found') || uploadError.message.includes('bucket')) {
-          toast.error('Erro no sistema de armazenamento. Por favor, contate o suporte.');
-        } else {
-          toast.error('Erro ao fazer upload do comprovante de pagamento.');
-        }
+        toast.error('Erro ao fazer upload do comprovante de pagamento. Por favor, tente novamente.');
         return;
       }
 
