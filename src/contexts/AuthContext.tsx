@@ -10,7 +10,7 @@ interface AuthUser extends User {
   telefone?: string;
   filial_id?: string;
   confirmado?: boolean;
-  roleIds?: number[];
+  papeis?: string[];
 }
 
 interface AuthContextType {
@@ -40,8 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Fetch user roles when session changes
           const { data: userRoles } = await supabase
             .from('papeis_usuarios')
-            .select('role_id')
-            .eq('user_id', session.user.id);
+            .select('papel')
+            .eq('usuario_id', session.user.id);
 
           // Fetch user profile from usuarios table
           const { data: userProfile } = await supabase
@@ -50,11 +50,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .eq('id', session.user.id)
             .single();
 
-          const roleIds = userRoles?.map(ur => ur.role_id) || [];
+          const papeis = userRoles?.map(ur => ur.papel) || [];
           
           setUser({
             ...session.user,
-            roleIds,
+            papeis,
             ...userProfile
           });
 
@@ -78,8 +78,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         const { data: userRoles } = await supabase
           .from('papeis_usuarios')
-          .select('role_id')
-          .eq('user_id', session.user.id);
+          .select('papel')
+          .eq('usuario_id', session.user.id);
 
         const { data: userProfile } = await supabase
           .from('usuarios')
@@ -87,11 +87,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', session.user.id)
           .single();
 
-        const roleIds = userRoles?.map(ur => ur.role_id) || [];
+        const papeis = userRoles?.map(ur => ur.papel) || [];
         
         setUser({
           ...session.user,
-          roleIds,
+          papeis,
           ...userProfile
         });
       } else {
@@ -125,19 +125,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Check user status
       const { data: userProfile } = await supabase
         .from('usuarios')
-        .select('status')
+        .select('confirmado, id')
         .eq('id', data.user.id)
         .single();
 
-      if (userProfile?.status === 'pendente') {
+      if (userProfile?.confirmado === false) {
         toast.warning('Seu cadastro está pendente de aprovação.');
         navigate('/pending-approval');
-        return;
-      }
-
-      if (userProfile?.status === 'rejeitado') {
-        toast.error('Seu cadastro foi rejeitado.');
-        navigate('/rejected');
         return;
       }
 
@@ -188,17 +182,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('User created in Supabase Auth:', data.user);
 
-      // Step 2: Create user profile in usuarios table with password
+      // Step 2: Create user profile in usuarios table
       await createUserProfile(data.user.id, {
         ...userData,
-        password: userData.password // Pass the password to createUserProfile
+        password: userData.password
       });
 
       console.log('User profile created in usuarios table');
 
       // Step 3: Assign user roles
       if (data.user) {
-        await assignUserRoles(data.user.id, userData.roleIds);
+        // Convert roleIds to papel values
+        const papeis = userData.roleIds.map((roleId: number) => {
+          switch (roleId) {
+            case 1: return 'atleta';
+            case 2: return 'organizador';
+            case 3: return 'juiz';
+            default: return '';
+          }
+        }).filter(Boolean);
+
+        await assignUserRoles(data.user.id, papeis);
       }
 
       console.log('User roles assigned successfully');

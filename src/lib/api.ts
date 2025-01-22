@@ -75,15 +75,15 @@ export const fetchRoles = async (): Promise<Role[]> => {
   return data;
 };
 
-export const assignUserRoles = async (userId: string, roleIds: number[]) => {
-  console.log('Assigning roles to user:', userId, roleIds);
+export const assignUserRoles = async (userId: string, roles: string[]) => {
+  console.log('Assigning roles to user:', userId, roles);
   
   const { error } = await supabase
     .from('papeis_usuarios')
     .upsert(
-      roleIds.map(roleId => ({
-        user_id: userId,
-        role_id: roleId
+      roles.map(papel => ({
+        usuario_id: userId,
+        papel: papel.toLowerCase() // Convert to lowercase to match allowed values
       }))
     );
 
@@ -104,7 +104,7 @@ export const createUserProfile = async (userId: string, data: any) => {
         nome_completo: data.nome,
         telefone: data.telefone.replace(/\D/g, ''),
         email: data.email,
-        senha: data.password, // Add the password field
+        senha: data.password,
         filial_id: data.branchId,
         confirmado: false,
         data_criacao: new Date().toISOString()
@@ -127,11 +127,7 @@ export const fetchPendingUsers = async (): Promise<User[]> => {
       nome_completo,
       confirmado,
       papeis_usuarios (
-        perfis (
-          id,
-          nome,
-          descricao
-        )
+        papel
       )
     `)
     .eq('confirmado', false);
@@ -143,8 +139,32 @@ export const fetchPendingUsers = async (): Promise<User[]> => {
 
   return data.map((user: any) => ({
     ...user,
-    roles: user.papeis_usuarios.map((pu: any) => pu.perfis)
+    roles: user.papeis_usuarios.map((pu: any) => ({
+      id: getRoleId(pu.papel),
+      nome: pu.papel,
+      descricao: getRoleDescription(pu.papel)
+    }))
   }));
+};
+
+// Helper function to map papel to role ID
+const getRoleId = (papel: string): number => {
+  switch (papel.toLowerCase()) {
+    case 'atleta': return 1;
+    case 'organizador': return 2;
+    case 'juiz': return 3;
+    default: return 0;
+  }
+};
+
+// Helper function to get role description
+const getRoleDescription = (papel: string): string => {
+  switch (papel.toLowerCase()) {
+    case 'atleta': return 'Usuário que participa das competições';
+    case 'organizador': return 'Usuário responsável pela organização de eventos';
+    case 'juiz': return 'Usuário responsável por avaliar e pontuar as competições';
+    default: return '';
+  }
 };
 
 export const approveUser = async (userId: string) => {
@@ -173,13 +193,13 @@ export const rejectUser = async (userId: string) => {
   }
 };
 
-export const removeUserRole = async (userId: string, roleId: number) => {
-  console.log('Removing role from user:', userId, roleId);
+export const removeUserRole = async (userId: string, papel: string) => {
+  console.log('Removing role from user:', userId, papel);
   const { error } = await supabase
     .from('papeis_usuarios')
     .delete()
-    .eq('user_id', userId)
-    .eq('role_id', roleId);
+    .eq('usuario_id', userId)
+    .eq('papel', papel.toLowerCase());
 
   if (error) {
     console.error('Error removing user role:', error);
