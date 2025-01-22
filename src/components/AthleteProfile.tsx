@@ -242,7 +242,7 @@ export default function AthleteProfile() {
             {inscriptions.map((inscription) => (
               <div key={inscription.id} className="p-4 border rounded-lg">
                 <h4 className="font-medium">
-                  {inscription.modalidade.map(mod => mod.nome).join(', ')}
+                  {inscription.modalidade.nome}
                 </h4>
                 <p className="text-sm text-muted-foreground">
                   Status: {inscription.status}

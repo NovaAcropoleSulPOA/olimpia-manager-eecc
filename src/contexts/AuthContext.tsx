@@ -185,7 +185,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Determine redirect path based on roles
+      // Handle multiple roles
+      if (roles.length > 1) {
+        console.log('User has multiple roles, redirecting to role selection');
+        navigate('/role-selection', { state: { roles } });
+        return;
+      }
+
+      // Single role - direct redirect
       let redirectPath = '/dashboard';
       if (roles.includes('Atleta')) {
         redirectPath = '/athlete-dashboard';
@@ -201,7 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Unexpected Login Error:", error);
       toast.error("Ocorreu um erro inesperado. Tente novamente.");
     }
-  };    
+  };
 
   const signOut = async () => {
     try {
