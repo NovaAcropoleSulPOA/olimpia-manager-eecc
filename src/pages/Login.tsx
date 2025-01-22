@@ -13,7 +13,7 @@ import * as z from "zod";
 import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import PaymentInfo from '@/components/PaymentInfo';
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import { fetchModalities, fetchBranches } from '@/lib/api';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
