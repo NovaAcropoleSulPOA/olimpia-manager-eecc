@@ -207,6 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           nome_completo: userData.nome,
           telefone: userData.telefone.replace(/\D/g, ''),
           email: userData.email,
+          senha: userData.password, // Add the password to the usuarios table
           filial_id: userData.branchId,
           confirmado: false,
           data_criacao: new Date().toISOString()
