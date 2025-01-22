@@ -266,6 +266,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('User profile created in usuarios table');
 
+      // Create payment record if user is an athlete
+      if (userData.roleIds.includes(1)) {
+        const { error: paymentError } = await supabase
+          .from('pagamentos')
+          .insert([{
+            atleta_id: data.user.id,
+            valor: 180.00, // Default payment amount
+            status: 'pendente',
+            data_criacao: new Date().toISOString(),
+          }]);
+
+        if (paymentError) {
+          console.error('Payment record creation error:', paymentError);
+          toast.error('Erro ao registrar pagamento.');
+          return { user: null, error: paymentError };
+        }
+
+        console.log('Payment record created for athlete');
+      }
+
+      // Fetch user roles
       const { error: rolesError } = await supabase
         .from('papeis_usuarios')
         .insert(

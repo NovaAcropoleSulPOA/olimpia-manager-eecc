@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import PaymentManagement from "@/components/PaymentManagement";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -10,50 +11,32 @@ const AdminDashboard = () => {
         Painel Administrativo - {user?.nome_completo}
       </h1>
       
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-olimpics-green-primary">Gerenciar Inscrições</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600">
-              Aprove ou rejeite inscrições pendentes.
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6">
+        <PaymentManagement />
+        
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-olimpics-green-primary">Gerenciar Inscrições</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">
+                Aprove ou rejeite inscrições pendentes.
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-olimpics-green-primary">Aprovação de Pagamentos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600">
-              Verifique e aprove os comprovantes de pagamento.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-olimpics-green-primary">Configurações do Evento</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600">
-              Gerencie modalidades e configurações gerais.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-olimpics-green-primary">Relatórios</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600">
-              Acesse relatórios e estatísticas do evento.
-            </p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-olimpics-green-primary">Configurações do Evento</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600">
+                Gerencie modalidades e configurações gerais.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
