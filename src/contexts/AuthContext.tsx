@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
+import { assignUserRoles } from '@/lib/api';
 
 interface AuthUser extends User {
   roleIds?: number[];
