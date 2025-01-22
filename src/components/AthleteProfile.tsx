@@ -17,9 +17,9 @@ interface Modality {
 
 interface Inscription {
   id: number;
-  status: 'Pendente' | 'Aprovada' | 'Rejeitada';
+  status: 'Pendente' | 'Confirmada' | 'Recusada' | 'Cancelada';
   data_inscricao: string;
-  modalidade: Modality;
+  modalidade: Modality[]; // Agora pode armazenar múltiplas modalidades
 }
 
 interface Score {
@@ -65,24 +65,26 @@ export default function AthleteProfile() {
   const fetchInscriptions = async () => {
     try {
       const { data, error } = await supabase
-        .from('inscricoes')
-        .select(`
+      .from('inscricoes')
+      .select(`
+        id,
+        status,
+        data_inscricao,
+        modalidade:modalidades!inner (
           id,
-          status,
-          data_inscricao,
-          modalidade:modalidades (
-            id,
-            nome,
-            tipo_pontuacao,
-            tipo_modalidade,
-            categoria
-          )
-        `)
-        .eq('atleta_id', user?.id);
-
-      if (error) throw error;
-
-      setInscriptions(data || []);
+          nome,
+          tipo_pontuacao,
+          tipo_modalidade,
+          categoria
+        )
+      `)
+      .eq('atleta_id', user?.id);
+    
+    if (error) throw error;
+    
+    // Ajuste para armazenar múltiplas modalidades corretamente
+    setInscriptions(data || []);
+    
     } catch (error) {
       console.error('Error fetching inscriptions:', error);
       toast.error('Erro ao carregar inscrições');
@@ -223,25 +225,22 @@ export default function AthleteProfile() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {inscriptions.length === 0 ? (
-            <p>Nenhuma modalidade inscrita.</p>
-          ) : (
-            <div className="grid gap-4">
-              {inscriptions.map((inscription) => (
-                <div
-                  key={inscription.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div>
-                    <h4 className="font-medium">{inscription.modalidade.nome}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Status: {inscription.status}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        {inscriptions.length === 0 ? (
+          <p>Nenhuma modalidade inscrita.</p>
+        ) : (
+          <div className="grid gap-4">
+            {inscriptions.map((inscription) => (
+              <div key={inscription.id} className="p-4 border rounded-lg">
+                <h4 className="font-medium">
+                  {inscription.modalidade.map(mod => mod.nome).join(', ')}
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  Status: {inscription.status}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
         </CardContent>
       </Card>
 
