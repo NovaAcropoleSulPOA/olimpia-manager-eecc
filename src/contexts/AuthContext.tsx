@@ -148,8 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error('Sign in error:', error);
   
-        // Handle unconfirmed email error
-        if (error.code === "email_not_confirmed") {
+        if (error.message.includes('Email not confirmed')) {
           toast.error("Seu e-mail ainda não foi confirmado. Verifique seu e-mail e clique no link de ativação antes de fazer login.");
           navigate('/verify-email', { state: { email } });
           return;
@@ -159,14 +158,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
   
-      // Ensure email confirmation is checked before allowing access
       if (!data.user.email_confirmed_at) {
         toast.error("Seu e-mail ainda não foi confirmado. Verifique seu e-mail e clique no link de ativação antes de fazer login.");
         navigate('/verify-email', { state: { email } });
         return;
       }
   
-      // Fetch user confirmation status from 'usuarios'
       const { data: userProfile } = await supabase
         .from("usuarios")
         .select("confirmado")
@@ -186,28 +183,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error("Unexpected Login Error:", error);
       toast.error("Ocorreu um erro inesperado. Tente novamente.");
     }
-  };  
-
-  const signOut = async () => {
-    try {
-      console.log('Attempting sign out');
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      setUser(null);
-      navigate('/login');
-      toast.success('Logout realizado com sucesso!');
-    } catch (error: any) {
-      console.error('Sign out error:', error);
-      toast.error('Erro ao fazer logout.');
-      throw error;
-    }
   };
 
   const signUp = async (userData: any) => {
     try {
       console.log('Starting user registration process:', userData);
       
+      // Check if email already exists
+      const { data: existingUser } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('email', userData.email)
+        .single();
+
+      if (existingUser) {
+        toast.error("Este e-mail já está cadastrado. Por favor, use outro e-mail ou faça login.");
+        return { user: null, error: new Error('Email already exists') };
+      }
+
       const { data, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -218,7 +211,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (authError) {
         console.error('Auth Error:', authError.message);
-        toast.error('Erro ao criar conta. Tente novamente.');
+        if (authError.message.includes('User already registered')) {
+          toast.error("Este e-mail já está cadastrado. Por favor, use outro e-mail ou faça login.");
+        } else {
+          toast.error('Erro ao criar conta. Tente novamente.');
+        }
         return { user: null, error: authError };
       }
 
@@ -228,8 +225,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         toast.error('Erro ao criar conta. Tente novamente.');
         return { user: null, error };
       }
-
-      console.log('User created in Supabase Auth:', data.user);
 
       const { error: profileError } = await supabase
         .from('usuarios')
@@ -290,7 +285,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       toast.success('Cadastro realizado com sucesso! Por favor, verifique seu email.');
-      navigate('/verify-email');
+      navigate('/login');
       
       return { user: data.user, error: null };
     } catch (error: any) {
@@ -302,6 +297,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resendVerificationEmail = async (email: string) => {
     try {
+      // Check if email is already confirmed
+      const { data: { user }, error: userError } = await supabase.auth.admin.getUserByEmail(email);
+      
+      if (userError) {
+        console.error('Error checking user:', userError);
+        toast.error('Erro ao verificar status do email.');
+        return;
+      }
+
+      if (user?.email_confirmed_at) {
+        toast.error('Este e-mail já foi confirmado. Por favor, faça login.');
+        navigate('/login');
+        return;
+      }
+
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email,

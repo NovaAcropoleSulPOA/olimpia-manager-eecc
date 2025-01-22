@@ -134,6 +134,18 @@ const Login = () => {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
 
+      // Check if email already exists
+      const { data: existingUser } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('email', values.email)
+        .single();
+
+      if (existingUser) {
+        toast.error("Este e-mail já está cadastrado. Por favor, use outro e-mail ou faça login.");
+        return;
+      }
+
       const signUpResult = await signUp({
         ...values,
         telefone: values.telefone.replace(/\D/g, ''), // Remove non-digits before saving
@@ -180,6 +192,20 @@ const Login = () => {
   const onForgotPasswordSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
     try {
       setIsSubmitting(true);
+      
+      // Check if email exists and is confirmed
+      const { data: { user }, error: userError } = await supabase.auth.admin.getUserByEmail(values.email);
+      
+      if (userError || !user) {
+        toast.error('Email não encontrado.');
+        return;
+      }
+
+      if (!user.email_confirmed_at) {
+        toast.error('Seu e-mail ainda não foi validado. Verifique seu e-mail e conclua a ativação antes de solicitar a recuperação de senha.');
+        return;
+      }
+
       const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
