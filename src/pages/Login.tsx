@@ -46,7 +46,19 @@ const registerSchema = z.object({
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
-});
+}).refine(
+  (data) => {
+    // If Atleta (ID: 1) is selected, require at least one modality
+    if (data.roleIds.includes(1) && (!data.modalities || data.modalities.length === 0)) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Atletas devem selecionar pelo menos uma modalidade",
+    path: ["modalities"],
+  }
+);
 
 const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
