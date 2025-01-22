@@ -144,48 +144,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
       });
-
+  
       if (error) {
         console.error('Sign in error:', error);
-        
-        // Check if the error is due to unconfirmed email
-        if (error.message.includes('Email not confirmed') || 
-            (error as any)?.body?.includes('email_not_confirmed')) {
-          toast.error('Por favor, confirme seu email antes de fazer login.');
+  
+        // Handle unconfirmed email error
+        if (error.code === "email_not_confirmed") {
+          toast.error("Seu e-mail ainda não foi confirmado. Verifique seu e-mail e clique no link de ativação antes de fazer login.");
           navigate('/verify-email', { state: { email } });
           return;
         }
-        
-        throw error;
+  
+        toast.error("Erro ao fazer login. Verifique suas credenciais.");
+        return;
       }
-
+  
+      // Ensure email confirmation is checked before allowing access
       if (!data.user.email_confirmed_at) {
-        toast.error('Por favor, confirme seu email antes de fazer login.');
+        toast.error("Seu e-mail ainda não foi confirmado. Verifique seu e-mail e clique no link de ativação antes de fazer login.");
         navigate('/verify-email', { state: { email } });
         return;
       }
-
+  
+      // Fetch user confirmation status from 'usuarios'
       const { data: userProfile } = await supabase
-        .from('usuarios')
-        .select('confirmado')
-        .eq('id', data.user.id)
+        .from("usuarios")
+        .select("confirmado")
+        .eq("id", data.user.id)
         .single();
-
+  
       if (!userProfile?.confirmado) {
-        toast.warning('Seu cadastro está pendente de aprovação.');
-        navigate('/pending-approval');
+        toast.warning("Seu cadastro está pendente de aprovação.");
+        navigate("/pending-approval");
         return;
       }
-
+  
       console.log('Sign in successful:', data.user);
       toast.success('Login realizado com sucesso!');
       navigate('/dashboard');
     } catch (error: any) {
-      console.error('Sign in error:', error);
-      toast.error('Erro ao fazer login. Verifique suas credenciais.');
-      throw error;
+      console.error("Unexpected Login Error:", error);
+      toast.error("Ocorreu um erro inesperado. Tente novamente.");
     }
-  };
+  };  
 
   const signOut = async () => {
     try {
