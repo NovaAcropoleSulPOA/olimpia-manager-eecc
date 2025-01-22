@@ -66,7 +66,7 @@ const Dashboard = () => {
         
         <CardContent className="space-y-6">
           {!isConfirmed ? (
-            <Alert variant="warning" className="bg-yellow-50 border-yellow-400">
+            <Alert variant="default" className="bg-yellow-50 border-yellow-400">
               <AlertCircle className="h-4 w-4 text-yellow-600" />
               <AlertTitle>Acesso Limitado</AlertTitle>
               <AlertDescription>
@@ -75,7 +75,7 @@ const Dashboard = () => {
               </AlertDescription>
             </Alert>
           ) : (
-            <Alert variant="success" className="bg-green-50 border-green-400">
+            <Alert variant="default" className="bg-green-50 border-green-400">
               <CheckCircle className="h-4 w-4 text-green-600" />
               <AlertTitle>Inscrição Confirmada</AlertTitle>
               <AlertDescription>
