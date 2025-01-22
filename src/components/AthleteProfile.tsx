@@ -39,8 +39,7 @@ export default function AthleteProfile() {
         .from('inscricoes')
         .select(`
           id,
-          status,
-          data_inscricao,
+          status,          data_inscricao,
           modalidade:modalidades (
             id,
             nome,
@@ -50,17 +49,23 @@ export default function AthleteProfile() {
           )
         `)
         .eq('atleta_id', user?.id);
-
+  
       if (error) throw error;
-
-      // Type assertion to ensure the data matches our interface
-      const typedData = (data || []).map(item => ({
+  
+      // Ensure TypeScript properly understands the data structure
+      const typedData: Inscription[] = (data || []).map((item) => ({
         id: item.id,
         status: item.status,
         data_inscricao: item.data_inscricao,
-        modalidade: item.modalidade as Modality // Assert the nested object as Modality
+        modalidade: {
+          id: Number(item.modalidade.id),
+          nome: String(item.modalidade.nome),
+          tipo_pontuacao: item.modalidade.tipo_pontuacao as 'tempo' | 'distancia' | 'pontos',
+          tipo_modalidade: item.modalidade.tipo_modalidade as 'individual' | 'coletivo',
+          categoria: item.modalidade.categoria as 'misto' | 'masculino' | 'feminino',
+        }
       }));
-
+  
       setInscriptions(typedData);
     } catch (error) {
       console.error('Error fetching inscriptions:', error);
@@ -69,6 +74,7 @@ export default function AthleteProfile() {
       setLoading(false);
     }
   };
+  
 
   const fetchAvailableModalities = async () => {
     try {
@@ -76,17 +82,29 @@ export default function AthleteProfile() {
         .from('modalidades')
         .select('*')
         .order('nome');
-
+  
       if (error) throw error;
-
+  
+      // Get IDs of already registered modalities
       const registeredIds = inscriptions.map(insc => insc.modalidade.id);
-      const available = (data || []).filter(mod => !registeredIds.includes(mod.id));
-      setAvailableModalities(available as Modality[]);
+  
+      // Filter only available modalities and ensure they match the expected type
+      const available: Modality[] = (data || []).filter((mod) => !registeredIds.includes(mod.id))
+        .map((mod) => ({
+          id: Number(mod.id),
+          nome: String(mod.nome),
+          tipo_pontuacao: mod.tipo_pontuacao as 'tempo' | 'distancia' | 'pontos',
+          tipo_modalidade: mod.tipo_modalidade as 'individual' | 'coletivo',
+          categoria: mod.categoria as 'misto' | 'masculino' | 'feminino',
+        }));
+  
+      setAvailableModalities(available);
     } catch (error) {
       console.error('Error fetching modalities:', error);
       toast.error('Erro ao carregar modalidades disponíveis');
     }
   };
+  
 
   const handleAddModality = async (modalityId: number) => {
     try {
