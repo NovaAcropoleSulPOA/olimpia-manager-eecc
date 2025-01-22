@@ -164,38 +164,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Fetch user roles
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('papeis_usuarios')
-        .select(`
-          perfis (
-            id,
-            nome
-          )
-        `)
-        .eq('usuario_id', data.user.id);
-
-      if (rolesError) {
-        console.error('Error fetching user roles:', rolesError);
-        toast.error('Erro ao carregar perfil do usuário.');
-        return;
-      }
-
-      const roles = userRoles?.map((ur: any) => ur.perfis.nome) || [];
-
       console.log('Sign in successful:', data.user);
       toast.success('Login realizado com sucesso!');
-
-      // Redirect based on user role
-      if (roles.includes('Organizador')) {
-        navigate('/admin');
-      } else if (roles.includes('Juiz')) {
-        navigate('/judge-dashboard');
-      } else if (roles.includes('Atleta')) {
-        navigate('/athlete-dashboard');
-      } else {
-        toast.error('Perfil de usuário não reconhecido.');
-      }
+      navigate('/dashboard');
     } catch (error: any) {
       console.error('Sign in error:', error);
       toast.error('Erro ao fazer login. Verifique suas credenciais.');
@@ -266,27 +237,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('User profile created in usuarios table');
 
-      // Create payment record if user is an athlete
-      if (userData.roleIds.includes(1)) {
-        const { error: paymentError } = await supabase
-          .from('pagamentos')
-          .insert([{
-            atleta_id: data.user.id,
-            valor: 180.00, // Default payment amount
-            status: 'pendente',
-            data_criacao: new Date().toISOString(),
-          }]);
-
-        if (paymentError) {
-          console.error('Payment record creation error:', paymentError);
-          toast.error('Erro ao registrar pagamento.');
-          return { user: null, error: paymentError };
-        }
-
-        console.log('Payment record created for athlete');
-      }
-
-      // Fetch user roles
       const { error: rolesError } = await supabase
         .from('papeis_usuarios')
         .insert(
