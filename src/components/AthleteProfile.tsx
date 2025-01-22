@@ -71,7 +71,7 @@ export default function AthleteProfile() {
           id,
           status,
           data_inscricao,
-          modalidade:modalidades (
+          modalidades (
             id,
             nome,
             tipo_pontuacao,
@@ -85,7 +85,7 @@ export default function AthleteProfile() {
   
       const formattedData = data.map(insc => ({
         ...insc,
-        modalidade: insc.modalidade[0]
+        modalidade: insc.modalidades
       }));
   
       console.log('Fetched inscriptions:', formattedData);
