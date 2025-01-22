@@ -140,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       console.log('Attempting sign in:', email);
+      setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -202,6 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (roles.length > 1) {
         console.log('User has multiple roles, redirecting to role selection');
         navigate('/role-selection', { state: { roles } });
+        toast.success('Login realizado com sucesso! Selecione seu perfil.');
         return;
       }
 
@@ -221,6 +223,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("Unexpected Login Error:", error);
       toast.error("Ocorreu um erro inesperado. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
   };
 
