@@ -39,7 +39,8 @@ export default function AthleteProfile() {
         .from('inscricoes')
         .select(`
           id,
-          status,          data_inscricao,
+          status,
+          data_inscricao,
           modalidade:modalidades (
             id,
             nome,
@@ -53,16 +54,16 @@ export default function AthleteProfile() {
       if (error) throw error;
   
       // Ensure TypeScript properly understands the data structure
-      const typedData: Inscription[] = (data || []).map((item) => ({
+      const typedData: Inscription[] = (data || []).map((item: any) => ({
         id: item.id,
         status: item.status,
         data_inscricao: item.data_inscricao,
         modalidade: {
-          id: Number(item.modalidade.id),
-          nome: String(item.modalidade.nome),
-          tipo_pontuacao: item.modalidade.tipo_pontuacao as 'tempo' | 'distancia' | 'pontos',
-          tipo_modalidade: item.modalidade.tipo_modalidade as 'individual' | 'coletivo',
-          categoria: item.modalidade.categoria as 'misto' | 'masculino' | 'feminino',
+          id: item.modalidade.id,
+          nome: item.modalidade.nome,
+          tipo_pontuacao: item.modalidade.tipo_pontuacao,
+          tipo_modalidade: item.modalidade.tipo_modalidade,
+          categoria: item.modalidade.categoria,
         }
       }));
   
@@ -74,7 +75,6 @@ export default function AthleteProfile() {
       setLoading(false);
     }
   };
-  
 
   const fetchAvailableModalities = async () => {
     try {
@@ -89,7 +89,8 @@ export default function AthleteProfile() {
       const registeredIds = inscriptions.map(insc => insc.modalidade.id);
   
       // Filter only available modalities and ensure they match the expected type
-      const available: Modality[] = (data || []).filter((mod) => !registeredIds.includes(mod.id))
+      const available: Modality[] = (data || [])
+        .filter((mod) => !registeredIds.includes(mod.id))
         .map((mod) => ({
           id: Number(mod.id),
           nome: String(mod.nome),
@@ -104,7 +105,6 @@ export default function AthleteProfile() {
       toast.error('Erro ao carregar modalidades disponíveis');
     }
   };
-  
 
   const handleAddModality = async (modalityId: number) => {
     try {
