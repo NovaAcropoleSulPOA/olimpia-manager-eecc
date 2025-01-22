@@ -202,12 +202,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Starting user registration process:', userData);
       
-      // Check if email already exists
-      const { data: existingUser } = await supabase
+      // Check if email already exists - using maybeSingle() to handle no results gracefully
+      const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
         .select('id')
         .eq('email', userData.email)
-        .single();
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('Error checking existing user:', checkError);
+        toast.error('Erro ao verificar cadastro existente.');
+        return { user: null, error: checkError };
+      }
 
       if (existingUser) {
         toast.error("Este e-mail já está cadastrado. Por favor, use outro e-mail ou faça login.");
