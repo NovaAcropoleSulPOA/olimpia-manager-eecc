@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom'; // Add this import
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,10 +13,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import PaymentInfo from '@/components/PaymentInfo';
 import { useQuery } from '@tanstack/react-query';
 import { fetchModalities, fetchBranches, fetchRoles } from '@/lib/api';
-import { supabase } from '@/lib/supabase';
 import InputMask from 'react-input-mask';
 
 const loginSchema = z.object({
@@ -59,7 +57,7 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { signIn, signUp } = useAuth();
-  const navigate = useNavigate(); // Add this line
+  const navigate = useNavigate();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -421,7 +419,7 @@ const Login = () => {
                           >
                             <FormControl>
                               <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
-                                <SelectValue placeholder="Selecione uma filial" />
+                                <SelectValue placeholder="Selecione sua filial" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -430,7 +428,7 @@ const Login = () => {
                               ) : (
                                 branches?.map((branch) => (
                                   <SelectItem key={branch.id} value={branch.id}>
-                                    {branch.nome} - {branch.cidade}
+                                    {branch.nome} - {branch.cidade}/{branch.estado}
                                   </SelectItem>
                                 ))
                               )}
@@ -541,12 +539,6 @@ const Login = () => {
                         )}
                       />
                     )}
-
-                    <PaymentInfo />
-                    <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
-                      Após completar seu cadastro, você receberá um email com instruções para enviar seu comprovante de pagamento. 
-                      Por favor, siga as instruções no email para completar seu cadastro.
-                    </div>
 
                     <Button
                       type="submit"
