@@ -4,17 +4,22 @@ export interface Modality {
   id: number;
   nome: string;
   descricao?: string;
+  tipo_pontuacao?: string;
+  tipo_modalidade?: string;
+  categoria?: string;
 }
 
 export interface Branch {
-  id: number;
+  id: string;  // Changed to string since Supabase IDs are UUIDs
   nome: string;
   cidade: string;
+  estado: string;
 }
 
 export interface Role {
   id: number;
   nome: string;
+  descricao: string;
 }
 
 export const fetchModalities = async (): Promise<Modality[]> => {

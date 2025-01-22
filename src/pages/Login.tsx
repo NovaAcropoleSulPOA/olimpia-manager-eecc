@@ -30,7 +30,7 @@ const registerSchema = z.object({
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
   roleIds: z.array(z.number()).min(1, "Selecione pelo menos um perfil"),
-  branchId: z.number({
+  branchId: z.string({
     required_error: "Selecione uma filial",
   }),
   modalities: z.array(z.number()).optional(),
@@ -67,7 +67,7 @@ const Login = () => {
       password: '',
       confirmPassword: '',
       roleIds: [],
-      branchId: undefined,
+      branchId: '',
       modalities: [],
     },
   });
@@ -107,8 +107,8 @@ const Login = () => {
       }
       
       const signUpResult = await signUp({ 
-        ...values, 
-        roleIds: values.roleIds.map(id => Number(id)) // Ensure roleIds are numbers
+        ...values,
+        roleIds: values.roleIds.map(id => Number(id))
       });
       
       if (signUpResult?.user?.id) {
@@ -139,6 +139,9 @@ const Login = () => {
       toast.success('Comprovante carregado com sucesso!');
     }
   };
+
+  // Check if Atleta role is selected
+  const isAtletaSelected = registerForm.watch("roleIds").includes(1); // Assuming 1 is the ID for "Atleta"
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-olimpics-background">
@@ -304,8 +307,8 @@ const Login = () => {
                       <FormItem>
                         <FormLabel>Filial</FormLabel>
                         <Select 
-                          onValueChange={(value) => field.onChange(parseInt(value))}
-                          value={field.value?.toString()}
+                          onValueChange={field.onChange}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
@@ -317,7 +320,7 @@ const Login = () => {
                               <SelectItem value="loading">Carregando...</SelectItem>
                             ) : (
                               branches?.map((branch) => (
-                                <SelectItem key={branch.id} value={branch.id.toString()}>
+                                <SelectItem key={branch.id} value={branch.id}>
                                   {branch.nome} - {branch.cidade}
                                 </SelectItem>
                               ))
@@ -376,7 +379,7 @@ const Login = () => {
                     )}
                   />
 
-                  {registerForm.watch("roleIds").includes("atleta") && (
+                  {isAtletaSelected && (
                     <FormField
                       control={registerForm.control}
                       name="modalities"
