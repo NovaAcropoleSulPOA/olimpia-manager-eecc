@@ -9,6 +9,7 @@ interface RoleSelectionProps {
 
 export default function RoleSelection({ roles }: RoleSelectionProps) {
   const navigate = useNavigate();
+  console.log('Available roles:', roles);
 
   const handleRoleSelect = (role: string) => {
     console.log('Selected role:', role);

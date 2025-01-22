@@ -19,7 +19,7 @@ interface Inscription {
   id: number;
   status: 'Pendente' | 'Confirmada' | 'Recusada' | 'Cancelada';
   data_inscricao: string;
-  modalidade: Modality; // Remove o array []
+  modalidade: Modality;
 }
 
 interface Score {
@@ -64,6 +64,7 @@ export default function AthleteProfile() {
 
   const fetchInscriptions = async () => {
     try {
+      console.log('Fetching inscriptions for athlete:', user?.id);
       const { data, error } = await supabase
         .from('inscricoes')
         .select(`
@@ -82,12 +83,12 @@ export default function AthleteProfile() {
   
       if (error) throw error;
   
-      // Ajustar para armazenar como um único objeto, não array
       const formattedData = data.map(insc => ({
         ...insc,
-        modalidade: insc.modalidade[0] // Pega o primeiro item do array
+        modalidade: insc.modalidade[0]
       }));
   
+      console.log('Fetched inscriptions:', formattedData);
       setInscriptions(formattedData || []);
     } catch (error) {
       console.error('Error fetching inscriptions:', error);
@@ -97,6 +98,7 @@ export default function AthleteProfile() {
 
   const fetchAvailableModalities = async () => {
     try {
+      console.log('Fetching available modalities');
       const { data, error } = await supabase
         .from('modalidades')
         .select('*')
@@ -106,6 +108,7 @@ export default function AthleteProfile() {
 
       const registeredIds = inscriptions.map(insc => insc.modalidade.id);
       const available = (data || []).filter(mod => !registeredIds.includes(mod.id));
+      console.log('Available modalities:', available);
       setAvailableModalities(available);
     } catch (error) {
       console.error('Error fetching modalities:', error);
@@ -115,6 +118,7 @@ export default function AthleteProfile() {
 
   const fetchScores = async () => {
     try {
+      console.log('Fetching scores for athlete:', user?.id);
       const { data, error } = await supabase
         .from('pontuacoes')
         .select(`
@@ -134,9 +138,10 @@ export default function AthleteProfile() {
   
       const formattedData = data.map(score => ({
         ...score,
-        modalidade: score.modalidade[0] // Get first item from array
+        modalidade: score.modalidade[0]
       }));
   
+      console.log('Fetched scores:', formattedData);
       setScores(formattedData || []);
     } catch (error) {
       console.error('Error fetching scores:', error);

@@ -158,7 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Fetch user roles after successful login
-      const { data: userRoles } = await supabase
+      const { data: userRoles, error: rolesError } = await supabase
         .from('papeis_usuarios')
         .select(`
           perfis (
@@ -169,17 +169,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         `)
         .eq('usuario_id', data.user.id);
 
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError);
+        toast.error('Erro ao carregar perfis do usuário');
+        return;
+      }
+
       const roles = userRoles?.map((ur: any) => ur.perfis.nome) || [];
       console.log('User roles:', roles);
 
       // Check if user is confirmed
-      const { data: userProfile } = await supabase
+      const { data: userProfile, error: profileError } = await supabase
         .from('usuarios')
         .select('confirmado')
         .eq('id', data.user.id)
         .single();
 
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+        toast.error('Erro ao carregar perfil do usuário');
+        return;
+      }
+
       if (!userProfile?.confirmado) {
+        console.log('User not confirmed, redirecting to pending approval');
         toast.warning('Seu cadastro está pendente de aprovação.');
         navigate('/pending-approval');
         return;
@@ -202,6 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         redirectPath = '/admin-dashboard';
       }
 
+      console.log('Redirecting to:', redirectPath);
       toast.success("Login realizado com sucesso!");
       navigate(redirectPath);
     } catch (error) {
