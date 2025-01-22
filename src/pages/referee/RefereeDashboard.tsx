@@ -1,7 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogOut, Whistle } from 'lucide-react';
+import { LogOut, Flag } from 'lucide-react';
 
 export default function RefereeDashboard() {
   const { signOut, user } = useAuth();
@@ -26,7 +26,7 @@ export default function RefereeDashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Whistle className="h-5 w-5 text-olimpics-green-primary" />
+              <Flag className="h-5 w-5 text-olimpics-green-primary" />
               Painel do Juiz
             </CardTitle>
           </CardHeader>
