@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           // Map roles correctly from the perfis table
-          const papeis = userRoles?.map((ur: UserRoleResponse) => ur.perfis.nome) || [];
+          const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
           
           setUser({
             ...session.user,
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', session.user.id)
           .single();
 
-        const papeis = userRoles?.map((ur: UserRoleResponse) => ur.perfis.nome) || [];
+        const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
         
         setUser({
           ...session.user,
