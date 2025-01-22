@@ -240,7 +240,14 @@ const Login = () => {
         console.log('Athlete inscriptions registered successfully');
       }
   
+      // ✅ Show success message only once
       toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
+  
+      // ✅ Redirect to Login tab
+      document.querySelector("[data-state='active'][value='register']")
+        ?.setAttribute("data-state", "inactive");
+      document.querySelector("[value='login']")?.setAttribute("data-state", "active");
+  
       console.log('Registration successful:', signUpResult.user);
   
     } catch (error) {
@@ -249,7 +256,7 @@ const Login = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  };  
   
   const onForgotPasswordSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
     try {
