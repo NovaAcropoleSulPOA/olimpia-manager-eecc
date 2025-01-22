@@ -258,7 +258,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const inscricoesToInsert = userData.modalities.map((modalidadeId: number) => ({
           atleta_id: data.user.id,
           modalidade_id: modalidadeId,
-          status: 'pendente',
+          status: 'Pendente', // Updated to match the database constraint
           data_inscricao: new Date().toISOString()
         }));
 
