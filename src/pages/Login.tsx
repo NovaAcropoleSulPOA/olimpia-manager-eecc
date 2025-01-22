@@ -138,30 +138,36 @@ const Login = () => {
     try {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
-
+  
       // Check if email already exists
-      const { data: existingUser } = await supabase
+      const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
         .select('id')
         .eq('email', values.email)
-        .single();
-
+        .maybeSingle(); // ✅ Fix: Use maybeSingle() to avoid 406 error
+  
+      if (checkError) {
+        console.error('Error checking existing user:', checkError);
+        toast.error('Erro ao verificar cadastro existente.');
+        return;
+      }
+  
       if (existingUser) {
         toast.error("Este e-mail já está cadastrado. Por favor, use outro e-mail ou faça login.");
         return;
       }
-
+  
       const signUpResult = await signUp({
         ...values,
         telefone: values.telefone.replace(/\D/g, ''), // Remove non-digits before saving
       });
-
+  
       if (signUpResult.error) {
         console.error('Registration error:', signUpResult.error);
         toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
         return;
       }
-
+  
       // Create payment record if user is an athlete (role_id = 1)
       if (values.roleIds.includes(1)) {
         const { error: paymentError } = await supabase
@@ -173,26 +179,25 @@ const Login = () => {
             comprovante_url: null,
             validado_sem_comprovante: false,
             data_validacao: null,
-            data_criacao: new Date().toISOString()
           }]);
-
+  
         if (paymentError) {
           console.error('Payment record creation error:', paymentError);
           toast.error('Erro ao criar registro de pagamento.');
           return;
         }
       }
-
-      toast.success('Cadastro realizado com sucesso! Aguarde a confirmação do seu cadastro.');
+  
+      toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
       console.log('Registration successful:', signUpResult.user);
-      
+  
     } catch (error) {
       console.error('Registration process error:', error);
       toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
-  };
+  };  
 
   const onForgotPasswordSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
     try {
