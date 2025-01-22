@@ -126,13 +126,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
-      // Check email verification status
       if (!data.user.email_confirmed_at) {
         toast.error('Por favor, verifique seu email antes de fazer login.');
         return;
       }
 
-      // Check user status
       const { data: userProfile } = await supabase
         .from('usuarios')
         .select('confirmado')
@@ -207,7 +205,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           nome_completo: userData.nome,
           telefone: userData.telefone.replace(/\D/g, ''),
           email: userData.email,
-          senha: userData.password, // Add the password to the usuarios table
           filial_id: userData.branchId,
           confirmado: false,
           data_criacao: new Date().toISOString()
