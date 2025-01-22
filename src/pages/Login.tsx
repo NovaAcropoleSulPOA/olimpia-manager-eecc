@@ -14,7 +14,7 @@ import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import PaymentInfo from '@/components/PaymentInfo';
 import { useQuery } from '@tanstack/react-query';
-import { fetchModalities, fetchBranches } from '@/lib/api';
+import { fetchModalities, fetchBranches, fetchRoles, type Role } from '@/lib/api';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
@@ -24,22 +24,12 @@ const loginSchema = z.object({
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
 });
 
-const roles = ["atleta", "organizador", "juiz"] as const;
-const branches = [
-  "Atletismo",
-  "Basquete",
-  "Futebol",
-  "Ginástica",
-  "Natação",
-  "Vôlei",
-] as const;
-
 const registerSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
-  roles: z.array(z.enum(roles)).min(1, "Selecione pelo menos um perfil"),
+  roleIds: z.array(z.number()).min(1, "Selecione pelo menos um perfil"),
   branchId: z.number({
     required_error: "Selecione uma filial",
   }),
@@ -76,7 +66,7 @@ const Login = () => {
       email: '',
       password: '',
       confirmPassword: '',
-      roles: [],
+      roleIds: [],
       branchId: undefined,
       modalities: [],
     },
@@ -90,6 +80,11 @@ const Login = () => {
   const { data: branches, isLoading: isLoadingBranches } = useQuery({
     queryKey: ['branches'],
     queryFn: fetchBranches,
+  });
+
+  const { data: roles, isLoading: isLoadingRoles } = useQuery({
+    queryKey: ['roles'],
+    queryFn: fetchRoles,
   });
 
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
@@ -110,7 +105,16 @@ const Login = () => {
       if (selectedFile) {
         formData.append('paymentProof', selectedFile);
       }
-      await signUp({ ...values, paymentProof: formData });
+      
+      const signUpResult = await signUp({ 
+        ...values, 
+        roles: values.roleIds 
+      });
+      
+      if (signUpResult?.user?.id) {
+        await assignUserRoles(signUpResult.user.id, values.roleIds);
+      }
+      
       toast.success('Cadastro realizado com sucesso! Aguarde a aprovação.');
     } catch (error) {
       console.error('Registration error:', error);
@@ -327,50 +331,52 @@ const Login = () => {
 
                   <FormField
                     control={registerForm.control}
-                    name="roles"
+                    name="roleIds"
                     render={() => (
                       <FormItem>
                         <FormLabel>Perfis</FormLabel>
                         <div className="grid grid-cols-2 gap-2">
-                          {roles.map((role) => (
-                            <FormField
-                              key={role}
-                              control={registerForm.control}
-                              name="roles"
-                              render={({ field }) => {
-                                return (
-                                  <FormItem
-                                    key={role}
-                                    className="flex flex-row items-start space-x-3 space-y-0"
-                                  >
-                                    <FormControl>
-                                      <Checkbox
-                                        checked={field.value?.includes(role)}
-                                        onCheckedChange={(checked) => {
-                                          const updatedValue = checked
-                                            ? [...field.value, role]
-                                            : field.value?.filter((value) => value !== role);
-                                          field.onChange(updatedValue);
-                                        }}
-                                      />
-                                    </FormControl>
-                                    <FormLabel className="font-normal">
-                                      {role === 'atleta' ? 'Atleta' : 
-                                       role === 'organizador' ? 'Organizador/a' : 
-                                       'Juíz/a'}
-                                    </FormLabel>
-                                  </FormItem>
-                                );
-                              }}
-                            />
-                          ))}
+                          {isLoadingRoles ? (
+                            <div>Carregando perfis...</div>
+                          ) : (
+                            roles?.map((role) => (
+                              <FormField
+                                key={role.id}
+                                control={registerForm.control}
+                                name="roleIds"
+                                render={({ field }) => {
+                                  return (
+                                    <FormItem
+                                      key={role.id}
+                                      className="flex flex-row items-start space-x-3 space-y-0"
+                                    >
+                                      <FormControl>
+                                        <Checkbox
+                                          checked={field.value?.includes(role.id)}
+                                          onCheckedChange={(checked) => {
+                                            const updatedValue = checked
+                                              ? [...(field.value || []), role.id]
+                                              : field.value?.filter((value) => value !== role.id);
+                                            field.onChange(updatedValue);
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <FormLabel className="font-normal">
+                                        {role.nome}
+                                      </FormLabel>
+                                    </FormItem>
+                                  );
+                                }}
+                              />
+                            ))
+                          )}
                         </div>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  {registerForm.watch("roles").includes("atleta") && (
+                  {registerForm.watch("roleIds").includes("atleta") && (
                     <FormField
                       control={registerForm.control}
                       name="modalities"

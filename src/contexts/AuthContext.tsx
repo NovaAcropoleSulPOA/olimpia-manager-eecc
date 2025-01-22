@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 interface AuthUser extends User {
-  roles?: string[];
+  roleIds?: number[];
   nome?: string;
   status?: 'pendente' | 'aprovado' | 'rejeitado';
 }
@@ -15,7 +15,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  signUp: (userData: any) => Promise<void>;
+  signUp: (userData: any) => Promise<{ user: AuthUser | null; error: Error | null; }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,19 +28,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('Setting up Supabase auth listener');
     
-    // Set up Supabase auth listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user);
-        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Fetch user roles when session changes
+          const { data: userRoles } = await supabase
+            .from('papeis_usuarios')
+            .select('role_id')
+            .eq('user_id', session.user.id);
+
+          const roleIds = userRoles?.map(ur => ur.role_id) || [];
+          
+          setUser({
+            ...session.user,
+            roleIds
+          });
+        } else {
+          setUser(null);
+        }
+        
         setLoading(false);
       }
     );
 
     // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log('Initial session check:', session?.user);
-      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const { data: userRoles } = await supabase
+          .from('papeis_usuarios')
+          .select('role_id')
+          .eq('user_id', session.user.id);
+
+        const roleIds = userRoles?.map(ur => ur.role_id) || [];
+        
+        setUser({
+          ...session.user,
+          roleIds
+        });
+      } else {
+        setUser(null);
+      }
+      
       setLoading(false);
     });
 
@@ -94,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         options: {
           data: {
             nome: userData.nome,
-            roles: userData.roles,
+            roleIds: userData.roleIds,
             status: 'pendente',
           },
         },
@@ -105,10 +137,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Sign up successful:', data.user);
       toast.success('Cadastro realizado com sucesso! Aguarde a aprovação.');
       navigate('/login');
+      
+      return { user: data.user, error: null };
     } catch (error: any) {
       console.error('Sign up error:', error);
       toast.error('Erro ao realizar cadastro.');
-      throw error;
+      return { user: null, error };
     }
   };
 

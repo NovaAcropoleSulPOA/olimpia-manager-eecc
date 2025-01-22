@@ -12,6 +12,11 @@ export interface Branch {
   cidade: string;
 }
 
+export interface Role {
+  id: number;
+  nome: string;
+}
+
 export const fetchModalities = async (): Promise<Modality[]> => {
   console.log('Fetching modalities from database');
   const { data, error } = await supabase
@@ -40,4 +45,37 @@ export const fetchBranches = async (): Promise<Branch[]> => {
   
   console.log('Fetched branches:', data);
   return data;
+};
+
+export const fetchRoles = async (): Promise<Role[]> => {
+  console.log('Fetching roles from database');
+  const { data, error } = await supabase
+    .from('perfis')
+    .select('*');
+  
+  if (error) {
+    console.error('Error fetching roles:', error);
+    throw error;
+  }
+  
+  console.log('Fetched roles:', data);
+  return data;
+};
+
+export const assignUserRoles = async (userId: string, roleIds: number[]) => {
+  console.log('Assigning roles to user:', userId, roleIds);
+  
+  const { error } = await supabase
+    .from('papeis_usuarios')
+    .upsert(
+      roleIds.map(roleId => ({
+        user_id: userId,
+        role_id: roleId
+      }))
+    );
+
+  if (error) {
+    console.error('Error assigning user roles:', error);
+    throw error;
+  }
 };
