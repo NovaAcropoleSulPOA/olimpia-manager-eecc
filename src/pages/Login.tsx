@@ -193,15 +193,19 @@ const Login = () => {
     try {
       setIsSubmitting(true);
       
-      // Check if email exists and is confirmed
-      const { data: { user }, error: userError } = await supabase.auth.admin.getUserByEmail(values.email);
+      // Check if email exists and is confirmed using the usuarios table
+      const { data: userData, error: userError } = await supabase
+        .from('usuarios')
+        .select('id, email_confirmed_at')
+        .eq('email', values.email)
+        .single();
       
-      if (userError || !user) {
+      if (userError || !userData) {
         toast.error('Email não encontrado.');
         return;
       }
 
-      if (!user.email_confirmed_at) {
+      if (!userData.email_confirmed_at) {
         toast.error('Seu e-mail ainda não foi validado. Verifique seu e-mail e conclua a ativação antes de solicitar a recuperação de senha.');
         return;
       }

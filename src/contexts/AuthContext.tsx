@@ -185,6 +185,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+      navigate('/login');
+      toast.success('Logout realizado com sucesso!');
+    } catch (error: any) {
+      console.error('Error signing out:', error);
+      toast.error('Erro ao fazer logout.');
+    }
+  };
+
   const signUp = async (userData: any) => {
     try {
       console.log('Starting user registration process:', userData);
@@ -297,8 +310,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resendVerificationEmail = async (email: string) => {
     try {
-      // Check if email is already confirmed
-      const { data: { user }, error: userError } = await supabase.auth.admin.getUserByEmail(email);
+      // Check if email exists in the database first
+      const { data: userData, error: userError } = await supabase
+        .from('usuarios')
+        .select('id, email_confirmed_at')
+        .eq('email', email)
+        .single();
       
       if (userError) {
         console.error('Error checking user:', userError);
@@ -306,7 +323,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      if (user?.email_confirmed_at) {
+      if (userData?.email_confirmed_at) {
         toast.error('Este e-mail já foi confirmado. Por favor, faça login.');
         navigate('/login');
         return;
