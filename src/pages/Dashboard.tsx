@@ -88,7 +88,7 @@ const Dashboard = () => {
 
           {isConfirmed && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {user?.roleIds?.includes(1) && (
+              {user?.papeis?.includes('atleta') && (
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle className="text-lg">Painel do Atleta</CardTitle>
@@ -106,7 +106,7 @@ const Dashboard = () => {
                 </Card>
               )}
               
-              {user?.roleIds?.includes(2) && (
+              {user?.papeis?.includes('organizador') && (
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle className="text-lg">Painel do Organizador</CardTitle>
@@ -124,7 +124,7 @@ const Dashboard = () => {
                 </Card>
               )}
               
-              {user?.roleIds?.includes(3) && (
+              {user?.papeis?.includes('juiz') && (
                 <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <CardTitle className="text-lg">Painel do Juiz</CardTitle>
