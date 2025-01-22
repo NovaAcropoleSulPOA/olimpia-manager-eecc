@@ -206,7 +206,7 @@ const Login = () => {
         .single();
       
       if (userError || !userData) {
-        toast.error('Email não encontrado.');
+        toast.error('Email não encontrado. Valide o seu e-mail ou realize o cadastro.');
         return;
       }
 
