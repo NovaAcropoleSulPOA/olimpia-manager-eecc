@@ -138,7 +138,7 @@ const Login = () => {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
   
-      // Check if email already exists
+      // Verifica se o e-mail já existe
       const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
         .select('id')
@@ -152,14 +152,14 @@ const Login = () => {
       }
   
       if (existingUser) {
-        toast.error("Este e-mail já está cadastrado. Por favor, use outro e-mail ou faça login.");
+        toast.error("Este e-mail já está cadastrado. Por favor, faça login.");
         return;
       }
   
-      // Start Sign Up Process
+      // Criação do usuário no Supabase Auth
       const signUpResult = await signUp({
         ...values,
-        telefone: values.telefone.replace(/\D/g, ''), // Remove non-digits before saving
+        telefone: values.telefone.replace(/\D/g, ''), // Remove caracteres não numéricos
       });
   
       if (signUpResult.error) {
@@ -171,13 +171,12 @@ const Login = () => {
       const userId = signUpResult.user.id;
       console.log(`User registered successfully with ID: ${userId}`);
   
-      // Ensure user ID exists before inserting dependent records
       if (!userId) {
         toast.error("Erro ao obter ID do usuário.");
         return;
       }
   
-      // Insert roles into papeis_usuarios
+      // Cadastro dos papéis do usuário
       const { error: rolesError } = await supabase
         .from('papeis_usuarios')
         .insert(
@@ -195,7 +194,7 @@ const Login = () => {
   
       console.log('User roles assigned successfully');
   
-      // Insert payment record if user is an athlete (role_id = 1)
+      // Registro de pagamento se o usuário for atleta
       if (values.roleIds.includes(1)) {
         console.log(`Registering payment for user ID: ${userId}`);
         const { error: paymentError } = await supabase
@@ -207,7 +206,7 @@ const Login = () => {
             comprovante_url: null,
             validado_sem_comprovante: false,
             data_validacao: null,
-            data_criacao: new Date().toISOString() // ✅ Fix: Set data_criacao explicitly
+            data_criacao: new Date().toISOString()
           }]);
   
         if (paymentError) {
@@ -217,7 +216,7 @@ const Login = () => {
         }
       }
   
-      // Insert athlete inscriptions into inscricoes if user is an athlete
+      // Registro das inscrições do atleta se for necessário
       if (values.roleIds.includes(1) && values.modalities?.length > 0) {
         console.log(`Registering athlete inscriptions for user ID: ${userId}`);
         const inscricoesToInsert = values.modalities.map(modalidadeId => ({
@@ -240,10 +239,10 @@ const Login = () => {
         console.log('Athlete inscriptions registered successfully');
       }
   
-      // ✅ Show success message only once
+      // ✅ Mensagem de sucesso exibida apenas uma vez
       toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
   
-      // ✅ Redirect to Login tab
+      // ✅ Redirecionamento para a aba de Login
       document.querySelector("[data-state='active'][value='register']")
         ?.setAttribute("data-state", "inactive");
       document.querySelector("[value='login']")?.setAttribute("data-state", "active");
