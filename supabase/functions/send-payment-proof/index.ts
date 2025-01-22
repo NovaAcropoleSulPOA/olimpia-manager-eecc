@@ -15,13 +15,7 @@ serve(async (req) => {
   try {
     const { userEmail, userName, branch, roles, modalities, attachment } = await req.json()
 
-    console.log('Received request with data:', {
-      userEmail,
-      userName,
-      branch,
-      roles,
-      modalities,
-    })
+    console.log('Processing email request for:', { userEmail, userName });
 
     // Construct email content
     const emailContent = `
@@ -44,7 +38,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        to: 'admin@olimpiadas.com.br', // Replace with actual admin email
+        to: 'admin@olimpiadas.com.br',
         subject: 'Novo Comprovante de Pagamento - Olimpíadas RS 2025',
         text: emailContent,
         attachments: [
@@ -55,13 +49,16 @@ serve(async (req) => {
           }
         ],
       }),
-    })
+    });
 
     if (!emailResponse.ok) {
-      const errorData = await emailResponse.text()
-      console.error('Email sending failed:', errorData)
-      throw new Error(`Failed to send email: ${errorData}`)
+      const errorData = await emailResponse.text();
+      console.error('Email sending failed:', errorData);
+      throw new Error(`Failed to send email: ${errorData}`);
     }
+
+    const responseData = await emailResponse.json();
+    console.log('Email sent successfully:', responseData);
 
     return new Response(
       JSON.stringify({ message: 'Email sent successfully' }),
@@ -71,7 +68,7 @@ serve(async (req) => {
       },
     )
   } catch (error) {
-    console.error('Error processing request:', error)
+    console.error('Error processing request:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

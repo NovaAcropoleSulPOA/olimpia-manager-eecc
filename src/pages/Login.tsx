@@ -127,8 +127,8 @@ const Login = () => {
       const selectedRoles = roles?.filter(r => values.roleIds.includes(r.id));
       const selectedModalities = modalities?.filter(m => values.modalities?.includes(m.id));
 
-      // Send email with payment proof
-      const { error: emailError } = await supabase.functions.invoke('send-payment-proof', {
+      // Send email with payment proof using Edge Function
+      const { data: emailData, error: emailError } = await supabase.functions.invoke('send-payment-proof', {
         body: {
           userEmail: values.email,
           userName: values.nome,
@@ -140,7 +140,7 @@ const Login = () => {
             filename: fileName,
             type: selectedFile.type,
           }
-        }
+        },
       });
 
       if (emailError) {
@@ -149,10 +149,12 @@ const Login = () => {
         return;
       }
 
-      // Register user with Supabase Auth and create profile
+      console.log('Email sent successfully:', emailData);
+
+      // Register user with Supabase Auth
       const signUpResult = await signUp({ 
         ...values,
-        paymentProof: fileName // Store just the filename reference
+        paymentProof: fileName
       });
 
       if (signUpResult.error) {
