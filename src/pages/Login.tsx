@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Add this import
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -59,23 +59,7 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { signIn, signUp } = useAuth();
-  const navigate = useNavigate();
-
-  // Fetch data using React Query
-  const { data: modalities, isLoading: isLoadingModalities } = useQuery({
-    queryKey: ['modalities'],
-    queryFn: fetchModalities,
-  });
-
-  const { data: branches, isLoading: isLoadingBranches } = useQuery({
-    queryKey: ['branches'],
-    queryFn: fetchBranches,
-  });
-
-  const { data: roles, isLoading: isLoadingRoles } = useQuery({
-    queryKey: ['roles'],
-    queryFn: fetchRoles,
-  });
+  const navigate = useNavigate(); // Add this line
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -104,6 +88,21 @@ const Login = () => {
     defaultValues: {
       email: '',
     },
+  });
+
+  const { data: modalities, isLoading: isLoadingModalities } = useQuery({
+    queryKey: ['modalities'],
+    queryFn: fetchModalities,
+  });
+
+  const { data: branches, isLoading: isLoadingBranches } = useQuery({
+    queryKey: ['branches'],
+    queryFn: fetchBranches,
+  });
+
+  const { data: roles, isLoading: isLoadingRoles } = useQuery({
+    queryKey: ['roles'],
+    queryFn: fetchRoles,
   });
 
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
@@ -421,11 +420,8 @@ const Login = () => {
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger 
-                                className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                                disabled={isLoadingBranches}
-                              >
-                                <SelectValue placeholder="Selecione sua Filial" />
+                              <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
+                                <SelectValue placeholder="Selecione uma filial" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
