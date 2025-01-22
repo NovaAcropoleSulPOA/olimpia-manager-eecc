@@ -148,11 +148,13 @@ const Login = () => {
       if (checkError) {
         console.error('Error checking existing user:', checkError);
         toast.error('Erro ao verificar cadastro existente.');
+        setIsSubmitting(false);
         return;
       }
   
       if (existingUser) {
         toast.error("Este e-mail já está cadastrado. Por favor, faça login.");
+        setIsSubmitting(false);
         return;
       }
   
@@ -162,33 +164,35 @@ const Login = () => {
         telefone: values.telefone.replace(/\D/g, ''), // Remove caracteres não numéricos
       });
   
-      if (signUpResult.error) {
+      if (signUpResult.error || !signUpResult.user) {
         console.error('Registration error:', signUpResult.error);
         toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
+        setIsSubmitting(false);
         return;
       }
   
       const userId = signUpResult.user.id;
       console.log(`User registered successfully with ID: ${userId}`);
   
+      // Se não houver ID de usuário, aborta o fluxo
       if (!userId) {
         toast.error("Erro ao obter ID do usuário.");
+        setIsSubmitting(false);
         return;
       }
   
       // Cadastro dos papéis do usuário
       const { error: rolesError } = await supabase
         .from('papeis_usuarios')
-        .insert(
-          values.roleIds.map(roleId => ({
-            usuario_id: userId,
-            perfil_id: roleId
-          }))
-        );
+        .insert(values.roleIds.map(roleId => ({
+          usuario_id: userId,
+          perfil_id: roleId
+        })));
   
       if (rolesError) {
         console.error('Role assignment error:', rolesError);
         toast.error('Erro ao atribuir os papéis do usuário.');
+        setIsSubmitting(false);
         return;
       }
   
@@ -206,12 +210,13 @@ const Login = () => {
             comprovante_url: null,
             validado_sem_comprovante: false,
             data_validacao: null,
-            data_criacao: new Date().toISOString() // ✅ Define data_criacao corretamente
+            data_criacao: new Date().toISOString()
           }]);
   
         if (paymentError) {
           console.error('Payment record creation error:', paymentError);
           toast.error('Erro ao criar registro de pagamento.');
+          setIsSubmitting(false);
           return;
         }
       }
@@ -233,18 +238,15 @@ const Login = () => {
         if (inscricoesError) {
           console.error('Modality registration error:', inscricoesError);
           toast.error('Erro ao salvar as inscrições do atleta.');
+          setIsSubmitting(false);
           return;
         }
   
         console.log('Athlete inscriptions registered successfully');
       }
   
-      // ✅ Mensagem de sucesso exibida **somente uma vez**
-      if (!toast.active("register-success")) {
-        toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.', {
-          id: "register-success"
-        });
-      }
+      // ✅ Mensagem de sucesso exibida **somente se tudo der certo**
+      toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
   
       // ✅ Redirecionamento para a aba de Login
       setTimeout(() => {
@@ -256,7 +258,7 @@ const Login = () => {
           loginTab.setAttribute("data-state", "active");
           loginTab.click(); // Simula o clique na aba de login
         }
-      }, 500); // Aguarda meio segundo antes de trocar a aba
+      }, 500);
   
       console.log('Registration successful:', signUpResult.user);
   
