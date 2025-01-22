@@ -83,7 +83,7 @@ export const assignUserRoles = async (userId: string, roles: string[]) => {
     .upsert(
       roles.map(role => ({
         usuario_id: userId,
-        tipo_papel: role.toLowerCase() // Changed to tipo_papel
+        papel: role.toLowerCase()
       }))
     );
 
@@ -127,7 +127,7 @@ export const fetchPendingUsers = async (): Promise<User[]> => {
       nome_completo,
       confirmado,
       papeis_usuarios (
-        tipo_papel
+        papel
       )
     `)
     .eq('confirmado', false);
@@ -140,16 +140,16 @@ export const fetchPendingUsers = async (): Promise<User[]> => {
   return data.map((user: any) => ({
     ...user,
     roles: user.papeis_usuarios.map((pu: any) => ({
-      id: getRoleId(pu.tipo_papel),
-      nome: pu.tipo_papel,
-      descricao: getRoleDescription(pu.tipo_papel)
+      id: getRoleId(pu.papel),
+      nome: pu.papel,
+      descricao: getRoleDescription(pu.papel)
     }))
   }));
 };
 
-// Helper function to map tipo_papel to role ID
-const getRoleId = (tipoPapel: string): number => {
-  switch (tipoPapel.toLowerCase()) {
+// Helper function to map papel to role ID
+const getRoleId = (papel: string): number => {
+  switch (papel.toLowerCase()) {
     case 'atleta': return 1;
     case 'organizador': return 2;
     case 'juiz': return 3;
@@ -158,8 +158,8 @@ const getRoleId = (tipoPapel: string): number => {
 };
 
 // Helper function to get role description
-const getRoleDescription = (tipoPapel: string): string => {
-  switch (tipoPapel.toLowerCase()) {
+const getRoleDescription = (papel: string): string => {
+  switch (papel.toLowerCase()) {
     case 'atleta': return 'Usuário que participa das competições';
     case 'organizador': return 'Usuário responsável pela organização de eventos';
     case 'juiz': return 'Usuário responsável por avaliar e pontuar as competições';
@@ -193,13 +193,13 @@ export const rejectUser = async (userId: string) => {
   }
 };
 
-export const removeUserRole = async (userId: string, tipoPapel: string) => {
-  console.log('Removing role from user:', userId, tipoPapel);
+export const removeUserRole = async (userId: string, papel: string) => {
+  console.log('Removing role from user:', userId, papel);
   const { error } = await supabase
     .from('papeis_usuarios')
     .delete()
     .eq('usuario_id', userId)
-    .eq('tipo_papel', tipoPapel.toLowerCase());
+    .eq('papel', papel.toLowerCase());
 
   if (error) {
     console.error('Error removing user role:', error);

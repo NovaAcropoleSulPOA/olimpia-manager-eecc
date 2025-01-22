@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Fetch user roles when session changes
           const { data: userRoles, error: rolesError } = await supabase
             .from('papeis_usuarios')
-            .select('tipo_papel')
+            .select('papel')
             .eq('usuario_id', session.user.id);
 
           if (rolesError) {
@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
 
-          const papeis = userRoles?.map(ur => ur.tipo_papel) || [];
+          const papeis = userRoles?.map(ur => ur.papel) || [];
           
           setUser({
             ...session.user,
@@ -68,7 +68,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ...userProfile
           });
 
-          // Handle different user statuses
           if (!userProfile?.confirmado) {
             toast.warning('Seu cadastro está pendente de aprovação.');
             navigate('/pending-approval');
@@ -88,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         const { data: userRoles } = await supabase
           .from('papeis_usuarios')
-          .select('tipo_papel')
+          .select('papel')
           .eq('usuario_id', session.user.id);
 
         const { data: userProfile } = await supabase
@@ -97,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', session.user.id)
           .single();
 
-        const papeis = userRoles?.map(ur => ur.tipo_papel) || [];
+        const papeis = userRoles?.map(ur => ur.papel) || [];
         
         setUser({
           ...session.user,
@@ -173,7 +172,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Starting user registration process:', userData);
       
-      // Step 1: Create user in Supabase Auth
       const { data, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -197,7 +195,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('User created in Supabase Auth:', data.user);
 
-      // Step 2: Create user profile in usuarios table
       const { error: profileError } = await supabase
         .from('usuarios')
         .insert([{
@@ -218,18 +215,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('User profile created in usuarios table');
 
-      // Step 3: Assign user roles
       const rolesToInsert = userData.roleIds.map((roleId: number) => {
-        let tipo_papel;
+        let papel;
         switch (roleId) {
-          case 1: tipo_papel = 'atleta'; break;
-          case 2: tipo_papel = 'organizador'; break;
-          case 3: tipo_papel = 'juiz'; break;
+          case 1: papel = 'atleta'; break;
+          case 2: papel = 'organizador'; break;
+          case 3: papel = 'juiz'; break;
           default: return null;
         }
         return {
           usuario_id: data.user.id,
-          tipo_papel
+          papel
         };
       }).filter(Boolean);
 
@@ -245,7 +241,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('User roles assigned successfully');
 
-      // Step 4: If user is an athlete, store modality selections
       if (userData.roleIds.includes(1) && userData.modalities?.length > 0) {
         const inscricoesToInsert = userData.modalities.map((modalidadeId: number) => ({
           atleta_id: data.user.id,
