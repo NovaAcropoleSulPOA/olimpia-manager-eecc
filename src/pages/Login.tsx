@@ -125,8 +125,8 @@ const Login = () => {
       if (uploadError) {
         console.error('Error uploading payment proof:', uploadError);
         
-        // Check if bucket doesn't exist
-        if (uploadError.statusCode === 404 || uploadError.statusCode === 400) {
+        // Check if bucket doesn't exist using error message instead of statusCode
+        if (uploadError.message.includes('not found') || uploadError.message.includes('bucket')) {
           toast.error('Erro no sistema de armazenamento. Por favor, contate o suporte.');
         } else {
           toast.error('Erro ao fazer upload do comprovante de pagamento.');
