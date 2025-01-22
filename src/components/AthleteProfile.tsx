@@ -19,7 +19,7 @@ interface Inscription {
   id: number;
   status: 'Pendente' | 'Confirmada' | 'Recusada' | 'Cancelada';
   data_inscricao: string;
-  modalidade: Modality[]; // Agora pode armazenar múltiplas modalidades
+  modalidade: Modality; // Remove o array []
 }
 
 interface Score {
@@ -65,31 +65,35 @@ export default function AthleteProfile() {
   const fetchInscriptions = async () => {
     try {
       const { data, error } = await supabase
-      .from('inscricoes')
-      .select(`
-        id,
-        status,
-        data_inscricao,
-        modalidade:modalidades!inner (
+        .from('inscricoes')
+        .select(`
           id,
-          nome,
-          tipo_pontuacao,
-          tipo_modalidade,
-          categoria
-        )
-      `)
-      .eq('atleta_id', user?.id);
-    
-    if (error) throw error;
-    
-    // Ajuste para armazenar múltiplas modalidades corretamente
-    setInscriptions(data || []);
-    
+          status,
+          data_inscricao,
+          modalidade:modalidades (
+            id,
+            nome,
+            tipo_pontuacao,
+            tipo_modalidade,
+            categoria
+          )
+        `)
+        .eq('atleta_id', user?.id);
+  
+      if (error) throw error;
+  
+      // Ajustar para armazenar como um único objeto, não array
+      const formattedData = data.map(insc => ({
+        ...insc,
+        modalidade: insc.modalidade[0] // Pega o primeiro item do array
+      }));
+  
+      setInscriptions(formattedData || []);
     } catch (error) {
       console.error('Error fetching inscriptions:', error);
       toast.error('Erro ao carregar inscrições');
     }
-  };
+  };  
 
   const fetchAvailableModalities = async () => {
     try {
@@ -123,15 +127,21 @@ export default function AthleteProfile() {
           )
         `)
         .eq('atleta_id', user?.id);
-
+  
       if (error) throw error;
-
-      setScores(data || []);
+  
+      // Certifique-se de que modalidade não seja um array
+      const formattedData = data.map(score => ({
+        ...score,
+        modalidade: score.modalidade[0] // Apenas o primeiro item do array
+      }));
+  
+      setScores(formattedData || []);
     } catch (error) {
       console.error('Error fetching scores:', error);
       toast.error('Erro ao carregar pontuações');
     }
-  };
+  };  
 
   const fetchBranch = async () => {
     if (!user?.filial_id) return;
