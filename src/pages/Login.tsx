@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -562,17 +562,6 @@ const Login = () => {
             </Tabs>
           )}
         </CardContent>
-        {!showForgotPassword && (
-          <CardFooter className="flex justify-center">
-            <Button
-              variant="link"
-              onClick={() => setShowForgotPassword(true)}
-              className="text-olimpics-orange-primary hover:text-olimpics-orange-secondary"
-            >
-              Esqueceu sua senha?
-            </Button>
-          </CardFooter>
-        )}
       </Card>
     </div>
   );
