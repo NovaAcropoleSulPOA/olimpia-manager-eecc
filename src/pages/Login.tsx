@@ -106,13 +106,28 @@ const Login = () => {
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
       setIsSubmitting(true);
-      await signIn(values.email, values.password);
+      const { error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
+      });
+  
+      if (error) {
+        if (error.code === "email_not_confirmed") {
+          toast.error("Seu e-mail ainda não foi confirmado. Verifique seu e-mail e clique no link de ativação antes de fazer login.");
+        } else {
+          toast.error("Erro ao fazer login. Verifique suas credenciais.");
+        }
+        return;
+      }
+  
+      toast.success("Login realizado com sucesso!");
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Unexpected Login Error:", error);
+      toast.error("Ocorreu um erro inesperado. Tente novamente.");
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }; 
 
   const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
