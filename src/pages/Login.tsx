@@ -108,16 +108,25 @@ const Login = () => {
       let paymentProofUrl = null;
       if (selectedFile) {
         console.log('Uploading payment proof');
+        const fileExt = selectedFile.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        
         const { data: fileData, error: uploadError } = await supabase.storage
           .from('payment-proofs')
-          .upload(`${Date.now()}-${selectedFile.name}`, selectedFile);
+          .upload(fileName, selectedFile);
 
         if (uploadError) {
           console.error('Error uploading payment proof:', uploadError);
           toast.error('Erro ao fazer upload do comprovante de pagamento.');
           return;
         }
-        paymentProofUrl = fileData?.path;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('payment-proofs')
+          .getPublicUrl(fileName);
+          
+        paymentProofUrl = publicUrl;
+        console.log('Payment proof uploaded successfully:', paymentProofUrl);
       }
 
       // Register user with Supabase Auth and create profile
@@ -133,7 +142,7 @@ const Login = () => {
         return;
       }
 
-      // Success message and redirect are handled by AuthContext
+      // Success message is handled by AuthContext
       console.log('Registration successful:', signUpResult.user);
       
     } catch (error) {
