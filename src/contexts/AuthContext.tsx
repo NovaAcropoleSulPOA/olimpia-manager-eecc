@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Fetch user roles when session changes
           const { data: userRoles } = await supabase
             .from('papeis_usuarios')
-            .select('role')
+            .select('tipo_papel')
             .eq('usuario_id', session.user.id);
 
           // Fetch user profile from usuarios table
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .eq('id', session.user.id)
             .single();
 
-          const papeis = userRoles?.map(ur => ur.role) || [];
+          const papeis = userRoles?.map(ur => ur.tipo_papel) || [];
           
           setUser({
             ...session.user,
@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         const { data: userRoles } = await supabase
           .from('papeis_usuarios')
-          .select('role')
+          .select('tipo_papel')
           .eq('usuario_id', session.user.id);
 
         const { data: userProfile } = await supabase
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', session.user.id)
           .single();
 
-        const papeis = userRoles?.map(ur => ur.role) || [];
+        const papeis = userRoles?.map(ur => ur.tipo_papel) || [];
         
         setUser({
           ...session.user,
