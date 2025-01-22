@@ -1,6 +1,5 @@
 import { supabase } from './supabase';
 
-// Types matching database schema
 export interface Modality {
   id: number;
   nome: string;
@@ -178,4 +177,60 @@ export const rejectUser = async (userId: string) => {
     console.error('Error rejecting user:', error);
     throw error;
   }
+};
+
+export const createPaymentRecord = async (userId: string) => {
+  console.log('Creating payment record for user:', userId);
+  
+  const { error } = await supabase
+    .from('pagamentos')
+    .insert([{
+      atleta_id: userId,
+      valor: 180.00, // Default payment amount
+      status: 'pendente',
+      comprovante_url: null,
+      validado_sem_comprovante: false,
+      data_validacao: null,
+    }]);
+
+  if (error) {
+    console.error('Error creating payment record:', error);
+    throw error;
+  }
+};
+
+export const updateUserConfirmation = async (userId: string, confirmed: boolean) => {
+  console.log('Updating user confirmation:', userId, confirmed);
+  
+  const { error } = await supabase
+    .from('usuarios')
+    .update({ confirmado: confirmed })
+    .eq('id', userId);
+
+  if (error) {
+    console.error('Error updating user confirmation:', error);
+    throw error;
+  }
+};
+
+export const handlePaymentStatusChange = async (paymentId: string, newStatus: 'pendente' | 'confirmado' | 'cancelado') => {
+  console.log('Updating payment status:', paymentId, newStatus);
+  
+  const { data, error } = await supabase
+    .from('pagamentos')
+    .update({ 
+      status: newStatus,
+      data_validacao: newStatus === 'confirmado' ? new Date().toISOString() : null 
+    })
+    .eq('id', paymentId)
+    .select('atleta_id')
+    .single();
+
+  if (error) {
+    console.error('Error updating payment status:', error);
+    throw error;
+  }
+
+  // Update user confirmation based on payment status
+  await updateUserConfirmation(data.atleta_id, newStatus === 'confirmado');
 };

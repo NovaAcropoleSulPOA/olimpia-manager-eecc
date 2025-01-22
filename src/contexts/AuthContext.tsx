@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
+import { createPaymentRecord } from '@/lib/api';
 
 // Types that match our database schema
 interface AuthUser extends User {
@@ -193,7 +194,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (userData: any) => {
     try {
       console.log('Starting user registration process:', userData);
-      
       const { data, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -254,25 +254,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('User roles assigned successfully');
 
-      if (userData.roleIds.includes(1) && userData.modalities?.length > 0) {
-        const inscricoesToInsert = userData.modalities.map((modalidadeId: number) => ({
-          atleta_id: data.user.id,
-          modalidade_id: modalidadeId,
-          status: 'Pendente', // Updated to match the database constraint
-          data_inscricao: new Date().toISOString()
-        }));
-
-        const { error: inscricoesError } = await supabase
-          .from('inscricoes')
-          .insert(inscricoesToInsert);
-
-        if (inscricoesError) {
-          console.error('Modality registration error:', inscricoesError);
-          toast.error('Erro ao salvar as inscrições do atleta.');
-          return { user: null, error: inscricoesError };
+      // Create payment record if user is an athlete (role ID 1)
+      if (userData.roleIds.includes(1)) {
+        try {
+          await createPaymentRecord(data.user.id);
+          console.log('Payment record created successfully');
+        } catch (paymentError) {
+          console.error('Payment record creation error:', paymentError);
+          toast.error('Erro ao criar registro de pagamento.');
+          return { user: null, error: paymentError };
         }
 
-        console.log('Athlete modalities registered successfully');
+        if (userData.modalities?.length > 0) {
+          const inscricoesToInsert = userData.modalities.map((modalidadeId: number) => ({
+            atleta_id: data.user.id,
+            modalidade_id: modalidadeId,
+            status: 'Pendente',
+            data_inscricao: new Date().toISOString()
+          }));
+
+          const { error: inscricoesError } = await supabase
+            .from('inscricoes')
+            .insert(inscricoesToInsert);
+
+          if (inscricoesError) {
+            console.error('Modality registration error:', inscricoesError);
+            toast.error('Erro ao salvar as inscrições do atleta.');
+            return { user: null, error: inscricoesError };
+          }
+
+          console.log('Athlete modalities registered successfully');
+        }
       }
 
       toast.success('Cadastro realizado com sucesso! Por favor, verifique seu email.');
