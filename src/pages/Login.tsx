@@ -206,7 +206,7 @@ const Login = () => {
             comprovante_url: null,
             validado_sem_comprovante: false,
             data_validacao: null,
-            data_criacao: new Date().toISOString()
+            data_criacao: new Date().toISOString() // ✅ Define data_criacao corretamente
           }]);
   
         if (paymentError) {
@@ -239,13 +239,24 @@ const Login = () => {
         console.log('Athlete inscriptions registered successfully');
       }
   
-      // ✅ Mensagem de sucesso exibida apenas uma vez
-      toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
+      // ✅ Mensagem de sucesso exibida **somente uma vez**
+      if (!toast.active("register-success")) {
+        toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.', {
+          id: "register-success"
+        });
+      }
   
       // ✅ Redirecionamento para a aba de Login
-      document.querySelector("[data-state='active'][value='register']")
-        ?.setAttribute("data-state", "inactive");
-      document.querySelector("[value='login']")?.setAttribute("data-state", "active");
+      setTimeout(() => {
+        const loginTab = document.querySelector("[value='login']") as HTMLElement;
+        const registerTab = document.querySelector("[value='register']") as HTMLElement;
+        
+        if (loginTab && registerTab) {
+          registerTab.removeAttribute("data-state");
+          loginTab.setAttribute("data-state", "active");
+          loginTab.click(); // Simula o clique na aba de login
+        }
+      }, 500); // Aguarda meio segundo antes de trocar a aba
   
       console.log('Registration successful:', signUpResult.user);
   
