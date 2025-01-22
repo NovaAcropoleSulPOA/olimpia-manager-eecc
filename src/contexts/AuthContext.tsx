@@ -200,26 +200,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (userData: any) => {
     try {
-      console.log('Starting user registration process:', userData);
+      console.log('Checking if email already exists:', userData.email);
       
-      // Check if email already exists - using maybeSingle() to handle no results gracefully
+      // Check if the email is already registered
       const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
         .select('id')
         .eq('email', userData.email)
         .maybeSingle();
-
+  
       if (checkError) {
         console.error('Error checking existing user:', checkError);
         toast.error('Erro ao verificar cadastro existente.');
         return { user: null, error: checkError };
       }
-
+  
       if (existingUser) {
-        toast.error("Este e-mail já está cadastrado. Por favor, use outro e-mail ou faça login.");
+        toast.error("Este e-mail já está cadastrado. Por favor, faça login com sua conta existente.");
         return { user: null, error: new Error('Email already exists') };
       }
-
+  
+      console.log('Starting new user registration.');
+  
       const { data, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -227,85 +229,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           emailRedirectTo: `${window.location.origin}/verify-email`,
         },
       });
-
+  
       if (authError) {
         console.error('Auth Error:', authError.message);
-        if (authError.message.includes('User already registered')) {
-          toast.error("Este e-mail já está cadastrado. Por favor, use outro e-mail ou faça login.");
-        } else {
-          toast.error('Erro ao criar conta. Tente novamente.');
-        }
+        toast.error('Erro ao criar conta. Tente novamente.');
         return { user: null, error: authError };
       }
-
+  
       if (!data.user) {
-        const error = new Error('User creation failed');
-        console.error('User creation failed');
         toast.error('Erro ao criar conta. Tente novamente.');
-        return { user: null, error };
+        return { user: null, error: new Error('User creation failed') };
       }
-
+  
+      const userId = data.user.id;
+  
+      // Create user profile in usuarios table
       const { error: profileError } = await supabase
         .from('usuarios')
         .insert([{
-          id: data.user.id,
+          id: userId,
           nome_completo: userData.nome,
           telefone: userData.telefone.replace(/\D/g, ''),
           email: userData.email,
           filial_id: userData.branchId,
           confirmado: false,
-          data_criacao: new Date().toISOString()
         }]);
-
+  
       if (profileError) {
         console.error('Profile creation error:', profileError);
         toast.error('Erro ao salvar dados do usuário.');
         return { user: null, error: profileError };
       }
-
-      console.log('User profile created in usuarios table');
-
-      const { error: rolesError } = await supabase
-        .from('papeis_usuarios')
-        .insert(
-          userData.roleIds.map((roleId: number) => ({
-            usuario_id: data.user.id,
-            perfil_id: roleId
-          }))
-        );
-
-      if (rolesError) {
-        console.error('Role assignment error:', rolesError);
-        toast.error('Erro ao salvar os papéis do usuário.');
-        return { user: null, error: rolesError };
-      }
-
-      console.log('User roles assigned successfully');
-
-      if (userData.roleIds.includes(1) && userData.modalities?.length > 0) {
-        const inscricoesToInsert = userData.modalities.map((modalidadeId: number) => ({
-          atleta_id: data.user.id,
-          modalidade_id: modalidadeId,
-          status: 'Pendente', // Updated to match the database constraint
-          data_inscricao: new Date().toISOString()
-        }));
-
-        const { error: inscricoesError } = await supabase
-          .from('inscricoes')
-          .insert(inscricoesToInsert);
-
-        if (inscricoesError) {
-          console.error('Modality registration error:', inscricoesError);
-          toast.error('Erro ao salvar as inscrições do atleta.');
-          return { user: null, error: inscricoesError };
-        }
-
-        console.log('Athlete modalities registered successfully');
-      }
-
-      toast.success('Cadastro realizado com sucesso! Por favor, verifique seu email.');
+  
+      console.log('User profile created in usuarios table.');
+  
+      // Registration successful, instruct user to check email
+      toast.success('Cadastro realizado com sucesso! Verifique seu email para ativação.');
       navigate('/login');
-      
+  
       return { user: data.user, error: null };
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -313,6 +274,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { user: null, error };
     }
   };
+  
 
   const resendVerificationEmail = async (email: string) => {
     try {
