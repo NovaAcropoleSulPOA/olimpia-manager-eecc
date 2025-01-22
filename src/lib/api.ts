@@ -93,6 +93,29 @@ export const assignUserRoles = async (userId: string, roleIds: number[]) => {
   }
 };
 
+export const createUserProfile = async (userId: string, data: any) => {
+  console.log('Creating user profile:', userId, data);
+  
+  const { error } = await supabase
+    .from('usuarios')
+    .insert([
+      {
+        id: userId,
+        nome_completo: data.nome,
+        telefone: data.telefone.replace(/\D/g, ''),
+        email: data.email,
+        filial_id: data.branchId,
+        confirmado: false,
+        data_criacao: new Date().toISOString()
+      }
+    ]);
+
+  if (error) {
+    console.error('Error creating user profile:', error);
+    throw error;
+  }
+};
+
 export const fetchPendingUsers = async (): Promise<User[]> => {
   console.log('Fetching pending users');
   const { data, error } = await supabase
@@ -159,28 +182,6 @@ export const removeUserRole = async (userId: string, roleId: number) => {
 
   if (error) {
     console.error('Error removing user role:', error);
-    throw error;
-  }
-};
-
-export const createUserProfile = async (userId: string, data: any) => {
-  console.log('Creating user profile:', userId, data);
-  
-  const { error } = await supabase
-    .from('usuarios')
-    .insert([
-      {
-        id: userId,
-        nome_completo: data.nome,
-        confirmado: false,
-        filial_id: data.branchId,
-        telefone: data.telefone,
-        payment_proof: data.paymentProof
-      }
-    ]);
-
-  if (error) {
-    console.error('Error creating user profile:', error);
     throw error;
   }
 };

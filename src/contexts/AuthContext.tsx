@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { assignUserRoles } from '@/lib/api';
+import { assignUserRoles, createUserProfile } from '@/lib/api';
 
 interface AuthUser extends User {
+  nome_completo?: string;
+  telefone?: string;
+  filial_id?: string;
+  confirmado?: boolean;
   roleIds?: number[];
-  nome?: string;
-  status?: 'pendente' | 'aprovado' | 'rejeitado';
 }
 
 interface AuthContextType {
@@ -35,15 +37,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth state changed:', event, session?.user);
         
         if (session?.user) {
-          // Fetch user roles and status when session changes
+          // Fetch user roles when session changes
           const { data: userRoles } = await supabase
             .from('papeis_usuarios')
             .select('role_id')
             .eq('user_id', session.user.id);
 
+          // Fetch user profile from usuarios table
           const { data: userProfile } = await supabase
             .from('usuarios')
-            .select('status, nome')
+            .select('nome_completo, telefone, filial_id, confirmado')
             .eq('id', session.user.id)
             .single();
 
@@ -52,17 +55,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser({
             ...session.user,
             roleIds,
-            status: userProfile?.status,
-            nome: userProfile?.nome
+            ...userProfile
           });
 
           // Handle different user statuses
-          if (userProfile?.status === 'pendente') {
+          if (!userProfile?.confirmado) {
             toast.warning('Seu cadastro está pendente de aprovação.');
             navigate('/pending-approval');
-          } else if (userProfile?.status === 'rejeitado') {
-            toast.error('Seu cadastro foi rejeitado.');
-            navigate('/rejected');
           }
         } else {
           setUser(null);
@@ -84,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const { data: userProfile } = await supabase
           .from('usuarios')
-          .select('status, nome')
+          .select('nome_completo, telefone, filial_id, confirmado')
           .eq('id', session.user.id)
           .single();
 
@@ -93,8 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser({
           ...session.user,
           roleIds,
-          status: userProfile?.status,
-          nome: userProfile?.nome
+          ...userProfile
         });
       } else {
         setUser(null);
@@ -171,47 +169,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (userData: any) => {
     try {
-      console.log('Attempting sign up:', userData.email);
+      console.log('Starting user registration process:', userData);
+      
+      // Step 1: Create user in Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
-          data: {
-            nome: userData.nome,
-            roleIds: userData.roleIds,
-            status: 'pendente',
-          },
           emailRedirectTo: `${window.location.origin}/verify-email`,
         },
       });
 
       if (error) throw error;
 
-      // Create user profile in usuarios table
+      if (!data.user) {
+        throw new Error('User creation failed');
+      }
+
+      console.log('User created in Supabase Auth:', data.user);
+
+      // Step 2: Create user profile in usuarios table
       const { error: profileError } = await supabase
         .from('usuarios')
         .insert([
           {
-            id: data.user?.id,
-            nome: userData.nome,
-            status: 'pendente',
+            id: data.user.id,
+            nome_completo: userData.nome,
+            telefone: userData.telefone.replace(/\D/g, ''), // Remove non-digits
+            email: userData.email,
+            filial_id: userData.branchId,
+            confirmado: false,
+            data_criacao: new Date().toISOString()
           },
         ]);
 
       if (profileError) throw profileError;
 
-      // Assign user roles
+      console.log('User profile created in usuarios table');
+
+      // Step 3: Assign user roles
       if (data.user) {
         await assignUserRoles(data.user.id, userData.roleIds);
       }
 
-      console.log('Sign up successful:', data.user);
+      console.log('User roles assigned successfully');
       toast.success('Cadastro realizado com sucesso! Por favor, verifique seu email.');
       navigate('/verify-email');
       
       return { user: data.user, error: null };
     } catch (error: any) {
-      console.error('Sign up error:', error);
+      console.error('Registration error:', error);
       toast.error('Erro ao realizar cadastro.');
       return { user: null, error };
     }
