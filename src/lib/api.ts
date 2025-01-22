@@ -25,8 +25,8 @@ export interface Role {
 export interface User {
   id: string;
   email: string;
-  nome: string;
-  status: 'pendente' | 'aprovado' | 'rejeitado';
+  nome_completo: string;
+  confirmado: boolean;
   roles: Role[];
 }
 
@@ -100,8 +100,8 @@ export const fetchPendingUsers = async (): Promise<User[]> => {
     .select(`
       id,
       email,
-      nome,
-      status,
+      nome_completo,
+      confirmado,
       papeis_usuarios (
         perfis (
           id,
@@ -110,7 +110,7 @@ export const fetchPendingUsers = async (): Promise<User[]> => {
         )
       )
     `)
-    .eq('status', 'pendente');
+    .eq('confirmado', false);
 
   if (error) {
     console.error('Error fetching pending users:', error);
@@ -127,7 +127,7 @@ export const approveUser = async (userId: string) => {
   console.log('Approving user:', userId);
   const { error } = await supabase
     .from('usuarios')
-    .update({ status: 'aprovado' })
+    .update({ confirmado: true })
     .eq('id', userId);
 
   if (error) {
@@ -140,7 +140,7 @@ export const rejectUser = async (userId: string) => {
   console.log('Rejecting user:', userId);
   const { error } = await supabase
     .from('usuarios')
-    .update({ status: 'rejeitado' })
+    .update({ confirmado: false })
     .eq('id', userId);
 
   if (error) {
@@ -171,9 +171,10 @@ export const createUserProfile = async (userId: string, data: any) => {
     .insert([
       {
         id: userId,
-        nome: data.nome,
-        status: 'pendente',
+        nome_completo: data.nome,
+        confirmado: false,
         filial_id: data.branchId,
+        telefone: data.telefone,
         payment_proof: data.paymentProof
       }
     ]);

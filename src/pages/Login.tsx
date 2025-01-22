@@ -130,7 +130,7 @@ const Login = () => {
         return;
       }
 
-      toast.success('Cadastro realizado com sucesso! Verifique seu email para instruções sobre o envio do comprovante de pagamento.');
+      toast.success('Cadastro realizado com sucesso! Aguarde a confirmação do seu cadastro.');
       console.log('Registration successful:', signUpResult.user);
       
     } catch (error) {
