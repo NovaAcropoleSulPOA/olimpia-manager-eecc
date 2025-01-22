@@ -17,7 +17,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchModalities, fetchBranches, fetchRoles } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import InputMask from 'react-input-mask';
-import { PaymentInfo } from '@/components/PaymentInfo';
+import PaymentInfo from '@/components/PaymentInfo';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
