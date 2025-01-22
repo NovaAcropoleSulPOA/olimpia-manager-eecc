@@ -14,7 +14,7 @@ import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import PaymentInfo from '@/components/PaymentInfo';
 import { useQuery } from '@tanstack/react-query';
-import { fetchModalities, fetchBranches, fetchRoles, assignUserRoles } from '@/lib/api';
+import { fetchModalities, fetchBranches, fetchRoles } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -41,7 +41,8 @@ const registerSchema = z.object({
     .refine(
       (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
       "Somente arquivos .jpg, .jpeg, .png são aceitos"
-    ),
+    )
+    .refine((file) => file !== null && file !== undefined, "Comprovante de pagamento é obrigatório"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
@@ -104,30 +105,32 @@ const Login = () => {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
 
-      // Upload payment proof if provided
-      let paymentProofUrl = null;
-      if (selectedFile) {
-        console.log('Uploading payment proof');
-        const fileExt = selectedFile.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-        
-        const { data: fileData, error: uploadError } = await supabase.storage
-          .from('payment-proofs')
-          .upload(fileName, selectedFile);
-
-        if (uploadError) {
-          console.error('Error uploading payment proof:', uploadError);
-          toast.error('Erro ao fazer upload do comprovante de pagamento.');
-          return;
-        }
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('payment-proofs')
-          .getPublicUrl(fileName);
-          
-        paymentProofUrl = publicUrl;
-        console.log('Payment proof uploaded successfully:', paymentProofUrl);
+      if (!selectedFile) {
+        toast.error('Por favor, anexe o comprovante de pagamento.');
+        return;
       }
+
+      // Upload payment proof
+      console.log('Uploading payment proof');
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      
+      const { data: fileData, error: uploadError } = await supabase.storage
+        .from('payment-proofs')
+        .upload(fileName, selectedFile);
+
+      if (uploadError) {
+        console.error('Error uploading payment proof:', uploadError);
+        toast.error('Erro ao fazer upload do comprovante de pagamento.');
+        return;
+      }
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('payment-proofs')
+        .getPublicUrl(fileName);
+        
+      const paymentProofUrl = publicUrl;
+      console.log('Payment proof uploaded successfully:', paymentProofUrl);
 
       // Register user with Supabase Auth and create profile
       const signUpResult = await signUp({ 
@@ -155,18 +158,24 @@ const Login = () => {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      if (file.size > MAX_FILE_SIZE) {
-        toast.error("Arquivo deve ter no máximo 5MB");
-        return;
-      }
-      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-        toast.error("Somente arquivos .jpg, .jpeg, .png são aceitos");
-        return;
-      }
-      setSelectedFile(file);
-      toast.success('Comprovante carregado com sucesso!');
+    if (!file) {
+      toast.error("Por favor, selecione um arquivo");
+      return;
     }
+    
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("Arquivo deve ter no máximo 5MB");
+      return;
+    }
+    
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      toast.error("Somente arquivos .jpg, .jpeg, .png são aceitos");
+      return;
+    }
+    
+    setSelectedFile(file);
+    registerForm.setValue('paymentProof', file);
+    toast.success('Comprovante carregado com sucesso!');
   };
 
   // Check if Atleta role is selected
@@ -464,35 +473,43 @@ const Login = () => {
                   )}
 
                   <PaymentInfo />
-                  <FormItem>
-                    <FormLabel>Comprovante de Pagamento</FormLabel>
-                    <FormControl>
-                      <div className="flex items-center justify-center w-full">
-                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-olimpics-green-primary/20 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <Upload className="w-8 h-8 mb-4 text-olimpics-green-primary" />
-                            <p className="mb-2 text-sm text-olimpics-text">
-                              <span className="font-semibold">Clique para enviar</span> ou arraste e solte
-                            </p>
-                            <p className="text-xs text-olimpics-text">
-                              PNG ou JPG (MAX. 5MB)
-                            </p>
+                  <FormField
+                    control={registerForm.control}
+                    name="paymentProof"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Comprovante de Pagamento (Obrigatório)</FormLabel>
+                        <FormControl>
+                          <div className="flex items-center justify-center w-full">
+                            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-olimpics-green-primary/20 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <Upload className="w-8 h-8 mb-4 text-olimpics-green-primary" />
+                                <p className="mb-2 text-sm text-olimpics-text">
+                                  <span className="font-semibold">Clique para enviar</span> ou arraste e solte
+                                </p>
+                                <p className="text-xs text-olimpics-text">
+                                  PNG ou JPG (MAX. 5MB)
+                                </p>
+                              </div>
+                              <Input
+                                type="file"
+                                className="hidden"
+                                accept=".png,.jpg,.jpeg"
+                                onChange={handleFileChange}
+                              />
+                            </label>
                           </div>
-                          <Input
-                            type="file"
-                            className="hidden"
-                            accept=".png,.jpg,.jpeg"
-                            onChange={handleFileChange}
-                          />
-                        </label>
-                      </div>
-                    </FormControl>
-                    {selectedFile && (
-                      <p className="text-sm text-olimpics-green-primary mt-2">
-                        Arquivo selecionado: {selectedFile.name}
-                      </p>
+                        </FormControl>
+                        {selectedFile && (
+                          <p className="text-sm text-olimpics-green-primary mt-2">
+                            Arquivo selecionado: {selectedFile.name}
+                          </p>
+                        )}
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </FormItem>
+                  />
+
                   <Button
                     type="submit"
                     className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
