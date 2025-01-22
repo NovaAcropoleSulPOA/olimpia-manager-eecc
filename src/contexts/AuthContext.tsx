@@ -13,6 +13,7 @@ interface AuthUser extends User {
   papeis?: string[];
 }
 
+// Updated interface to match the exact structure from database
 interface DatabaseUserRole {
   perfis: {
     id: number;
@@ -75,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           // Map roles correctly from the perfis table
-          const papeis = (userRoles as DatabaseUserRole[] | null)?.map(ur => ur.perfis.nome) || [];
+          const papeis = (userRoles as DatabaseUserRole[])?.map(ur => ur.perfis.nome) || [];
           
           setUser({
             ...session.user,
@@ -117,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', session.user.id)
           .single();
 
-        const papeis = (userRoles as DatabaseUserRole[] | null)?.map(ur => ur.perfis.nome) || [];
+        const papeis = (userRoles as DatabaseUserRole[])?.map(ur => ur.perfis.nome) || [];
         
         setUser({
           ...session.user,
