@@ -5,27 +5,49 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
+import PaymentInfo from '@/components/PaymentInfo';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
 });
 
+const roles = ["athlete", "organizer", "judge"] as const;
+const branches = [
+  "Atletismo",
+  "Basquete",
+  "Futebol",
+  "Ginástica",
+  "Natação",
+  "Vôlei",
+] as const;
+
 const registerSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
-  role: z.enum(['athlete', 'organizer', 'judge'], {
-    required_error: "Selecione um perfil",
+  roles: z.array(z.enum(roles)).min(1, "Selecione pelo menos um perfil"),
+  branch: z.enum(branches, {
+    required_error: "Selecione uma modalidade",
   }),
-  paymentProof: z.any().optional(),
+  paymentProof: z
+    .any()
+    .refine((file) => file?.size <= MAX_FILE_SIZE, "Arquivo deve ter no máximo 5MB")
+    .refine(
+      (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
+      "Somente arquivos .jpg, .jpeg, .png são aceitos"
+    ),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
@@ -51,7 +73,8 @@ const Login = () => {
       email: '',
       password: '',
       confirmPassword: '',
-      role: undefined,
+      roles: [],
+      branch: undefined,
     },
   });
 
@@ -86,6 +109,14 @@ const Login = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error("Arquivo deve ter no máximo 5MB");
+        return;
+      }
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        toast.error("Somente arquivos .jpg, .jpeg, .png são aceitos");
+        return;
+      }
       setSelectedFile(file);
       toast.success('Comprovante carregado com sucesso!');
     }
@@ -250,46 +281,74 @@ const Login = () => {
                   />
                   <FormField
                     control={registerForm.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <FormLabel>Perfil</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex flex-col space-y-1"
-                          >
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="athlete" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                Atleta
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="organizer" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                Organizador
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-3 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="judge" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                Juiz
-                              </FormLabel>
-                            </FormItem>
-                          </RadioGroup>
-                        </FormControl>
+                    name="roles"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>Perfis</FormLabel>
+                        <div className="grid grid-cols-2 gap-2">
+                          {roles.map((role) => (
+                            <FormField
+                              key={role}
+                              control={registerForm.control}
+                              name="roles"
+                              render={({ field }) => {
+                                return (
+                                  <FormItem
+                                    key={role}
+                                    className="flex flex-row items-start space-x-3 space-y-0"
+                                  >
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value?.includes(role)}
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([...field.value, role])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                  (value) => value !== role
+                                                )
+                                              )
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="font-normal capitalize">
+                                      {role}
+                                    </FormLabel>
+                                  </FormItem>
+                                )
+                              }}
+                            />
+                          ))}
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={registerForm.control}
+                    name="branch"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Modalidade</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
+                              <SelectValue placeholder="Selecione uma modalidade" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {branches.map((branch) => (
+                              <SelectItem key={branch} value={branch}>
+                                {branch}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <PaymentInfo />
                   <FormItem>
                     <FormLabel>Comprovante de Pagamento</FormLabel>
                     <FormControl>
@@ -301,13 +360,13 @@ const Login = () => {
                               <span className="font-semibold">Clique para enviar</span> ou arraste e solte
                             </p>
                             <p className="text-xs text-olimpics-text">
-                              PDF, PNG ou JPG (MAX. 10MB)
+                              PNG ou JPG (MAX. 5MB)
                             </p>
                           </div>
                           <Input
                             type="file"
                             className="hidden"
-                            accept=".pdf,.png,.jpg,.jpeg"
+                            accept=".png,.jpg,.jpeg"
                             onChange={handleFileChange}
                           />
                         </label>
