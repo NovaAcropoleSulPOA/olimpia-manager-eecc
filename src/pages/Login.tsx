@@ -14,7 +14,7 @@ import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import PaymentInfo from '@/components/PaymentInfo';
 import { useQuery } from '@tanstack/react-query';
-import { fetchModalities, fetchBranches, fetchRoles, type Role } from '@/lib/api';
+import { fetchModalities, fetchBranches, fetchRoles, assignUserRoles } from '@/lib/api';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
@@ -108,11 +108,11 @@ const Login = () => {
       
       const signUpResult = await signUp({ 
         ...values, 
-        roles: values.roleIds 
+        roleIds: values.roleIds.map(id => Number(id)) // Ensure roleIds are numbers
       });
       
       if (signUpResult?.user?.id) {
-        await assignUserRoles(signUpResult.user.id, values.roleIds);
+        await assignUserRoles(signUpResult.user.id, values.roleIds.map(id => Number(id)));
       }
       
       toast.success('Cadastro realizado com sucesso! Aguarde a aprovação.');
