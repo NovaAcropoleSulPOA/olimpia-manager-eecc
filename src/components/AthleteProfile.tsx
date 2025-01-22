@@ -126,8 +126,7 @@ export default function AthleteProfile() {
         .from('pontuacoes')
         .select(`
           id,
-          valor_pontuacao,
-          unidade,
+          valor,
           modalidade:modalidades (
             id,
             nome,
@@ -141,10 +140,8 @@ export default function AthleteProfile() {
       if (error) throw error;
   
       const formattedData = data.map(score => ({
-        id: score.id,
-        valor: score.valor_pontuacao, // ✅ Ajustado para o nome correto da coluna
-        unidade: score.unidade, // Pode ser útil exibir a unidade de medida
-        modalidade: score.modalidade
+        ...score,
+        modalidade: score.modalidade[0]
       }));
   
       console.log('Fetched scores:', formattedData);
