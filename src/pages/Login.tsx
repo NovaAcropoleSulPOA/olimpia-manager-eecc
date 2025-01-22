@@ -156,6 +156,7 @@ const Login = () => {
         return;
       }
   
+      // Start Sign Up Process
       const signUpResult = await signUp({
         ...values,
         telefone: values.telefone.replace(/\D/g, ''), // Remove non-digits before saving
@@ -168,6 +169,13 @@ const Login = () => {
       }
   
       const userId = signUpResult.user.id;
+      console.log(`User registered successfully with ID: ${userId}`);
+  
+      // Ensure user ID exists before inserting dependent records
+      if (!userId) {
+        toast.error("Erro ao obter ID do usuário.");
+        return;
+      }
   
       // Insert roles into papeis_usuarios
       const { error: rolesError } = await supabase
@@ -189,6 +197,7 @@ const Login = () => {
   
       // Insert payment record if user is an athlete (role_id = 1)
       if (values.roleIds.includes(1)) {
+        console.log(`Registering payment for user ID: ${userId}`);
         const { error: paymentError } = await supabase
           .from('pagamentos')
           .insert([{
@@ -198,7 +207,7 @@ const Login = () => {
             comprovante_url: null,
             validado_sem_comprovante: false,
             data_validacao: null,
-            data_criacao: new Date().toISOString() // ✅ Fix: Set data_criacao to avoid null constraint violation
+            data_criacao: new Date().toISOString() // ✅ Fix: Set data_criacao explicitly
           }]);
   
         if (paymentError) {
@@ -210,6 +219,7 @@ const Login = () => {
   
       // Insert athlete inscriptions into inscricoes if user is an athlete
       if (values.roleIds.includes(1) && values.modalities?.length > 0) {
+        console.log(`Registering athlete inscriptions for user ID: ${userId}`);
         const inscricoesToInsert = values.modalities.map(modalidadeId => ({
           atleta_id: userId,
           modalidade_id: modalidadeId,
@@ -241,7 +251,6 @@ const Login = () => {
     }
   };
   
-
   const onForgotPasswordSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
     try {
       setIsSubmitting(true);
