@@ -114,13 +114,22 @@ const Login = () => {
       if (error) {
         console.error('Sign in error:', error);
   
-        // Handle unconfirmed email error properly
+        // Tratamento específico para erro de credenciais inválidas
+        if (error.message.toLowerCase().includes("invalid login credentials")) {
+          toast.error("E-mail não cadastrado. Verifique os dados ou realize o cadastro.");
+          setIsSubmitting(false);
+          return;
+        }
+  
+        // Tratamento para e-mail não confirmado
         if (error.code === "email_not_confirmed") {
           toast.error("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de ativação antes de tentar fazer login.");
+          setIsSubmitting(false);
           return;
         }
   
         toast.error("Erro ao fazer login. Verifique suas credenciais.");
+        setIsSubmitting(false);
         return;
       }
   
@@ -131,7 +140,7 @@ const Login = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  };  
   
   const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
