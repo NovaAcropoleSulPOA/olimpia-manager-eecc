@@ -16,15 +16,21 @@ import PaymentInfo from '@/components/PaymentInfo';
 import { useQuery } from '@tanstack/react-query';
 import { fetchModalities, fetchBranches, fetchRoles } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
+import InputMask from 'react-input-mask';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Email inválido'),
+});
+
 const registerSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido'),
+  telefone: z.string().min(14, 'Telefone inválido').max(15),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
   roleIds: z.array(z.number()).min(1, "Selecione pelo menos um perfil"),
@@ -37,7 +43,6 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 }).refine(
   (data) => {
-    // If Atleta (ID: 1) is selected, require at least one modality
     if (data.roleIds.includes(1) && (!data.modalities || data.modalities.length === 0)) {
       return false;
     }
@@ -48,10 +53,6 @@ const registerSchema = z.object({
     path: ["modalities"],
   }
 );
-
-const forgotPasswordSchema = z.object({
-  email: z.string().email('Email inválido'),
-});
 
 const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,6 +72,7 @@ const Login = () => {
     defaultValues: {
       nome: '',
       email: '',
+      telefone: '',
       password: '',
       confirmPassword: '',
       roleIds: [],
@@ -117,8 +119,10 @@ const Login = () => {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
 
-      // Register user with Supabase Auth
-      const signUpResult = await signUp(values);
+      const signUpResult = await signUp({
+        ...values,
+        telefone: values.telefone.replace(/\D/g, ''), // Remove non-digits before saving
+      });
 
       if (signUpResult.error) {
         console.error('Registration error:', signUpResult.error);
@@ -156,7 +160,6 @@ const Login = () => {
     }
   };
 
-  // Check if Atleta role is selected
   const isAtletaSelected = registerForm.watch("roleIds").includes(1);
 
   return (
@@ -331,6 +334,33 @@ const Login = () => {
                               className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
                               {...field}
                             />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
+                      name="telefone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Telefone com DDD</FormLabel>
+                          <FormControl>
+                            <InputMask
+                              mask="(99) 99999-9999"
+                              value={field.value}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                            >
+                              {(inputProps: any) => (
+                                <Input
+                                  {...inputProps}
+                                  type="tel"
+                                  placeholder="(XX) XXXXX-XXXX"
+                                  className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                                />
+                              )}
+                            </InputMask>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
