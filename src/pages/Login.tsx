@@ -133,7 +133,6 @@ const Login = () => {
     }
   };
   
-
   const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
       console.log('Starting registration process with values:', values);
@@ -144,7 +143,7 @@ const Login = () => {
         .from('usuarios')
         .select('id')
         .eq('email', values.email)
-        .maybeSingle(); // ✅ Fix: Use maybeSingle() to avoid 406 error
+        .maybeSingle();
   
       if (checkError) {
         console.error('Error checking existing user:', checkError);
@@ -168,17 +167,38 @@ const Login = () => {
         return;
       }
   
-      // Create payment record if user is an athlete (role_id = 1)
+      const userId = signUpResult.user.id;
+  
+      // Insert roles into papeis_usuarios
+      const { error: rolesError } = await supabase
+        .from('papeis_usuarios')
+        .insert(
+          values.roleIds.map(roleId => ({
+            usuario_id: userId,
+            perfil_id: roleId
+          }))
+        );
+  
+      if (rolesError) {
+        console.error('Role assignment error:', rolesError);
+        toast.error('Erro ao atribuir os papéis do usuário.');
+        return;
+      }
+  
+      console.log('User roles assigned successfully');
+  
+      // Insert payment record if user is an athlete (role_id = 1)
       if (values.roleIds.includes(1)) {
         const { error: paymentError } = await supabase
           .from('pagamentos')
           .insert([{
-            atleta_id: signUpResult.user.id,
+            atleta_id: userId,
             valor: 180.00,
             status: 'pendente',
             comprovante_url: null,
             validado_sem_comprovante: false,
             data_validacao: null,
+            data_criacao: new Date().toISOString() // ✅ Fix: Set data_criacao to avoid null constraint violation
           }]);
   
         if (paymentError) {
@@ -186,6 +206,28 @@ const Login = () => {
           toast.error('Erro ao criar registro de pagamento.');
           return;
         }
+      }
+  
+      // Insert athlete inscriptions into inscricoes if user is an athlete
+      if (values.roleIds.includes(1) && values.modalities?.length > 0) {
+        const inscricoesToInsert = values.modalities.map(modalidadeId => ({
+          atleta_id: userId,
+          modalidade_id: modalidadeId,
+          status: 'Pendente',
+          data_inscricao: new Date().toISOString()
+        }));
+  
+        const { error: inscricoesError } = await supabase
+          .from('inscricoes')
+          .insert(inscricoesToInsert);
+  
+        if (inscricoesError) {
+          console.error('Modality registration error:', inscricoesError);
+          toast.error('Erro ao salvar as inscrições do atleta.');
+          return;
+        }
+  
+        console.log('Athlete inscriptions registered successfully');
       }
   
       toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
@@ -197,7 +239,8 @@ const Login = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };  
+  };
+  
 
   const onForgotPasswordSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
     try {
