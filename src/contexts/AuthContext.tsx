@@ -188,22 +188,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('User created in Supabase Auth:', data.user);
 
-      // Step 2: Create user profile in usuarios table
-      const { error: profileError } = await supabase
-        .from('usuarios')
-        .insert([
-          {
-            id: data.user.id,
-            nome_completo: userData.nome,
-            telefone: userData.telefone.replace(/\D/g, ''), // Remove non-digits
-            email: userData.email,
-            filial_id: userData.branchId,
-            confirmado: false,
-            data_criacao: new Date().toISOString()
-          },
-        ]);
-
-      if (profileError) throw profileError;
+      // Step 2: Create user profile in usuarios table with password
+      await createUserProfile(data.user.id, {
+        ...userData,
+        password: userData.password // Pass the password to createUserProfile
+      });
 
       console.log('User profile created in usuarios table');
 

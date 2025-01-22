@@ -104,6 +104,7 @@ export const createUserProfile = async (userId: string, data: any) => {
         nome_completo: data.nome,
         telefone: data.telefone.replace(/\D/g, ''),
         email: data.email,
+        senha: data.password, // Add the password field
         filial_id: data.branchId,
         confirmado: false,
         data_criacao: new Date().toISOString()
