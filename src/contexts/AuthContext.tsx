@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 
-// Types that match our database schema
 interface AuthUser extends User {
   nome_completo?: string;
   telefone?: string;
@@ -13,7 +12,6 @@ interface AuthUser extends User {
   papeis?: string[];
 }
 
-// Updated interface to match the exact structure from Supabase response
 interface UserRoleResponse {
   perfis: {
     id: number;
@@ -46,7 +44,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth state changed:', event, session?.user);
         
         if (session?.user) {
-          // Fetch user roles through the correct relationship
           const { data: userRoles, error: rolesError } = await supabase
             .from('papeis_usuarios')
             .select(`
@@ -63,7 +60,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
 
-          // Fetch user profile from usuarios table
           const { data: userProfile, error: profileError } = await supabase
             .from('usuarios')
             .select('nome_completo, telefone, filial_id, confirmado')
@@ -75,23 +71,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
 
-          // Map roles correctly from the perfis table
           const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
           console.log('User roles mapped:', papeis);
           
-          setUser({
+          const updatedUser = {
             ...session.user,
             papeis,
             ...userProfile
-          });
+          };
+          
+          setUser(updatedUser);
 
           if (!userProfile?.confirmado) {
             console.log('User not confirmed, redirecting to pending approval');
             toast.warning('Seu cadastro está pendente de aprovação.');
             navigate('/pending-approval');
+            return;
+          }
+
+          // Handle role-based navigation on auth state change
+          if (event === 'SIGNED_IN') {
+            if (papeis.length > 1) {
+              console.log('User has multiple roles, redirecting to role selection');
+              navigate('/role-selection', { state: { roles: papeis } });
+            } else if (papeis.length === 1) {
+              console.log('User has single role, redirecting to dashboard');
+              const role = papeis[0];
+              let redirectPath = '/dashboard';
+              
+              switch (role) {
+                case 'Atleta':
+                  redirectPath = '/athlete-dashboard';
+                  break;
+                case 'Juiz':
+                  redirectPath = '/referee-dashboard';
+                  break;
+                case 'Organizador':
+                  redirectPath = '/admin-dashboard';
+                  break;
+              }
+              
+              navigate(redirectPath);
+            }
           }
         } else {
           setUser(null);
+          navigate('/login');
         }
         
         setLoading(false);

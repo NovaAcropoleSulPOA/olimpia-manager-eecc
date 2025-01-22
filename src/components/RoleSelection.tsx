@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 interface RoleSelectionProps {
   roles: string[];
@@ -12,12 +13,13 @@ export default function RoleSelection({ roles: propRoles }: RoleSelectionProps) 
   const location = useLocation();
   const roles = location.state?.roles || propRoles || [];
 
-  if (roles.length === 0) {
-    console.error('No roles available for selection');
-    toast.error('Erro ao carregar perfis disponíveis');
-    navigate('/login');
-    return null;
-  }
+  useEffect(() => {
+    if (roles.length === 0) {
+      console.error('No roles available for selection');
+      toast.error('Erro ao carregar perfis disponíveis');
+      navigate('/login');
+    }
+  }, [roles, navigate]);
   
   console.log('Available roles:', roles);
 
@@ -41,6 +43,10 @@ export default function RoleSelection({ roles: propRoles }: RoleSelectionProps) 
     console.log('Redirecionando para:', redirectPath);
     navigate(redirectPath);
   };  
+
+  if (roles.length === 0) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-olimpics-background p-4">
