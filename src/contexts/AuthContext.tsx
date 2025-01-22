@@ -148,9 +148,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.error('Sign in error:', error);
   
-        if (error.message.includes('Email not confirmed')) {
-          toast.error("Seu e-mail ainda não foi confirmado. Verifique seu e-mail e clique no link de ativação antes de fazer login.");
-          navigate('/verify-email', { state: { email } });
+        // Handle unconfirmed email error
+        if (error.code === "email_not_confirmed") {
+          toast.error("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e ative sua conta antes de fazer login.");
           return;
         }
   
@@ -158,32 +158,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
   
-      if (!data.user.email_confirmed_at) {
-        toast.error("Seu e-mail ainda não foi confirmado. Verifique seu e-mail e clique no link de ativação antes de fazer login.");
-        navigate('/verify-email', { state: { email } });
-        return;
-      }
-  
-      const { data: userProfile } = await supabase
-        .from("usuarios")
-        .select("confirmado")
-        .eq("id", data.user.id)
-        .single();
-  
-      if (!userProfile?.confirmado) {
-        toast.warning("Seu cadastro está pendente de aprovação.");
-        navigate("/pending-approval");
-        return;
-      }
-  
-      console.log('Sign in successful:', data.user);
-      toast.success('Login realizado com sucesso!');
+      toast.success("Login realizado com sucesso!");
       navigate('/dashboard');
-    } catch (error: any) {
+    } catch (error) {
       console.error("Unexpected Login Error:", error);
       toast.error("Ocorreu um erro inesperado. Tente novamente.");
     }
-  };
+  };  
 
   const signOut = async () => {
     try {
