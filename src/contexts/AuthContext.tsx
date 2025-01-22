@@ -77,6 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           // Map roles correctly from the perfis table
           const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
+          console.log('User roles mapped:', papeis);
           
           setUser({
             ...session.user,
@@ -85,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
 
           if (!userProfile?.confirmado) {
+            console.log('User not confirmed, redirecting to pending approval');
             toast.warning('Seu cadastro está pendente de aprovação.');
             navigate('/pending-approval');
           }
@@ -150,6 +152,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
   
+      console.log('Login successful, fetching user roles...');
+      
       // Busca os papéis do usuário
       const { data: userRoles, error: rolesError } = await supabase
         .from('papeis_usuarios')
@@ -189,7 +193,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       setUser({ ...data.user, papeis: roles });
   
-      // Lógica de redirecionamento corrigida
+      // Lógica de redirecionamento
       if (roles.length > 1) {
         console.log('Usuário com múltiplos perfis, redirecionando para seleção de perfil.');
         navigate('/role-selection', { state: { roles } });
@@ -218,7 +222,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
   };
-  
+
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();

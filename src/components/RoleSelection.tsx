@@ -42,13 +42,6 @@ export default function RoleSelection({ roles: propRoles }: RoleSelectionProps) 
     navigate(redirectPath);
   };  
 
-  if (!roles || roles.length === 0) {
-    console.error('No roles available for selection');
-    toast.error('Erro ao carregar perfis disponíveis');
-    navigate('/login');
-    return null;
-  }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-olimpics-background p-4">
       <Card className="w-[400px] shadow-lg">
