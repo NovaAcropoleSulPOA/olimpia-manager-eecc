@@ -13,6 +13,8 @@ import * as z from "zod";
 import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import PaymentInfo from '@/components/PaymentInfo';
+import { useQuery } from 'react-query';
+import { fetchModalities, fetchBranches } from '@/lib/api';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
@@ -38,9 +40,10 @@ const registerSchema = z.object({
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
   roles: z.array(z.enum(roles)).min(1, "Selecione pelo menos um perfil"),
-  branch: z.enum(branches, {
-    required_error: "Selecione uma modalidade",
+  branchId: z.number({
+    required_error: "Selecione uma filial",
   }),
+  modalities: z.array(z.number()).optional(),
   paymentProof: z
     .any()
     .refine((file) => file?.size <= MAX_FILE_SIZE, "Arquivo deve ter no máximo 5MB")
@@ -74,8 +77,19 @@ const Login = () => {
       password: '',
       confirmPassword: '',
       roles: [],
-      branch: undefined,
+      branchId: undefined,
+      modalities: [],
     },
+  });
+
+  const { data: modalities, isLoading: isLoadingModalities } = useQuery({
+    queryKey: ['modalities'],
+    queryFn: fetchModalities,
+  });
+
+  const { data: branches, isLoading: isLoadingBranches } = useQuery({
+    queryKey: ['branches'],
+    queryFn: fetchBranches,
   });
 
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
@@ -281,6 +295,38 @@ const Login = () => {
                   />
                   <FormField
                     control={registerForm.control}
+                    name="branchId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Filial</FormLabel>
+                        <Select 
+                          onValueChange={(value) => field.onChange(parseInt(value))}
+                          value={field.value?.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
+                              <SelectValue placeholder="Selecione uma filial" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {isLoadingBranches ? (
+                              <SelectItem value="loading">Carregando...</SelectItem>
+                            ) : (
+                              branches?.map((branch) => (
+                                <SelectItem key={branch.id} value={branch.id.toString()}>
+                                  {branch.nome} - {branch.cidade}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={registerForm.control}
                     name="roles"
                     render={() => (
                       <FormItem>
@@ -301,13 +347,10 @@ const Login = () => {
                                       <Checkbox
                                         checked={field.value?.includes(role)}
                                         onCheckedChange={(checked) => {
-                                          return checked
-                                            ? field.onChange([...field.value, role])
-                                            : field.onChange(
-                                                field.value?.filter(
-                                                  (value) => value !== role
-                                                )
-                                              )
+                                          const updatedValue = checked
+                                            ? [...field.value, role]
+                                            : field.value?.filter((value) => value !== role);
+                                          field.onChange(updatedValue);
                                         }}
                                       />
                                     </FormControl>
@@ -315,7 +358,7 @@ const Login = () => {
                                       {role}
                                     </FormLabel>
                                   </FormItem>
-                                )
+                                );
                               }}
                             />
                           ))}
@@ -324,30 +367,56 @@ const Login = () => {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={registerForm.control}
-                    name="branch"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Modalidade</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
-                              <SelectValue placeholder="Selecione uma modalidade" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {branches.map((branch) => (
-                              <SelectItem key={branch} value={branch}>
-                                {branch}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
+                  {registerForm.watch("roles").includes("athlete") && (
+                    <FormField
+                      control={registerForm.control}
+                      name="modalities"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Modalidades</FormLabel>
+                          <div className="grid grid-cols-2 gap-2">
+                            {isLoadingModalities ? (
+                              <div>Carregando modalidades...</div>
+                            ) : (
+                              modalities?.map((modality) => (
+                                <FormField
+                                  key={modality.id}
+                                  control={registerForm.control}
+                                  name="modalities"
+                                  render={({ field: modalityField }) => {
+                                    return (
+                                      <FormItem
+                                        key={modality.id}
+                                        className="flex flex-row items-start space-x-3 space-y-0"
+                                      >
+                                        <FormControl>
+                                          <Checkbox
+                                            checked={modalityField.value?.includes(modality.id)}
+                                            onCheckedChange={(checked) => {
+                                              const updatedValue = checked
+                                                ? [...(modalityField.value || []), modality.id]
+                                                : modalityField.value?.filter((value) => value !== modality.id);
+                                              modalityField.onChange(updatedValue);
+                                            }}
+                                          />
+                                        </FormControl>
+                                        <FormLabel className="font-normal">
+                                          {modality.nome}
+                                        </FormLabel>
+                                      </FormItem>
+                                    );
+                                  }}
+                                />
+                              ))
+                            )}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
                   <PaymentInfo />
                   <FormItem>
                     <FormLabel>Comprovante de Pagamento</FormLabel>
