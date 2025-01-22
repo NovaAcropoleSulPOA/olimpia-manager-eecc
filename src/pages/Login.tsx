@@ -112,11 +112,15 @@ const Login = () => {
       });
   
       if (error) {
+        console.error('Sign in error:', error);
+  
+        // Handle unconfirmed email error properly
         if (error.code === "email_not_confirmed") {
-          toast.error("Seu e-mail ainda não foi confirmado. Verifique seu e-mail e clique no link de ativação antes de fazer login.");
-        } else {
-          toast.error("Erro ao fazer login. Verifique suas credenciais.");
+          toast.error("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de ativação antes de tentar fazer login.");
+          return;
         }
+  
+        toast.error("Erro ao fazer login. Verifique suas credenciais.");
         return;
       }
   
@@ -127,7 +131,8 @@ const Login = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }; 
+  };
+  
 
   const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
