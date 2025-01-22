@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { assignUserRoles } from '@/lib/api';
 
+// Types that match our database schema
 interface AuthUser extends User {
   nome_completo?: string;
   telefone?: string;
@@ -13,9 +13,11 @@ interface AuthUser extends User {
   papeis?: string[];
 }
 
-interface UserRole {
+interface DatabaseUserRole {
   perfis: {
+    id: number;
     nome: string;
+    descricao?: string;
   };
 }
 
@@ -43,12 +45,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth state changed:', event, session?.user);
         
         if (session?.user) {
-          // Fetch user roles when session changes
+          // Fetch user roles through the correct relationship
           const { data: userRoles, error: rolesError } = await supabase
             .from('papeis_usuarios')
             .select(`
               perfis (
-                nome
+                id,
+                nome,
+                descricao
               )
             `)
             .eq('usuario_id', session.user.id);
@@ -70,7 +74,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
 
-          const papeis = (userRoles as UserRole[] | null)?.map(ur => ur.perfis.nome) || [];
+          // Map roles correctly from the perfis table
+          const papeis = (userRoles as DatabaseUserRole[] | null)?.map(ur => ur.perfis.nome) || [];
           
           setUser({
             ...session.user,
@@ -99,7 +104,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .from('papeis_usuarios')
           .select(`
             perfis (
-              nome
+              id,
+              nome,
+              descricao
             )
           `)
           .eq('usuario_id', session.user.id);
@@ -110,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', session.user.id)
           .single();
 
-        const papeis = (userRoles as UserRole[] | null)?.map(ur => ur.perfis.nome) || [];
+        const papeis = (userRoles as DatabaseUserRole[] | null)?.map(ur => ur.perfis.nome) || [];
         
         setUser({
           ...session.user,

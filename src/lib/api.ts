@@ -1,12 +1,12 @@
 import { supabase } from './supabase';
 
+// Types matching database schema
 export interface Modality {
   id: number;
   nome: string;
-  descricao?: string;
-  tipo_pontuacao?: string;
-  tipo_modalidade?: string;
-  categoria?: string;
+  tipo_pontuacao: 'tempo' | 'distancia' | 'pontos';
+  tipo_modalidade: 'individual' | 'coletivo';
+  categoria: 'misto' | 'masculino' | 'feminino';
 }
 
 export interface Branch {
@@ -18,15 +18,18 @@ export interface Branch {
 
 export interface Role {
   id: number;
-  nome: string;
-  descricao: string;
+  nome: 'atleta' | 'organizador' | 'juiz';
+  descricao?: string;
 }
 
 export interface User {
   id: string;
   email: string;
   nome_completo: string;
+  telefone: string;
+  filial_id: string;
   confirmado: boolean;
+  data_criacao: string;
   roles: Role[];
 }
 
@@ -98,18 +101,15 @@ export const createUserProfile = async (userId: string, data: any) => {
   
   const { error } = await supabase
     .from('usuarios')
-    .insert([
-      {
-        id: userId,
-        nome_completo: data.nome,
-        telefone: data.telefone.replace(/\D/g, ''),
-        email: data.email,
-        senha: data.password,
-        filial_id: data.branchId,
-        confirmado: false,
-        data_criacao: new Date().toISOString()
-      }
-    ]);
+    .insert([{
+      id: userId,
+      nome_completo: data.nome,
+      telefone: data.telefone.replace(/\D/g, ''),
+      email: data.email,
+      filial_id: data.branchId,
+      confirmado: false,
+      data_criacao: new Date().toISOString()
+    }]);
 
   if (error) {
     console.error('Error creating user profile:', error);
@@ -125,11 +125,15 @@ export const fetchPendingUsers = async (): Promise<User[]> => {
       id,
       email,
       nome_completo,
+      telefone,
+      filial_id,
       confirmado,
+      data_criacao,
       papeis_usuarios (
         perfis (
           id,
-          nome
+          nome,
+          descricao
         )
       )
     `)
@@ -145,19 +149,9 @@ export const fetchPendingUsers = async (): Promise<User[]> => {
     roles: user.papeis_usuarios.map((pu: any) => ({
       id: pu.perfis.id,
       nome: pu.perfis.nome,
-      descricao: getRoleDescription(pu.perfis.nome)
+      descricao: pu.perfis.descricao
     }))
   }));
-};
-
-// Helper function to get role description
-const getRoleDescription = (nome: string): string => {
-  switch (nome.toLowerCase()) {
-    case 'atleta': return 'Usuário que participa das competições';
-    case 'organizador': return 'Usuário responsável pela organização de eventos';
-    case 'juiz': return 'Usuário responsável por avaliar e pontuar as competições';
-    default: return '';
-  }
 };
 
 export const approveUser = async (userId: string) => {
@@ -177,25 +171,11 @@ export const rejectUser = async (userId: string) => {
   console.log('Rejecting user:', userId);
   const { error } = await supabase
     .from('usuarios')
-    .update({ confirmado: false })
+    .delete()
     .eq('id', userId);
 
   if (error) {
     console.error('Error rejecting user:', error);
-    throw error;
-  }
-};
-
-export const removeUserRole = async (userId: string, papel: string) => {
-  console.log('Removing role from user:', userId, papel);
-  const { error } = await supabase
-    .from('papeis_usuarios')
-    .delete()
-    .eq('usuario_id', userId)
-    .eq('perfil_id', papel.toLowerCase());
-
-  if (error) {
-    console.error('Error removing user role:', error);
     throw error;
   }
 };
