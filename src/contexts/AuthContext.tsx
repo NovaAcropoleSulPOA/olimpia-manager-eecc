@@ -38,17 +38,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           // Fetch user roles when session changes
-          const { data: userRoles } = await supabase
+          const { data: userRoles, error: rolesError } = await supabase
             .from('papeis_usuarios')
             .select('tipo_papel')
             .eq('usuario_id', session.user.id);
 
+          if (rolesError) {
+            console.error('Error fetching user roles:', rolesError);
+            return;
+          }
+
           // Fetch user profile from usuarios table
-          const { data: userProfile } = await supabase
+          const { data: userProfile, error: profileError } = await supabase
             .from('usuarios')
             .select('nome_completo, telefone, filial_id, confirmado')
             .eq('id', session.user.id)
             .single();
+
+          if (profileError) {
+            console.error('Error fetching user profile:', profileError);
+            return;
+          }
 
           const papeis = userRoles?.map(ur => ur.tipo_papel) || [];
           
@@ -125,11 +135,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Check user status
       const { data: userProfile } = await supabase
         .from('usuarios')
-        .select('confirmado, id')
+        .select('confirmado')
         .eq('id', data.user.id)
         .single();
 
-      if (userProfile?.confirmado === false) {
+      if (!userProfile?.confirmado) {
         toast.warning('Seu cadastro está pendente de aprovação.');
         navigate('/pending-approval');
         return;
@@ -166,7 +176,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Starting user registration process:', userData);
       
       // Step 1: Create user in Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
@@ -174,38 +184,91 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
-      if (error) throw error;
+      if (authError) {
+        console.error('Auth Error:', authError.message);
+        toast.error('Erro ao criar conta. Tente novamente.');
+        return { user: null, error: authError };
+      }
 
       if (!data.user) {
-        throw new Error('User creation failed');
+        const error = new Error('User creation failed');
+        console.error('User creation failed');
+        toast.error('Erro ao criar conta. Tente novamente.');
+        return { user: null, error };
       }
 
       console.log('User created in Supabase Auth:', data.user);
 
       // Step 2: Create user profile in usuarios table
-      await createUserProfile(data.user.id, {
-        ...userData,
-        password: userData.password
-      });
+      const { error: profileError } = await supabase
+        .from('usuarios')
+        .insert([{
+          id: data.user.id,
+          nome_completo: userData.nome,
+          telefone: userData.telefone.replace(/\D/g, ''),
+          email: userData.email,
+          filial_id: userData.branchId,
+          confirmado: false,
+          data_criacao: new Date().toISOString()
+        }]);
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        toast.error('Erro ao salvar dados do usuário.');
+        return { user: null, error: profileError };
+      }
 
       console.log('User profile created in usuarios table');
 
       // Step 3: Assign user roles
-      if (data.user) {
-        // Convert roleIds to papel values
-        const papeis = userData.roleIds.map((roleId: number) => {
-          switch (roleId) {
-            case 1: return 'atleta';
-            case 2: return 'organizador';
-            case 3: return 'juiz';
-            default: return '';
-          }
-        }).filter(Boolean);
+      const rolesToInsert = userData.roleIds.map((roleId: number) => {
+        let tipo_papel;
+        switch (roleId) {
+          case 1: tipo_papel = 'atleta'; break;
+          case 2: tipo_papel = 'organizador'; break;
+          case 3: tipo_papel = 'juiz'; break;
+          default: return null;
+        }
+        return {
+          usuario_id: data.user.id,
+          tipo_papel
+        };
+      }).filter(Boolean);
 
-        await assignUserRoles(data.user.id, papeis);
+      const { error: rolesError } = await supabase
+        .from('papeis_usuarios')
+        .insert(rolesToInsert);
+
+      if (rolesError) {
+        console.error('Role assignment error:', rolesError);
+        toast.error('Erro ao salvar os papéis do usuário.');
+        return { user: null, error: rolesError };
       }
 
       console.log('User roles assigned successfully');
+
+      // Step 4: If user is an athlete, store modality selections
+      if (userData.roleIds.includes(1) && userData.modalities?.length > 0) {
+        const inscricoesToInsert = userData.modalities.map((modalidadeId: number) => ({
+          atleta_id: data.user.id,
+          modalidade_id: modalidadeId,
+          status: 'pendente',
+          data_inscricao: new Date().toISOString()
+        }));
+
+        const { error: inscricoesError } = await supabase
+          .from('inscricoes')
+          .insert(inscricoesToInsert);
+
+        if (inscricoesError) {
+          console.error('Modality registration error:', inscricoesError);
+          toast.error('Erro ao salvar as inscrições do atleta.');
+          return { user: null, error: inscricoesError };
+        }
+
+        console.log('Athlete modalities registered successfully');
+      }
+
       toast.success('Cadastro realizado com sucesso! Por favor, verifique seu email.');
       navigate('/verify-email');
       
