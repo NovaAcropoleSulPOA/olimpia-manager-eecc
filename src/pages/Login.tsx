@@ -118,6 +118,7 @@ const Login = () => {
           public: false,
           allowedMimeTypes: ['image/jpeg', 'image/png'],
           fileSizeLimit: 5242880, // 5MB in bytes
+          downloadExpirySeconds: 3600,
         });
 
       if (bucketError) {
@@ -138,7 +139,8 @@ const Login = () => {
         .from('payment-proofs')
         .upload(uniqueFileName, selectedFile, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: selectedFile.type,
         });
 
       if (uploadError) {
