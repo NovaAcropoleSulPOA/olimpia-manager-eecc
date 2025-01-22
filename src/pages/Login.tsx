@@ -24,7 +24,7 @@ const loginSchema = z.object({
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
 });
 
-const roles = ["athlete", "organizer", "judge"] as const;
+const roles = ["atleta", "organizador", "juiz"] as const;
 const branches = [
   "Atletismo",
   "Basquete",
@@ -354,8 +354,10 @@ const Login = () => {
                                         }}
                                       />
                                     </FormControl>
-                                    <FormLabel className="font-normal capitalize">
-                                      {role}
+                                    <FormLabel className="font-normal">
+                                      {role === 'atleta' ? 'Atleta' : 
+                                       role === 'organizador' ? 'Organizador/a' : 
+                                       'Juíz/a'}
                                     </FormLabel>
                                   </FormItem>
                                 );
