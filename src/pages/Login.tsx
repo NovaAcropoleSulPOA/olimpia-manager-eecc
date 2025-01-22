@@ -110,32 +110,41 @@ const Login = () => {
         return;
       }
 
-      // Upload payment proof
+      // Upload payment proof with proper error handling
       console.log('Uploading payment proof');
       const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const uniqueFileName = `${Math.random().toString(36).substring(7)}_${Date.now()}.${fileExt}`;
       
-      const { data: fileData, error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('payment-proofs')
-        .upload(fileName, selectedFile);
+        .upload(uniqueFileName, selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         console.error('Error uploading payment proof:', uploadError);
-        toast.error('Erro ao fazer upload do comprovante de pagamento.');
+        
+        // Check if bucket doesn't exist
+        if (uploadError.statusCode === 404 || uploadError.statusCode === 400) {
+          toast.error('Erro no sistema de armazenamento. Por favor, contate o suporte.');
+        } else {
+          toast.error('Erro ao fazer upload do comprovante de pagamento.');
+        }
         return;
       }
+
+      console.log('Payment proof uploaded successfully:', uploadData);
       
+      // Get the public URL after successful upload
       const { data: { publicUrl } } = supabase.storage
         .from('payment-proofs')
-        .getPublicUrl(fileName);
-        
-      const paymentProofUrl = publicUrl;
-      console.log('Payment proof uploaded successfully:', paymentProofUrl);
+        .getPublicUrl(uniqueFileName);
 
       // Register user with Supabase Auth and create profile
       const signUpResult = await signUp({ 
         ...values,
-        paymentProof: paymentProofUrl,
+        paymentProof: publicUrl,
         roleIds: values.roleIds.map(id => Number(id))
       });
 
