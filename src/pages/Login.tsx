@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import PaymentInfo from '@/components/PaymentInfo';
 import { useQuery } from '@tanstack/react-query';
 import { fetchModalities, fetchBranches, fetchRoles, assignUserRoles } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
