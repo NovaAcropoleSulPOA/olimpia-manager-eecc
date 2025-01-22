@@ -19,7 +19,7 @@ interface Inscription {
   id: number;
   status: 'Pendente' | 'Confirmada' | 'Recusada' | 'Cancelada';
   data_inscricao: string;
-  modalidade: Modality;
+  modalidade: Modality; // ✅ Corrigido: agora é um único objeto
 }
 
 interface Score {
@@ -71,7 +71,7 @@ export default function AthleteProfile() {
           id,
           status,
           data_inscricao,
-          modalidades (
+          modalidade:modalidades (
             id,
             nome,
             tipo_pontuacao,
@@ -83,9 +83,12 @@ export default function AthleteProfile() {
   
       if (error) throw error;
   
+      // A estrutura do retorno já contém apenas UMA modalidade por inscrição
       const formattedData = data.map(insc => ({
-        ...insc,
-        modalidade: insc.modalidades
+        id: insc.id,
+        status: insc.status,
+        data_inscricao: insc.data_inscricao,
+        modalidade: insc.modalidade // Já é um único objeto
       }));
   
       console.log('Fetched inscriptions:', formattedData);
@@ -247,9 +250,7 @@ export default function AthleteProfile() {
           <div className="grid gap-4">
             {inscriptions.map((inscription) => (
               <div key={inscription.id} className="p-4 border rounded-lg">
-                <h4 className="font-medium">
-                  {inscription.modalidade.nome}
-                </h4>
+                <h4 className="font-medium">{inscription.modalidade.nome}</h4>
                 <p className="text-sm text-muted-foreground">
                   Status: {inscription.status}
                 </p>
