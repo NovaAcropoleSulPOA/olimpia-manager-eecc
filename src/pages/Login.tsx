@@ -40,20 +40,30 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-olimpics-background">
-      <Card className="w-[400px]">
+      <Card className="w-[400px] shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-olimpics-primary text-center">
+          <CardTitle className="text-2xl font-bold text-olimpics-green-primary text-center">
             Olimpíadas Estaduais RS 2025
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-olimpics-text">
             Faça login para continuar
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Cadastro</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-olimpics-green-primary/10">
+              <TabsTrigger 
+                value="login"
+                className="data-[state=active]:bg-olimpics-green-primary data-[state=active]:text-white"
+              >
+                Login
+              </TabsTrigger>
+              <TabsTrigger 
+                value="register"
+                className="data-[state=active]:bg-olimpics-green-primary data-[state=active]:text-white"
+              >
+                Cadastro
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="login">
               <Form {...form}>
@@ -68,6 +78,7 @@ const Login = () => {
                           <Input
                             type="email"
                             placeholder="seu@email.com"
+                            className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
                             {...field}
                           />
                         </FormControl>
@@ -85,6 +96,7 @@ const Login = () => {
                           <Input
                             type="password"
                             placeholder="••••••"
+                            className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
                             {...field}
                           />
                         </FormControl>
@@ -94,7 +106,7 @@ const Login = () => {
                   />
                   <Button
                     type="submit"
-                    className="w-full bg-olimpics-primary hover:bg-olimpics-primary/90"
+                    className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
@@ -110,7 +122,7 @@ const Login = () => {
               </Form>
             </TabsContent>
             <TabsContent value="register">
-              <p className="text-center text-sm text-gray-500">
+              <p className="text-center text-sm text-olimpics-text">
                 Formulário de cadastro em desenvolvimento...
               </p>
             </TabsContent>
@@ -120,7 +132,7 @@ const Login = () => {
           <Button
             variant="link"
             onClick={() => console.log('Implementar recuperação de senha')}
-            className="text-olimpics-primary"
+            className="text-olimpics-orange-primary hover:text-olimpics-orange-secondary"
           >
             Esqueceu sua senha?
           </Button>

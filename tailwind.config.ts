@@ -25,10 +25,15 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         olimpics: {
-          primary: "#1a365d",
-          secondary: "#ffd700",
-          accent: "#22c55e",
-          error: "#dc2626",
+          green: {
+            primary: "#009B40",
+            secondary: "#009C3F",
+          },
+          orange: {
+            primary: "#EE7E01",
+            secondary: "#EF7E00",
+            tertiary: "#F27C00",
+          },
           background: "#f8fafc",
           text: "#1f2937",
         },
