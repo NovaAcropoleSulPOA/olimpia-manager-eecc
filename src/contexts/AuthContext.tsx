@@ -13,7 +13,7 @@ interface AuthUser extends User {
   papeis?: string[];
 }
 
-// Updated interface to match the exact structure from database
+// Updated interface to match the exact structure from Supabase response
 interface DatabaseUserRole {
   perfis: {
     id: number;
@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           // Map roles correctly from the perfis table
-          const papeis = (userRoles as DatabaseUserRole[])?.map(ur => ur.perfis.nome) || [];
+          const papeis = userRoles ? userRoles.map(ur => (ur.perfis as DatabaseUserRole['perfis']).nome) : [];
           
           setUser({
             ...session.user,
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', session.user.id)
           .single();
 
-        const papeis = (userRoles as DatabaseUserRole[])?.map(ur => ur.perfis.nome) || [];
+        const papeis = userRoles ? userRoles.map(ur => (ur.perfis as DatabaseUserRole['perfis']).nome) : [];
         
         setUser({
           ...session.user,
