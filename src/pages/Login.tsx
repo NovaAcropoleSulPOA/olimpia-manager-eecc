@@ -110,57 +110,49 @@ const Login = () => {
         return;
       }
 
-      // Try to create bucket first (will do nothing if it already exists)
-      console.log('Creating storage bucket if it does not exist');
-      const { data: bucketData, error: bucketError } = await supabase
-        .storage
-        .createBucket('payment-proofs', {
-          public: false,
-          allowedMimeTypes: ['image/jpeg', 'image/png'],
-          fileSizeLimit: 5242880, // 5MB in bytes
-          downloadExpirySeconds: 3600,
-        });
-
-      if (bucketError) {
-        console.error('Error creating bucket:', bucketError);
-        // Ignore error if bucket already exists
-        if (!bucketError.message.includes('already exists')) {
-          toast.error('Erro ao configurar armazenamento. Por favor, contate o suporte.');
-          return;
-        }
-      }
-
-      // Upload payment proof with proper error handling
-      console.log('Uploading payment proof');
-      const fileExt = selectedFile.name.split('.').pop();
-      const uniqueFileName = `${Math.random().toString(36).substring(7)}_${Date.now()}.${fileExt}`;
+      // Convert file to base64 for email attachment
+      const reader = new FileReader();
+      const base64Promise = new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (error) => reject(error);
+      });
+      reader.readAsDataURL(selectedFile);
       
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('payment-proofs')
-        .upload(uniqueFileName, selectedFile, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: selectedFile.type,
-        });
+      const base64File = await base64Promise;
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `payment_proof_${Date.now()}.${fileExt}`;
 
-      if (uploadError) {
-        console.error('Error uploading payment proof:', uploadError);
-        toast.error('Erro ao fazer upload do comprovante de pagamento. Por favor, tente novamente.');
+      // Get branch and role information for email
+      const selectedBranch = branches?.find(b => b.id === values.branchId);
+      const selectedRoles = roles?.filter(r => values.roleIds.includes(r.id));
+      const selectedModalities = modalities?.filter(m => values.modalities?.includes(m.id));
+
+      // Send email with payment proof
+      const { error: emailError } = await supabase.functions.invoke('send-payment-proof', {
+        body: {
+          userEmail: values.email,
+          userName: values.nome,
+          branch: selectedBranch?.nome,
+          roles: selectedRoles?.map(r => r.nome).join(', '),
+          modalities: selectedModalities?.map(m => m.nome).join(', '),
+          attachment: {
+            content: base64File,
+            filename: fileName,
+            type: selectedFile.type,
+          }
+        }
+      });
+
+      if (emailError) {
+        console.error('Error sending email:', emailError);
+        toast.error('Erro ao enviar comprovante de pagamento. Por favor, tente novamente.');
         return;
       }
-
-      console.log('Payment proof uploaded successfully:', uploadData);
-      
-      // Get the public URL after successful upload
-      const { data: { publicUrl } } = supabase.storage
-        .from('payment-proofs')
-        .getPublicUrl(uniqueFileName);
 
       // Register user with Supabase Auth and create profile
       const signUpResult = await signUp({ 
         ...values,
-        paymentProof: publicUrl,
-        roleIds: values.roleIds.map(id => Number(id))
+        paymentProof: fileName // Store just the filename reference
       });
 
       if (signUpResult.error) {
@@ -169,7 +161,7 @@ const Login = () => {
         return;
       }
 
-      // Success message is handled by AuthContext
+      toast.success('Cadastro realizado com sucesso! Comprovante enviado para análise.');
       console.log('Registration successful:', signUpResult.user);
       
     } catch (error) {
