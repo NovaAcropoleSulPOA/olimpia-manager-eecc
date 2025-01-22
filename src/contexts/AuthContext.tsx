@@ -13,6 +13,12 @@ interface AuthUser extends User {
   papeis?: string[];
 }
 
+interface UserRole {
+  perfis: {
+    nome: string;
+  };
+}
+
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
@@ -64,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
 
-          const papeis = userRoles?.map(ur => ur.perfis.nome) || [];
+          const papeis = (userRoles as UserRole[] | null)?.map(ur => ur.perfis.nome) || [];
           
           setUser({
             ...session.user,
@@ -104,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', session.user.id)
           .single();
 
-        const papeis = userRoles?.map(ur => ur.perfis.nome) || [];
+        const papeis = (userRoles as UserRole[] | null)?.map(ur => ur.perfis.nome) || [];
         
         setUser({
           ...session.user,
