@@ -123,17 +123,18 @@ export default function AthleteProfile() {
           modalidade:modalidades (
             id,
             nome,
-            tipo_pontuacao
+            tipo_pontuacao,
+            tipo_modalidade,
+            categoria
           )
         `)
         .eq('atleta_id', user?.id);
   
       if (error) throw error;
   
-      // Certifique-se de que modalidade não seja um array
       const formattedData = data.map(score => ({
         ...score,
-        modalidade: score.modalidade[0] // Apenas o primeiro item do array
+        modalidade: score.modalidade[0] // Get first item from array
       }));
   
       setScores(formattedData || []);
