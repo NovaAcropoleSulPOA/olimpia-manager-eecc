@@ -130,6 +130,27 @@ const Login = () => {
         return;
       }
 
+      // Create payment record if user is an athlete (role_id = 1)
+      if (values.roleIds.includes(1)) {
+        const { error: paymentError } = await supabase
+          .from('pagamentos')
+          .insert([{
+            atleta_id: signUpResult.user.id,
+            valor: 180.00,
+            status: 'pendente',
+            comprovante_url: null,
+            validado_sem_comprovante: false,
+            data_validacao: null,
+            data_criacao: new Date().toISOString()
+          }]);
+
+        if (paymentError) {
+          console.error('Payment record creation error:', paymentError);
+          toast.error('Erro ao criar registro de pagamento.');
+          return;
+        }
+      }
+
       toast.success('Cadastro realizado com sucesso! Aguarde a confirmação do seu cadastro.');
       console.log('Registration successful:', signUpResult.user);
       
@@ -309,7 +330,7 @@ const Login = () => {
                       name="nome"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nome Completo</FormLabel>
+                          <FormLabel className="text-left w-full">Nome Completo</FormLabel>
                           <FormControl>
                             <Input
                               placeholder="Seu nome completo"
@@ -326,7 +347,7 @@ const Login = () => {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel className="text-left w-full">Email</FormLabel>
                           <FormControl>
                             <Input
                               type="email"
@@ -344,7 +365,7 @@ const Login = () => {
                       name="telefone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Telefone com DDD</FormLabel>
+                          <FormLabel className="text-left w-full">Telefone com DDD</FormLabel>
                           <FormControl>
                             <InputMask
                               mask="(99) 99999-9999"
@@ -371,7 +392,7 @@ const Login = () => {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Senha</FormLabel>
+                          <FormLabel className="text-left w-full">Senha</FormLabel>
                           <FormControl>
                             <Input
                               type="password"
@@ -389,7 +410,7 @@ const Login = () => {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Confirmar Senha</FormLabel>
+                          <FormLabel className="text-left w-full">Confirmar Senha</FormLabel>
                           <FormControl>
                             <Input
                               type="password"
@@ -407,7 +428,7 @@ const Login = () => {
                       name="branchId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Filial</FormLabel>
+                          <FormLabel className="text-left w-full">Filial</FormLabel>
                           <Select 
                             onValueChange={field.onChange}
                             value={field.value}
@@ -440,7 +461,7 @@ const Login = () => {
                       name="roleIds"
                       render={() => (
                         <FormItem>
-                          <FormLabel>Perfis</FormLabel>
+                          <FormLabel className="text-left w-full">Perfis</FormLabel>
                           <div className="grid grid-cols-2 gap-2">
                             {isLoadingRoles ? (
                               <div>Carregando perfis...</div>
@@ -488,7 +509,7 @@ const Login = () => {
                         name="modalities"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Modalidades</FormLabel>
+                            <FormLabel className="text-left w-full">Modalidades</FormLabel>
                             <div className="grid grid-cols-1 gap-2">
                               {isLoadingModalities ? (
                                 <div>Carregando modalidades...</div>

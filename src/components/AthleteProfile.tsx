@@ -1,87 +1,88 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
-import { Modality } from '@/lib/api';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, Plus, Trophy } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+
+interface Modality {
+  id: number;
+  nome: string;
+  tipo_pontuacao: 'tempo' | 'distancia' | 'pontos';
+  tipo_modalidade: 'individual' | 'coletivo';
+  categoria: 'misto' | 'masculino' | 'feminino';
+}
 
 interface Inscription {
   id: number;
-  modalidade: Modality;
-  status: string;
+  status: 'Pendente' | 'Aprovada' | 'Rejeitada';
   data_inscricao: string;
+  modalidade: Modality;
 }
 
-export function AthleteProfile() {
+export default function AthleteProfile() {
   const { user } = useAuth();
   const [inscriptions, setInscriptions] = useState<Inscription[]>([]);
   const [availableModalities, setAvailableModalities] = useState<Modality[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchInscriptions = async () => {
-      console.log('Fetching inscriptions for user:', user?.id);
-      try {
-        const { data: inscriptionData, error: inscriptionError } = await supabase
-          .from('inscricoes')
-          .select(`
+    fetchInscriptions();
+    fetchAvailableModalities();
+  }, []);
+
+  const fetchInscriptions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('inscricoes')
+        .select(`
+          id,
+          status,
+          data_inscricao,
+          modalidade:modalidades (
             id,
-            status,
-            data_inscricao,
-            modalidade: modalidade_id (
-              id,
-              nome,
-              tipo_pontuacao,
-              tipo_modalidade,
-              categoria
-            )
-          `)
-          .eq('atleta_id', user?.id);
+            nome,
+            tipo_pontuacao,
+            tipo_modalidade,
+            categoria
+          )
+        `)
+        .eq('atleta_id', user?.id);
 
-        if (inscriptionError) {
-          console.error('Error fetching inscriptions:', inscriptionError);
-          toast.error('Erro ao carregar inscrições');
-          return;
-        }
+      if (error) throw error;
 
-        console.log('Fetched inscriptions:', inscriptionData);
-        setInscriptions(inscriptionData || []);
-
-        // Fetch available modalities
-        const { data: modalityData, error: modalityError } = await supabase
-          .from('modalidades')
-          .select('*');
-
-        if (modalityError) {
-          console.error('Error fetching modalities:', modalityError);
-          toast.error('Erro ao carregar modalidades disponíveis');
-          return;
-        }
-
-        // Filter out already registered modalities
-        const registeredIds = inscriptionData?.map(insc => insc.modalidade.id) || [];
-        const available = modalityData?.filter(mod => !registeredIds.includes(mod.id)) || [];
-        setAvailableModalities(available);
-
-      } catch (error) {
-        console.error('Error in fetchInscriptions:', error);
-        toast.error('Erro ao carregar dados');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user?.id) {
-      fetchInscriptions();
+      setInscriptions(data as Inscription[]);
+    } catch (error) {
+      console.error('Error fetching inscriptions:', error);
+      toast.error('Erro ao carregar inscrições');
+    } finally {
+      setLoading(false);
     }
-  }, [user?.id]);
+  };
+
+  const fetchAvailableModalities = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('modalidades')
+        .select('*')
+        .order('nome');
+
+      if (error) throw error;
+
+      const registeredIds = inscriptions.map(insc => insc.modalidade.id);
+      const available = data.filter(mod => !registeredIds.includes(mod.id));
+      setAvailableModalities(available);
+    } catch (error) {
+      console.error('Error fetching modalities:', error);
+      toast.error('Erro ao carregar modalidades disponíveis');
+    }
+  };
 
   const handleAddModality = async (modalityId: number) => {
     try {
+      setSubmitting(true);
       const { error } = await supabase
         .from('inscricoes')
         .insert([{
@@ -94,107 +95,100 @@ export function AthleteProfile() {
       if (error) throw error;
 
       toast.success('Modalidade adicionada com sucesso!');
-      // Refresh inscriptions
-      window.location.reload();
+      await fetchInscriptions();
+      await fetchAvailableModalities();
     } catch (error) {
       console.error('Error adding modality:', error);
       toast.error('Erro ao adicionar modalidade');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-olimpics-orange-primary" />
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Profile Card */}
-      <Card>
-        <CardHeader className="flex flex-row items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarFallback className="bg-olimpics-orange-primary text-white text-xl">
-              {user?.nome_completo?.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <CardTitle className="text-2xl">{user?.nome_completo}</CardTitle>
-            <p className="text-muted-foreground">{user?.email}</p>
-            <p className="text-sm text-muted-foreground">Tel: {user?.telefone}</p>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Inscriptions Table */}
+    <div className="space-y-6 p-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-6 w-6 text-olimpics-orange-primary" />
-            Minhas Modalidades
-          </CardTitle>
+          <CardTitle>Perfil do Atleta</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Modalidade</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Data de Inscrição</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {inscriptions.map((inscription) => (
-                <TableRow key={inscription.id}>
-                  <TableCell className="font-medium">{inscription.modalidade.nome}</TableCell>
-                  <TableCell>{inscription.modalidade.categoria}</TableCell>
-                  <TableCell>{inscription.modalidade.tipo_modalidade}</TableCell>
-                  <TableCell>{inscription.status}</TableCell>
-                  <TableCell>
-                    {new Date(inscription.data_inscricao).toLocaleDateString('pt-BR')}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="grid gap-4">
+            <div>
+              <strong>Nome:</strong> {user?.nome_completo}
+            </div>
+            <div>
+              <strong>Email:</strong> {user?.email}
+            </div>
+            <div>
+              <strong>Telefone:</strong> {user?.telefone}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Available Modalities */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-6 w-6 text-olimpics-orange-primary" />
-            Modalidades Disponíveis
-          </CardTitle>
+          <CardTitle>Modalidades Inscritas</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {availableModalities.map((modality) => (
-              <Card key={modality.id} className="bg-muted/50">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h4 className="font-semibold">{modality.nome}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {modality.categoria} • {modality.tipo_modalidade}
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleAddModality(modality.id)}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Adicionar
-                    </Button>
+          {inscriptions.length === 0 ? (
+            <p>Nenhuma modalidade inscrita.</p>
+          ) : (
+            <div className="grid gap-4">
+              {inscriptions.map((inscription) => (
+                <div
+                  key={inscription.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div>
+                    <h4 className="font-medium">{inscription.modalidade.nome}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Status: {inscription.status}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Modalidades Disponíveis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            {availableModalities.map((modality) => (
+              <div
+                key={modality.id}
+                className="flex items-center justify-between p-4 border rounded-lg"
+              >
+                <div>
+                  <h4 className="font-medium">{modality.nome}</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {modality.tipo_modalidade} • {modality.categoria}
+                  </p>
+                </div>
+                <Button
+                  onClick={() => handleAddModality(modality.id)}
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    'Adicionar'
+                  )}
+                </Button>
+              </div>
             ))}
           </div>
         </CardContent>
