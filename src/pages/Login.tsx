@@ -421,8 +421,11 @@ const Login = () => {
                             defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
-                                <SelectValue placeholder="Selecione uma filial" />
+                              <SelectTrigger 
+                                className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                                disabled={isLoadingBranches}
+                              >
+                                <SelectValue placeholder="Selecione sua Filial" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
