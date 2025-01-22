@@ -115,7 +115,7 @@ const Login = () => {
         console.error('Sign in error:', error);
   
         // Tratamento específico para erro de credenciais inválidas
-        if (error.message.toLowerCase().includes("invalid login credentials")) {
+        if (error.code === "invalid_credentials") {
           toast.error("E-mail não cadastrado. Verifique os dados ou realize o cadastro.");
           setIsSubmitting(false);
           return;
