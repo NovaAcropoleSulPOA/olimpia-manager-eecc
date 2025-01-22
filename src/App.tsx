@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import PendingApproval from './pages/PendingApproval';
 import RoleSelection from './components/RoleSelection';
+import ResetPassword from './pages/ResetPassword';
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/pending-approval" element={<PendingApproval />} />
             <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/athlete-dashboard" element={<Dashboard />} />
             <Route path="/referee-dashboard" element={<Dashboard />} />
             <Route path="/admin-dashboard" element={<Dashboard />} />
