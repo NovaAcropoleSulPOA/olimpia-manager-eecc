@@ -24,6 +24,9 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/pending-approval" element={<PendingApproval />} />
               <Route path="/rejected" element={<RejectedAccess />} />
+              <Route path="/athlete" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/judge" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/organizer" element={<Navigate to="/dashboard" replace />} />
               <Route path="/" element={<Navigate to="/login" replace />} />
             </Routes>
           </TooltipProvider>
