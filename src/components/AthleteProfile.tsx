@@ -53,7 +53,15 @@ export default function AthleteProfile() {
 
       if (error) throw error;
 
-      setInscriptions(data as Inscription[]);
+      // Type assertion to ensure the data matches our interface
+      const typedData = (data || []).map(item => ({
+        id: item.id,
+        status: item.status,
+        data_inscricao: item.data_inscricao,
+        modalidade: item.modalidade as Modality // Assert the nested object as Modality
+      }));
+
+      setInscriptions(typedData);
     } catch (error) {
       console.error('Error fetching inscriptions:', error);
       toast.error('Erro ao carregar inscrições');
@@ -72,8 +80,8 @@ export default function AthleteProfile() {
       if (error) throw error;
 
       const registeredIds = inscriptions.map(insc => insc.modalidade.id);
-      const available = data.filter(mod => !registeredIds.includes(mod.id));
-      setAvailableModalities(available);
+      const available = (data || []).filter(mod => !registeredIds.includes(mod.id));
+      setAvailableModalities(available as Modality[]);
     } catch (error) {
       console.error('Error fetching modalities:', error);
       toast.error('Erro ao carregar modalidades disponíveis');

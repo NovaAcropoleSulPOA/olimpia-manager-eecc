@@ -1,5 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { AthleteProfile } from '@/components/AthleteProfile';
+import AthleteProfile from '@/components/AthleteProfile';
 
 export default function Dashboard() {
   const { user } = useAuth();
