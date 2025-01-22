@@ -162,3 +162,24 @@ export const removeUserRole = async (userId: string, roleId: number) => {
     throw error;
   }
 };
+
+export const createUserProfile = async (userId: string, data: any) => {
+  console.log('Creating user profile:', userId, data);
+  
+  const { error } = await supabase
+    .from('usuarios')
+    .insert([
+      {
+        id: userId,
+        nome: data.nome,
+        status: 'pendente',
+        filial_id: data.branchId,
+        payment_proof: data.paymentProof
+      }
+    ]);
+
+  if (error) {
+    console.error('Error creating user profile:', error);
+    throw error;
+  }
+};

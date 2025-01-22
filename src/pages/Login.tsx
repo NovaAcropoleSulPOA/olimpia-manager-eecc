@@ -100,25 +100,44 @@ const Login = () => {
 
   const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
+      console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
-      const formData = new FormData();
+
+      // Upload payment proof if provided
+      let paymentProofUrl = null;
       if (selectedFile) {
-        formData.append('paymentProof', selectedFile);
+        console.log('Uploading payment proof');
+        const { data: fileData, error: uploadError } = await supabase.storage
+          .from('payment-proofs')
+          .upload(`${Date.now()}-${selectedFile.name}`, selectedFile);
+
+        if (uploadError) {
+          console.error('Error uploading payment proof:', uploadError);
+          toast.error('Erro ao fazer upload do comprovante de pagamento.');
+          return;
+        }
+        paymentProofUrl = fileData?.path;
       }
-      
+
+      // Register user with Supabase Auth and create profile
       const signUpResult = await signUp({ 
         ...values,
+        paymentProof: paymentProofUrl,
         roleIds: values.roleIds.map(id => Number(id))
       });
-      
-      if (signUpResult?.user?.id) {
-        await assignUserRoles(signUpResult.user.id, values.roleIds.map(id => Number(id)));
+
+      if (signUpResult.error) {
+        console.error('Registration error:', signUpResult.error);
+        toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
+        return;
       }
+
+      // Success message and redirect are handled by AuthContext
+      console.log('Registration successful:', signUpResult.user);
       
-      toast.success('Cadastro realizado com sucesso! Aguarde a aprovação.');
     } catch (error) {
-      console.error('Registration error:', error);
-      toast.error('Erro ao realizar cadastro. Tente novamente.');
+      console.error('Registration process error:', error);
+      toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
