@@ -5,7 +5,8 @@ import PaymentInfo from '@/components/PaymentInfo';
 export default function Dashboard() {
   const { user } = useAuth();
 
-  // Only show athlete profile if user has the 'atleta' role
+  console.log("Usuário carregado no dashboard:", user);
+
   const isAthlete = user?.papeis?.includes('Atleta');
 
   return (

@@ -139,19 +139,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('Attempting sign in:', email);
+      console.log('Tentando login com:', email);
       setLoading(true);
-      
+  
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   
       if (error) {
-        console.error('Sign in error:', error);
-  
-        if (error.code === "email_not_confirmed") {
-          toast.error("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e ative sua conta antes de fazer login.");
-          return;
-        }
-  
+        console.error('Erro no login:', error);
         toast.error("Erro ao fazer login. Verifique suas credenciais.");
         return;
       }
@@ -159,24 +153,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Busca os papéis do usuário
       const { data: userRoles, error: rolesError } = await supabase
         .from('papeis_usuarios')
-        .select(`
-          perfis (
-            id,
-            nome
-          )
-        `)
+        .select('perfis (id, nome)')
         .eq('usuario_id', data.user.id);
+
+      console.log("Dados dos papéis do usuário:", userRoles);
   
       if (rolesError) {
-        console.error('Error fetching user roles:', rolesError);
+        console.error('Erro ao carregar papéis:', rolesError);
         toast.error('Erro ao carregar perfis do usuário');
         return;
       }
   
       const roles = userRoles?.map((ur: any) => ur.perfis.nome) || [];
-      console.log('User roles:', roles);
+      console.log('Papéis do usuário:', roles);
   
-      // Busca a confirmação do usuário
+      // Verifica se o usuário está confirmado
       const { data: userProfile, error: profileError } = await supabase
         .from('usuarios')
         .select('confirmado')
@@ -184,30 +175,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
   
       if (profileError) {
-        console.error('Error fetching user profile:', profileError);
+        console.error('Erro ao buscar perfil:', profileError);
         toast.error('Erro ao carregar perfil do usuário');
         return;
       }
   
       if (!userProfile?.confirmado) {
-        console.log('User not confirmed, redirecting to pending approval');
+        console.log('Usuário não confirmado, redirecionando para página de aprovação pendente.');
         toast.warning('Seu cadastro está pendente de aprovação.');
         navigate('/pending-approval');
         return;
       }
   
-      // Atualiza o estado do usuário
       setUser({ ...data.user, papeis: roles });
   
-      // Redireciona conforme os papéis do usuário
+      // Lógica de redirecionamento corrigida
       if (roles.length > 1) {
-        console.log('User has multiple roles, redirecting to role selection');
+        console.log('Usuário com múltiplos perfis, redirecionando para seleção de perfil.');
         navigate('/role-selection', { state: { roles } });
         toast.success('Login realizado com sucesso! Selecione seu perfil.');
         return;
       }
   
-      // Redirecionamento direto para o painel correto
+      // Redirecionamento direto se houver apenas um papel
       let redirectPath = '/dashboard';
       if (roles.includes('Atleta')) {
         redirectPath = '/athlete-dashboard';
@@ -217,18 +207,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         redirectPath = '/admin-dashboard';
       }
   
-      console.log('Redirecting to:', redirectPath);
-      toast.success("Login realizado com sucesso!");
+      console.log('Redirecionando para:', redirectPath);
       navigate(redirectPath);
+      toast.success("Login realizado com sucesso!");
   
     } catch (error) {
-      console.error("Unexpected Login Error:", error);
+      console.error("Erro inesperado no login:", error);
       toast.error("Ocorreu um erro inesperado. Tente novamente.");
     } finally {
       setLoading(false);
     }
-  };  
-
+  };
+  
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();

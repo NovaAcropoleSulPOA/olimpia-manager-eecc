@@ -22,9 +22,9 @@ export default function RoleSelection({ roles: propRoles }: RoleSelectionProps) 
   console.log('Available roles:', roles);
 
   const handleRoleSelect = (role: string) => {
-    console.log('Selected role:', role);
+    console.log('Perfil selecionado:', role);
     let redirectPath = '/dashboard';
-    
+  
     switch (role) {
       case 'Atleta':
         redirectPath = '/athlete-dashboard';
@@ -36,10 +36,11 @@ export default function RoleSelection({ roles: propRoles }: RoleSelectionProps) 
         redirectPath = '/admin-dashboard';
         break;
     }
-
+  
     toast.success(`Acessando painel de ${role.toLowerCase()}`);
+    console.log('Redirecionando para:', redirectPath);
     navigate(redirectPath);
-  };
+  };  
 
   if (!roles || roles.length === 0) {
     console.error('No roles available for selection');
