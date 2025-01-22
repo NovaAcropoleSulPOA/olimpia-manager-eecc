@@ -15,6 +15,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from '@tanstack/react-query';
 import { fetchModalities, fetchBranches, fetchRoles } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 import InputMask from 'react-input-mask';
 
 const loginSchema = z.object({
