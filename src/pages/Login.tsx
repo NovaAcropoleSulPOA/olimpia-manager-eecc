@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom'; // Add this import
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,6 +59,7 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { signIn, signUp } = useAuth();
+  const navigate = useNavigate(); // Add this line
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -130,8 +132,12 @@ const Login = () => {
         return;
       }
 
-      toast.success('Cadastro realizado com sucesso! Aguarde a confirmação do seu cadastro.');
-      console.log('Registration successful:', signUpResult.user);
+      toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para mais instruções. Redirecionando para o login...');
+      
+      // Redirect to login after 3 seconds
+      setTimeout(() => {
+        navigate('/login');
+      }, 3000);
       
     } catch (error) {
       console.error('Registration process error:', error);
@@ -308,8 +314,8 @@ const Login = () => {
                       control={registerForm.control}
                       name="nome"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nome Completo</FormLabel>
+                        <FormItem className="text-left">
+                          <FormLabel className="font-medium">Nome Completo</FormLabel>
                           <FormControl>
                             <Input
                               placeholder="Seu nome completo"
@@ -325,8 +331,8 @@ const Login = () => {
                       control={registerForm.control}
                       name="email"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
+                        <FormItem className="text-left">
+                          <FormLabel className="font-medium">Email</FormLabel>
                           <FormControl>
                             <Input
                               type="email"
@@ -343,8 +349,8 @@ const Login = () => {
                       control={registerForm.control}
                       name="telefone"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Telefone com DDD</FormLabel>
+                        <FormItem className="text-left">
+                          <FormLabel className="font-medium">Telefone com DDD</FormLabel>
                           <FormControl>
                             <InputMask
                               mask="(99) 99999-9999"
@@ -370,8 +376,8 @@ const Login = () => {
                       control={registerForm.control}
                       name="password"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Senha</FormLabel>
+                        <FormItem className="text-left">
+                          <FormLabel className="font-medium">Senha</FormLabel>
                           <FormControl>
                             <Input
                               type="password"
@@ -388,8 +394,8 @@ const Login = () => {
                       control={registerForm.control}
                       name="confirmPassword"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Confirmar Senha</FormLabel>
+                        <FormItem className="text-left">
+                          <FormLabel className="font-medium">Confirmar Senha</FormLabel>
                           <FormControl>
                             <Input
                               type="password"
@@ -406,8 +412,8 @@ const Login = () => {
                       control={registerForm.control}
                       name="branchId"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Filial</FormLabel>
+                        <FormItem className="text-left">
+                          <FormLabel className="font-medium">Filial</FormLabel>
                           <Select 
                             onValueChange={field.onChange}
                             value={field.value}
@@ -439,8 +445,8 @@ const Login = () => {
                       control={registerForm.control}
                       name="roleIds"
                       render={() => (
-                        <FormItem>
-                          <FormLabel>Perfis</FormLabel>
+                        <FormItem className="text-left">
+                          <FormLabel className="font-medium">Perfis</FormLabel>
                           <div className="grid grid-cols-2 gap-2">
                             {isLoadingRoles ? (
                               <div>Carregando perfis...</div>
@@ -487,8 +493,8 @@ const Login = () => {
                         control={registerForm.control}
                         name="modalities"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Modalidades</FormLabel>
+                          <FormItem className="text-left">
+                            <FormLabel className="font-medium">Modalidades</FormLabel>
                             <div className="grid grid-cols-1 gap-2">
                               {isLoadingModalities ? (
                                 <div>Carregando modalidades...</div>

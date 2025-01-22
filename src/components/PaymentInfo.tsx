@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { InfoIcon } from "lucide-react";
 
 const PaymentInfo = () => {
   const handleWhatsAppClick = () => {
@@ -38,10 +40,14 @@ const PaymentInfo = () => {
         />
       </div>
 
-      <p className="text-sm text-gray-500 text-left">
-        Após realizar o pagamento, aguarde a confirmação do seu cadastro por email.
-        Em caso de dúvidas, entre em contato através do WhatsApp.
-      </p>
+      <Alert variant="default" className="bg-olimpics-green-primary/5 border-olimpics-green-primary/20">
+        <InfoIcon className="h-4 w-4 text-olimpics-green-primary" />
+        <AlertDescription className="text-sm text-gray-600 ml-2">
+          Após realizar o pagamento, aguarde a confirmação do seu cadastro por e-mail. 
+          Você receberá um e-mail com instruções para enviar seu comprovante de pagamento. 
+          Caso tenha dúvidas, entre em contato pelo WhatsApp.
+        </AlertDescription>
+      </Alert>
     </div>
   );
 };
