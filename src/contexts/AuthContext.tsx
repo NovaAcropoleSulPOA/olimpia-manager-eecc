@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
-import { assignUserRoles, createUserProfile } from '@/lib/api';
+import { assignUserRoles } from '@/lib/api';
 
 interface AuthUser extends User {
   nome_completo?: string;
@@ -40,7 +40,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Fetch user roles when session changes
           const { data: userRoles, error: rolesError } = await supabase
             .from('papeis_usuarios')
-            .select('papel')
+            .select(`
+              perfis (
+                nome
+              )
+            `)
             .eq('usuario_id', session.user.id);
 
           if (rolesError) {
@@ -60,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
 
-          const papeis = userRoles?.map(ur => ur.papel) || [];
+          const papeis = userRoles?.map(ur => ur.perfis.nome) || [];
           
           setUser({
             ...session.user,
@@ -87,7 +91,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         const { data: userRoles } = await supabase
           .from('papeis_usuarios')
-          .select('papel')
+          .select(`
+            perfis (
+              nome
+            )
+          `)
           .eq('usuario_id', session.user.id);
 
         const { data: userProfile } = await supabase
@@ -96,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .eq('id', session.user.id)
           .single();
 
-        const papeis = userRoles?.map(ur => ur.papel) || [];
+        const papeis = userRoles?.map(ur => ur.perfis.nome) || [];
         
         setUser({
           ...session.user,
@@ -215,23 +223,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('User profile created in usuarios table');
 
-      const rolesToInsert = userData.roleIds.map((roleId: number) => {
-        let papel;
-        switch (roleId) {
-          case 1: papel = 'atleta'; break;
-          case 2: papel = 'organizador'; break;
-          case 3: papel = 'juiz'; break;
-          default: return null;
-        }
-        return {
-          usuario_id: data.user.id,
-          papel
-        };
-      }).filter(Boolean);
-
       const { error: rolesError } = await supabase
         .from('papeis_usuarios')
-        .insert(rolesToInsert);
+        .insert(
+          userData.roleIds.map((roleId: number) => ({
+            usuario_id: data.user.id,
+            perfil_id: roleId
+          }))
+        );
 
       if (rolesError) {
         console.error('Role assignment error:', rolesError);
