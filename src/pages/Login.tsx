@@ -309,6 +309,7 @@ const Login = () => {
                         <Select 
                           onValueChange={field.onChange}
                           value={field.value}
+                          defaultValue={field.value}
                         >
                           <FormControl>
                             <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
@@ -386,7 +387,7 @@ const Login = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Modalidades</FormLabel>
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 gap-2">
                             {isLoadingModalities ? (
                               <div>Carregando modalidades...</div>
                             ) : (
@@ -399,7 +400,7 @@ const Login = () => {
                                     return (
                                       <FormItem
                                         key={modality.id}
-                                        className="flex flex-row items-start space-x-3 space-y-0"
+                                        className="flex flex-row items-start space-x-3 space-y-0 p-2 rounded-lg hover:bg-gray-50"
                                       >
                                         <FormControl>
                                           <Checkbox
@@ -412,9 +413,14 @@ const Login = () => {
                                             }}
                                           />
                                         </FormControl>
-                                        <FormLabel className="font-normal">
-                                          {modality.nome}
-                                        </FormLabel>
+                                        <div className="flex flex-col">
+                                          <FormLabel className="font-medium">
+                                            {modality.nome}
+                                          </FormLabel>
+                                          <span className="text-sm text-gray-500">
+                                            {modality.tipo_modalidade} • {modality.categoria}
+                                          </span>
+                                        </div>
                                       </FormItem>
                                     );
                                   }}
