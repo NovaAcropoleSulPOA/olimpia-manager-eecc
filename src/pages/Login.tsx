@@ -370,7 +370,7 @@ const Login = () => {
                     )}
                   />
 
-                  {registerForm.watch("roles").includes("athlete") && (
+                  {registerForm.watch("roles").includes("atleta") && (
                     <FormField
                       control={registerForm.control}
                       name="modalities"
