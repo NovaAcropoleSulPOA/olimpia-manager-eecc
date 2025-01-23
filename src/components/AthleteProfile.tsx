@@ -46,18 +46,24 @@ export default function AthleteProfile() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    console.log('AthleteProfile mounted, fetching data...');
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      console.log('Starting to fetch all athlete data...');
       await Promise.all([
         fetchInscriptions(),
         fetchAvailableModalities(),
         fetchScores(),
         fetchBranch(),
       ]);
+      console.log('All athlete data fetched successfully');
+    } catch (error) {
+      console.error('Error fetching athlete data:', error);
+      toast.error('Erro ao carregar dados do atleta');
     } finally {
       setLoading(false);
     }
@@ -88,9 +94,7 @@ export default function AthleteProfile() {
         id: insc.id,
         status: insc.status,
         data_inscricao: insc.data_inscricao,
-        modalidade: Array.isArray(insc.modalidade) && insc.modalidade.length > 0 
-          ? insc.modalidade[0] as Modality  // Pega o primeiro item e converte corretamente
-          : (insc.modalidade as Modality)   // Converte diretamente se não for um array
+        modalidade: insc.modalidade as unknown as Modality
       }));
   
       console.log('Fetched inscriptions:', formattedData);
@@ -99,7 +103,7 @@ export default function AthleteProfile() {
       console.error('Error fetching inscriptions:', error);
       toast.error('Erro ao carregar inscrições');
     }
-  };  
+  };
 
   const fetchAvailableModalities = async () => {
     try {
