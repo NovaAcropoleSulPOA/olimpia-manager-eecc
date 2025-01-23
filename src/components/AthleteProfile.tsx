@@ -94,7 +94,7 @@ export default function AthleteProfile() {
         id: insc.id,
         status: insc.status,
         data_inscricao: insc.data_inscricao,
-        modalidade: insc.modalidade as Modality
+        modalidade: insc.modalidade as unknown as Modality
       }));
   
       console.log('Fetched inscriptions:', formattedData);
@@ -116,7 +116,7 @@ export default function AthleteProfile() {
       if (error) throw error;
 
       const registeredIds = inscriptions.map(insc => insc.modalidade.id);
-      const available = data as Modality[];
+      const available = data as unknown as Modality[];
       const filteredModalities = available.filter(mod => !registeredIds.includes(mod.id));
       
       console.log('Available modalities:', filteredModalities);
@@ -150,7 +150,7 @@ export default function AthleteProfile() {
       const formattedData: Score[] = data.map(score => ({
         id: score.id,
         valor: score.valor_pontuacao,
-        modalidade: score.modalidade as Modality
+        modalidade: score.modalidade as unknown as Modality
       }));
   
       console.log('Fetched scores:', formattedData);
