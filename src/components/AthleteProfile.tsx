@@ -136,22 +136,22 @@ export default function AthleteProfile() {
           )
         `)
         .eq('atleta_id', user?.id);
-
+  
       if (error) throw error;
-
-      const formattedData = data.map(score => ({
+  
+      const formattedData: Score[] = data.map(score => ({
         id: score.id,
         valor: score.valor_pontuacao,
-        modalidade: score.modalidade as Modality
+        modalidade: (Array.isArray(score.modalidade) ? score.modalidade[0] : score.modalidade) as Modality // 🛠 Converte explicitamente para `Modality`
       }));
-
+  
       console.log('Fetched scores:', formattedData);
       setScores(formattedData);
     } catch (error) {
       console.error('Error fetching scores:', error);
       toast.error('Erro ao carregar pontuações');
     }
-  };
+  };  
 
   const fetchBranch = async () => {
     if (!user?.filial_id) return;
