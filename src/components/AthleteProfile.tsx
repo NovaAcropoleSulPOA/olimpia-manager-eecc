@@ -43,14 +43,7 @@ export default function AthleteProfile() {
   const [scores, setScores] = useState<Score[]>([]);
   const [branch, setBranch] = useState<Branch | null>(null);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [paymentInfo, setPaymentInfo] = useState<{
-    valor: number;
-    status: string;
-    data_criacao: string;
-    data_validacao: string | null;
-  } | null>(null);
-  
+  const [submitting, setSubmitting] = useState(false); 
 
   useEffect(() => {
     fetchData();
@@ -64,7 +57,6 @@ export default function AthleteProfile() {
         fetchAvailableModalities(),
         fetchScores(),
         fetchBranch(),
-        fetchPaymentInfo(),
       ]);
     } finally {
       setLoading(false);
@@ -193,34 +185,6 @@ export default function AthleteProfile() {
     }
   };
 
-  const fetchPaymentInfo = async () => {
-    try {
-      console.log('Fetching payment info for athlete:', user?.id);
-      const { data, error } = await supabase
-        .from('pagamentos')
-        .select(`
-          valor,
-          status,
-          data_criacao,
-          data_validacao
-        `)
-        .eq('atleta_id', user?.id)
-        .single();
-  
-      if (error) {
-        console.error('Error fetching payment info:', error);
-        toast.error('Erro ao carregar informações de pagamento.');
-        return;
-      }
-  
-      console.log('Fetched payment info:', data);
-      setPaymentInfo(data);
-    } catch (error) {
-      console.error('Unexpected error fetching payment info:', error);
-      toast.error('Erro inesperado ao buscar informações de pagamento.');
-    }
-  };  
-
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Pendente';
     return format(new Date(dateString), 'dd/MM/yyyy');
@@ -340,12 +304,6 @@ export default function AthleteProfile() {
                 <span className="text-muted-foreground">Data:</span>
                 <span className="font-medium">
                   {formatDate(paymentInfo?.data_criacao)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Validação:</span>
-                <span className="font-medium">
-                  {formatDate(paymentInfo?.data_validacao)}
                 </span>
               </div>
             </div>
