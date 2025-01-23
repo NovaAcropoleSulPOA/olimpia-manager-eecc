@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { Toaster } from './components/ui/sonner';
@@ -30,12 +30,12 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/pending-approval" element={<PendingApproval />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route element={<MainNavigation />}>
-              <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
-              <Route path="/athlete-dashboard" element={<Dashboard />} />
-              <Route path="/referee-dashboard" element={<Dashboard />} />
-              <Route path="/admin-dashboard" element={<Dashboard />} />
-              <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<MainNavigation><Outlet /></MainNavigation>}>
+              <Route path="role-selection" element={<RoleSelection roles={[]} />} />
+              <Route path="athlete-dashboard" element={<Dashboard />} />
+              <Route path="referee-dashboard" element={<Dashboard />} />
+              <Route path="admin-dashboard" element={<Dashboard />} />
+              <Route index element={<Dashboard />} />
             </Route>
           </Routes>
           <Toaster />
