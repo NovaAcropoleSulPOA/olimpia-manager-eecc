@@ -4,8 +4,9 @@ import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Loader2, User, MapPin, Phone, Mail, List, Plus } from 'lucide-react';
+import { Loader2, User, MapPin, Phone, Mail, List, Plus, CreditCard } from 'lucide-react';
 import AthleteScores from './AthleteScores';
+import { format } from 'date-fns';
 
 interface Modality {
   id: number;
@@ -210,6 +211,20 @@ export default function AthleteProfile() {
     }
   };  
 
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Pendente';
+    return format(new Date(dateString), 'dd/MM/yyyy');
+  };
+
+  const formatPaymentStatus = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'pendente': 'Pendente',
+      'confirmado': 'Confirmado',
+      'recusado': 'Recusado'
+    };
+    return statusMap[status.toLowerCase()] || status;
+  };
+
   const handleAddModality = async (modalityId: number) => {
     try {
       setSubmitting(true);
@@ -225,7 +240,12 @@ export default function AthleteProfile() {
       if (error) throw error;
 
       toast.success('Modalidade adicionada com sucesso!');
-      await fetchData();
+      
+      // Update both lists immediately after successful addition
+      await Promise.all([
+        fetchInscriptions(),
+        fetchAvailableModalities()
+      ]);
     } catch (error) {
       console.error('Error adding modality:', error);
       toast.error('Erro ao adicionar modalidade');
@@ -243,37 +263,76 @@ export default function AthleteProfile() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5 text-olimpics-green-primary" />
-            Perfil do Atleta
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span>{user?.nome_completo}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span>{user?.email}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <span>{user?.telefone}</span>
-            </div>
-            {branch && (
+    <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5 text-olimpics-green-primary" />
+              Perfil do Atleta
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span>{branch.nome} - {branch.cidade}/{branch.estado}</span>
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span>{user?.nome_completo}</span>
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span>{user?.email}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <span>{user?.telefone}</span>
+              </div>
+              {branch && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span>{branch.nome} - {branch.cidade}/{branch.estado}</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-olimpics-green-primary" />
+              Pagamento
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Valor:</span>
+                <span className="font-medium">
+                  R$ {paymentInfo?.valor?.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Status:</span>
+                <span className="font-medium">
+                  {formatPaymentStatus(paymentInfo?.status || 'Pendente')}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Data:</span>
+                <span className="font-medium">
+                  {formatDate(paymentInfo?.data_criacao)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Validação:</span>
+                <span className="font-medium">
+                  {formatDate(paymentInfo?.data_validacao)}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader>
@@ -283,20 +342,25 @@ export default function AthleteProfile() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-        {inscriptions.length === 0 ? (
-          <p>Nenhuma modalidade inscrita.</p>
-        ) : (
-          <div className="grid gap-4">
-            {inscriptions.map((inscription) => (
-              <div key={inscription.id} className="p-4 border rounded-lg">
-                <h4 className="font-medium">{inscription.modalidade.nome}</h4>
-                <p className="text-sm text-muted-foreground">
-                  Status: {inscription.status}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
+          {inscriptions.length === 0 ? (
+            <p>Nenhuma modalidade inscrita.</p>
+          ) : (
+            <div className="grid gap-2">
+              {inscriptions.map((inscription) => (
+                <div key={inscription.id} className="flex justify-between items-center p-2 border rounded-lg">
+                  <div>
+                    <h4 className="font-medium">{inscription.modalidade.nome}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Status: {inscription.status}
+                    </p>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {format(new Date(inscription.data_inscricao), 'dd/MM/yyyy')}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -310,19 +374,20 @@ export default function AthleteProfile() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
+          <div className="grid gap-2">
             {availableModalities.map((modality) => (
               <div
                 key={modality.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
+                className="flex items-center justify-between p-2 border rounded-lg"
               >
-                <div>
+                <div className="flex items-center gap-4">
                   <h4 className="font-medium">{modality.nome}</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <span className="text-sm text-muted-foreground">
                     {modality.tipo_modalidade} • {modality.categoria}
-                  </p>
+                  </span>
                 </div>
                 <Button
+                  size="sm"
                   onClick={() => handleAddModality(modality.id)}
                   disabled={submitting}
                 >
