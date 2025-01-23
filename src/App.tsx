@@ -30,20 +30,13 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/pending-approval" element={<PendingApproval />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route
-              path="/"
-              element={
-                <MainNavigation>
-                  <Routes>
-                    <Route path="role-selection" element={<RoleSelection roles={[]} />} />
-                    <Route path="athlete-dashboard" element={<Dashboard />} />
-                    <Route path="referee-dashboard" element={<Dashboard />} />
-                    <Route path="admin-dashboard" element={<Dashboard />} />
-                    <Route index element={<Dashboard />} />
-                  </Routes>
-                </MainNavigation>
-              }
-            />
+            <Route element={<MainNavigation />}>
+              <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
+              <Route path="/athlete-dashboard" element={<Dashboard />} />
+              <Route path="/referee-dashboard" element={<Dashboard />} />
+              <Route path="/admin-dashboard" element={<Dashboard />} />
+              <Route path="/" element={<Dashboard />} />
+            </Route>
           </Routes>
           <Toaster />
         </AuthProvider>

@@ -1,5 +1,5 @@
 import { Home, User, LogOut, Menu } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Sidebar,
@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-export function MainNavigation({ children }: { children: React.ReactNode }) {
+export function MainNavigation() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
@@ -64,7 +64,7 @@ export function MainNavigation({ children }: { children: React.ReactNode }) {
               <Button
                 variant="ghost"
                 className="w-full justify-start"
-                onClick={() => navigate(-1)} // Volta para a página anterior
+                onClick={() => navigate(-1)}
               >
                 ⬅ Voltar
               </Button>
@@ -101,7 +101,7 @@ export function MainNavigation({ children }: { children: React.ReactNode }) {
             </SidebarTrigger>
           </div>
           <div className="p-4">
-            {children}
+            <Outlet />
           </div>
         </div>
       </div>
