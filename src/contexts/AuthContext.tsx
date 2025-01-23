@@ -28,85 +28,123 @@ const PUBLIC_ROUTES = ['/login', '/reset-password', '/pending-approval'];
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   // Initialize Supabase auth with session persistence
   useEffect(() => {
     console.log('Initializing Supabase auth with session persistence');
+    let mounted = true;
     
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.id);
-      
-      if (session?.user) {
-        try {
-          // Fetch user roles
-          const { data: userRoles, error: rolesError } = await supabase
-            .from('papeis_usuarios')
-            .select('perfis (id, nome)')
-            .eq('usuario_id', session.user.id);
+    const setupAuth = async () => {
+      try {
+        // Check for existing session first
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial session check:', session?.user?.id);
+        
+        if (!session) {
+          console.log('No active session found');
+          if (!PUBLIC_ROUTES.includes(location.pathname)) {
+            navigate('/login');
+          }
+          if (mounted) {
+            setLoading(false);
+            setInitialLoadComplete(true);
+          }
+          return;
+        }
 
-          if (rolesError) throw rolesError;
-
-          // Fetch user profile
-          const { data: userProfile, error: profileError } = await supabase
-            .from('usuarios')
-            .select('nome_completo, telefone, filial_id, confirmado')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileError) throw profileError;
-
-          const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
+        // Setup auth state change listener
+        const {
+          data: { subscription },
+        } = supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log('Auth state changed:', event, session?.user?.id);
           
-          const updatedUser = {
-            ...session.user,
-            ...userProfile,
-            papeis,
-          };
+          if (session?.user) {
+            try {
+              // Fetch user roles
+              const { data: userRoles, error: rolesError } = await supabase
+                .from('papeis_usuarios')
+                .select('perfis (id, nome)')
+                .eq('usuario_id', session.user.id);
 
-          console.log('Setting authenticated user:', updatedUser);
-          setUser(updatedUser);
+              if (rolesError) throw rolesError;
 
-          // Handle navigation based on user state
-          if (!userProfile?.confirmado) {
-            console.log('User not confirmed, redirecting to pending approval');
-            navigate('/pending-approval');
-            return;
+              // Fetch user profile
+              const { data: userProfile, error: profileError } = await supabase
+                .from('usuarios')
+                .select('nome_completo, telefone, filial_id, confirmado')
+                .eq('id', session.user.id)
+                .single();
+
+              if (profileError) throw profileError;
+
+              const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
+              
+              const updatedUser = {
+                ...session.user,
+                ...userProfile,
+                papeis,
+              };
+
+              console.log('Setting authenticated user:', updatedUser);
+              if (mounted) {
+                setUser(updatedUser);
+              }
+
+              // Handle navigation based on user state
+              if (!userProfile?.confirmado) {
+                console.log('User not confirmed, redirecting to pending approval');
+                navigate('/pending-approval');
+                return;
+              }
+
+              // Only redirect on initial sign in
+              if (event === 'SIGNED_IN') {
+                const redirectPath = getDefaultRoute(papeis);
+                console.log('Redirecting to:', redirectPath);
+                navigate(redirectPath);
+              }
+            } catch (error) {
+              console.error('Error setting up user session:', error);
+              toast.error('Erro ao carregar dados do usuário');
+            }
+          } else {
+            console.log('No active session, clearing user state');
+            if (mounted) {
+              setUser(null);
+            }
+            if (!PUBLIC_ROUTES.includes(location.pathname)) {
+              console.log('Redirecting to login from:', location.pathname);
+              navigate('/login');
+            }
           }
-
-          // Only redirect on initial sign in
-          if (event === 'SIGNED_IN') {
-            const redirectPath = getDefaultRoute(papeis);
-            console.log('Redirecting to:', redirectPath);
-            navigate(redirectPath);
+          
+          if (mounted) {
+            setLoading(false);
+            setInitialLoadComplete(true);
           }
-        } catch (error) {
-          console.error('Error setting up user session:', error);
-          toast.error('Erro ao carregar dados do usuário');
-        }
-      } else {
-        console.log('No active session, clearing user state');
-        setUser(null);
-        if (!PUBLIC_ROUTES.includes(location.pathname)) {
-          console.log('Redirecting to login from:', location.pathname);
-          navigate('/login');
+        });
+
+        return () => {
+          mounted = false;
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error('Error in auth setup:', error);
+        if (mounted) {
+          setLoading(false);
+          setInitialLoadComplete(true);
         }
       }
-      
-      setLoading(false);
-    });
+    };
 
-    // Check for existing session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.id);
-      if (!session) {
-        setLoading(false);
-        if (!PUBLIC_ROUTES.includes(location.pathname)) {
-          navigate('/login');
-        }
-      }
-    });
+    setupAuth();
+
+    return () => {
+      mounted = false;
+    };
   }, [navigate, location]);
 
   const getDefaultRoute = (roles: string[]) => {
@@ -125,37 +163,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('Tentando login com:', email);
+      console.log('Attempting login with:', email);
       setLoading(true);
   
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   
       if (error) {
-        console.error('Erro no login:', error);
-        toast.error("Erro ao fazer login. Verifique suas credenciais.");
+        console.error('Login error:', error);
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error("Email ou senha incorretos");
+        } else {
+          toast.error("Erro ao fazer login. Tente novamente.");
+        }
         return;
       }
   
       console.log('Login successful, fetching user roles...');
       
-      // Busca os papéis do usuário
+      // Fetch user roles
       const { data: userRoles, error: rolesError } = await supabase
         .from('papeis_usuarios')
         .select('perfis (id, nome)')
         .eq('usuario_id', data.user.id);
 
-      console.log("Dados dos papéis do usuário:", userRoles);
+      console.log("User roles data:", userRoles);
   
       if (rolesError) {
-        console.error('Erro ao carregar papéis:', rolesError);
+        console.error('Error loading roles:', rolesError);
         toast.error('Erro ao carregar perfis do usuário');
         return;
       }
   
       const roles = userRoles?.map((ur: any) => ur.perfis.nome) || [];
-      console.log('Papéis do usuário:', roles);
+      console.log('User roles:', roles);
   
-      // Verifica se o usuário está confirmado
+      // Check if user is confirmed
       const { data: userProfile, error: profileError } = await supabase
         .from('usuarios')
         .select('confirmado')
@@ -163,13 +205,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
   
       if (profileError) {
-        console.error('Erro ao buscar perfil:', profileError);
+        console.error('Error fetching profile:', profileError);
         toast.error('Erro ao carregar perfil do usuário');
         return;
       }
   
       if (!userProfile?.confirmado) {
-        console.log('Usuário não confirmado, redirecionando para página de aprovação pendente.');
+        console.log('User not confirmed, redirecting to pending approval page');
         toast.warning('Seu cadastro está pendente de aprovação.');
         navigate('/pending-approval');
         return;
@@ -177,15 +219,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       setUser({ ...data.user, papeis: roles });
   
-      // Lógica de redirecionamento
+      // Redirect logic
       if (roles.length > 1) {
-        console.log('Usuário com múltiplos perfis, redirecionando para seleção de perfil.');
+        console.log('Multiple roles found, redirecting to role selection');
         navigate('/role-selection', { state: { roles } });
         toast.success('Login realizado com sucesso! Selecione seu perfil.');
         return;
       }
   
-      // Redirecionamento direto se houver apenas um papel
+      // Direct redirect for single role
       let redirectPath = '/dashboard';
       if (roles.includes('Atleta')) {
         redirectPath = '/athlete-dashboard';
@@ -195,12 +237,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         redirectPath = '/admin-dashboard';
       }
   
-      console.log('Redirecionando para:', redirectPath);
+      console.log('Redirecting to:', redirectPath);
       navigate(redirectPath);
       toast.success("Login realizado com sucesso!");
   
     } catch (error) {
-      console.error("Erro inesperado no login:", error);
+      console.error("Unexpected login error:", error);
       toast.error("Ocorreu um erro inesperado. Tente novamente.");
     } finally {
       setLoading(false);
@@ -336,11 +378,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  if (loading) {
-    console.log('Auth context is loading...');
+  if (!initialLoadComplete) {
+    console.log('Initial auth setup in progress...');
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
+        <p className="text-sm text-muted-foreground">Carregando...</p>
       </div>
     );
   }
