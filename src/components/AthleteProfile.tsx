@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Loader2, User, MapPin, Phone, Mail, List, Plus, CreditCard } from 'lucide-react';
+import { Loader2, User, MapPin, Phone, Mail, List, Plus } from 'lucide-react';
 import AthleteScores from './AthleteScores';
 import { format } from 'date-fns';
 
@@ -43,7 +43,7 @@ export default function AthleteProfile() {
   const [scores, setScores] = useState<Score[]>([]);
   const [branch, setBranch] = useState<Branch | null>(null);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false); 
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -81,29 +81,29 @@ export default function AthleteProfile() {
           )
         `)
         .eq('atleta_id', user?.id);
-  
+
       if (error) throw error;
-  
+
       const formattedData = data.map(insc => ({
         id: insc.id,
         status: insc.status,
         data_inscricao: insc.data_inscricao,
-        modalidade: insc.modalidade ? { // Verifica se modalidade não é null
+        modalidade: {
           id: insc.modalidade.id,
           nome: insc.modalidade.nome,
           tipo_pontuacao: insc.modalidade.tipo_pontuacao,
           tipo_modalidade: insc.modalidade.tipo_modalidade,
           categoria: insc.modalidade.categoria
-        } : null
+        }
       })) as Inscription[];
-  
+
       console.log('Fetched inscriptions:', formattedData);
       setInscriptions(formattedData);
     } catch (error) {
       console.error('Error fetching inscriptions:', error);
       toast.error('Erro ao carregar inscrições');
     }
-  };  
+  };
 
   const fetchAvailableModalities = async () => {
     try {
@@ -133,7 +133,6 @@ export default function AthleteProfile() {
         .select(`
           id,
           valor_pontuacao,
-          unidade,
           modalidade:modalidades (
             id,
             nome,
@@ -143,28 +142,28 @@ export default function AthleteProfile() {
           )
         `)
         .eq('atleta_id', user?.id);
-  
+
       if (error) throw error;
-  
+
       const formattedData = data.map(score => ({
         id: score.id,
         valor: score.valor_pontuacao,
-        modalidade: score.modalidade ? { // Garante que modalidade seja um objeto único
+        modalidade: {
           id: score.modalidade.id,
           nome: score.modalidade.nome,
           tipo_pontuacao: score.modalidade.tipo_pontuacao,
           tipo_modalidade: score.modalidade.tipo_modalidade,
           categoria: score.modalidade.categoria
-        } : null
+        }
       })) as Score[];
-  
+
       console.log('Fetched scores:', formattedData);
       setScores(formattedData);
     } catch (error) {
       console.error('Error fetching scores:', error);
       toast.error('Erro ao carregar pontuações');
     }
-  };   
+  };
 
   const fetchBranch = async () => {
     if (!user?.filial_id) return;
@@ -185,20 +184,6 @@ export default function AthleteProfile() {
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Pendente';
-    return format(new Date(dateString), 'dd/MM/yyyy');
-  };
-
-  const formatPaymentStatus = (status: string) => {
-    const statusMap: { [key: string]: string } = {
-      'pendente': 'Pendente',
-      'confirmado': 'Confirmado',
-      'recusado': 'Recusado'
-    };
-    return statusMap[status.toLowerCase()] || status;
-  };
-
   const handleAddModality = async (modalityId: number) => {
     try {
       setSubmitting(true);
@@ -210,32 +195,19 @@ export default function AthleteProfile() {
           status: 'Pendente',
           data_inscricao: new Date().toISOString()
         }]);
-  
+
       if (error) throw error;
-  
+
       toast.success('Modalidade adicionada com sucesso!');
-  
-      // Atualiza a lista localmente sem precisar buscar tudo de novo
-      const addedModality = availableModalities.find(mod => mod.id === modalityId);
-      
-      if (addedModality) {
-        setInscriptions(prev => [...prev, {
-          id: Date.now(), // ID temporário até atualização do banco
-          status: 'Pendente',
-          data_inscricao: new Date().toISOString(),
-          modalidade: addedModality
-        }]);
-  
-        setAvailableModalities(prev => prev.filter(mod => mod.id !== modalityId));
-      }
-  
+      await fetchData(); // Refresh all data after adding modality
+
     } catch (error) {
       console.error('Error adding modality:', error);
       toast.error('Erro ao adicionar modalidade');
     } finally {
       setSubmitting(false);
     }
-  };  
+  };
 
   if (loading) {
     return (
