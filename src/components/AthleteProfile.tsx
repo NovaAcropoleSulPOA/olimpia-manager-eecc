@@ -20,7 +20,7 @@ interface Inscription {
   id: number;
   status: 'Pendente' | 'Confirmada' | 'Recusada' | 'Cancelada';
   data_inscricao: string;
-  modalidade: Modality; // ✅ Corrigido: agora é um único objeto
+  modalidade: Modality;
 }
 
 interface Score {
@@ -92,16 +92,15 @@ export default function AthleteProfile() {
   
       if (error) throw error;
   
-      // A estrutura do retorno já contém apenas UMA modalidade por inscrição
       const formattedData = data.map(insc => ({
         id: insc.id,
         status: insc.status,
         data_inscricao: insc.data_inscricao,
-        modalidade: insc.modalidade // Já é um único objeto
-      }));
+        modalidade: insc.modalidade
+      })) as Inscription[];
   
       console.log('Fetched inscriptions:', formattedData);
-      setInscriptions(formattedData || []);
+      setInscriptions(formattedData);
     } catch (error) {
       console.error('Error fetching inscriptions:', error);
       toast.error('Erro ao carregar inscrições');
@@ -151,13 +150,12 @@ export default function AthleteProfile() {
   
       const formattedData = data.map(score => ({
         id: score.id,
-        valor: score.valor_pontuacao, // ✅ Ajustado para o nome correto da coluna
-        unidade: score.unidade, // Pode ser útil exibir a unidade de medida
+        valor: score.valor_pontuacao,
         modalidade: score.modalidade
-      }));
+      })) as Score[];
   
       console.log('Fetched scores:', formattedData);
-      setScores(formattedData || []);
+      setScores(formattedData);
     } catch (error) {
       console.error('Error fetching scores:', error);
       toast.error('Erro ao carregar pontuações');
@@ -241,7 +239,6 @@ export default function AthleteProfile() {
 
       toast.success('Modalidade adicionada com sucesso!');
       
-      // Update both lists immediately after successful addition
       await Promise.all([
         fetchInscriptions(),
         fetchAvailableModalities()
