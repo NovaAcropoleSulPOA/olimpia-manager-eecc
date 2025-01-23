@@ -44,25 +44,42 @@ export default function AthleteProfile() {
   const [branch, setBranch] = useState<Branch | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('AthleteProfile mounted, fetching data...');
+    console.log('AthleteProfile mounted, user:', user?.id);
+    if (!user?.id) {
+      console.log('No user ID found, cannot fetch data');
+      setLoading(false);
+      return;
+    }
     fetchData();
-  }, []);
+  }, [user?.id]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      setError(null);
       console.log('Starting to fetch all athlete data...');
-      await Promise.all([
+
+      const results = await Promise.allSettled([
         fetchInscriptions(),
         fetchAvailableModalities(),
         fetchScores(),
         fetchBranch(),
       ]);
-      console.log('All athlete data fetched successfully');
+
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.error(`Error in fetch operation ${index}:`, result.reason);
+          setError('Failed to load some data. Please try refreshing the page.');
+        }
+      });
+
+      console.log('All athlete data fetch attempts completed');
     } catch (error) {
-      console.error('Error fetching athlete data:', error);
+      console.error('Error in fetchData:', error);
+      setError('Failed to load data. Please try refreshing the page.');
       toast.error('Erro ao carregar dados do atleta');
     } finally {
       setLoading(false);
@@ -70,39 +87,42 @@ export default function AthleteProfile() {
   };
 
   const fetchInscriptions = async () => {
-    try {
-      console.log('Fetching inscriptions for athlete:', user?.id);
-      const { data, error } = await supabase
-        .from('inscricoes')
-        .select(`
-          id,
-          status,
-          data_inscricao,
-          modalidade:modalidades (
-            id,
-            nome,
-            tipo_pontuacao,
-            tipo_modalidade,
-            categoria
-          )
-        `)
-        .eq('atleta_id', user?.id);
-  
-      if (error) throw error;
-  
-      const formattedData: Inscription[] = data.map(insc => ({
-        id: insc.id,
-        status: insc.status,
-        data_inscricao: insc.data_inscricao,
-        modalidade: insc.modalidade as unknown as Modality
-      }));
-  
-      console.log('Fetched inscriptions:', formattedData);
-      setInscriptions(formattedData);
-    } catch (error) {
-      console.error('Error fetching inscriptions:', error);
-      toast.error('Erro ao carregar inscrições');
+    if (!user?.id) {
+      console.log('No user ID for inscriptions fetch');
+      return;
     }
+
+    console.log('Fetching inscriptions for athlete:', user.id);
+    const { data, error } = await supabase
+      .from('inscricoes')
+      .select(`
+        id,
+        status,
+        data_inscricao,
+        modalidade:modalidades (
+          id,
+          nome,
+          tipo_pontuacao,
+          tipo_modalidade,
+          categoria
+        )
+      `)
+      .eq('atleta_id', user.id);
+
+    if (error) {
+      console.error('Error fetching inscriptions:', error);
+      throw error;
+    }
+
+    const formattedData: Inscription[] = data.map(insc => ({
+      id: insc.id,
+      status: insc.status,
+      data_inscricao: insc.data_inscricao,
+      modalidade: insc.modalidade as unknown as Modality
+    }));
+
+    console.log('Fetched inscriptions:', formattedData);
+    setInscriptions(formattedData);
   };
 
   const fetchAvailableModalities = async () => {
@@ -207,8 +227,20 @@ export default function AthleteProfile() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="flex flex-col items-center justify-center p-8 space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-olimpics-green-primary" />
+        <p className="text-sm text-muted-foreground">Carregando dados do atleta...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 space-y-4">
+        <p className="text-red-500">{error}</p>
+        <Button onClick={() => fetchData()} variant="outline">
+          Tentar novamente
+        </Button>
       </div>
     );
   }
