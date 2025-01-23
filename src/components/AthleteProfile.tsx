@@ -94,7 +94,7 @@ export default function AthleteProfile() {
         id: insc.id,
         status: insc.status,
         data_inscricao: insc.data_inscricao,
-        modalidade: insc.modalidade as unknown as Modality
+        modalidade: insc.modalidade as Modality
       }));
   
       console.log('Fetched inscriptions:', formattedData);
@@ -116,9 +116,11 @@ export default function AthleteProfile() {
       if (error) throw error;
 
       const registeredIds = inscriptions.map(insc => insc.modalidade.id);
-      const available = (data || []).filter(mod => !registeredIds.includes(mod.id));
-      console.log('Available modalities:', available);
-      setAvailableModalities(available);
+      const available = data as Modality[];
+      const filteredModalities = available.filter(mod => !registeredIds.includes(mod.id));
+      
+      console.log('Available modalities:', filteredModalities);
+      setAvailableModalities(filteredModalities);
     } catch (error) {
       console.error('Error fetching modalities:', error);
       toast.error('Erro ao carregar modalidades disponíveis');
@@ -148,9 +150,7 @@ export default function AthleteProfile() {
       const formattedData: Score[] = data.map(score => ({
         id: score.id,
         valor: score.valor_pontuacao,
-        modalidade: Array.isArray(score.modalidade) && score.modalidade.length > 0 
-          ? score.modalidade[0] as Modality  // Pega o primeiro item e converte corretamente
-          : (score.modalidade as Modality)   // Converte diretamente se não for um array
+        modalidade: score.modalidade as Modality
       }));
   
       console.log('Fetched scores:', formattedData);
@@ -159,7 +159,7 @@ export default function AthleteProfile() {
       console.error('Error fetching scores:', error);
       toast.error('Erro ao carregar pontuações');
     }
-  };  
+  };
 
   const fetchBranch = async () => {
     if (!user?.filial_id) return;
