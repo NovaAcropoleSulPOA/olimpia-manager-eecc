@@ -96,7 +96,13 @@ export default function AthleteProfile() {
         id: insc.id,
         status: insc.status,
         data_inscricao: insc.data_inscricao,
-        modalidade: insc.modalidade
+        modalidade: insc.modalidade ? { // Verifica se modalidade não é null
+          id: insc.modalidade.id,
+          nome: insc.modalidade.nome,
+          tipo_pontuacao: insc.modalidade.tipo_pontuacao,
+          tipo_modalidade: insc.modalidade.tipo_modalidade,
+          categoria: insc.modalidade.categoria
+        } : null
       })) as Inscription[];
   
       console.log('Fetched inscriptions:', formattedData);
@@ -151,7 +157,13 @@ export default function AthleteProfile() {
       const formattedData = data.map(score => ({
         id: score.id,
         valor: score.valor_pontuacao,
-        modalidade: score.modalidade
+        modalidade: score.modalidade ? { // Garante que modalidade seja um objeto único
+          id: score.modalidade.id,
+          nome: score.modalidade.nome,
+          tipo_pontuacao: score.modalidade.tipo_pontuacao,
+          tipo_modalidade: score.modalidade.tipo_modalidade,
+          categoria: score.modalidade.categoria
+        } : null
       })) as Score[];
   
       console.log('Fetched scores:', formattedData);
@@ -160,7 +172,7 @@ export default function AthleteProfile() {
       console.error('Error fetching scores:', error);
       toast.error('Erro ao carregar pontuações');
     }
-  };  
+  };   
 
   const fetchBranch = async () => {
     if (!user?.filial_id) return;
