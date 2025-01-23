@@ -81,22 +81,16 @@ export default function AthleteProfile() {
           )
         `)
         .eq('atleta_id', user?.id);
-
+  
       if (error) throw error;
-
+  
       const formattedData = data.map(insc => ({
         id: insc.id,
         status: insc.status,
         data_inscricao: insc.data_inscricao,
-        modalidade: {
-          id: insc.modalidade.id,
-          nome: insc.modalidade.nome,
-          tipo_pontuacao: insc.modalidade.tipo_pontuacao,
-          tipo_modalidade: insc.modalidade.tipo_modalidade,
-          categoria: insc.modalidade.categoria
-        }
+        modalidade: Array.isArray(insc.modalidade) ? insc.modalidade[0] : insc.modalidade // Garante que seja um objeto único
       })) as Inscription[];
-
+  
       console.log('Fetched inscriptions:', formattedData);
       setInscriptions(formattedData);
     } catch (error) {
@@ -104,7 +98,7 @@ export default function AthleteProfile() {
       toast.error('Erro ao carregar inscrições');
     }
   };
-
+  
   const fetchAvailableModalities = async () => {
     try {
       console.log('Fetching available modalities');
@@ -142,28 +136,22 @@ export default function AthleteProfile() {
           )
         `)
         .eq('atleta_id', user?.id);
-
+  
       if (error) throw error;
-
+  
       const formattedData = data.map(score => ({
         id: score.id,
         valor: score.valor_pontuacao,
-        modalidade: {
-          id: score.modalidade.id,
-          nome: score.modalidade.nome,
-          tipo_pontuacao: score.modalidade.tipo_pontuacao,
-          tipo_modalidade: score.modalidade.tipo_modalidade,
-          categoria: score.modalidade.categoria
-        }
+        modalidade: Array.isArray(score.modalidade) ? score.modalidade[0] : score.modalidade // Corrige para pegar apenas um objeto
       })) as Score[];
-
+  
       console.log('Fetched scores:', formattedData);
       setScores(formattedData);
     } catch (error) {
       console.error('Error fetching scores:', error);
       toast.error('Erro ao carregar pontuações');
     }
-  };
+  };  
 
   const fetchBranch = async () => {
     if (!user?.filial_id) return;

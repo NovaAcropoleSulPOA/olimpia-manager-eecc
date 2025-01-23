@@ -64,6 +64,13 @@ export function MainNavigation({ children }: { children: React.ReactNode }) {
               <Button
                 variant="ghost"
                 className="w-full justify-start"
+                onClick={() => navigate(-1)} // Volta para a página anterior
+              >
+                ⬅ Voltar
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
                 onClick={() => navigate('/role-selection')}
               >
                 <User className="mr-2 h-4 w-4" />
