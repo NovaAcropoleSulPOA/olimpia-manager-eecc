@@ -278,37 +278,6 @@ export default function AthleteProfile() {
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-olimpics-green-primary" />
-              Pagamento
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Valor:</span>
-                <span className="font-medium">
-                  R$ {paymentInfo?.valor?.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Status:</span>
-                <span className="font-medium">
-                  {formatPaymentStatus(paymentInfo?.status || 'Pendente')}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Data:</span>
-                <span className="font-medium">
-                  {formatDate(paymentInfo?.data_criacao)}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       <Card>

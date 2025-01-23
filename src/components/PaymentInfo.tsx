@@ -10,12 +10,6 @@ const PaymentInfo = () => {
       <h3 className="text-lg font-semibold text-olimpics-green-primary text-left">
         Informações de Pagamento
       </h3>
-      
-      <p className="text-sm text-gray-500 text-left">
-        Após realizar o pagamento, aguarde a confirmação do seu cadastro por email.
-        Em caso de dúvidas, entre em contato através do WhatsApp.
-      </p>
-      
       <div className="grid gap-2 text-olimpics-text text-left">
         <p className="flex items-center gap-2">
           <span className="text-lg">💰</span> Valor: R$ 180,00
@@ -42,7 +36,6 @@ const PaymentInfo = () => {
           className="w-48 h-48 object-contain"
         />
       </div>
-
     </div>
   );
 };
