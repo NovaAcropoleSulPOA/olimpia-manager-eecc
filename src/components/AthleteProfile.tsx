@@ -246,22 +246,32 @@ export default function AthleteProfile() {
           status: 'Pendente',
           data_inscricao: new Date().toISOString()
         }]);
-
+  
       if (error) throw error;
-
+  
       toast.success('Modalidade adicionada com sucesso!');
+  
+      // Atualiza a lista localmente sem precisar buscar tudo de novo
+      const addedModality = availableModalities.find(mod => mod.id === modalityId);
       
-      await Promise.all([
-        fetchInscriptions(),
-        fetchAvailableModalities()
-      ]);
+      if (addedModality) {
+        setInscriptions(prev => [...prev, {
+          id: Date.now(), // ID temporário até atualização do banco
+          status: 'Pendente',
+          data_inscricao: new Date().toISOString(),
+          modalidade: addedModality
+        }]);
+  
+        setAvailableModalities(prev => prev.filter(mod => mod.id !== modalityId));
+      }
+  
     } catch (error) {
       console.error('Error adding modality:', error);
       toast.error('Erro ao adicionar modalidade');
     } finally {
       setSubmitting(false);
     }
-  };
+  };  
 
   if (loading) {
     return (
