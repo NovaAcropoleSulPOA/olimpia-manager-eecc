@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -10,14 +10,6 @@ interface AuthUser extends User {
   filial_id?: string;
   confirmado?: boolean;
   papeis?: string[];
-}
-
-interface UserRoleResponse {
-  perfis: {
-    id: number;
-    nome: string;
-    descricao?: string;
-  };
 }
 
 interface AuthContextType {
@@ -31,138 +23,105 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const PUBLIC_ROUTES = ['/login', '/reset-password', '/pending-approval'];
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
+  // Initialize Supabase auth with session persistence
   useEffect(() => {
-    console.log('Setting up Supabase auth listener');
+    console.log('Initializing Supabase auth with session persistence');
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user);
-        
-        if (session?.user) {
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
+      
+      if (session?.user) {
+        try {
+          // Fetch user roles
           const { data: userRoles, error: rolesError } = await supabase
             .from('papeis_usuarios')
-            .select(`
-              perfis (
-                id,
-                nome,
-                descricao
-              )
-            `)
+            .select('perfis (id, nome)')
             .eq('usuario_id', session.user.id);
 
-          if (rolesError) {
-            console.error('Error fetching user roles:', rolesError);
-            return;
-          }
+          if (rolesError) throw rolesError;
 
+          // Fetch user profile
           const { data: userProfile, error: profileError } = await supabase
             .from('usuarios')
             .select('nome_completo, telefone, filial_id, confirmado')
             .eq('id', session.user.id)
             .single();
 
-          if (profileError) {
-            console.error('Error fetching user profile:', profileError);
-            return;
-          }
+          if (profileError) throw profileError;
 
           const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
-          console.log('User roles mapped:', papeis);
           
           const updatedUser = {
             ...session.user,
+            ...userProfile,
             papeis,
-            ...userProfile
           };
-          
+
+          console.log('Setting authenticated user:', updatedUser);
           setUser(updatedUser);
 
+          // Handle navigation based on user state
           if (!userProfile?.confirmado) {
             console.log('User not confirmed, redirecting to pending approval');
-            toast.warning('Seu cadastro está pendente de aprovação.');
             navigate('/pending-approval');
             return;
           }
 
-          // Handle role-based navigation on auth state change
+          // Only redirect on initial sign in
           if (event === 'SIGNED_IN') {
-            if (papeis.length > 1) {
-              console.log('User has multiple roles, redirecting to role selection');
-              navigate('/role-selection', { state: { roles: papeis } });
-            } else if (papeis.length === 1) {
-              console.log('User has single role, redirecting to dashboard');
-              const role = papeis[0];
-              let redirectPath = '/dashboard';
-              
-              switch (role) {
-                case 'Atleta':
-                  redirectPath = '/athlete-dashboard';
-                  break;
-                case 'Juiz':
-                  redirectPath = '/referee-dashboard';
-                  break;
-                case 'Organizador':
-                  redirectPath = '/admin-dashboard';
-                  break;
-              }
-              
-              navigate(redirectPath);
-            }
+            const redirectPath = getDefaultRoute(papeis);
+            console.log('Redirecting to:', redirectPath);
+            navigate(redirectPath);
           }
-        } else {
-          setUser(null);
+        } catch (error) {
+          console.error('Error setting up user session:', error);
+          toast.error('Erro ao carregar dados do usuário');
+        }
+      } else {
+        console.log('No active session, clearing user state');
+        setUser(null);
+        if (!PUBLIC_ROUTES.includes(location.pathname)) {
+          console.log('Redirecting to login from:', location.pathname);
           navigate('/login');
         }
-        
-        setLoading(false);
-      }
-    );
-
-    // Check initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log('Initial session check:', session?.user);
-      
-      if (session?.user) {
-        const { data: userRoles } = await supabase
-          .from('papeis_usuarios')
-          .select(`
-            perfis (
-              id,
-              nome,
-              descricao
-            )
-          `)
-          .eq('usuario_id', session.user.id);
-
-        const { data: userProfile } = await supabase
-          .from('usuarios')
-          .select('nome_completo, telefone, filial_id, confirmado')
-          .eq('id', session.user.id)
-          .single();
-
-        const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
-        
-        setUser({
-          ...session.user,
-          papeis,
-          ...userProfile
-        });
-      } else {
-        setUser(null);
       }
       
       setLoading(false);
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
+    // Check for existing session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.id);
+      if (!session) {
+        setLoading(false);
+        if (!PUBLIC_ROUTES.includes(location.pathname)) {
+          navigate('/login');
+        }
+      }
+    });
+  }, [navigate, location]);
+
+  const getDefaultRoute = (roles: string[]) => {
+    if (!roles.length) return '/login';
+    switch (roles[0]) {
+      case 'Atleta':
+        return '/athlete-dashboard';
+      case 'Juiz':
+        return '/referee-dashboard';
+      case 'Organizador':
+        return '/admin-dashboard';
+      default:
+        return '/login';
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -376,6 +335,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw error;
     }
   };
+
+  if (loading) {
+    console.log('Auth context is loading...');
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{ 
