@@ -8,26 +8,44 @@ import Dashboard from './pages/Dashboard';
 import PendingApproval from './pages/PendingApproval';
 import RoleSelection from './components/RoleSelection';
 import ResetPassword from './pages/ResetPassword';
+import { MainNavigation } from './components/MainNavigation';
 
-const queryClient = new QueryClient();
+// Configure QueryClient with retries and error handling
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
-          <main>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/pending-approval" element={<PendingApproval />} />
-            <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/athlete-dashboard" element={<Dashboard />} />
-            <Route path="/referee-dashboard" element={<Dashboard />} />
-            <Route path="/admin-dashboard" element={<Dashboard />} />
-            <Route path="/" element={<Login />} />
+            <Route
+              path="*"
+              element={
+                <MainNavigation>
+                  <Routes>
+                    <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
+                    <Route path="/athlete-dashboard" element={<Dashboard />} />
+                    <Route path="/referee-dashboard" element={<Dashboard />} />
+                    <Route path="/admin-dashboard" element={<Dashboard />} />
+                    <Route path="/" element={<Dashboard />} />
+                  </Routes>
+                </MainNavigation>
+              }
+            />
           </Routes>
-          </main>
           <Toaster />
         </AuthProvider>
       </Router>

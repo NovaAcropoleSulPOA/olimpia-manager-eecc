@@ -2,7 +2,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
 interface RoleSelectionProps {
   roles: string[];
@@ -12,6 +13,7 @@ export default function RoleSelection({ roles: propRoles }: RoleSelectionProps) 
   const navigate = useNavigate();
   const location = useLocation();
   const roles = location.state?.roles || propRoles || [];
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (roles.length === 0) {
@@ -23,29 +25,47 @@ export default function RoleSelection({ roles: propRoles }: RoleSelectionProps) 
   
   console.log('Available roles:', roles);
 
-  const handleRoleSelect = (role: string) => {
-    console.log('Perfil selecionado:', role);
-    let redirectPath = '/dashboard';
-  
-    switch (role) {
-      case 'Atleta':
-        redirectPath = '/athlete-dashboard';
-        break;
-      case 'Juiz':
-        redirectPath = '/referee-dashboard';
-        break;
-      case 'Organizador':
-        redirectPath = '/admin-dashboard';
-        break;
+  const handleRoleSelect = async (role: string) => {
+    try {
+      setIsLoading(true);
+      console.log('Perfil selecionado:', role);
+      let redirectPath = '/dashboard';
+    
+      switch (role) {
+        case 'Atleta':
+          redirectPath = '/athlete-dashboard';
+          break;
+        case 'Juiz':
+          redirectPath = '/referee-dashboard';
+          break;
+        case 'Organizador':
+          redirectPath = '/admin-dashboard';
+          break;
+      }
+    
+      toast.success(`Acessando painel de ${role.toLowerCase()}`);
+      console.log('Redirecionando para:', redirectPath);
+      navigate(redirectPath);
+    } catch (error) {
+      console.error('Error selecting role:', error);
+      toast.error('Erro ao selecionar perfil');
+    } finally {
+      setIsLoading(false);
     }
-  
-    toast.success(`Acessando painel de ${role.toLowerCase()}`);
-    console.log('Redirecionando para:', redirectPath);
-    navigate(redirectPath);
-  };  
+  };
 
   if (roles.length === 0) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-olimpics-background p-4">
+        <Card className="w-[400px] shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-olimpics-green-primary" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -65,7 +85,11 @@ export default function RoleSelection({ roles: propRoles }: RoleSelectionProps) 
               key={role}
               onClick={() => handleRoleSelect(role)}
               className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary"
+              disabled={isLoading}
             >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
               {role}
             </Button>
           ))}
