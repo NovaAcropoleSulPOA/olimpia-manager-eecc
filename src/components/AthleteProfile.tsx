@@ -81,23 +81,25 @@ export default function AthleteProfile() {
           )
         `)
         .eq('atleta_id', user?.id);
-
+  
       if (error) throw error;
-
-      const formattedData = data.map(insc => ({
+  
+      const formattedData: Inscription[] = data.map(insc => ({
         id: insc.id,
         status: insc.status,
         data_inscricao: insc.data_inscricao,
-        modalidade: insc.modalidade as Modality
+        modalidade: Array.isArray(insc.modalidade) && insc.modalidade.length > 0 
+          ? insc.modalidade[0] as Modality  // Pega o primeiro item e converte corretamente
+          : (insc.modalidade as Modality)   // Converte diretamente se não for um array
       }));
-
+  
       console.log('Fetched inscriptions:', formattedData);
       setInscriptions(formattedData);
     } catch (error) {
       console.error('Error fetching inscriptions:', error);
       toast.error('Erro ao carregar inscrições');
     }
-  };
+  };  
 
   const fetchAvailableModalities = async () => {
     try {
@@ -142,7 +144,9 @@ export default function AthleteProfile() {
       const formattedData: Score[] = data.map(score => ({
         id: score.id,
         valor: score.valor_pontuacao,
-        modalidade: (Array.isArray(score.modalidade) ? score.modalidade[0] : score.modalidade) as Modality // 🛠 Converte explicitamente para `Modality`
+        modalidade: Array.isArray(score.modalidade) && score.modalidade.length > 0 
+          ? score.modalidade[0] as Modality  // Pega o primeiro item e converte corretamente
+          : (score.modalidade as Modality)   // Converte diretamente se não for um array
       }));
   
       console.log('Fetched scores:', formattedData);
