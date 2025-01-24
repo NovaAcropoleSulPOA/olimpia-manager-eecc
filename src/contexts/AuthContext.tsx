@@ -23,7 +23,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const PUBLIC_ROUTES = ['/login', '/reset-password', '/pending-approval'];
+const PUBLIC_ROUTES = ['/', '/login', '/reset-password', '/pending-approval'];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -46,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!session) {
           console.log('No active session found');
           if (!PUBLIC_ROUTES.includes(location.pathname)) {
+            console.log('Redirecting to login from protected route:', location.pathname);
             navigate('/login');
           }
           if (mounted) {
