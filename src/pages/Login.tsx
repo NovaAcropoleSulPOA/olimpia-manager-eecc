@@ -18,6 +18,7 @@ import { supabase } from '@/lib/supabase';
 import InputMask from 'react-input-mask';
 import PaymentInfo from '@/components/PaymentInfo';
 import { useNavigate } from 'react-router-dom';
+import { validateCPF } from '@/utils/documentValidation';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -34,7 +35,16 @@ const registerSchema = z.object({
   telefone: z.string().min(14, 'Telefone inválido').max(15),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
-  roleIds: z.array(z.number()).min(1, "Selecione pelo menos um perfil"),
+  tipo_documento: z.enum(['CPF', 'RG']),
+  numero_documento: z.string().refine((val) => {
+    const clean = val.replace(/\D/g, '');
+    if (val.includes('CPF')) {
+      return validateCPF(clean);
+    }
+    return clean.length >= 9; // RG validation (minimum length)
+  }, {
+    message: 'Documento inválido',
+  }),
   branchId: z.string({
     required_error: "Selecione uma filial",
   }),
@@ -65,7 +75,8 @@ const Login = () => {
       telefone: '',
       password: '',
       confirmPassword: '',
-      roleIds: [],
+      tipo_documento: 'CPF',
+      numero_documento: '',
       branchId: '',
     },
   });
@@ -136,30 +147,15 @@ const Login = () => {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
   
-      // Verifica se o e-mail já existe
-      const { data: existingUser, error: checkError } = await supabase
-        .from('usuarios')
-        .select('id')
-        .eq('email', values.email)
-        .maybeSingle();
-  
-      if (checkError) {
-        console.error('Error checking existing user:', checkError);
-        toast.error('Erro ao verificar cadastro existente.');
-        setIsSubmitting(false);
-        return;
-      }
-  
-      if (existingUser) {
-        toast.error("Este e-mail já está cadastrado. Por favor, faça login.");
-        setIsSubmitting(false);
-        return;
-      }
-  
-      // Criação do usuário no Supabase Auth
+      // Clean document number before saving
+      const cleanDocumentNumber = values.numero_documento.replace(/\D/g, '');
+
+      // Create user with default role as 'Atleta'
       const signUpResult = await signUp({
         ...values,
-        telefone: values.telefone.replace(/\D/g, ''), // Remove caracteres não numéricos
+        telefone: values.telefone.replace(/\D/g, ''),
+        numero_documento: cleanDocumentNumber,
+        roleIds: [1] // 1 is the ID for 'Atleta'
       });
   
       if (signUpResult.error || !signUpResult.user) {
@@ -314,18 +310,89 @@ const Login = () => {
 
                     <FormField
                       control={registerForm.control}
-                      name="email"
+                      name="tipo_documento"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-left w-full">Email</FormLabel>
+                          <FormLabel className="text-left w-full">Tipo de Documento</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
+                                <SelectValue placeholder="Selecione o tipo de documento" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="CPF">CPF</SelectItem>
+                              <SelectItem value="RG">RG</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={registerForm.control}
+                      name="numero_documento"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-left w-full">Número do Documento</FormLabel>
                           <FormControl>
-                            <Input
-                              type="email"
-                              placeholder="seu@email.com"
-                              className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                              {...field}
-                            />
+                            <InputMask
+                              mask={registerForm.watch("tipo_documento") === 'CPF' ? "999.999.999-99" : "99.999.999-9"}
+                              value={field.value}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                            >
+                              {(inputProps: any) => (
+                                <Input
+                                  {...inputProps}
+                                  placeholder={registerForm.watch("tipo_documento") === 'CPF' ? "000.000.000-00" : "00.000.000-0"}
+                                  className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                                />
+                              )}
+                            </InputMask>
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={registerForm.control}
+                      name="branchId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-left w-full">Filial</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
+                                <SelectValue placeholder="Selecione uma filial" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="max-h-[300px] overflow-y-auto">
+                              {isLoadingBranches ? (
+                                <SelectItem value="loading">Carregando...</SelectItem>
+                              ) : (
+                                branches?.map((branch) => (
+                                  <SelectItem key={branch.id} value={branch.id}>
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">{branch.nome}</span>
+                                      <span className="text-sm text-gray-500">
+                                        {branch.cidade} - {branch.estado}
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -392,86 +459,6 @@ const Login = () => {
                               {...field}
                             />
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={registerForm.control}
-                      name="branchId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-left w-full">Filial</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
-                                <SelectValue placeholder="Selecione uma filial" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {isLoadingBranches ? (
-                                <SelectItem value="loading">Carregando...</SelectItem>
-                              ) : (
-                                branches?.map((branch) => (
-                                  <SelectItem key={branch.id} value={branch.id}>
-                                    {branch.nome} - {branch.cidade}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={registerForm.control}
-                      name="roleIds"
-                      render={() => (
-                        <FormItem>
-                          <FormLabel className="text-left w-full">Perfis</FormLabel>
-                          <div className="grid grid-cols-2 gap-2">
-                            {isLoadingRoles ? (
-                              <div>Carregando perfis...</div>
-                            ) : (
-                              roles?.map((role) => (
-                                <FormField
-                                  key={role.id}
-                                  control={registerForm.control}
-                                  name="roleIds"
-                                  render={({ field }) => {
-                                    return (
-                                      <FormItem
-                                        key={role.id}
-                                        className="flex flex-row items-start space-x-3 space-y-0"
-                                      >
-                                        <FormControl>
-                                          <Checkbox
-                                            checked={field.value?.includes(role.id)}
-                                            onCheckedChange={(checked) => {
-                                              const updatedValue = checked
-                                                ? [...(field.value || []), role.id]
-                                                : field.value?.filter((value) => value !== role.id);
-                                              field.onChange(updatedValue);
-                                            }}
-                                          />
-                                        </FormControl>
-                                        <FormLabel className="font-normal">
-                                          {role.nome}
-                                        </FormLabel>
-                                      </FormItem>
-                                    );
-                                  }}
-                                />
-                              ))
-                            )}
-                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
