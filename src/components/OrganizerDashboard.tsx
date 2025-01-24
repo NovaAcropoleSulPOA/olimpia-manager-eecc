@@ -126,9 +126,7 @@ export default function OrganizerDashboard() {
         .select(`
           status,
           usuario:usuario_id (
-            filial:filial_id (
-              nome
-            )
+            filial:filial_id (nome)
           )
         `);
 
