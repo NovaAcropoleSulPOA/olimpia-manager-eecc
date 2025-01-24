@@ -5,11 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from '@tanstack/react-query';
@@ -19,6 +14,8 @@ import InputMask from 'react-input-mask';
 import PaymentInfo from '@/components/PaymentInfo';
 import { useNavigate } from 'react-router-dom';
 import { validateCPF } from '@/utils/documentValidation';
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -252,6 +249,43 @@ const Login = () => {
       setIsSubmitting(false);
     }
   };
+
+  const philosophicalQuotes = [
+    {
+      author: "Platão (428–348 a.C.)",
+      quote: "O homem pode aprender virtudes e disciplina tanto na música quanto na ginástica, pois ambas moldam a alma e o corpo.",
+      source: "A República (Livro III)"
+    },
+    {
+      author: "Aristóteles (384–322 a.C.)",
+      quote: "Somos o que repetidamente fazemos. A excelência, portanto, não é um feito, mas um hábito.",
+      source: "Ética a Nicômaco"
+    },
+    {
+      author: "Epicteto (50–135 d.C.)",
+      quote: "Se você quer vencer nos Jogos Olímpicos, deve se preparar, exercitar-se, comer moderadamente, suportar a fadiga e obedecer ao treinador."
+    },
+    {
+      author: "Sêneca (4 a.C.–65 d.C.)",
+      quote: "A vida é como um gladiador nos jogos: não se trata apenas de sobreviver, mas de lutar bem.",
+      source: "Cartas a Lucílio"
+    },
+    {
+      author: "Diógenes de Sinope (412–323 a.C.)",
+      quote: "Os vencedores dos Jogos Olímpicos recebem apenas uma coroa de louros; mas os que vivem com virtude recebem a verdadeira glória.",
+      source: "citado por Diógenes Laércio"
+    },
+    {
+      author: "Cícero (106–43 a.C.)",
+      quote: "O esforço e a perseverança sempre superam o talento que não se disciplina.",
+      source: "De Officiis"
+    },
+    {
+      author: "Píndaro (518–438 a.C.)",
+      quote: "Ó minha alma, não aspire à vida imortal, mas esgote o campo do possível.",
+      source: "Píticas III"
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-olimpics-background">
@@ -527,21 +561,20 @@ const Login = () => {
               </CardContent>
             </Card>
 
-            {/* Replace photos and videos with philosophical quotes */}
             <div className="mt-8 space-y-6">
               <Card>
                 <CardContent className="p-6">
                   <h3 className="text-xl font-semibold mb-4 text-olimpics-text">Pensamentos Filosóficos</h3>
                   <div className="space-y-4">
-                    <blockquote className="italic text-gray-600 border-l-4 border-olimpics-green-primary pl-4">
-                      "A excelência não é um ato, mas um hábito." - Aristóteles
-                    </blockquote>
-                    <blockquote className="italic text-gray-600 border-l-4 border-olimpics-green-primary pl-4">
-                      "O corpo alcança o que a mente acredita." - Sócrates
-                    </blockquote>
-                    <blockquote className="italic text-gray-600 border-l-4 border-olimpics-green-primary pl-4">
-                      "A maior glória não está em nunca cair, mas em se levantar toda vez que caímos." - Confúcio
-                    </blockquote>
+                    {philosophicalQuotes.map((quote, index) => (
+                      <blockquote key={index} className="italic text-gray-600 border-l-4 border-olimpics-green-primary pl-4">
+                        <p className="mb-2">{quote.quote}</p>
+                        <footer className="text-sm">
+                          <strong>{quote.author}</strong>
+                          {quote.source && <span className="ml-1">— {quote.source}</span>}
+                        </footer>
+                      </blockquote>
+                    ))}
                   </div>
                 </CardContent>
               </Card>

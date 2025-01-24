@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, Trophy, DollarSign, Building } from 'lucide-react';
 import { toast } from 'sonner';
@@ -104,13 +102,13 @@ export default function OrganizerDashboard() {
         throw error;
       }
 
-      console.log('Modality stats data:', data);
-
       if (!data) return [];
 
       const stats = data.reduce((acc: Record<string, number>, curr) => {
-        const modalityName = curr.modalidade.nome;
-        acc[modalityName] = (acc[modalityName] || 0) + 1;
+        const modalityName = curr.modalidade?.nome;
+        if (modalityName) {
+          acc[modalityName] = (acc[modalityName] || 0) + 1;
+        }
         return acc;
       }, {});
 
@@ -138,8 +136,6 @@ export default function OrganizerDashboard() {
         console.error('Error fetching branch stats:', error);
         throw error;
       }
-
-      console.log('Branch stats raw data:', data);
 
       if (!data) return [];
 
@@ -264,83 +260,6 @@ export default function OrganizerDashboard() {
           </CardContent>
         </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Atletas Registrados</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Atleta</TableHead>
-                <TableHead>Telefone</TableHead>
-                <TableHead>Sede</TableHead>
-                <TableHead>Modalidades</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {athletes?.map((athlete) => (
-                <TableRow key={athlete.id}>
-                  <TableCell className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={athlete.foto_perfil || undefined} />
-                      <AvatarFallback>
-                        {athlete.nome_completo.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    {athlete.nome_completo}
-                  </TableCell>
-                  <TableCell>
-                    <a
-                      href={`https://wa.me/${athlete.telefone.replace(/\D/g, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-olimpics-green-primary hover:underline"
-                    >
-                      {athlete.telefone}
-                    </a>
-                  </TableCell>
-                  <TableCell>{athlete.filial?.nome}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {athlete.inscricoes.map((insc, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center rounded-full bg-olimpics-green-primary/10 px-2 py-1 text-xs font-medium text-olimpics-green-primary"
-                        >
-                          {insc.modalidade.nome}
-                        </span>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {athlete.inscricoes.map((insc, idx) => (
-                        <span
-                          key={idx}
-                          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                            insc.status === 'Confirmada'
-                              ? 'bg-green-100 text-green-700'
-                              : insc.status === 'Pendente'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : insc.status === 'Recusada'
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-gray-100 text-gray-700'
-                          }`}
-                        >
-                          {insc.status}
-                        </span>
-                      ))}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
     </div>
   );
 }
