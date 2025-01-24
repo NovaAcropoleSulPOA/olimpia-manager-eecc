@@ -1,6 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
 import AthleteProfile from '@/components/AthleteProfile';
-import PaymentInfo from '@/components/PaymentInfo';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -16,14 +15,7 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-olimpics-green-primary">
             Dashboard do Atleta
           </h1>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="md:col-span-2">
-              <AthleteProfile />
-            </div>
-            <div className="md:col-span-1">
-              <PaymentInfo />
-            </div>
-          </div>
+          <AthleteProfile />
         </div>
       ) : (
         <div className="container mx-auto p-6">

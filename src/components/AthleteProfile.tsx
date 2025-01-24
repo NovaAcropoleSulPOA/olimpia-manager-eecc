@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Loader2, User, MapPin, Phone, Mail, List, Plus } from 'lucide-react';
 import AthleteScores from './AthleteScores';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface Modality {
   id: number;
@@ -225,6 +226,21 @@ export default function AthleteProfile() {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Confirmada':
+        return 'bg-green-50 border-green-200 text-green-700';
+      case 'Pendente':
+        return 'bg-yellow-50 border-yellow-200 text-yellow-700';
+      case 'Recusada':
+        return 'bg-red-50 border-red-200 text-red-700';
+      case 'Cancelada':
+        return 'bg-gray-50 border-gray-200 text-gray-700';
+      default:
+        return 'bg-gray-50 border-gray-200 text-gray-700';
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-8 space-y-4">
@@ -247,38 +263,36 @@ export default function AthleteProfile() {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5 text-olimpics-green-primary" />
-              Perfil do Atleta
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span>{user?.nome_completo}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span>{user?.email}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span>{user?.telefone}</span>
-              </div>
-              {branch && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span>{branch.nome} - {branch.cidade}/{branch.estado}</span>
-                </div>
-              )}
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5 text-olimpics-green-primary" />
+            Perfil do Atleta
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span>{user?.nome_completo}</span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              <span>{user?.email}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-muted-foreground" />
+              <span>{user?.telefone}</span>
+            </div>
+            {branch && (
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span>{branch.nome} - {branch.cidade}/{branch.estado}</span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -291,18 +305,24 @@ export default function AthleteProfile() {
           {inscriptions.length === 0 ? (
             <p>Nenhuma modalidade inscrita.</p>
           ) : (
-            <div className="grid gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {inscriptions.map((inscription) => (
-                <div key={inscription.id} className="flex justify-between items-center p-2 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium">{inscription.modalidade.nome}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Status: {inscription.status}
-                    </p>
+                <div 
+                  key={inscription.id} 
+                  className={cn(
+                    "flex flex-col p-4 rounded-lg border-2",
+                    getStatusColor(inscription.status)
+                  )}
+                >
+                  <h4 className="font-medium text-lg">{inscription.modalidade.nome}</h4>
+                  <div className="mt-2 flex justify-between items-center">
+                    <span className="font-medium">
+                      {inscription.status}
+                    </span>
+                    <span className="text-sm opacity-75">
+                      {format(new Date(inscription.data_inscricao), 'dd/MM/yyyy')}
+                    </span>
                   </div>
-                  <span className="text-xs text-muted-foreground">
-                    {format(new Date(inscription.data_inscricao), 'dd/MM/yyyy')}
-                  </span>
                 </div>
               ))}
             </div>
@@ -320,22 +340,25 @@ export default function AthleteProfile() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {availableModalities.map((modality) => (
               <div
                 key={modality.id}
-                className="flex items-center justify-between p-2 border rounded-lg"
+                className="flex flex-col p-4 border rounded-lg hover:border-olimpics-green-primary/50 transition-colors"
               >
-                <div className="flex items-center gap-4">
-                  <h4 className="font-medium">{modality.nome}</h4>
-                  <span className="text-sm text-muted-foreground">
-                    {modality.tipo_modalidade} • {modality.categoria}
-                  </span>
+                <div className="flex flex-col gap-2">
+                  <h4 className="font-medium text-lg">{modality.nome}</h4>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="capitalize">{modality.tipo_modalidade}</span>
+                    <span>•</span>
+                    <span className="capitalize">{modality.categoria}</span>
+                  </div>
                 </div>
                 <Button
                   size="sm"
                   onClick={() => handleAddModality(modality.id)}
                   disabled={submitting}
+                  className="mt-4"
                 >
                   {submitting ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
