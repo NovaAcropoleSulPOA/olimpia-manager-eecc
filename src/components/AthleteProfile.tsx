@@ -14,6 +14,20 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 
+interface Modalidade {
+  id: number;
+  nome: string;
+  tipo_modalidade: string;
+  categoria: string;
+  status: string;
+}
+
+interface Inscricao {
+  id: number;
+  status: 'Pendente' | 'Confirmada' | 'Recusada' | 'Cancelada';
+  modalidade: Modalidade;
+}
+
 const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB in bytes
 
 const getSportIcon = (modalidade: string) => {

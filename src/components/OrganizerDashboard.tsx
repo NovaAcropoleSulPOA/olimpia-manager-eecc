@@ -95,7 +95,6 @@ export default function OrganizerDashboard() {
         throw error;
       }
 
-      console.log('Athletes data received:', data);
       return data as Athlete[];
     }
   });

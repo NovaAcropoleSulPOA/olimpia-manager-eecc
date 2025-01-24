@@ -4,12 +4,22 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 
+interface Filial {
+  id: string;
+  nome: string;
+  cidade: string;
+  estado: string;
+}
+
 interface AuthUser extends User {
   nome_completo?: string;
   telefone?: string;
   filial_id?: string;
   confirmado?: boolean;
   papeis?: string[];
+  foto_perfil?: string | null;
+  numero_identificador?: string;
+  filial?: Filial | null;
 }
 
 interface AuthContextType {
@@ -75,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // Fetch user profile
               const { data: userProfile, error: profileError } = await supabase
                 .from('usuarios')
-                .select('nome_completo, telefone, filial_id, confirmado')
+                .select('nome_completo, telefone, filial_id, confirmado, foto_perfil, numero_identificador, filial')
                 .eq('id', session.user.id)
                 .single();
 
