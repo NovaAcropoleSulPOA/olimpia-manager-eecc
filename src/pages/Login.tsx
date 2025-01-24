@@ -12,7 +12,6 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import PaymentInfo from '@/components/PaymentInfo';
 import { useQuery } from '@tanstack/react-query';
 import { fetchModalities, fetchBranches, fetchRoles } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
@@ -635,9 +634,8 @@ const Login = () => {
                 />
               )}
 
-              <PaymentInfo />
               <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
-                Após completar seu cadastro, você receberá um email com instruções para enviar seu comprovante de pagamento. 
+                Após completar seu cadastro, você receberá um email com instruções para ativação da sua conta.
                 Por favor, siga as instruções no email para completar seu cadastro.
               </div>
 
