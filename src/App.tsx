@@ -12,6 +12,7 @@ import ResetPassword from './pages/ResetPassword';
 import { MainNavigation } from './components/MainNavigation';
 import LandingPage from './pages/LandingPage';
 import Footer from './components/Footer';
+import OrganizerDashboard from './components/OrganizerDashboard';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,8 +39,9 @@ function App() {
             <Route element={<MainNavigation />}>
               <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
               <Route path="/athlete-dashboard" element={<Dashboard />} />
-              <Route path="/referee-dashboard" element={<Dashboard />} />
-              <Route path="/admin-dashboard" element={<Dashboard />} />
+              <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
+              <Route path="/judge-dashboard" element={<Dashboard />} />
+              <Route path="/delegation-dashboard" element={<Dashboard />} />
             </Route>
           </Routes>
           <Footer />

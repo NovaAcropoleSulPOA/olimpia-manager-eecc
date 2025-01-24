@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Sidebar, SidebarProvider, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from './ui/sidebar';
-import { User, Medal, Users, Award } from 'lucide-react';
+import { User, Medal, Users, Award, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function MainNavigation() {
@@ -11,25 +11,25 @@ export function MainNavigation() {
     {
       title: "Perfil Olímpico",
       icon: User,
-      path: "/dashboard",
+      path: "/athlete-dashboard",
       roles: ["Atleta"]
+    },
+    {
+      title: "Área do Organizador",
+      icon: BarChart3,
+      path: "/organizer-dashboard",
+      roles: ["Organizador"]
     },
     {
       title: "Área do Juiz",
       icon: Medal,
-      path: "/judge",
+      path: "/judge-dashboard",
       roles: ["Juiz"]
-    },
-    {
-      title: "Área do Organizador",
-      icon: Award,
-      path: "/organizer",
-      roles: ["Organizador"]
     },
     {
       title: "Área da Delegação",
       icon: Users,
-      path: "/delegation",
+      path: "/delegation-dashboard",
       roles: ["Rep. de Delegação"]
     }
   ];
