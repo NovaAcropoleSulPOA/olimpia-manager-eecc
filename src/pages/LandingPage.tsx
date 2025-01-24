@@ -35,34 +35,39 @@ const LandingPage = () => {
         <div className="container relative z-10 mx-auto px-4 py-8 flex flex-col md:flex-row items-start justify-between gap-8">
           {/* Left side - Event Info */}
           <div className="md:w-1/2 text-white">
-            <div className="flex flex-col items-center md:items-start mb-6">
-              <div className="relative w-24 h-24">
+            {/* Centered Olympic Flame and Areté */}
+            <div className="flex flex-col items-center mb-12">
+              <div className="relative w-32 h-32 mb-4">
                 <Flame className="w-full h-full text-olimpics-orange-primary animate-pulse" />
               </div>
-              <p className="text-xl md:text-2xl font-semibold text-center md:text-left">
+              <h2 className="text-3xl md:text-4xl font-bold text-olimpics-orange-primary mb-2">
                 Areté
-              </p>
+              </h2>
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">
+
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center md:text-left">
               Olimpíadas Estaduais da Nova Acrópole 2025 - Porto Alegre
             </h1>
-            <p className="text-xl md:text-2xl italic mb-8">
+            <p className="text-xl md:text-2xl italic mb-12 text-center md:text-left">
               "Mais rápidos, mais altos, mais fortes, estamos unidos!"
             </p>
-            {/* Interactive Info Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+
+            {/* Enhanced Info Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
               <Card 
-                className="p-4 shadow-lg hover:shadow-xl transition-shadow bg-white/90 backdrop-blur cursor-pointer"
+                className="p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 bg-white/95 backdrop-blur cursor-pointer"
                 onClick={handleLocationClick}
               >
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-6 h-6 text-olimpics-green-primary" />
+                <div className="flex flex-col items-center text-center gap-4">
+                  <div className="p-4 rounded-full bg-olimpics-green-primary/10">
+                    <MapPin className="w-8 h-8 text-olimpics-green-primary" />
+                  </div>
                   <div>
-                    <h3 className="font-semibold text-base text-olimpics-green-primary">Local</h3>
-                    <p className="text-olimpics-text text-sm">
+                    <h3 className="text-xl font-bold text-olimpics-green-primary mb-2">Local</h3>
+                    <p className="text-olimpics-text text-lg mb-2">
                       Parque Esportivo PUC-RS
                     </p>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-sm text-gray-600 italic">
                       Clique para ver no mapa
                     </p>
                   </div>
@@ -70,21 +75,22 @@ const LandingPage = () => {
               </Card>
 
               <Card 
-                className="p-4 shadow-lg hover:shadow-xl transition-shadow bg-white/90 backdrop-blur cursor-pointer"
+                className="p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 bg-white/95 backdrop-blur cursor-pointer"
                 onClick={handleCalendarSync}
               >
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-6 h-6 text-olimpics-green-primary" />
+                <div className="flex flex-col items-center text-center gap-4">
+                  <div className="p-4 rounded-full bg-olimpics-green-primary/10">
+                    <Calendar className="w-8 h-8 text-olimpics-green-primary" />
+                  </div>
                   <div>
-                    <h3 className="font-semibold text-base text-olimpics-green-primary">Data</h3>
-                    <p className="text-olimpics-text text-sm">11, 12 e 13 de Abril</p>
-                    <p className="text-xs text-gray-600">
+                    <h3 className="text-xl font-bold text-olimpics-green-primary mb-2">Data</h3>
+                    <p className="text-olimpics-text text-lg mb-2">11, 12 e 13 de Abril</p>
+                    <p className="text-sm text-gray-600 italic">
                       Clique para adicionar ao calendário
                     </p>
                   </div>
                 </div>
               </Card>
-
             </div>
           </div>
 
