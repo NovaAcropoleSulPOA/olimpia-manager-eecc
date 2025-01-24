@@ -67,14 +67,14 @@ export default function AthleteProfile() {
     try {
       const { data: profile } = await supabase
         .from('usuarios')
-        .select('avatar_url')
+        .select('foto_perfil')  // Changed from avatar_url to foto_perfil
         .eq('id', user.id)
         .single();
       
-      if (profile?.avatar_url) {
+      if (profile?.foto_perfil) {
         const { data } = await supabase.storage
           .from('avatars')
-          .getPublicUrl(profile.avatar_url);
+          .getPublicUrl(profile.foto_perfil);
         
         setProfileImage(data.publicUrl);
       }
@@ -105,7 +105,7 @@ export default function AthleteProfile() {
 
       const { error: updateError } = await supabase
         .from('usuarios')
-        .update({ avatar_url: fileName })
+        .update({ foto_perfil: fileName })  // Changed from avatar_url to foto_perfil
         .eq('id', user.id);
 
       if (updateError) throw updateError;
