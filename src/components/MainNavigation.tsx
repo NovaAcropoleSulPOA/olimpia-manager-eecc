@@ -6,9 +6,10 @@ import {
   SidebarMenu, 
   SidebarMenuItem, 
   SidebarMenuButton,
-  SidebarFooter
+  SidebarFooter,
+  SidebarHeader
 } from './ui/sidebar';
-import { Home, User, Medal, Users, Award, BarChart3, LogOut } from 'lucide-react';
+import { Home, Medal, Users, Award, BarChart3, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -19,34 +20,38 @@ export function MainNavigation() {
 
   const menuItems = [
     {
-      title: "Início",
+      title: "Dashboard",
       icon: Home,
       path: "/athlete-dashboard",
       roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"]
     },
     {
-      title: "Perfil do Atleta",
+      title: "Área do Atleta",
       icon: Award,
       path: "/athlete-dashboard",
-      roles: ["Atleta"]
+      roles: ["Atleta"],
+      section: "profile"
     },
     {
       title: "Área do Organizador",
       icon: BarChart3,
       path: "/organizer-dashboard",
-      roles: ["Organizador"]
+      roles: ["Organizador"],
+      section: "profile"
     },
     {
       title: "Área do Juiz",
       icon: Medal,
       path: "/judge-dashboard",
-      roles: ["Juiz"]
+      roles: ["Juiz"],
+      section: "profile"
     },
     {
       title: "Área da Delegação",
       icon: Users,
       path: "/delegation-dashboard",
-      roles: ["Rep. de Delegação"]
+      roles: ["Rep. de Delegação"],
+      section: "profile"
     }
   ];
 
@@ -61,7 +66,6 @@ export function MainNavigation() {
     }
   };
 
-  // Filter menu items based on user roles
   const userRoles = user?.papeis || [];
   console.log('User roles:', userRoles);
   
@@ -70,13 +74,21 @@ export function MainNavigation() {
   );
   console.log('Filtered menu items:', filteredMenuItems);
 
+  // Separate items by section
+  const generalItems = filteredMenuItems.filter(item => !item.section);
+  const profileItems = filteredMenuItems.filter(item => item.section === 'profile');
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <Sidebar className="bg-olimpics-green-primary text-white">
+          <SidebarHeader className="p-4">
+            <h2 className="text-lg font-semibold">Olimpíadas</h2>
+          </SidebarHeader>
           <SidebarContent>
+            {/* General Navigation */}
             <SidebarMenu>
-              {filteredMenuItems.map((item) => (
+              {generalItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
@@ -91,13 +103,35 @@ export function MainNavigation() {
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
+
+            {/* Profile Section */}
+            <div className="mt-4 px-2">
+              <div className="text-xs uppercase text-white/70 mb-2">Perfis</div>
+              <SidebarMenu>
+                {profileItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === item.path}
+                      tooltip={item.title}
+                      className="transition-colors duration-200"
+                    >
+                      <Link to={item.path} className="flex items-center gap-2">
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </div>
           </SidebarContent>
           <SidebarFooter>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={handleLogout}
-                  className="text-red-300 hover:text-red-100"
+                  className="text-red-300 hover:text-red-100 transition-colors duration-200"
                   tooltip="Sair"
                 >
                   <LogOut className="h-4 w-4" />
