@@ -6,9 +6,10 @@ import {
   SidebarMenu, 
   SidebarMenuItem, 
   SidebarMenuButton,
-  SidebarFooter
+  SidebarFooter,
+  SidebarSeparator
 } from './ui/sidebar';
-import { User, Medal, Users, Award, BarChart3, LogOut } from 'lucide-react';
+import { User, Medal, Users, BarChart3, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -21,63 +22,67 @@ export function MainNavigation() {
     try {
       await signOut();
       toast.success('Logout realizado com sucesso!');
-      navigate('/'); // Redirect to landing page instead of login
+      navigate('/');
     } catch (error) {
       console.error('Error during logout:', error);
       toast.error('Erro ao fazer logout');
     }
   };
 
-  // Always show AthleteProfile first
+  // Define all possible menu items with their roles
   const menuItems = [
     {
       title: "Perfil do Atleta",
       icon: User,
       path: "/athlete-profile",
-      roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"]
-    }
-  ];
-
-  // Add role-specific pages
-  if (user?.papeis?.includes("Organizador")) {
-    menuItems.push({
+      roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"],
+      description: "Gerencie seu perfil de atleta"
+    },
+    {
       title: "Área do Organizador",
       icon: BarChart3,
       path: "/organizer-dashboard",
-      roles: ["Organizador"]
-    });
-  }
-
-  if (user?.papeis?.includes("Juiz")) {
-    menuItems.push({
+      roles: ["Organizador"],
+      description: "Acesse o painel de controle do organizador"
+    },
+    {
       title: "Área do Juiz",
       icon: Medal,
       path: "/judge-dashboard",
-      roles: ["Juiz"]
-    });
-  }
-
-  if (user?.papeis?.includes("Rep. de Delegação")) {
-    menuItems.push({
+      roles: ["Juiz"],
+      description: "Gerencie avaliações e pontuações"
+    },
+    {
       title: "Área da Delegação",
       icon: Users,
       path: "/delegation-dashboard",
-      roles: ["Rep. de Delegação"]
-    });
-  }
+      roles: ["Rep. de Delegação"],
+      description: "Gerencie sua delegação"
+    }
+  ];
+
+  // Filter menu items based on user roles
+  const availableMenuItems = menuItems.filter(item => 
+    item.roles.some(role => user?.papeis?.includes(role))
+  );
 
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <Sidebar className="bg-olimpics-green-primary text-white">
+        <Sidebar className="bg-olimpics-green-primary text-white transition-all duration-200">
           <SidebarContent>
+            <div className="px-4 py-6">
+              <h2 className="text-lg font-semibold text-white">Olimpíadas</h2>
+              <p className="text-sm text-white/70">Bem-vindo, {user?.nome_completo}</p>
+            </div>
             <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+              {availableMenuItems.map((item) => (
+                <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton
                     asChild
                     isActive={location.pathname === item.path}
-                    tooltip={item.title}
+                    tooltip={item.description}
+                    className="hover:bg-olimpics-green-secondary"
                   >
                     <Link to={item.path} className="flex items-center gap-2">
                       <item.icon className="h-4 w-4" />
@@ -89,12 +94,26 @@ export function MainNavigation() {
             </SidebarMenu>
           </SidebarContent>
           <SidebarFooter>
+            <SidebarSeparator />
+            <div className="px-4 py-2">
+              <p className="text-sm text-white/70 mb-2">Seus perfis:</p>
+              <div className="flex flex-wrap gap-1 mb-4">
+                {user?.papeis?.map((role) => (
+                  <span
+                    key={role}
+                    className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-white/10"
+                  >
+                    {role}
+                  </span>
+                ))}
+              </div>
+            </div>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={handleLogout}
-                  className="text-red-300 hover:text-red-100"
-                  tooltip="Sair"
+                  className="text-red-300 hover:text-red-100 hover:bg-red-900/20"
+                  tooltip="Sair da aplicação"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>Sair</span>
