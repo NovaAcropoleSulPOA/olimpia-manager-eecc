@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarFooter
 } from './ui/sidebar';
-import { Home, User, Medal, Users, Award, BarChart3, LogOut } from 'lucide-react';
+import { User, Medal, Users, Award, BarChart3, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -17,58 +17,54 @@ export function MainNavigation() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const menuItems = [
-    {
-      title: "Início",
-      icon: Home,
-      path: "/athlete-dashboard",
-      roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"]
-    },
-    {
-      title: "Perfil do Atleta",
-      icon: Award,
-      path: "/athlete-dashboard",
-      roles: ["Atleta"]
-    },
-    {
-      title: "Área do Organizador",
-      icon: BarChart3,
-      path: "/organizer-dashboard",
-      roles: ["Organizador"]
-    },
-    {
-      title: "Área do Juiz",
-      icon: Medal,
-      path: "/judge-dashboard",
-      roles: ["Juiz"]
-    },
-    {
-      title: "Área da Delegação",
-      icon: Users,
-      path: "/delegation-dashboard",
-      roles: ["Rep. de Delegação"]
-    }
-  ];
-
   const handleLogout = async () => {
     try {
       await signOut();
       toast.success('Logout realizado com sucesso!');
-      navigate('/login');
+      navigate('/'); // Redirect to landing page instead of login
     } catch (error) {
       console.error('Error during logout:', error);
       toast.error('Erro ao fazer logout');
     }
   };
 
-  // Filter menu items based on user roles
-  const userRoles = user?.papeis || [];
-  console.log('User roles:', userRoles);
-  
-  const filteredMenuItems = menuItems.filter(item => 
-    item.roles.some(role => userRoles.includes(role))
-  );
-  console.log('Filtered menu items:', filteredMenuItems);
+  // Always show AthleteProfile first
+  const menuItems = [
+    {
+      title: "Perfil do Atleta",
+      icon: User,
+      path: "/athlete-profile",
+      roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"]
+    }
+  ];
+
+  // Add role-specific pages
+  if (user?.papeis?.includes("Organizador")) {
+    menuItems.push({
+      title: "Área do Organizador",
+      icon: BarChart3,
+      path: "/organizer-dashboard",
+      roles: ["Organizador"]
+    });
+  }
+
+  if (user?.papeis?.includes("Juiz")) {
+    menuItems.push({
+      title: "Área do Juiz",
+      icon: Medal,
+      path: "/judge-dashboard",
+      roles: ["Juiz"]
+    });
+  }
+
+  if (user?.papeis?.includes("Rep. de Delegação")) {
+    menuItems.push({
+      title: "Área da Delegação",
+      icon: Users,
+      path: "/delegation-dashboard",
+      roles: ["Rep. de Delegação"]
+    });
+  }
 
   return (
     <SidebarProvider>
@@ -76,7 +72,7 @@ export function MainNavigation() {
         <Sidebar className="bg-olimpics-green-primary text-white">
           <SidebarContent>
             <SidebarMenu>
-              {filteredMenuItems.map((item) => (
+              {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild

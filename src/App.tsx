@@ -5,7 +5,7 @@ import { Toaster } from './components/ui/sonner';
 import { GlobalHeader } from './components/GlobalHeader';
 import './App.css';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
+import AthleteProfile from './components/AthleteProfile';
 import PendingApproval from './pages/PendingApproval';
 import RoleSelection from './components/RoleSelection';
 import ResetPassword from './pages/ResetPassword';
@@ -38,10 +38,8 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route element={<MainNavigation />}>
               <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
-              <Route path="/athlete-dashboard" element={<Dashboard />} />
+              <Route path="/athlete-profile" element={<AthleteProfile />} />
               <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
-              <Route path="/judge-dashboard" element={<Dashboard />} />
-              <Route path="/delegation-dashboard" element={<Dashboard />} />
             </Route>
           </Routes>
           <Footer />
