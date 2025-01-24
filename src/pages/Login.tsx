@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,6 +17,7 @@ import { fetchModalities, fetchBranches, fetchRoles } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import InputMask from 'react-input-mask';
 import PaymentInfo from '@/components/PaymentInfo';
+import { useNavigate } from 'react-router-dom';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -46,6 +47,7 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { signIn, signUp } = useAuth();
+  const navigate = useNavigate();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -221,18 +223,7 @@ const Login = () => {
       toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
   
       // ✅ Redirecionamento para a aba de Login
-      setTimeout(() => {
-        const loginTab = document.querySelector("[value='login']") as HTMLElement;
-        const registerTab = document.querySelector("[value='register']") as HTMLElement;
-        
-        if (loginTab && registerTab) {
-          registerTab.removeAttribute("data-state");
-          loginTab.setAttribute("data-state", "active");
-          loginTab.click(); // Simula o clique na aba de login
-        }
-      }, 500);
-  
-      console.log('Registration successful:', signUpResult.user);
+      navigate('/');
   
     } catch (error) {
       console.error('Registration process error:', error);
@@ -280,291 +271,337 @@ const Login = () => {
   };
 
   return (
-    <div className="p-6">
-      <Tabs defaultValue="register" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-olimpics-green-primary/10">
-         <TabsTrigger 
-            value="register"
-            className="data-[state=active]:bg-olimpics-green-primary data-[state=active]:text-white"
-          >
-            Inscreva-se
-          </TabsTrigger>
-          <TabsTrigger 
-            value="login"
-            className="data-[state=active]:bg-olimpics-green-primary data-[state=active]:text-white"
-          >
-            Login
-          </TabsTrigger>
-        </TabsList>
+    <div className="min-h-screen bg-olimpics-background flex">
+      <div className="flex-1 flex flex-col md:flex-row">
+        {/* Login/Register Forms Section */}
+        <div className="w-full md:w-1/2 p-6">
+          <Tabs defaultValue="register" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 bg-olimpics-green-primary/10">
+              <TabsTrigger 
+                value="register"
+                className="data-[state=active]:bg-olimpics-green-primary data-[state=active]:text-white"
+              >
+                Inscreva-se
+              </TabsTrigger>
+              <TabsTrigger 
+                value="login"
+                className="data-[state=active]:bg-olimpics-green-primary data-[state=active]:text-white"
+              >
+                Login
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="register">
-          <Form {...registerForm}>
-            <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-              <FormField
-                control={registerForm.control}
-                name="nome"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-left w-full">Nome Completo</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Seu nome completo"
-                        className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={registerForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-left w-full">Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="seu@email.com"
-                        className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={registerForm.control}
-                name="telefone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-left w-full">Telefone com DDD</FormLabel>
-                    <FormControl>
-                      <InputMask
-                        mask="(99) 99999-9999"
-                        value={field.value}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                      >
-                        {(inputProps: any) => (
+            <TabsContent value="register">
+              <Form {...registerForm}>
+                <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                  <FormField
+                    control={registerForm.control}
+                    name="nome"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-left w-full">Nome Completo</FormLabel>
+                        <FormControl>
                           <Input
-                            {...inputProps}
-                            type="tel"
-                            placeholder="(XX) XXXXX-XXXX"
+                            placeholder="Seu nome completo"
                             className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                            {...field}
                           />
-                        )}
-                      </InputMask>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <FormField
-                control={registerForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-left w-full">Senha</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••"
-                        className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={registerForm.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-left w-full">Confirmar Senha</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••"
-                        className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={registerForm.control}
-                name="branchId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-left w-full">Filial</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
-                          <SelectValue placeholder="Selecione uma filial" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {isLoadingBranches ? (
-                          <SelectItem value="loading">Carregando...</SelectItem>
-                        ) : (
-                          branches?.map((branch) => (
-                            <SelectItem key={branch.id} value={branch.id}>
-                              {branch.nome} - {branch.cidade}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={registerForm.control}
-                name="roleIds"
-                render={() => (
-                  <FormItem>
-                    <FormLabel className="text-left w-full">Perfis</FormLabel>
-                    <div className="grid grid-cols-2 gap-2">
-                      {isLoadingRoles ? (
-                        <div>Carregando perfis...</div>
-                      ) : (
-                        roles?.map((role) => (
-                          <FormField
-                            key={role.id}
-                            control={registerForm.control}
-                            name="roleIds"
-                            render={({ field }) => {
-                              return (
-                                <FormItem
-                                  key={role.id}
-                                  className="flex flex-row items-start space-x-3 space-y-0"
-                                >
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(role.id)}
-                                      onCheckedChange={(checked) => {
-                                        const updatedValue = checked
-                                          ? [...(field.value || []), role.id]
-                                          : field.value?.filter((value) => value !== role.id);
-                                        field.onChange(updatedValue);
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">
-                                    {role.nome}
-                                  </FormLabel>
-                                </FormItem>
-                              );
-                            }}
+                  <FormField
+                    control={registerForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-left w-full">Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="seu@email.com"
+                            className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                            {...field}
                           />
-                        ))
-                      )}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <PaymentInfo />
-              <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
-                Após completar seu cadastro, você receberá um email com instruções para enviar seu comprovante de pagamento. 
-                Por favor, siga as instruções no email para completar seu cadastro.
-              </div>
+                  <FormField
+                    control={registerForm.control}
+                    name="telefone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-left w-full">Telefone com DDD</FormLabel>
+                        <FormControl>
+                          <InputMask
+                            mask="(99) 99999-9999"
+                            value={field.value}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                          >
+                            {(inputProps: any) => (
+                              <Input
+                                {...inputProps}
+                                type="tel"
+                                placeholder="(XX) XXXXX-XXXX"
+                                className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                              />
+                            )}
+                          </InputMask>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <Button
-                type="submit"
-                className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Cadastrando...
-                  </>
-                ) : (
-                  'Cadastrar'
-                )}
-              </Button>
-            </form>
-          </Form>
-        </TabsContent>
+                  <FormField
+                    control={registerForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-left w-full">Senha</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••"
+                            className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-        <TabsContent value="login" className="space-y-4">
-          <Form {...loginForm}>
-            <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-              <FormField
-                control={loginForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-left w-full">Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="seu@email.com"
-                        className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={loginForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-left w-full">Senha</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••"
-                        className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Entrando...
-                  </>
-                ) : (
-                  'Entrar'
-                )}
-              </Button>
-            </form>
-          </Form>
-        </TabsContent>
-        
-      </Tabs>
+                  <FormField
+                    control={registerForm.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-left w-full">Confirmar Senha</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••"
+                            className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={registerForm.control}
+                    name="branchId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-left w-full">Filial</FormLabel>
+                        <Select 
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
+                              <SelectValue placeholder="Selecione uma filial" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {isLoadingBranches ? (
+                              <SelectItem value="loading">Carregando...</SelectItem>
+                            ) : (
+                              branches?.map((branch) => (
+                                <SelectItem key={branch.id} value={branch.id}>
+                                  {branch.nome} - {branch.cidade}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={registerForm.control}
+                    name="roleIds"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel className="text-left w-full">Perfis</FormLabel>
+                        <div className="grid grid-cols-2 gap-2">
+                          {isLoadingRoles ? (
+                            <div>Carregando perfis...</div>
+                          ) : (
+                            roles?.map((role) => (
+                              <FormField
+                                key={role.id}
+                                control={registerForm.control}
+                                name="roleIds"
+                                render={({ field }) => {
+                                  return (
+                                    <FormItem
+                                      key={role.id}
+                                      className="flex flex-row items-start space-x-3 space-y-0"
+                                    >
+                                      <FormControl>
+                                        <Checkbox
+                                          checked={field.value?.includes(role.id)}
+                                          onCheckedChange={(checked) => {
+                                            const updatedValue = checked
+                                              ? [...(field.value || []), role.id]
+                                              : field.value?.filter((value) => value !== role.id);
+                                            field.onChange(updatedValue);
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <FormLabel className="font-normal">
+                                        {role.nome}
+                                      </FormLabel>
+                                    </FormItem>
+                                  );
+                                }}
+                              />
+                            ))
+                          )}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <PaymentInfo />
+                  <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
+                    Após completar seu cadastro, você receberá um email com instruções para enviar seu comprovante de pagamento. 
+                    Por favor, siga as instruções no email para completar seu cadastro.
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Cadastrando...
+                      </>
+                    ) : (
+                      'Cadastrar'
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </TabsContent>
+
+            <TabsContent value="login" className="space-y-4">
+              <Form {...loginForm}>
+                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                  <FormField
+                    control={loginForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-left w-full">Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="seu@email.com"
+                            className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={loginForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-left w-full">Senha</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="••••••"
+                            className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="submit"
+                    className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Entrando...
+                      </>
+                    ) : (
+                      'Entrar'
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </TabsContent>
+            
+          </Tabs>
+        </div>
+
+        {/* Media Section */}
+        <div className="hidden md:flex md:w-1/2 bg-gray-50 p-6 flex-col gap-6">
+          {/* Mosaic Grid */}
+          <div className="grid grid-cols-2 gap-4 h-1/2">
+            <img
+              src="https://images.unsplash.com/photo-1605810230434-7631ac76ec81"
+              alt="Event participants"
+              className="w-full h-full object-cover rounded-lg"
+            />
+            <img
+              src="https://images.unsplash.com/photo-1519389950473-47ba0277781c"
+              alt="Collaboration"
+              className="w-full h-full object-cover rounded-lg"
+            />
+            <img
+              src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05"
+              alt="Achievement"
+              className="w-full h-full object-cover rounded-lg"
+            />
+            <img
+              src="https://images.unsplash.com/photo-1500375592092-40eb2168fd21"
+              alt="Inspiration"
+              className="w-full h-full object-cover rounded-lg"
+            />
+          </div>
+
+          {/* Video Section */}
+          <div className="h-1/2 bg-white rounded-lg p-4">
+            <h3 className="text-xl font-semibold mb-4 text-olimpics-text">Conheça Nossos Eventos</h3>
+            <div className="relative w-full h-[calc(100%-2rem)] rounded-lg overflow-hidden">
+              <iframe
+                src="https://www.youtube.com/embed/your-video-id"
+                title="Event Preview"
+                className="absolute top-0 left-0 w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
