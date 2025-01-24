@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { 
   Loader2, User, MapPin, Phone, Mail, List, Plus, Upload,
-  Waves, Running, Volleyball, Dumbbell, BowArrow, Sword, BookOpen, Disc
+  Waves, PersonStanding, Volleyball, Dumbbell, Target, Sword, BookOpen, Disc
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AthleteScores from './AthleteScores';
@@ -337,13 +337,13 @@ export default function AthleteProfile() {
       case 'natação':
         return <Waves {...iconProps} />;
       case 'corrida':
-        return <Running {...iconProps} />;
+        return <PersonStanding {...iconProps} />; // Changed from Running to PersonStanding
       case 'handebol':
-        return <Volleyball {...iconProps} />; // Using volleyball as placeholder
+        return <Volleyball {...iconProps} />;
       case 'levantamento de peso':
         return <Dumbbell {...iconProps} />;
       case 'arco e flecha':
-        return <BowArrow {...iconProps} />;
+        return <Target {...iconProps} />; // Changed from BowArrow to Target
       case 'esgrima':
         return <Sword {...iconProps} />;
       case 'poesia':
