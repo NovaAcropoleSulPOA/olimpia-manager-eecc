@@ -81,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (profileError) throw profileError;
 
+        // Ensure filial is treated as a single object, not an array
         const filialData: Filial | null = userProfile.filial ? {
           id: userProfile.filial.id,
           nome: userProfile.filial.nome,
