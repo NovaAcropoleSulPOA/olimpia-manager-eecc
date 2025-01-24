@@ -1,16 +1,26 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Sidebar, SidebarProvider, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from './ui/sidebar';
-import { User, Medal, Users, Award, BarChart3 } from 'lucide-react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { 
+  Sidebar, 
+  SidebarProvider, 
+  SidebarContent, 
+  SidebarMenu, 
+  SidebarMenuItem, 
+  SidebarMenuButton,
+  SidebarFooter
+} from './ui/sidebar';
+import { User, Medal, Users, Award, BarChart3, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export function MainNavigation() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const menuItems = [
     {
-      title: "Perfil Olímpico",
-      icon: User,
+      title: "Perfil do Atleta",
+      icon: Award,
       path: "/athlete-dashboard",
       roles: ["Atleta"]
     },
@@ -34,10 +44,25 @@ export function MainNavigation() {
     }
   ];
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success('Logout realizado com sucesso!');
+      navigate('/login');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      toast.error('Erro ao fazer logout');
+    }
+  };
+
+  // Filter menu items based on user roles
   const userRoles = user?.papeis || [];
+  console.log('User roles:', userRoles);
+  
   const filteredMenuItems = menuItems.filter(item => 
     item.roles.some(role => userRoles.includes(role))
   );
+  console.log('Filtered menu items:', filteredMenuItems);
 
   return (
     <SidebarProvider>
@@ -61,6 +86,20 @@ export function MainNavigation() {
               ))}
             </SidebarMenu>
           </SidebarContent>
+          <SidebarFooter>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={handleLogout}
+                  className="text-red-300 hover:text-red-100"
+                  tooltip="Sair"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Sair</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
         </Sidebar>
         <main className="flex-1 p-6 bg-olimpics-background">
           <Outlet />
