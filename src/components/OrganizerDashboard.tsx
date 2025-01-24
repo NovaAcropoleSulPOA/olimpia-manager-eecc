@@ -7,21 +7,31 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Users, Trophy, DollarSign, Building } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface Filial {
+  id: string;
+  nome: string;
+  cidade: string;
+  estado: string;
+}
+
+interface Modalidade {
+  id: number;
+  nome: string;
+}
+
+interface Inscricao {
+  status: 'Pendente' | 'Confirmada' | 'Recusada' | 'Cancelada';
+  modalidade: Modalidade;
+}
+
 interface Athlete {
   id: string;
   nome_completo: string;
   telefone: string;
   foto_perfil: string | null;
   filial_id: string;
-  filial: {
-    nome: string;
-  } | null;
-  inscricoes: Array<{
-    status: string;
-    modalidade: {
-      nome: string;
-    };
-  }>;
+  filial: Filial | null;
+  inscricoes: Inscricao[];
 }
 
 interface ModalityStats {
@@ -62,10 +72,19 @@ export default function OrganizerDashboard() {
           nome_completo,
           telefone,
           foto_perfil,
-          filial:filial_id (nome),
+          filial_id,
+          filial:filial_id (
+            id,
+            nome,
+            cidade,
+            estado
+          ),
           inscricoes (
             status,
-            modalidade:modalidade_id (nome)
+            modalidade:modalidade_id (
+              id,
+              nome
+            )
           )
         `)
         .in('id', athleteIds);
@@ -77,7 +96,7 @@ export default function OrganizerDashboard() {
       }
 
       console.log('Athletes data received:', data);
-      return data as unknown as Athlete[];
+      return data as Athlete[];
     }
   });
 
@@ -115,48 +134,48 @@ export default function OrganizerDashboard() {
     }
   });
 
-const { data: branchStats } = useQuery({
-  queryKey: ['branch-stats'],
-  queryFn: async () => {
-    console.log('Fetching branch stats');
-    const { data, error } = await supabase
-      .from('inscricoes')
-      .select(`
-        status,
-        atleta:atleta_id (
-          filial:filial_id (nome)
-        )
-      `);
+  const { data: branchStats } = useQuery({
+    queryKey: ['branch-stats'],
+    queryFn: async () => {
+      console.log('Fetching branch stats');
+      const { data, error } = await supabase
+        .from('inscricoes')
+        .select(`
+          status,
+          atleta:atleta_id (
+            filial:filial_id (nome)
+          )
+        `);
 
-    if (error) {
-      console.error('Error fetching branch stats:', error);
-      throw error;
-    }
-
-    console.log('Branch stats raw data:', data);
-
-    if (!data) return [];
-
-    const stats = data.reduce((acc: Record<string, Record<string, number>>, curr) => {
-      const branchName = curr.atleta?.filial?.nome ?? 'Sem Filial';
-      if (!acc[branchName]) {
-        acc[branchName] = {
-          Pendente: 0,
-          Confirmada: 0,
-          Recusada: 0,
-          Cancelada: 0
-        };
+      if (error) {
+        console.error('Error fetching branch stats:', error);
+        throw error;
       }
-      acc[branchName][curr.status]++;
-      return acc;
-    }, {});
 
-    return Object.entries(stats).map(([branch, statuses]) => ({
-      branch,
-      ...statuses
-    }));
-  }
-});
+      console.log('Branch stats raw data:', data);
+
+      if (!data) return [];
+
+      const stats = data.reduce((acc: Record<string, Record<string, number>>, curr) => {
+        const branchName = curr.atleta?.filial?.nome ?? 'Sem Filial';
+        if (!acc[branchName]) {
+          acc[branchName] = {
+            Pendente: 0,
+            Confirmada: 0,
+            Recusada: 0,
+            Cancelada: 0
+          };
+        }
+        acc[branchName][curr.status]++;
+        return acc;
+      }, {});
+
+      return Object.entries(stats).map(([branch, statuses]) => ({
+        branch,
+        ...statuses
+      }));
+    }
+  });
 
   const confirmedCount = athletes?.reduce((acc, athlete) => {
     return acc + athlete.inscricoes.filter(insc => insc.status === 'Confirmada').length;
