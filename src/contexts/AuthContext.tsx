@@ -101,11 +101,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
               const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
               
+              // Ensure filial is properly typed as a single object or null
+              const filialData = userProfile.filial ? {
+                id: userProfile.filial.id,
+                nome: userProfile.filial.nome,
+                cidade: userProfile.filial.cidade,
+                estado: userProfile.filial.estado
+              } : null;
+
               const updatedUser: AuthUser = {
                 ...session.user,
                 ...userProfile,
                 papeis,
-                filial: userProfile.filial || null
+                filial: filialData
               };
 
               console.log('Setting authenticated user:', updatedUser);
