@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarFooter
 } from './ui/sidebar';
-import { User, Medal, Users, Award, BarChart3, LogOut } from 'lucide-react';
+import { Home, User, Medal, Users, Award, BarChart3, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -18,6 +18,12 @@ export function MainNavigation() {
   const navigate = useNavigate();
 
   const menuItems = [
+    {
+      title: "Início",
+      icon: Home,
+      path: "/athlete-dashboard",
+      roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"]
+    },
     {
       title: "Perfil do Atleta",
       icon: Award,
