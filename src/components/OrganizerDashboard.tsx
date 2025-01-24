@@ -27,6 +27,7 @@ export default function OrganizerDashboard() {
   const { data: athletes, isLoading } = useQuery({
     queryKey: ['athletes'],
     queryFn: async () => {
+      console.log('Fetching athletes data');
       const { data, error } = await supabase
         .from('usuarios')
         .select(`
@@ -34,35 +35,41 @@ export default function OrganizerDashboard() {
           nome_completo,
           telefone,
           foto_perfil,
-          filial:filiais (nome),
+          filial:filial_id (nome),
           inscricoes (
             status,
-            modalidade:modalidades (nome)
+            modalidade:modalidade_id (nome)
           )
         `)
         .eq('papeis', ['Atleta']);
 
       if (error) {
+        console.error('Error fetching athletes:', error);
         toast.error('Erro ao carregar dados dos atletas');
         throw error;
       }
 
-      return data as Athlete[];
+      console.log('Athletes data received:', data);
+      return data as unknown as Athlete[];
     }
   });
 
   const { data: modalityStats } = useQuery({
     queryKey: ['modality-stats'],
     queryFn: async () => {
+      console.log('Fetching modality stats');
       const { data, error } = await supabase
         .from('inscricoes')
         .select(`
-          modalidade:modalidades (nome),
+          modalidade:modalidade_id (nome),
           status
         `)
         .eq('status', 'Confirmada');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching modality stats:', error);
+        throw error;
+      }
 
       const stats = data.reduce((acc: Record<string, number>, curr) => {
         const modalityName = curr.modalidade.nome;
@@ -80,16 +87,20 @@ export default function OrganizerDashboard() {
   const { data: branchStats } = useQuery({
     queryKey: ['branch-stats'],
     queryFn: async () => {
+      console.log('Fetching branch stats');
       const { data, error } = await supabase
         .from('inscricoes')
         .select(`
           status,
-          atleta:usuarios (
-            filial:filiais (nome)
+          atleta:usuario_id (
+            filial:filial_id (nome)
           )
         `);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching branch stats:', error);
+        throw error;
+      }
 
       const stats = data.reduce((acc: Record<string, Record<string, number>>, curr) => {
         const branchName = curr.atleta.filial.nome;
