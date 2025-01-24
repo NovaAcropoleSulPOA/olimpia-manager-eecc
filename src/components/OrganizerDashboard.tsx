@@ -32,11 +32,11 @@ interface ModalityStats {
 
 interface BranchStats {
   status: string;
-  usuario: {
+  usuarios: {
     filial: {
       nome: string;
     };
-  };
+  } | null;
 }
 
 export default function OrganizerDashboard() {
@@ -138,6 +138,7 @@ export default function OrganizerDashboard() {
       if (!data) return [];
 
       const stats = data.reduce((acc: Record<string, Record<string, number>>, curr) => {
+        // Access the first filial if it exists
         const branchName = curr.usuarios?.filial?.nome || 'Unknown';
         if (!acc[branchName]) {
           acc[branchName] = {
