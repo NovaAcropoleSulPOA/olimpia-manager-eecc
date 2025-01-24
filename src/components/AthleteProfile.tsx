@@ -4,7 +4,11 @@ import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Loader2, User, MapPin, Phone, Mail, List, Plus, Upload } from 'lucide-react';
+import { 
+  Loader2, User, MapPin, Phone, Mail, List, Plus, Upload,
+  Waves, Running, Volleyball, Dumbbell, BowArrow, Sword, BookOpen, Disc
+} from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AthleteScores from './AthleteScores';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -327,6 +331,33 @@ export default function AthleteProfile() {
     return groups;
   };
 
+  const getSportIcon = (sportName: string) => {
+    const iconProps = { className: "h-6 w-6" };
+    switch (sportName.toLowerCase()) {
+      case 'natação':
+        return <Waves {...iconProps} />;
+      case 'corrida':
+        return <Running {...iconProps} />;
+      case 'handebol':
+        return <Volleyball {...iconProps} />; // Using volleyball as placeholder
+      case 'levantamento de peso':
+        return <Dumbbell {...iconProps} />;
+      case 'arco e flecha':
+        return <BowArrow {...iconProps} />;
+      case 'esgrima':
+        return <Sword {...iconProps} />;
+      case 'poesia':
+        return <BookOpen {...iconProps} />;
+      case 'lançamento de disco':
+      case 'lançamento de dardo':
+        return <Disc {...iconProps} />;
+      case 'vôlei':
+        return <Volleyball {...iconProps} />;
+      default:
+        return <List {...iconProps} />;
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-8 space-y-4">
@@ -420,80 +451,61 @@ export default function AthleteProfile() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <List className="h-5 w-5 text-olimpics-green-primary" />
-            Modalidades Inscritas
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {Object.entries(groupedInscriptions).map(([status, items]) => (
-              <div key={status} className="space-y-4">
-                <h3 className="font-medium text-lg">{status}</h3>
-                {items.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhuma modalidade {status.toLowerCase()}</p>
-                ) : (
-                  items.map((inscription) => (
-                    <div 
-                      key={inscription.id} 
-                      className={cn(
-                        "flex flex-col p-4 rounded-lg border-2",
-                        getStatusColor(inscription.status)
-                      )}
-                    >
-                      <h4 className="font-medium">{inscription.modalidade.nome}</h4>
-                      <span className="text-sm mt-2">
-                        {format(new Date(inscription.data_inscricao), 'dd/MM/yyyy')}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <AthleteScores scores={scores} />
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5 text-olimpics-green-primary" />
             Modalidades Disponíveis
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {availableModalities.map((modality) => (
-              <div
-                key={modality.id}
-                className="flex flex-col p-4 border rounded-lg hover:border-olimpics-green-primary/50 transition-colors"
-              >
-                <div className="flex flex-col gap-2">
-                  <h4 className="font-medium text-lg">{modality.nome}</h4>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="capitalize">{modality.tipo_modalidade}</span>
-                    <span>•</span>
-                    <span className="capitalize">{modality.categoria}</span>
-                  </div>
+          <Tabs defaultValue="misto" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="misto">Misto</TabsTrigger>
+              <TabsTrigger value="masculino">Masculino</TabsTrigger>
+              <TabsTrigger value="feminino">Feminino</TabsTrigger>
+            </TabsList>
+
+            {['misto', 'masculino', 'feminino'].map((category) => (
+              <TabsContent key={category} value={category}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {availableModalities
+                    .filter(modality => modality.categoria.toLowerCase() === category)
+                    .map((modality) => (
+                      <div
+                        key={modality.id}
+                        className="flex flex-col p-4 border rounded-lg hover:border-olimpics-green-primary/50 hover:shadow-md transition-all bg-white"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 rounded-full bg-olimpics-green-primary/10">
+                            {getSportIcon(modality.nome)}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-base">{modality.nome}</h4>
+                            <p className="text-sm text-muted-foreground capitalize">
+                              {modality.tipo_modalidade}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleAddModality(modality.id)}
+                          disabled={submitting}
+                          className="mt-4 w-full"
+                        >
+                          {submitting ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            'Adicionar'
+                          )}
+                        </Button>
+                      </div>
+                    ))}
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => handleAddModality(modality.id)}
-                  disabled={submitting}
-                  className="mt-4"
-                >
-                  {submitting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    'Adicionar'
-                  )}
-                </Button>
-              </div>
+              </TabsContent>
             ))}
-          </div>
+          </Tabs>
         </CardContent>
       </Card>
+
+      <AthleteScores scores={scores} />
     </div>
   );
 }

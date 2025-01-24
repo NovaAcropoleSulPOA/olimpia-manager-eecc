@@ -37,22 +37,10 @@ const registerSchema = z.object({
   branchId: z.string({
     required_error: "Selecione uma filial",
   }),
-  modalities: z.array(z.number()).optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
-}).refine(
-  (data) => {
-    if (data.roleIds.includes(1) && (!data.modalities || data.modalities.length === 0)) {
-      return false;
-    }
-    return true;
-  },
-  {
-    message: "Atletas devem selecionar pelo menos uma modalidade",
-    path: ["modalities"],
-  }
-);
+});
 
 const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,7 +65,6 @@ const Login = () => {
       confirmPassword: '',
       roleIds: [],
       branchId: '',
-      modalities: [],
     },
   });
 
@@ -230,30 +217,6 @@ const Login = () => {
         }
       }
   
-      // Registro das inscrições do atleta se for necessário
-      if (values.roleIds.includes(1) && values.modalities?.length > 0) {
-        console.log(`Registering athlete inscriptions for user ID: ${userId}`);
-        const inscricoesToInsert = values.modalities.map(modalidadeId => ({
-          atleta_id: userId,
-          modalidade_id: modalidadeId,
-          status: 'Pendente',
-          data_inscricao: new Date().toISOString()
-        }));
-  
-        const { error: inscricoesError } = await supabase
-          .from('inscricoes')
-          .insert(inscricoesToInsert);
-  
-        if (inscricoesError) {
-          console.error('Modality registration error:', inscricoesError);
-          toast.error('Erro ao salvar as inscrições do atleta.');
-          setIsSubmitting(false);
-          return;
-        }
-  
-        console.log('Athlete inscriptions registered successfully');
-      }
-  
       // ✅ Mensagem de sucesso exibida **somente se tudo der certo**
       toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
   
@@ -316,8 +279,6 @@ const Login = () => {
     }
   };
 
-  const isAtletaSelected = registerForm.watch("roleIds").includes(1);
-
   return (
     <div className="p-6">
       <Tabs defaultValue="register" className="w-full">
@@ -335,8 +296,6 @@ const Login = () => {
             Login
           </TabsTrigger>
         </TabsList>
-
-        
 
         <TabsContent value="register">
           <Form {...registerForm}>
@@ -523,62 +482,6 @@ const Login = () => {
                   </FormItem>
                 )}
               />
-
-              {isAtletaSelected && (
-                <FormField
-                  control={registerForm.control}
-                  name="modalities"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-left w-full">Modalidades</FormLabel>
-                      <div className="grid grid-cols-2 gap-4">
-                        {isLoadingModalities ? (
-                          <div>Carregando modalidades...</div>
-                        ) : (
-                          modalities?.map((modality) => (
-                            <FormField
-                              key={modality.id}
-                              control={registerForm.control}
-                              name="modalities"
-                              render={({ field: modalityField }) => {
-                                return (
-                                  <FormItem
-                                    key={modality.id}
-                                    className="flex flex-col p-3 rounded-lg hover:bg-gray-50 border border-gray-100"
-                                  >
-                                    <div className="flex items-start space-x-3">
-                                      <FormControl>
-                                        <Checkbox
-                                          checked={modalityField.value?.includes(modality.id)}
-                                          onCheckedChange={(checked) => {
-                                            const updatedValue = checked
-                                              ? [...(modalityField.value || []), modality.id]
-                                              : modalityField.value?.filter((value) => value !== modality.id);
-                                            modalityField.onChange(updatedValue);
-                                          }}
-                                        />
-                                      </FormControl>
-                                      <div className="space-y-1">
-                                        <FormLabel className="text-sm font-medium">
-                                          {modality.nome}
-                                        </FormLabel>
-                                        <p className="text-xs text-gray-500">
-                                          {modality.tipo_modalidade} • {modality.categoria}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </FormItem>
-                                );
-                              }}
-                            />
-                          ))
-                        )}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
 
               <PaymentInfo />
               <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
