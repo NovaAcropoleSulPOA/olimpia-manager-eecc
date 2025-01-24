@@ -94,7 +94,7 @@ export function MainNavigation() {
         </Sidebar>
         <div className="flex-1 overflow-auto">
           <div className="sticky top-0 z-10 bg-white border-b">
-            <SidebarTrigger asChild>
+            <SidebarTrigger>
               <Button variant="ghost" size="icon" className="m-2">
                 <Menu className="h-4 w-4" />
               </Button>
