@@ -1,35 +1,42 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Users, Trophy, DollarSign, Building } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Filial {
-  id: string;
-  nome: string;
-  cidade: string;
-  estado: string;
-}
-
-interface Modalidade {
-  id: number;
-  nome: string;
-}
-
-interface Inscricao {
-  status: 'Pendente' | 'Confirmada' | 'Recusada' | 'Cancelada';
-  modalidade: Modalidade;
-}
 
 interface Athlete {
   id: string;
   nome_completo: string;
   telefone: string;
   foto_perfil: string | null;
-  filial_id: string;
-  filial: Filial;
-  inscricoes: Inscricao[];
+  filiais: {
+    nome: string;
+  };
+  inscricoes: Array<{
+    status: string;
+    modalidade: {
+      nome: string;
+    };
+  }>;
+}
+
+interface ModalityStats {
+  modalidade: {
+    nome: string;
+  };
+  status: string;
+}
+
+interface BranchStats {
+  status: string;
+  usuario: {
+    filial: {
+      nome: string;
+    };
+  };
 }
 
 export default function OrganizerDashboard() {
@@ -40,7 +47,7 @@ export default function OrganizerDashboard() {
       const { data: athleteRoles, error: rolesError } = await supabase
         .from('papeis_usuarios')
         .select('usuario_id')
-        .eq('perfil_id', 1);
+        .eq('perfil_id', 1); // Assuming 1 is the ID for 'Atleta' role
 
       if (rolesError) {
         console.error('Error fetching athlete roles:', rolesError);
@@ -57,23 +64,13 @@ export default function OrganizerDashboard() {
           nome_completo,
           telefone,
           foto_perfil,
-          filial_id,
-          filial:filiais!filial_id (
-            id,
-            nome,
-            cidade,
-            estado
-          ),
+          filiais:filial_id (nome),
           inscricoes (
             status,
-            modalidade:modalidade_id (
-              id,
-              nome
-            )
+            modalidade:modalidade_id (nome)
           )
         `)
-        .in('id', athleteIds)
-        .returns<Athlete[]>();
+        .in('id', athleteIds);
 
       if (error) {
         console.error('Error fetching athletes:', error);
@@ -81,7 +78,8 @@ export default function OrganizerDashboard() {
         throw error;
       }
 
-      return data;
+      console.log('Athletes data received:', data);
+      return data as unknown as Athlete[];
     }
   });
 
@@ -95,21 +93,20 @@ export default function OrganizerDashboard() {
           modalidade:modalidade_id (nome),
           status
         `)
-        .eq('status', 'Confirmada')
-        .returns<{ modalidade: { nome: string } }[]>();
+        .eq('status', 'Confirmada');
 
       if (error) {
         console.error('Error fetching modality stats:', error);
         throw error;
       }
 
+      console.log('Modality stats data:', data);
+
       if (!data) return [];
 
       const stats = data.reduce((acc: Record<string, number>, curr) => {
-        const modalityName = curr.modalidade?.nome;
-        if (modalityName) {
-          acc[modalityName] = (acc[modalityName] || 0) + 1;
-        }
+        const modalityName = curr.modalidade.nome;
+        acc[modalityName] = (acc[modalityName] || 0) + 1;
         return acc;
       }, {});
 
@@ -128,21 +125,22 @@ export default function OrganizerDashboard() {
         .from('inscricoes')
         .select(`
           status,
-          atleta:atleta_id (
-            filial:filiais!filial_id (nome)
+          usuario:usuario_id (
+            filial:filial_id (nome)
           )
-        `)
-        .returns<{ status: string; atleta: { filial: { nome: string } } }[]>();
+        `);
 
       if (error) {
         console.error('Error fetching branch stats:', error);
         throw error;
       }
 
+      console.log('Branch stats raw data:', data);
+
       if (!data) return [];
 
       const stats = data.reduce((acc: Record<string, Record<string, number>>, curr) => {
-        const branchName = curr.atleta?.filial?.nome ?? 'Sem Filial';
+        const branchName = curr.usuario?.filial?.nome ?? 'Sem Filial';
         if (!acc[branchName]) {
           acc[branchName] = {
             Pendente: 0,
@@ -167,8 +165,6 @@ export default function OrganizerDashboard() {
   }, 0) || 0;
 
   const totalRevenue = confirmedCount * 180;
-
-  const uniqueBranchesCount = athletes ? new Set(athletes.map(a => a.filial?.nome)).size : 0;
 
   if (isLoading) {
     return <div>Carregando...</div>;
@@ -215,7 +211,9 @@ export default function OrganizerDashboard() {
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{uniqueBranchesCount}</div>
+            <div className="text-2xl font-bold">
+              {new Set(athletes?.map(a => a.filiais.nome)).size}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -262,6 +260,83 @@ export default function OrganizerDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Atletas Registrados</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Atleta</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Sede</TableHead>
+                <TableHead>Modalidades</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {athletes?.map((athlete) => (
+                <TableRow key={athlete.id}>
+                  <TableCell className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={athlete.foto_perfil || undefined} />
+                      <AvatarFallback>
+                        {athlete.nome_completo.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    {athlete.nome_completo}
+                  </TableCell>
+                  <TableCell>
+                    <a
+                      href={`https://wa.me/${athlete.telefone.replace(/\D/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-olimpics-green-primary hover:underline"
+                    >
+                      {athlete.telefone}
+                    </a>
+                  </TableCell>
+                  <TableCell>{athlete.filiais.nome}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {athlete.inscricoes.map((insc, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center rounded-full bg-olimpics-green-primary/10 px-2 py-1 text-xs font-medium text-olimpics-green-primary"
+                        >
+                          {insc.modalidade.nome}
+                        </span>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {athlete.inscricoes.map((insc, idx) => (
+                        <span
+                          key={idx}
+                          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                            insc.status === 'Confirmada'
+                              ? 'bg-green-100 text-green-700'
+                              : insc.status === 'Pendente'
+                              ? 'bg-yellow-100 text-yellow-700'
+                              : insc.status === 'Recusada'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}
+                        >
+                          {insc.status}
+                        </span>
+                      ))}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

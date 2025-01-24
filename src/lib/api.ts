@@ -27,8 +27,6 @@ export interface User {
   email: string;
   nome_completo: string;
   telefone: string;
-  tipo_documento: 'CPF' | 'RG';
-  numero_documento: string;
   filial_id: string;
   confirmado: boolean;
   data_criacao: string;
@@ -107,8 +105,6 @@ export const createUserProfile = async (userId: string, data: any) => {
       id: userId,
       nome_completo: data.nome,
       telefone: data.telefone.replace(/\D/g, ''),
-      tipo_documento: data.tipo_documento,
-      numero_documento: data.numero_documento.replace(/\D/g, ''),
       email: data.email,
       filial_id: data.branchId,
       confirmado: false,
