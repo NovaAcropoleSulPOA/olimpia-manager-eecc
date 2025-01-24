@@ -30,21 +30,8 @@ interface Athlete {
   telefone: string;
   foto_perfil: string | null;
   filial_id: string;
-  filial: Filial | null;
+  filial: Filial;
   inscricoes: Inscricao[];
-}
-
-interface ModalityStats {
-  name: string;
-  count: number;
-}
-
-interface BranchStats {
-  branch: string;
-  Confirmada: number;
-  Pendente: number;
-  Recusada: number;
-  Cancelada: number;
 }
 
 export default function OrganizerDashboard() {
@@ -87,7 +74,8 @@ export default function OrganizerDashboard() {
             )
           )
         `)
-        .in('id', athleteIds);
+        .in('id', athleteIds)
+        .returns<Athlete[]>();
 
       if (error) {
         console.error('Error fetching athletes:', error);
@@ -95,7 +83,7 @@ export default function OrganizerDashboard() {
         throw error;
       }
 
-      return data as unknown as Athlete[];
+      return data;
     }
   });
 

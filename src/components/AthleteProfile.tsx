@@ -73,7 +73,8 @@ export default function AthleteProfile() {
             status
           )
         `)
-        .eq('atleta_id', user?.id);
+        .eq('atleta_id', user?.id)
+        .returns<Inscricao[]>();
 
       if (error) {
         console.error('Error fetching registrations:', error);
@@ -93,7 +94,8 @@ export default function AthleteProfile() {
       const { data, error } = await supabase
         .from('modalidades')
         .select('*')
-        .eq('status', 'Ativa');
+        .eq('status', 'Ativa')
+        .returns<Modalidade[]>();
 
       if (error) {
         console.error('Error fetching modalities:', error);

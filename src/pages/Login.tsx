@@ -115,27 +115,20 @@ const Login = () => {
   
       if (error) {
         console.error('Sign in error:', error);
-  
-        // Tratamento específico para erro de credenciais inválidas
         if (error.code === "invalid_credentials") {
           toast.error("E-mail não cadastrado. Verifique os dados ou realize o cadastro.");
-          setIsSubmitting(false);
           return;
         }
-  
-        // Tratamento para e-mail não confirmado
         if (error.code === "email_not_confirmed") {
-          toast.error("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de ativação antes de tentar fazer login.");
-          setIsSubmitting(false);
+          toast.error("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.");
           return;
         }
-  
         toast.error("Erro ao fazer login. Verifique suas credenciais.");
-        setIsSubmitting(false);
         return;
       }
   
       toast.success("Login realizado com sucesso!");
+      navigate('/athlete-profile');
     } catch (error) {
       console.error("Unexpected Login Error:", error);
       toast.error("Ocorreu um erro inesperado. Tente novamente.");
@@ -265,18 +258,8 @@ const Login = () => {
       <div className="container mx-auto p-6">
         <Tabs defaultValue="register" className="w-full max-w-2xl mx-auto">
           <TabsList className="grid w-full grid-cols-2 bg-olimpics-green-primary/10">
-            <TabsTrigger 
-              value="register"
-              className="data-[state=active]:bg-olimpics-green-primary data-[state=active]:text-white"
-            >
-              Inscreva-se
-            </TabsTrigger>
-            <TabsTrigger 
-              value="login"
-              className="data-[state=active]:bg-olimpics-green-primary data-[state=active]:text-white"
-            >
-              Login
-            </TabsTrigger>
+            <TabsTrigger value="register">Inscreva-se</TabsTrigger>
+            <TabsTrigger value="login">Login</TabsTrigger>
           </TabsList>
 
           <TabsContent value="register" className="space-y-4">
@@ -544,44 +527,21 @@ const Login = () => {
               </CardContent>
             </Card>
 
-            {/* Mosaic and Video Section - Only visible in login tab */}
+            {/* Replace photos and videos with philosophical quotes */}
             <div className="mt-8 space-y-6">
-              {/* Mosaic Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <img
-                  src="https://images.unsplash.com/photo-1605810230434-7631ac76ec81"
-                  alt="Event participants"
-                  className="w-full h-32 object-cover rounded-lg"
-                />
-                <img
-                  src="https://images.unsplash.com/photo-1519389950473-47ba0277781c"
-                  alt="Collaboration"
-                  className="w-full h-32 object-cover rounded-lg"
-                />
-                <img
-                  src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05"
-                  alt="Achievement"
-                  className="w-full h-32 object-cover rounded-lg"
-                />
-                <img
-                  src="https://images.unsplash.com/photo-1500375592092-40eb2168fd21"
-                  alt="Inspiration"
-                  className="w-full h-32 object-cover rounded-lg"
-                />
-              </div>
-
-              {/* Video Section */}
               <Card>
-                <CardContent className="p-4">
-                  <h3 className="text-xl font-semibold mb-4 text-olimpics-text">Conheça Nossos Eventos</h3>
-                  <div className="relative w-full pt-[56.25%] rounded-lg overflow-hidden">
-                    <iframe
-                      src="https://www.youtube.com/embed/your-video-id"
-                      title="Event Preview"
-                      className="absolute top-0 left-0 w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold mb-4 text-olimpics-text">Pensamentos Filosóficos</h3>
+                  <div className="space-y-4">
+                    <blockquote className="italic text-gray-600 border-l-4 border-olimpics-green-primary pl-4">
+                      "A excelência não é um ato, mas um hábito." - Aristóteles
+                    </blockquote>
+                    <blockquote className="italic text-gray-600 border-l-4 border-olimpics-green-primary pl-4">
+                      "O corpo alcança o que a mente acredita." - Sócrates
+                    </blockquote>
+                    <blockquote className="italic text-gray-600 border-l-4 border-olimpics-green-primary pl-4">
+                      "A maior glória não está em nunca cair, mas em se levantar toda vez que caímos." - Confúcio
+                    </blockquote>
                   </div>
                 </CardContent>
               </Card>
