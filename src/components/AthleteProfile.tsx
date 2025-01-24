@@ -199,12 +199,15 @@ export default function AthleteProfile() {
 
       if (error) throw error;
 
+      // Get IDs of modalities the user is already registered for
       const registeredIds = inscriptions.map(insc => insc.modalidade.id);
-      const available = data as unknown as Modality[];
-      const filteredModalities = available.filter(mod => !registeredIds.includes(mod.id));
+      console.log('Already registered modality IDs:', registeredIds);
       
-      console.log('Available modalities:', filteredModalities);
-      setAvailableModalities(filteredModalities);
+      // Filter out modalities that are already registered
+      const available = data.filter(mod => !registeredIds.includes(mod.id));
+      console.log('Available modalities after filtering:', available);
+      
+      setAvailableModalities(available);
     } catch (error) {
       console.error('Error fetching modalities:', error);
       toast.error('Erro ao carregar modalidades disponíveis');

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Flame, MapPin, Calendar, Coins } from 'lucide-react';
+import { Flame, MapPin, Calendar } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Login from "./Login";
@@ -35,10 +35,12 @@ const LandingPage = () => {
         <div className="container relative z-10 mx-auto px-4 py-8 flex flex-col md:flex-row items-start justify-between gap-8">
           {/* Left side - Event Info */}
           <div className="md:w-1/2 text-white">
-            <div className="relative w-24 h-24 mb-6 mx-auto md:mx-0">
-              <Flame className="w-full h-full text-olimpics-orange-primary animate-pulse" />
-              <p className="text-xl md:text-2xl font-semibold mb-4">
-              Areté
+            <div className="flex flex-col items-center md:items-start mb-6">
+              <div className="relative w-24 h-24">
+                <Flame className="w-full h-full text-olimpics-orange-primary animate-pulse" />
+              </div>
+              <p className="text-xl md:text-2xl font-semibold text-center md:text-left">
+                Areté
               </p>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
