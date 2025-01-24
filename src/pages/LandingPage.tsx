@@ -44,7 +44,7 @@ const LandingPage = () => {
               <Flame className="w-full h-full text-olimpics-orange-primary animate-pulse" />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              Olimpíadas Estaduais da Nova Acrópole, em Porto Alegre - 2025
+              Olimpíadas Estaduais da Nova Acrópole 2025 - Porto Alegre
             </h1>
             <p className="text-xl md:text-2xl italic mb-8">
               "Mais rápidos, mais altos, mais fortes, estamos unidos!"
@@ -68,22 +68,6 @@ const LandingPage = () => {
                     </p>
                     <p className="text-xs text-gray-600">
                       Clique para ver no mapa
-                    </p>
-                  </div>
-                </div>
-              </Card>
-
-              <Card 
-                className="p-4 shadow-lg hover:shadow-xl transition-shadow bg-white/90 backdrop-blur cursor-pointer"
-                onClick={handleCalendarSync}
-              >
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-6 h-6 text-olimpics-green-primary" />
-                  <div>
-                    <h3 className="font-semibold text-base text-olimpics-green-primary">Data</h3>
-                    <p className="text-olimpics-text text-sm">11, 12 e 13 de Abril</p>
-                    <p className="text-xs text-gray-600">
-                      Clique para adicionar ao calendário
                     </p>
                   </div>
                 </div>
