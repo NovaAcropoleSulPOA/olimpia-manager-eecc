@@ -36,7 +36,7 @@ interface BranchStats {
     filial: {
       nome: string;
     };
-  } | null;
+  };
 }
 
 export default function OrganizerDashboard() {
@@ -93,12 +93,14 @@ export default function OrganizerDashboard() {
           modalidade:modalidade_id (nome),
           status
         `)
-        .eq('status', 'Confirmada') as { data: ModalityStats[] | null; error: any };
+        .eq('status', 'Confirmada');
 
       if (error) {
         console.error('Error fetching modality stats:', error);
         throw error;
       }
+
+      console.log('Modality stats data:', data);
 
       if (!data) return [];
 
@@ -135,10 +137,12 @@ export default function OrganizerDashboard() {
         throw error;
       }
 
+      console.log('Branch stats raw data:', data);
+
       if (!data) return [];
 
       const stats = data.reduce((acc: Record<string, Record<string, number>>, curr) => {
-        const branchName = curr.usuario?.filial?.nome || 'Unknown';
+        const branchName = curr.usuario?.filial?.nome ?? 'Sem Filial';
         if (!acc[branchName]) {
           acc[branchName] = {
             Pendente: 0,
