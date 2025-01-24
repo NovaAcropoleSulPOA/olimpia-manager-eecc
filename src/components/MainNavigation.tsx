@@ -1,4 +1,4 @@
-import { Home, User, LogOut, Menu } from 'lucide-react';
+import { Home, User, LogOut, Menu, Gavel, Shield, Users } from 'lucide-react';
 import { useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -27,16 +27,29 @@ export function MainNavigation() {
     }
   };
 
-  const getDefaultRoute = () => {
-    if (!user?.papeis?.length) return '/login';
-    const role = user.papeis[0];
+  const getRoleIcon = (role: string) => {
     switch (role) {
-      case 'Atleta':
-        return '/athlete-dashboard';
+      case 'Juiz':
+        return <Gavel className="mr-2 h-4 w-4" />;
+      case 'Organizador':
+        return <Shield className="mr-2 h-4 w-4" />;
+      case 'Representante':
+        return <Users className="mr-2 h-4 w-4" />;
+      default:
+        return <User className="mr-2 h-4 w-4" />;
+    }
+  };
+
+  const getRolePath = (role: string) => {
+    switch (role) {
       case 'Juiz':
         return '/referee-dashboard';
       case 'Organizador':
         return '/admin-dashboard';
+      case 'Representante':
+        return '/delegate-dashboard';
+      case 'Atleta':
+        return '/athlete-dashboard';
       default:
         return '/login';
     }
@@ -53,29 +66,17 @@ export function MainNavigation() {
           </SidebarHeader>
           <SidebarContent>
             <nav className="space-y-2 p-2">
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={() => navigate(getDefaultRoute())}
-              >
-                <Home className="mr-2 h-4 w-4" />
-                Início
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={() => navigate(-1)}
-              >
-                ⬅ Voltar
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={() => navigate('/role-selection')}
-              >
-                <User className="mr-2 h-4 w-4" />
-                Trocar Perfil
-              </Button>
+              {user?.papeis?.map((role) => (
+                <Button
+                  key={role}
+                  variant="ghost"
+                  className="w-full justify-start text-olimpics-green-primary hover:bg-olimpics-green-primary/10"
+                  onClick={() => navigate(getRolePath(role))}
+                >
+                  {getRoleIcon(role)}
+                  {role}
+                </Button>
+              ))}
               <Button
                 variant="ghost"
                 className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"

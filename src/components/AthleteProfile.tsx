@@ -4,10 +4,11 @@ import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Loader2, User, MapPin, Phone, Mail, List, Plus } from 'lucide-react';
+import { Loader2, User, MapPin, Phone, Mail, List, Plus, Upload } from 'lucide-react';
 import AthleteScores from './AthleteScores';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface Modality {
   id: number;
@@ -46,16 +47,76 @@ export default function AthleteProfile() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
-    console.log('AthleteProfile mounted, user:', user?.id);
     if (!user?.id) {
-      console.log('No user ID found, cannot fetch data');
       setLoading(false);
       return;
     }
     fetchData();
+    fetchProfileImage();
   }, [user?.id]);
+
+  const fetchProfileImage = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data: profile } = await supabase
+        .from('usuarios')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile?.avatar_url) {
+        const { data } = await supabase.storage
+          .from('avatars')
+          .getPublicUrl(profile.avatar_url);
+        
+        setProfileImage(data.publicUrl);
+      }
+    } catch (error) {
+      console.error('Error fetching profile image:', error);
+    }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user?.id) return;
+
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 4MB');
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { error: updateError } = await supabase
+        .from('usuarios')
+        .update({ avatar_url: fileName })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      await fetchProfileImage();
+      toast.success('Imagem de perfil atualizada com sucesso!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Erro ao atualizar imagem de perfil');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -216,7 +277,12 @@ export default function AthleteProfile() {
       if (error) throw error;
 
       toast.success('Modalidade adicionada com sucesso!');
-      await fetchData(); // Refresh all data after adding modality
+      await fetchData();
+      
+      // Update available modalities
+      setAvailableModalities(prev => 
+        prev.filter(mod => mod.id !== modalityId)
+      );
 
     } catch (error) {
       console.error('Error adding modality:', error);
@@ -241,6 +307,21 @@ export default function AthleteProfile() {
     }
   };
 
+  const groupInscriptionsByStatus = () => {
+    const groups: Record<string, Inscription[]> = {
+      Pendente: [],
+      Confirmada: [],
+      Recusada: [],
+      Cancelada: []
+    };
+
+    inscriptions.forEach(inscription => {
+      groups[inscription.status].push(inscription);
+    });
+
+    return groups;
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center p-8 space-y-4">
@@ -261,6 +342,8 @@ export default function AthleteProfile() {
     );
   }
 
+  const groupedInscriptions = groupInscriptionsByStatus();
+
   return (
     <div className="space-y-4">
       <Card className="md:col-span-2">
@@ -271,25 +354,53 @@ export default function AthleteProfile() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span>{user?.nome_completo}</span>
+          <div className="flex items-start gap-6">
+            <div className="relative">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={profileImage || undefined} alt={user?.nome_completo} />
+                <AvatarFallback>
+                  {user?.nome_completo?.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
+              </Avatar>
+              <label 
+                htmlFor="avatar-upload" 
+                className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow cursor-pointer hover:bg-gray-100"
+              >
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                />
+                {uploadingImage ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+              </label>
             </div>
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span>{user?.email}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <span>{user?.telefone}</span>
-            </div>
-            {branch && (
+            <div className="flex-1 grid gap-4">
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span>{branch.nome} - {branch.cidade}/{branch.estado}</span>
+                <User className="h-4 w-4 text-muted-foreground" />
+                <span>{user?.nome_completo}</span>
               </div>
-            )}
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span>{user?.email}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <span>{user?.telefone}</span>
+              </div>
+              {branch && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span>{branch.nome} - {branch.cidade}/{branch.estado}</span>
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -302,31 +413,31 @@ export default function AthleteProfile() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {inscriptions.length === 0 ? (
-            <p>Nenhuma modalidade inscrita.</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {inscriptions.map((inscription) => (
-                <div 
-                  key={inscription.id} 
-                  className={cn(
-                    "flex flex-col p-4 rounded-lg border-2",
-                    getStatusColor(inscription.status)
-                  )}
-                >
-                  <h4 className="font-medium text-lg">{inscription.modalidade.nome}</h4>
-                  <div className="mt-2 flex justify-between items-center">
-                    <span className="font-medium">
-                      {inscription.status}
-                    </span>
-                    <span className="text-sm opacity-75">
-                      {format(new Date(inscription.data_inscricao), 'dd/MM/yyyy')}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {Object.entries(groupedInscriptions).map(([status, items]) => (
+              <div key={status} className="space-y-4">
+                <h3 className="font-medium text-lg">{status}</h3>
+                {items.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Nenhuma modalidade {status.toLowerCase()}</p>
+                ) : (
+                  items.map((inscription) => (
+                    <div 
+                      key={inscription.id} 
+                      className={cn(
+                        "flex flex-col p-4 rounded-lg border-2",
+                        getStatusColor(inscription.status)
+                      )}
+                    >
+                      <h4 className="font-medium">{inscription.modalidade.nome}</h4>
+                      <span className="text-sm mt-2">
+                        {format(new Date(inscription.data_inscricao), 'dd/MM/yyyy')}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
