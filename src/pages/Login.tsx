@@ -563,44 +563,68 @@ const Login = () => {
               </CardContent>
             </Card>
 
-            {/* Mosaic and Video Section - Only visible in login tab */}
+            {/* Quotes Section - Only visible in login tab */}
             <div className="mt-8 space-y-6">
-              {/* Mosaic Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <img
-                  src="https://images.unsplash.com/photo-1605810230434-7631ac76ec81"
-                  alt="Event participants"
-                  className="w-full h-32 object-cover rounded-lg"
-                />
-                <img
-                  src="https://images.unsplash.com/photo-1519389950473-47ba0277781c"
-                  alt="Collaboration"
-                  className="w-full h-32 object-cover rounded-lg"
-                />
-                <img
-                  src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05"
-                  alt="Achievement"
-                  className="w-full h-32 object-cover rounded-lg"
-                />
-                <img
-                  src="https://images.unsplash.com/photo-1500375592092-40eb2168fd21"
-                  alt="Inspiration"
-                  className="w-full h-32 object-cover rounded-lg"
-                />
-              </div>
-
-              {/* Video Section */}
               <Card>
-                <CardContent className="p-4">
-                  <h3 className="text-xl font-semibold mb-4 text-olimpics-text">Conheça Nossos Eventos</h3>
-                  <div className="relative w-full pt-[56.25%] rounded-lg overflow-hidden">
-                    <iframe
-                      src="https://www.youtube.com/embed/your-video-id"
-                      title="Event Preview"
-                      className="absolute top-0 left-0 w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
+                <CardContent className="p-6 space-y-6">
+                  <h3 className="text-xl font-semibold mb-4 text-olimpics-text text-center">Citações Filosóficas</h3>
+                  
+                  <div className="space-y-6">
+                    <div className="quote-item">
+                      <h4 className="font-semibold text-olimpics-green-primary">1️⃣ Platão (428–348 a.C.)</h4>
+                      <p className="text-olimpics-text mt-2 italic">
+                        "O homem pode aprender virtudes e disciplina tanto na música quanto na ginástica, pois ambas moldam a alma e o corpo."
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">— Platão, A República (Livro III)</p>
+                    </div>
+
+                    <div className="quote-item">
+                      <h4 className="font-semibold text-olimpics-green-primary">2️⃣ Aristóteles (384–322 a.C.)</h4>
+                      <p className="text-olimpics-text mt-2 italic">
+                        "Somos o que repetidamente fazemos. A excelência, portanto, não é um feito, mas um hábito."
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">— Aristóteles, Ética a Nicômaco</p>
+                    </div>
+
+                    <div className="quote-item">
+                      <h4 className="font-semibold text-olimpics-green-primary">3️⃣ Epicteto (50–135 d.C.)</h4>
+                      <p className="text-olimpics-text mt-2 italic">
+                        "Se você quer vencer nos Jogos Olímpicos, deve se preparar, exercitar-se, comer moderadamente, suportar a fadiga e obedecer ao treinador."
+                      </p>
+                    </div>
+
+                    <div className="quote-item">
+                      <h4 className="font-semibold text-olimpics-green-primary">4️⃣ Sêneca (4 a.C.–65 d.C.)</h4>
+                      <p className="text-olimpics-text mt-2 italic">
+                        "A vida é como um gladiador nos jogos: não se trata apenas de sobreviver, mas de lutar bem."
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">— Sêneca, Cartas a Lucílio</p>
+                    </div>
+
+                    <div className="quote-item">
+                      <h4 className="font-semibold text-olimpics-green-primary">5️⃣ Diógenes de Sinope (412–323 a.C.)</h4>
+                      <p className="text-olimpics-text mt-2 italic">
+                        "Os vencedores dos Jogos Olímpicos recebem apenas uma coroa de louros; mas os que vivem com virtude recebem a verdadeira glória."
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">— Diógenes, citado por Diógenes Laércio</p>
+                    </div>
+
+                    <div className="quote-item">
+                      <h4 className="font-semibold text-olimpics-green-primary">6️⃣ Cícero (106–43 a.C.)</h4>
+                      <p className="text-olimpics-text mt-2 italic">
+                        "O esforço e a perseverança sempre superam o talento que não se disciplina."
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">— Cícero, De Officiis</p>
+                    </div>
+
+                    <div className="quote-item">
+                      <h4 className="font-semibold text-olimpics-green-primary">7️⃣ Píndaro (518–438 a.C.)</h4>
+                      <p className="text-olimpics-text mt-2 italic">
+                        "Ó minha alma, não aspire à vida imortal, mas esgote o campo do possível."
+                      </p>
+                      <p className="text-sm text-gray-600 mt-1">— Píndaro, Píticas III</p>
+                      <p className="text-xs text-gray-500 mt-1">(Não filósofo, mas poeta dos Jogos Olímpicos)</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
