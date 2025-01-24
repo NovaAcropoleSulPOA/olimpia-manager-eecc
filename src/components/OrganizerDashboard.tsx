@@ -95,7 +95,7 @@ export default function OrganizerDashboard() {
         throw error;
       }
 
-      return data as Athlete[];
+      return data as unknown as Athlete[];
     }
   });
 
