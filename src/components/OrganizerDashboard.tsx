@@ -95,7 +95,8 @@ export default function OrganizerDashboard() {
           modalidade:modalidade_id (nome),
           status
         `)
-        .eq('status', 'Confirmada');
+        .eq('status', 'Confirmada')
+        .returns<{ modalidade: { nome: string } }[]>();
 
       if (error) {
         console.error('Error fetching modality stats:', error);
@@ -130,7 +131,8 @@ export default function OrganizerDashboard() {
           atleta:atleta_id (
             filial:filiais!filial_id (nome)
           )
-        `);
+        `)
+        .returns<{ status: string; atleta: { filial: { nome: string } } }[]>();
 
       if (error) {
         console.error('Error fetching branch stats:', error);
