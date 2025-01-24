@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Flame, MapPin, Calendar, Coins } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Login from "./Login";
 
 const LandingPage = () => {
@@ -20,16 +19,14 @@ const LandingPage = () => {
           className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30"
         />
         
-        <div className="container relative z-10 mx-auto px-4 py-12 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="container relative z-10 mx-auto px-4 py-8 flex flex-col md:flex-row items-start justify-between gap-8">
           {/* Left side - Event Info */}
           <div className="md:w-1/2 text-white text-center md:text-left">
-            <img
-              src="/lovable-uploads/781f97ba-e496-4392-92b0-8ea401f0aa3e.png"
-              alt="Olympic Flame"
-              className="w-24 h-24 mb-6 mx-auto md:mx-0"
-            />
+            <div className="relative w-24 h-24 mb-6 mx-auto md:mx-0">
+              <Flame className="w-full h-full text-olimpics-orange-primary animate-pulse" />
+            </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              Olimpíadas Estaduais RS 2025
+              Olimpíadas Estaduais da Nova Acrópole, em Porto Alegre - 2025
             </h1>
             <p className="text-xl md:text-2xl italic mb-8">
               "Mais rápidos, mais altos, mais fortes, estamos unidos!"
@@ -37,54 +34,52 @@ const LandingPage = () => {
             <p className="text-xl md:text-2xl font-semibold mb-4">
               Areté
             </p>
+
+            {/* Event Info Cards - Moved up */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+              <Card className="p-4 shadow-lg hover:shadow-xl transition-shadow bg-white/90 backdrop-blur">
+                <div className="flex items-center gap-3">
+                  <MapPin className="w-6 h-6 text-olimpics-green-primary" />
+                  <div>
+                    <h3 className="font-semibold text-base text-olimpics-green-primary">Local</h3>
+                    <p className="text-olimpics-text text-sm">
+                      Parque Esportivo PUC-RS
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      Av. Ipiranga, 6690 - Partenon, RS
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 shadow-lg hover:shadow-xl transition-shadow bg-white/90 backdrop-blur">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-6 h-6 text-olimpics-green-primary" />
+                  <div>
+                    <h3 className="font-semibold text-base text-olimpics-green-primary">Data</h3>
+                    <p className="text-olimpics-text text-sm">11, 12 e 13 de Abril</p>
+                    <p className="text-xs text-gray-600">2025</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 shadow-lg hover:shadow-xl transition-shadow bg-white/90 backdrop-blur">
+                <div className="flex items-center gap-3">
+                  <Coins className="w-6 h-6 text-olimpics-green-primary" />
+                  <div>
+                    <h3 className="font-semibold text-base text-olimpics-green-primary">Investimento</h3>
+                    <p className="text-olimpics-text text-sm">R$ 180,00</p>
+                    <p className="text-xs text-gray-600">por participante</p>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
 
           {/* Right side - Login Form */}
           <div className="md:w-1/2 max-w-[400px] w-full backdrop-blur-sm bg-white/95 rounded-lg shadow-xl">
             <Login />
           </div>
-        </div>
-      </div>
-
-      {/* Event Info Cards */}
-      <div className="container mx-auto px-4 -mt-16 relative z-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Card className="p-6 shadow-lg hover:shadow-xl transition-shadow bg-white/90 backdrop-blur">
-            <div className="flex items-center gap-4">
-              <MapPin className="w-8 h-8 text-olimpics-green-primary" />
-              <div>
-                <h3 className="font-semibold text-lg text-olimpics-green-primary">Local</h3>
-                <p className="text-olimpics-text">
-                  Parque Esportivo PUC-RS
-                </p>
-                <p className="text-sm text-gray-600">
-                  Av. Ipiranga, 6690 - Partenon, RS
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 shadow-lg hover:shadow-xl transition-shadow bg-white/90 backdrop-blur">
-            <div className="flex items-center gap-4">
-              <Calendar className="w-8 h-8 text-olimpics-green-primary" />
-              <div>
-                <h3 className="font-semibold text-lg text-olimpics-green-primary">Data</h3>
-                <p className="text-olimpics-text">11, 12 e 13 de Abril</p>
-                <p className="text-sm text-gray-600">2025</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 shadow-lg hover:shadow-xl transition-shadow bg-white/90 backdrop-blur">
-            <div className="flex items-center gap-4">
-              <Coins className="w-8 h-8 text-olimpics-green-primary" />
-              <div>
-                <h3 className="font-semibold text-lg text-olimpics-green-primary">Investimento</h3>
-                <p className="text-olimpics-text">R$ 180,00</p>
-                <p className="text-sm text-gray-600">por participante</p>
-              </div>
-            </div>
-          </Card>
         </div>
       </div>
 
