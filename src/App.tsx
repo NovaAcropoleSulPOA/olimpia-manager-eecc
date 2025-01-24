@@ -9,6 +9,7 @@ import PendingApproval from './pages/PendingApproval';
 import RoleSelection from './components/RoleSelection';
 import ResetPassword from './pages/ResetPassword';
 import { MainNavigation } from './components/MainNavigation';
+import LandingPage from './pages/LandingPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,6 +28,7 @@ function App() {
       <Router>
         <AuthProvider>
           <Routes>
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/pending-approval" element={<PendingApproval />} />
             <Route path="/reset-password" element={<ResetPassword />} />
@@ -35,7 +37,6 @@ function App() {
               <Route path="/athlete-dashboard" element={<Dashboard />} />
               <Route path="/referee-dashboard" element={<Dashboard />} />
               <Route path="/admin-dashboard" element={<Dashboard />} />
-              <Route path="/" element={<Dashboard />} />
             </Route>
           </Routes>
           <Toaster />
