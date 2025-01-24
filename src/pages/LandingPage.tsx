@@ -1,13 +1,9 @@
 import React from 'react';
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { MapPin, Calendar, ArrowRight } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
+import { MapPin, Calendar } from 'lucide-react';
 import { toast } from "sonner";
 import Login from "./Login";
-import { cn } from "@/lib/utils";
 
-// Updated modalities array with the correct list in alphabetical order
 const modalities = [
   { name: 'Corrida', icon: "🏃" },
   { name: 'Lançamento de Dardo', icon: "🎯" },
@@ -21,8 +17,6 @@ const modalities = [
 ];
 
 const LandingPage = () => {
-  const navigate = useNavigate();
-
   const handleLocationClick = () => {
     const address = "Av. Ipiranga, 6690 - Partenon, Porto Alegre, RS - Brasil";
     const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
@@ -127,17 +121,6 @@ const LandingPage = () => {
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <div className="text-center">
-                <Button
-                  size="lg"
-                  className="group bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white"
-                  onClick={() => navigate('/login')}
-                >
-                  Inscreva-se Agora
-                  <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
-                </Button>
               </div>
             </div>
 

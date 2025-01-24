@@ -1,5 +1,4 @@
 import { Github, Instagram, Linkedin, Mail, MessageCircle } from "lucide-react";
-import { Link } from "react-router-dom";
 
 const Footer = () => {
   const socialLinks = [
@@ -31,7 +30,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="fixed bottom-0 right-0 w-full bg-white/80 backdrop-blur-sm border-t py-2 px-4">
+    <footer className="relative z-50 w-full bg-white/80 backdrop-blur-sm border-t py-2 px-4 mt-auto">
       <div className="container mx-auto flex justify-end items-center gap-4">
         <span className="text-xs text-gray-500">
           Desenvolvido por: Olimar Teixeira Borges
