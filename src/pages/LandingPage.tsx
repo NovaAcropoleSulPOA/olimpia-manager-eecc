@@ -75,19 +75,20 @@ const LandingPage = () => {
 
               <Card 
                 className="p-4 shadow-lg hover:shadow-xl transition-shadow bg-white/90 backdrop-blur cursor-pointer"
-                onClick={handlePaymentClick}
+                onClick={handleCalendarSync}
               >
                 <div className="flex items-center gap-3">
-                  <Coins className="w-6 h-6 text-olimpics-green-primary" />
+                  <Calendar className="w-6 h-6 text-olimpics-green-primary" />
                   <div>
-                    <h3 className="font-semibold text-base text-olimpics-green-primary">Investimento</h3>
-                    <p className="text-olimpics-text text-sm">R$ 180,00</p>
+                    <h3 className="font-semibold text-base text-olimpics-green-primary">Data</h3>
+                    <p className="text-olimpics-text text-sm">11, 12 e 13 de Abril</p>
                     <p className="text-xs text-gray-600">
-                      Clique para ver o QR Code PIX
+                      Clique para adicionar ao calendário
                     </p>
                   </div>
                 </div>
               </Card>
+
             </div>
           </div>
 
