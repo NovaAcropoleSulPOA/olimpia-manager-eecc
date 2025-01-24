@@ -12,7 +12,8 @@ interface Athlete {
   nome_completo: string;
   telefone: string;
   foto_perfil: string | null;
-  filiais: {
+  filial_id: string;
+  filial: {
     nome: string;
   };
   inscricoes: Array<{
@@ -32,7 +33,7 @@ interface ModalityStats {
 
 interface BranchStats {
   status: string;
-  usuario: {
+  atleta: {
     filial: {
       nome: string;
     };
@@ -47,7 +48,7 @@ export default function OrganizerDashboard() {
       const { data: athleteRoles, error: rolesError } = await supabase
         .from('papeis_usuarios')
         .select('usuario_id')
-        .eq('perfil_id', 1); // Assuming 1 is the ID for 'Atleta' role
+        .eq('perfil_id', 1);
 
       if (rolesError) {
         console.error('Error fetching athlete roles:', rolesError);
@@ -64,7 +65,7 @@ export default function OrganizerDashboard() {
           nome_completo,
           telefone,
           foto_perfil,
-          filiais:filial_id (nome),
+          filial:filial_id (nome),
           inscricoes (
             status,
             modalidade:modalidade_id (nome)
@@ -125,7 +126,7 @@ export default function OrganizerDashboard() {
         .from('inscricoes')
         .select(`
           status,
-          usuario:usuario_id (
+          atleta:atleta_id (
             filial:filial_id (nome)
           )
         `);
@@ -140,7 +141,7 @@ export default function OrganizerDashboard() {
       if (!data) return [];
 
       const stats = data.reduce((acc: Record<string, Record<string, number>>, curr) => {
-        const branchName = curr.usuario?.filial?.nome ?? 'Sem Filial';
+        const branchName = curr.atleta?.filial?.nome ?? 'Sem Filial';
         if (!acc[branchName]) {
           acc[branchName] = {
             Pendente: 0,
