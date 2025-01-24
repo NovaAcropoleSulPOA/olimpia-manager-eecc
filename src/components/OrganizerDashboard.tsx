@@ -167,6 +167,8 @@ export default function OrganizerDashboard() {
 
   const totalRevenue = confirmedCount * 180;
 
+  const uniqueBranchesCount = athletes ? new Set(athletes.map(a => a.filial?.nome)).size : 0;
+
   if (isLoading) {
     return <div>Carregando...</div>;
   }
@@ -212,9 +214,7 @@ export default function OrganizerDashboard() {
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {new Set(athletes?.map(a => a.filiais.nome)).size}
-            </div>
+            <div className="text-2xl font-bold">{uniqueBranchesCount}</div>
           </CardContent>
         </Card>
       </div>
@@ -299,7 +299,7 @@ export default function OrganizerDashboard() {
                       {athlete.telefone}
                     </a>
                   </TableCell>
-                  <TableCell>{athlete.filiais.nome}</TableCell>
+                  <TableCell>{athlete.filial?.nome}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {athlete.inscricoes.map((insc, idx) => (
