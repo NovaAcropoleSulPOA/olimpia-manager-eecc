@@ -320,13 +320,13 @@ const Login = () => {
 
   return (
     <div className="p-6">
-      <Tabs defaultValue="login" className="w-full">
+      <Tabs defaultValue="register" className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-olimpics-green-primary/10">
          <TabsTrigger 
             value="register"
             className="data-[state=active]:bg-olimpics-green-primary data-[state=active]:text-white"
           >
-            Cadastro
+            Inscreva-se
           </TabsTrigger>
           <TabsTrigger 
             value="login"
