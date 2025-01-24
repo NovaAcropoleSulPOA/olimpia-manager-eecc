@@ -23,6 +23,22 @@ interface Athlete {
   }>;
 }
 
+interface ModalityStats {
+  modalidade: {
+    nome: string;
+  };
+  status: string;
+}
+
+interface BranchStats {
+  status: string;
+  atleta: {
+    filial: {
+      nome: string;
+    };
+  };
+}
+
 export default function OrganizerDashboard() {
   const { data: athletes, isLoading } = useQuery({
     queryKey: ['athletes'],
@@ -64,12 +80,14 @@ export default function OrganizerDashboard() {
           modalidade:modalidade_id (nome),
           status
         `)
-        .eq('status', 'Confirmada');
+        .eq('status', 'Confirmada') as { data: ModalityStats[] | null; error: any };
 
       if (error) {
         console.error('Error fetching modality stats:', error);
         throw error;
       }
+
+      if (!data) return [];
 
       const stats = data.reduce((acc: Record<string, number>, curr) => {
         const modalityName = curr.modalidade.nome;
@@ -95,12 +113,14 @@ export default function OrganizerDashboard() {
           atleta:usuario_id (
             filial:filial_id (nome)
           )
-        `);
+        `) as { data: BranchStats[] | null; error: any };
 
       if (error) {
         console.error('Error fetching branch stats:', error);
         throw error;
       }
+
+      if (!data) return [];
 
       const stats = data.reduce((acc: Record<string, Record<string, number>>, curr) => {
         const branchName = curr.atleta.filial.nome;
