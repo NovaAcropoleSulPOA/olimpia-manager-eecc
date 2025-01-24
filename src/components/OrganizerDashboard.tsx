@@ -25,19 +25,16 @@ interface Athlete {
 }
 
 interface ModalityStats {
-  modalidade: {
-    nome: string;
-  };
-  status: string;
+  name: string;
+  count: number;
 }
 
 interface BranchStats {
-  status: string;
-  atleta: {
-    filial: {
-      nome: string;
-    } | null;
-  };
+  branch: string;
+  Confirmada: number;
+  Pendente: number;
+  Recusada: number;
+  Cancelada: number;
 }
 
 export default function OrganizerDashboard() {
@@ -118,48 +115,48 @@ export default function OrganizerDashboard() {
     }
   });
 
-  const { data: branchStats } = useQuery({
-    queryKey: ['branch-stats'],
-    queryFn: async () => {
-      console.log('Fetching branch stats');
-      const { data, error } = await supabase
-        .from('inscricoes')
-        .select(`
-          status,
-          atleta:atleta_id (
-            filial:filial_id (nome)
-          )
-        `);
+const { data: branchStats } = useQuery({
+  queryKey: ['branch-stats'],
+  queryFn: async () => {
+    console.log('Fetching branch stats');
+    const { data, error } = await supabase
+      .from('inscricoes')
+      .select(`
+        status,
+        atleta:atleta_id (
+          filial:filial_id (nome)
+        )
+      `);
 
-      if (error) {
-        console.error('Error fetching branch stats:', error);
-        throw error;
-      }
-
-      console.log('Branch stats raw data:', data);
-
-      if (!data) return [];
-
-      const stats = data.reduce((acc: Record<string, Record<string, number>>, curr) => {
-        const branchName = curr.atleta?.filial?.nome ?? 'Sem Filial';
-        if (!acc[branchName]) {
-          acc[branchName] = {
-            Pendente: 0,
-            Confirmada: 0,
-            Recusada: 0,
-            Cancelada: 0
-          };
-        }
-        acc[branchName][curr.status]++;
-        return acc;
-      }, {});
-
-      return Object.entries(stats).map(([branch, statuses]) => ({
-        branch,
-        ...statuses
-      }));
+    if (error) {
+      console.error('Error fetching branch stats:', error);
+      throw error;
     }
-  });
+
+    console.log('Branch stats raw data:', data);
+
+    if (!data) return [];
+
+    const stats = data.reduce((acc: Record<string, Record<string, number>>, curr) => {
+      const branchName = curr.atleta?.filial?.nome ?? 'Sem Filial';
+      if (!acc[branchName]) {
+        acc[branchName] = {
+          Pendente: 0,
+          Confirmada: 0,
+          Recusada: 0,
+          Cancelada: 0
+        };
+      }
+      acc[branchName][curr.status]++;
+      return acc;
+    }, {});
+
+    return Object.entries(stats).map(([branch, statuses]) => ({
+      branch,
+      ...statuses
+    }));
+  }
+});
 
   const confirmedCount = athletes?.reduce((acc, athlete) => {
     return acc + athlete.inscricoes.filter(insc => insc.status === 'Confirmada').length;

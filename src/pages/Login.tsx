@@ -53,6 +53,8 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+type RegisterFormData = z.infer<typeof registerSchema>;
+
 const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -67,7 +69,7 @@ const Login = () => {
     },
   });
 
-  const registerForm = useForm<z.infer<typeof registerSchema>>({
+  const registerForm = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       nome: '',
@@ -142,7 +144,7 @@ const Login = () => {
     }
   };  
   
-  const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
+  const onRegisterSubmit = async (values: RegisterFormData) => {
     try {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
@@ -155,7 +157,6 @@ const Login = () => {
         ...values,
         telefone: values.telefone.replace(/\D/g, ''),
         numero_documento: cleanDocumentNumber,
-        roleIds: [1] // 1 is the ID for 'Atleta'
       });
   
       if (signUpResult.error || !signUpResult.user) {
@@ -168,20 +169,19 @@ const Login = () => {
       const userId = signUpResult.user.id;
       console.log(`User registered successfully with ID: ${userId}`);
   
-      // Se não houver ID de usuário, aborta o fluxo
       if (!userId) {
         toast.error("Erro ao obter ID do usuário.");
         setIsSubmitting(false);
         return;
       }
   
-      // Cadastro dos papéis do usuário
+      // Assign default Athlete role (ID: 1)
       const { error: rolesError } = await supabase
         .from('papeis_usuarios')
-        .insert(values.roleIds.map(roleId => ({
+        .insert([{
           usuario_id: userId,
-          perfil_id: roleId
-        })));
+          perfil_id: 1 // Default to Athlete role
+        }]);
   
       if (rolesError) {
         console.error('Role assignment error:', rolesError);
@@ -190,35 +190,29 @@ const Login = () => {
         return;
       }
   
-      console.log('User roles assigned successfully');
+      console.log('User role assigned successfully');
   
-      // Registro de pagamento se o usuário for atleta
-      if (values.roleIds.includes(1)) {
-        console.log(`Registering payment for user ID: ${userId}`);
-        const { error: paymentError } = await supabase
-          .from('pagamentos')
-          .insert([{
-            atleta_id: userId,
-            valor: 180.00,
-            status: 'pendente',
-            comprovante_url: null,
-            validado_sem_comprovante: false,
-            data_validacao: null,
-            data_criacao: new Date().toISOString()
-          }]);
+      // Register payment for athlete
+      const { error: paymentError } = await supabase
+        .from('pagamentos')
+        .insert([{
+          atleta_id: userId,
+          valor: 180.00,
+          status: 'pendente',
+          comprovante_url: null,
+          validado_sem_comprovante: false,
+          data_validacao: null,
+          data_criacao: new Date().toISOString()
+        }]);
   
-        if (paymentError) {
-          console.error('Payment record creation error:', paymentError);
-          toast.error('Erro ao criar registro de pagamento.');
-          setIsSubmitting(false);
-          return;
-        }
+      if (paymentError) {
+        console.error('Payment record creation error:', paymentError);
+        toast.error('Erro ao criar registro de pagamento.');
+        setIsSubmitting(false);
+        return;
       }
   
-      // ✅ Mensagem de sucesso exibida **somente se tudo der certo**
       toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
-  
-      // ✅ Redirecionamento para a aba de Login
       navigate('/');
   
     } catch (error) {
