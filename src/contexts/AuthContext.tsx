@@ -85,7 +85,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // Fetch user profile
               const { data: userProfile, error: profileError } = await supabase
                 .from('usuarios')
-                .select('nome_completo, telefone, filial_id, confirmado, foto_perfil, numero_identificador, filial')
+                .select(`
+                  nome_completo,
+                  telefone,
+                  filial_id,
+                  confirmado,
+                  foto_perfil,
+                  numero_identificador,
+                  filial:filiais!filial_id (
+                    id,
+                    nome,
+                    cidade,
+                    estado
+                  )
+                `)
                 .eq('id', session.user.id)
                 .single();
 
