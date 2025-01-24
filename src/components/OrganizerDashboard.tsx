@@ -32,8 +32,8 @@ interface ModalityStats {
 
 interface BranchStats {
   status: string;
-  usuarios: {
-    filiais: {
+  usuario: {
+    filial: {
       nome: string;
     };
   } | null;
@@ -123,8 +123,8 @@ export default function OrganizerDashboard() {
         .from('inscricoes')
         .select(`
           status,
-          usuarios!inscricoes_usuario_id_fkey (
-            filiais:filial_id (
+          usuario:usuario_id (
+            filial:filial_id (
               nome
             )
           )
@@ -138,7 +138,7 @@ export default function OrganizerDashboard() {
       if (!data) return [];
 
       const stats = data.reduce((acc: Record<string, Record<string, number>>, curr) => {
-        const branchName = curr.usuarios?.filiais?.nome || 'Unknown';
+        const branchName = curr.usuario?.filial?.nome || 'Unknown';
         if (!acc[branchName]) {
           acc[branchName] = {
             Pendente: 0,
