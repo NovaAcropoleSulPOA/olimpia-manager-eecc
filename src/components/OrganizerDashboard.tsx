@@ -60,7 +60,7 @@ export default function OrganizerDashboard() {
           telefone,
           foto_perfil,
           filial_id,
-          filial:filial_id (
+          filial:filiais!filial_id (
             id,
             nome,
             cidade,
@@ -130,7 +130,7 @@ export default function OrganizerDashboard() {
         .select(`
           status,
           atleta:atleta_id (
-            filial:filial_id (nome)
+            filial:filiais!filial_id (nome)
           )
         `);
 
