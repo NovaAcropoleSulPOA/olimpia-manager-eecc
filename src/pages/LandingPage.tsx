@@ -11,33 +11,42 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-olimpics-background to-white">
-      {/* Hero Section */}
-      <div className="relative h-[600px] bg-gradient-to-r from-olimpics-green-primary to-olimpics-green-secondary overflow-hidden">
+      {/* Hero Section with Login Integration */}
+      <div className="relative min-h-screen bg-gradient-to-r from-olimpics-green-primary to-olimpics-green-secondary">
         <div className="absolute inset-0 bg-black/40" />
         <img
           src="/lovable-uploads/7f5d4c54-bc15-4310-ac7a-ecd055bda99b.png"
           alt="Nova Acrópole Background"
           className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30"
         />
-        <div className="container relative z-10 mx-auto px-4 h-full flex flex-col justify-center items-center text-white text-center">
-          <img
-            src="/lovable-uploads/781f97ba-e496-4392-92b0-8ea401f0aa3e.png"
-            alt="Olympic Flame"
-            className="w-24 h-24 mb-6"
-          />
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            Olimpíadas Estaduais RS 2025
-          </h1>
-          <p className="text-xl md:text-2xl italic mb-8 max-w-3xl">
-            "Mais rápidos, mais altos, mais fortes, estamos unidos!"
-          </p>
-          <p className="text-xl md:text-2xl font-semibold mb-4">
-            Areté
-          </p>
+        
+        <div className="container relative z-10 mx-auto px-4 py-12 flex flex-col md:flex-row items-center justify-between gap-8">
+          {/* Left side - Event Info */}
+          <div className="md:w-1/2 text-white text-center md:text-left">
+            <img
+              src="/lovable-uploads/781f97ba-e496-4392-92b0-8ea401f0aa3e.png"
+              alt="Olympic Flame"
+              className="w-24 h-24 mb-6 mx-auto md:mx-0"
+            />
+            <h1 className="text-4xl md:text-6xl font-bold mb-4">
+              Olimpíadas Estaduais RS 2025
+            </h1>
+            <p className="text-xl md:text-2xl italic mb-8">
+              "Mais rápidos, mais altos, mais fortes, estamos unidos!"
+            </p>
+            <p className="text-xl md:text-2xl font-semibold mb-4">
+              Areté
+            </p>
+          </div>
+
+          {/* Right side - Login Form */}
+          <div className="md:w-1/2 max-w-[400px] w-full backdrop-blur-sm bg-white/95 rounded-lg shadow-xl">
+            <Login />
+          </div>
         </div>
       </div>
 
-      {/* Event Info Section */}
+      {/* Event Info Cards */}
       <div className="container mx-auto px-4 -mt-16 relative z-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <Card className="p-6 shadow-lg hover:shadow-xl transition-shadow bg-white/90 backdrop-blur">
@@ -79,35 +88,6 @@ const LandingPage = () => {
         </div>
       </div>
 
-      {/* Nova Acrópole Section */}
-      <div className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="md:w-1/2">
-              <img
-                src="/lovable-uploads/71dd91ef-fe30-4b2b-9292-5c7ecebb1b69.png"
-                alt="Nova Acrópole Logo"
-                className="w-full max-w-md mx-auto"
-              />
-            </div>
-            <div className="md:w-1/2 space-y-4">
-              <h2 className="text-3xl font-bold text-olimpics-green-primary">
-                Nova Acrópole Brasil Sul
-              </h2>
-              <p className="text-olimpics-text">
-                Uma organização internacional dedicada à promoção da Filosofia, Cultura e Voluntariado.
-              </p>
-              <div className="flex flex-col gap-2">
-                <h3 className="text-xl font-semibold text-olimpics-green-primary">Areté</h3>
-                <p className="text-olimpics-text">
-                  O conceito de Areté representa a excelência e a virtude, valores fundamentais que guiam nossa jornada olímpica.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Video Section - Conditional Rendering */}
       {videoUrl && (
         <div className="bg-olimpics-green-primary/5 py-16">
@@ -127,15 +107,6 @@ const LandingPage = () => {
           </div>
         </div>
       )}
-
-      {/* Login/Register Section */}
-      <div className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-[400px] mx-auto">
-            <Login />
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
