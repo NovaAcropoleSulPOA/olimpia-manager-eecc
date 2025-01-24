@@ -1,4 +1,4 @@
-import { Github, Instagram, Linkedin, Mail, WhatsApp } from "lucide-react";
+import { Github, Instagram, Linkedin, Mail, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -24,7 +24,7 @@ const Footer = () => {
       label: "Email",
     },
     {
-      icon: <WhatsApp className="w-4 h-4" />,
+      icon: <MessageCircle className="w-4 h-4" />,
       href: "https://wa.me/5551984294328",
       label: "WhatsApp",
     },
