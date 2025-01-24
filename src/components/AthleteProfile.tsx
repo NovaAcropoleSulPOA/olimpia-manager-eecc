@@ -9,6 +9,8 @@ import AthleteScores from './AthleteScores';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { InfoIcon } from 'lucide-react';
 
 interface Modality {
   id: number;
@@ -350,7 +352,7 @@ export default function AthleteProfile() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5 text-olimpics-green-primary" />
-            Perfil do Atleta
+            Perfil Olímpico
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -404,6 +406,13 @@ export default function AthleteProfile() {
           </div>
         </CardContent>
       </Card>
+
+      <Alert className="bg-olimpics-green-primary/10 border-olimpics-green-primary/20">
+        <InfoIcon className="h-4 w-4 text-olimpics-green-primary" />
+        <AlertDescription className="text-olimpics-text">
+          Os atletas podem se inscrever em quantas modalidades quiserem. No entanto, todas as inscrições passarão por aprovação devido a limitações de vagas, espaço e logística. Uma vez inscrito, o atleta não poderá se desinscrever por conta própria. Apenas os representantes de delegação poderão cancelar inscrições mediante justificativa. Caso precise cancelar sua participação em alguma modalidade, entre em contato com o representante da sua delegação.
+        </AlertDescription>
+      </Alert>
 
       <Card>
         <CardHeader>

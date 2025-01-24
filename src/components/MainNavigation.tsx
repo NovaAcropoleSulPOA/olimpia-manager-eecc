@@ -1,111 +1,13 @@
-import { Home, User, LogOut, Menu, Gavel, Shield, Users } from 'lucide-react';
-import { useNavigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarTrigger,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarProvider
-} from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { Outlet } from 'react-router-dom';
+import { Sidebar } from './ui/sidebar';
 
 export function MainNavigation() {
-  const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast.success('Logout realizado com sucesso!');
-      navigate('/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
-      toast.error('Erro ao fazer logout');
-    }
-  };
-
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'Juiz':
-        return <Gavel className="mr-2 h-4 w-4" />;
-      case 'Organizador':
-        return <Shield className="mr-2 h-4 w-4" />;
-      case 'Representante':
-        return <Users className="mr-2 h-4 w-4" />;
-      default:
-        return <User className="mr-2 h-4 w-4" />;
-    }
-  };
-
-  const getRolePath = (role: string) => {
-    switch (role) {
-      case 'Juiz':
-        return '/referee-dashboard';
-      case 'Organizador':
-        return '/admin-dashboard';
-      case 'Representante':
-        return '/delegate-dashboard';
-      case 'Atleta':
-        return '/athlete-dashboard';
-      default:
-        return '/login';
-    }
-  };
-
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <Sidebar>
-          <SidebarHeader className="border-b p-4">
-            <h2 className="text-lg font-semibold text-olimpics-green-primary">
-              Olimpíadas RS 2025
-            </h2>
-          </SidebarHeader>
-          <SidebarContent>
-            <nav className="space-y-2 p-2">
-              {user?.papeis?.map((role) => (
-                <Button
-                  key={role}
-                  variant="ghost"
-                  className="w-full justify-start text-olimpics-green-primary hover:bg-olimpics-green-primary/10"
-                  onClick={() => navigate(getRolePath(role))}
-                >
-                  {getRoleIcon(role)}
-                  {role}
-                </Button>
-              ))}
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
-                onClick={handleSignOut}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sair
-              </Button>
-            </nav>
-          </SidebarContent>
-          <SidebarFooter className="border-t p-4">
-            <div className="text-sm text-muted-foreground">
-              {user?.nome_completo}
-            </div>
-          </SidebarFooter>
-        </Sidebar>
-        <div className="flex-1 overflow-auto">
-          <div className="sticky top-0 z-10 bg-white border-b">
-            <SidebarTrigger>
-              <Button variant="ghost" size="icon" className="m-2">
-                <Menu className="h-4 w-4" />
-              </Button>
-            </SidebarTrigger>
-          </div>
-          <div className="p-4">
-            <Outlet />
-          </div>
-        </div>
-      </div>
-    </SidebarProvider>
+    <div className="flex min-h-screen">
+      <Sidebar className="bg-olimpics-green-primary text-white" />
+      <main className="flex-1 p-6 bg-olimpics-background">
+        <Outlet />
+      </main>
+    </div>
   );
 }
