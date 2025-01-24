@@ -304,6 +304,34 @@ const Login = () => {
 
                     <FormField
                       control={registerForm.control}
+                      name="telefone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-left w-full">Telefone com DDD</FormLabel>
+                          <FormControl>
+                            <InputMask
+                              mask="(99) 99999-9999"
+                              value={field.value}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                            >
+                              {(inputProps: any) => (
+                                <Input
+                                  {...inputProps}
+                                  type="tel"
+                                  placeholder="(XX) XXXXX-XXXX"
+                                  className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                                />
+                              )}
+                            </InputMask>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={registerForm.control}
                       name="tipo_documento"
                       render={({ field }) => (
                         <FormItem>
@@ -335,7 +363,7 @@ const Login = () => {
                           <FormLabel className="text-left w-full">Número do Documento</FormLabel>
                           <FormControl>
                             <InputMask
-                              mask={registerForm.watch("tipo_documento") === 'CPF' ? "999.999.999-99" : "99.999.999-9"}
+                              mask={registerForm.watch("tipo_documento") === 'CPF' ? "999.999.999-99" : "999999999"}
                               value={field.value}
                               onChange={field.onChange}
                               onBlur={field.onBlur}
@@ -343,73 +371,7 @@ const Login = () => {
                               {(inputProps: any) => (
                                 <Input
                                   {...inputProps}
-                                  placeholder={registerForm.watch("tipo_documento") === 'CPF' ? "000.000.000-00" : "00.000.000-0"}
-                                  className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                                />
-                              )}
-                            </InputMask>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={registerForm.control}
-                      name="branchId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-left w-full">Filial</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
-                                <SelectValue placeholder="Selecione uma filial" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="max-h-[300px] overflow-y-auto">
-                              {isLoadingBranches ? (
-                                <SelectItem value="loading">Carregando...</SelectItem>
-                              ) : (
-                                branches?.map((branch) => (
-                                  <SelectItem key={branch.id} value={branch.id}>
-                                    <div className="flex flex-col">
-                                      <span className="font-medium">{branch.nome}</span>
-                                      <span className="text-sm text-gray-500">
-                                        {branch.cidade} - {branch.estado}
-                                      </span>
-                                    </div>
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={registerForm.control}
-                      name="telefone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-left w-full">Telefone com DDD</FormLabel>
-                          <FormControl>
-                            <InputMask
-                              mask="(99) 99999-9999"
-                              value={field.value}
-                              onChange={field.onChange}
-                              onBlur={field.onBlur}
-                            >
-                              {(inputProps: any) => (
-                                <Input
-                                  {...inputProps}
-                                  type="tel"
-                                  placeholder="(XX) XXXXX-XXXX"
+                                  placeholder={registerForm.watch("tipo_documento") === 'CPF' ? "000.000.000-00" : "000000000"}
                                   className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
                                 />
                               )}
@@ -453,6 +415,44 @@ const Login = () => {
                               {...field}
                             />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={registerForm.control}
+                      name="branchId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-left w-full">Filial</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
+                                <SelectValue placeholder="Selecione uma filial" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="max-h-[300px] overflow-y-auto">
+                              {isLoadingBranches ? (
+                                <SelectItem value="loading">Carregando...</SelectItem>
+                              ) : (
+                                branches?.map((branch) => (
+                                  <SelectItem key={branch.id} value={branch.id}>
+                                    <div className="flex flex-col">
+                                      <span className="font-medium">{branch.nome}</span>
+                                      <span className="text-sm text-gray-500">
+                                        {branch.cidade} - {branch.estado}
+                                      </span>
+                                    </div>
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
