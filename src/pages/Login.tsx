@@ -322,76 +322,21 @@ const Login = () => {
     <div className="p-6">
       <Tabs defaultValue="login" className="w-full">
         <TabsList className="grid w-full grid-cols-2 bg-olimpics-green-primary/10">
+         <TabsTrigger 
+            value="register"
+            className="data-[state=active]:bg-olimpics-green-primary data-[state=active]:text-white"
+          >
+            Cadastro
+          </TabsTrigger>
           <TabsTrigger 
             value="login"
             className="data-[state=active]:bg-olimpics-green-primary data-[state=active]:text-white"
           >
             Login
           </TabsTrigger>
-          <TabsTrigger 
-            value="register"
-            className="data-[state=active]:bg-olimpics-green-primary data-[state=active]:text-white"
-          >
-            Cadastro
-          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="login" className="space-y-4">
-          <Form {...loginForm}>
-            <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-              <FormField
-                control={loginForm.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-left w-full">Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="seu@email.com"
-                        className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={loginForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-left w-full">Senha</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••"
-                        className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Entrando...
-                  </>
-                ) : (
-                  'Entrar'
-                )}
-              </Button>
-            </form>
-          </Form>
-        </TabsContent>
+        
 
         <TabsContent value="register">
           <Form {...registerForm}>
@@ -658,6 +603,64 @@ const Login = () => {
             </form>
           </Form>
         </TabsContent>
+
+        <TabsContent value="login" className="space-y-4">
+          <Form {...loginForm}>
+            <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+              <FormField
+                control={loginForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-left w-full">Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="seu@email.com"
+                        className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={loginForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-left w-full">Senha</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="••••••"
+                        className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="submit"
+                className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Entrando...
+                  </>
+                ) : (
+                  'Entrar'
+                )}
+              </Button>
+            </form>
+          </Form>
+        </TabsContent>
+        
       </Tabs>
     </div>
   );
