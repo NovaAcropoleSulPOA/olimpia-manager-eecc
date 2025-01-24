@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Flame, MapPin, Calendar, Coins, ArrowRight } from 'lucide-react';
+import { Flame, MapPin, Calendar, Coins } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Login from "./Login";
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -21,7 +23,7 @@ const LandingPage = () => {
           <img
             src="/lovable-uploads/781f97ba-e496-4392-92b0-8ea401f0aa3e.png"
             alt="Olympic Flame"
-            className="w-24 h-24 mb-6 animate-pulse"
+            className="w-24 h-24 mb-6"
           />
           <h1 className="text-4xl md:text-6xl font-bold mb-4">
             Olimpíadas Estaduais RS 2025
@@ -29,23 +31,9 @@ const LandingPage = () => {
           <p className="text-xl md:text-2xl italic mb-8 max-w-3xl">
             "Mais rápidos, mais altos, mais fortes, estamos unidos!"
           </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button
-              size="lg"
-              className="bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white"
-              onClick={() => navigate("/login")}
-            >
-              Fazer Login
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="bg-white/10 hover:bg-white/20 text-white border-white"
-              onClick={() => navigate("/login?tab=register")}
-            >
-              Cadastrar-se
-            </Button>
-          </div>
+          <p className="text-xl md:text-2xl font-semibold mb-4">
+            Areté
+          </p>
         </div>
       </div>
 
@@ -140,20 +128,12 @@ const LandingPage = () => {
         </div>
       )}
 
-      {/* Call to Action */}
-      <div className="bg-olimpics-orange-primary py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white mb-8">
-            Participe desta Jornada Única!
-          </h2>
-          <Button
-            size="lg"
-            variant="outline"
-            className="bg-white text-olimpics-orange-primary hover:bg-white/90"
-            onClick={() => navigate("/login?tab=register")}
-          >
-            Inscreva-se Agora <ArrowRight className="ml-2" />
-          </Button>
+      {/* Login/Register Section */}
+      <div className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="max-w-[400px] mx-auto">
+            <Login />
+          </div>
         </div>
       </div>
     </div>
