@@ -15,7 +15,7 @@ interface Athlete {
   filial_id: string;
   filial: {
     nome: string;
-  };
+  } | null;
   inscricoes: Array<{
     status: string;
     modalidade: {
@@ -36,7 +36,7 @@ interface BranchStats {
   atleta: {
     filial: {
       nome: string;
-    };
+    } | null;
   };
 }
 
