@@ -39,7 +39,7 @@ const LandingPage = () => {
               <Flame className="w-full h-full text-olimpics-orange-primary animate-pulse" />
               <p className="text-xl md:text-2xl font-semibold mb-4">
               Areté
-            </p>
+              </p>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
               Olimpíadas Estaduais da Nova Acrópole 2025 - Porto Alegre
