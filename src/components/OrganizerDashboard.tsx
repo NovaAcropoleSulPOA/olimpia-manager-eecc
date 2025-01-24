@@ -123,10 +123,12 @@ export default function OrganizerDashboard() {
         .from('inscricoes')
         .select(`
           status,
-          usuario:usuario_id (
-            filial:filial_id (nome)
+          usuarios!inscricoes_usuario_id_fkey (
+            filial:filiais (
+              nome
+            )
           )
-        `) as { data: BranchStats[] | null; error: any };
+        `);
 
       if (error) {
         console.error('Error fetching branch stats:', error);
@@ -136,7 +138,7 @@ export default function OrganizerDashboard() {
       if (!data) return [];
 
       const stats = data.reduce((acc: Record<string, Record<string, number>>, curr) => {
-        const branchName = curr.usuario.filial.nome;
+        const branchName = curr.usuarios?.filial?.nome || 'Unknown';
         if (!acc[branchName]) {
           acc[branchName] = {
             Pendente: 0,
