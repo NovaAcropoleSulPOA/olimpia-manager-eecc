@@ -6,7 +6,11 @@ import {
   SidebarMenu, 
   SidebarMenuItem, 
   SidebarMenuButton,
-  SidebarFooter
+  SidebarFooter,
+  SidebarHeader,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel
 } from './ui/sidebar';
 import { Home, User, Medal, Users, Award, BarChart3, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -73,31 +77,40 @@ export function MainNavigation() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <Sidebar className="bg-olimpics-green-primary text-white">
+        <Sidebar className="bg-olimpics-green-primary text-white transition-all duration-300">
+          <SidebarHeader className="p-4">
+            <h2 className="text-lg font-bold">Olimpíadas</h2>
+          </SidebarHeader>
           <SidebarContent>
-            <SidebarMenu>
-              {filteredMenuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname === item.path}
-                    tooltip={item.title}
-                  >
-                    <Link to={item.path} className="flex items-center gap-2">
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+            <SidebarGroup>
+              <SidebarGroupLabel>Navegação</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {filteredMenuItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={location.pathname === item.path}
+                        tooltip={item.title}
+                        className="transition-colors duration-200 hover:bg-olimpics-green-secondary"
+                      >
+                        <Link to={item.path} className="flex items-center gap-2 p-2">
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
           </SidebarContent>
-          <SidebarFooter>
+          <SidebarFooter className="mt-auto">
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={handleLogout}
-                  className="text-red-300 hover:text-red-100"
+                  className="text-red-300 hover:text-red-100 transition-colors duration-200"
                   tooltip="Sair"
                 >
                   <LogOut className="h-4 w-4" />
