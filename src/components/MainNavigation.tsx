@@ -9,7 +9,15 @@ import {
   SidebarFooter,
   SidebarSeparator
 } from './ui/sidebar';
-import { User, Medal, Users, BarChart3, LogOut } from 'lucide-react';
+import { 
+  User, 
+  Medal, 
+  Users, 
+  BarChart3, 
+  LogOut,
+  Home,
+  Settings
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -32,10 +40,17 @@ export function MainNavigation() {
   // Define all possible menu items with their roles
   const menuItems = [
     {
+      title: "Início",
+      icon: Home,
+      path: "/dashboard",
+      roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"],
+      description: "Página inicial"
+    },
+    {
       title: "Perfil do Atleta",
       icon: User,
       path: "/athlete-profile",
-      roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"],
+      roles: ["Atleta"],
       description: "Gerencie seu perfil de atleta"
     },
     {
@@ -58,6 +73,13 @@ export function MainNavigation() {
       path: "/delegation-dashboard",
       roles: ["Rep. de Delegação"],
       description: "Gerencie sua delegação"
+    },
+    {
+      title: "Configurações",
+      icon: Settings,
+      path: "/settings",
+      roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"],
+      description: "Configurações da conta"
     }
   ];
 

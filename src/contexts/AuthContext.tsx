@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             confirmado,
             foto_perfil,
             numero_identificador,
-            filial:filiais!filial_id (
+            filial:filiais (
               id,
               nome,
               cidade,
@@ -117,7 +117,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [navigate, location]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn: async () => {}, signOut: async () => {}, signUp: async () => ({ user: null, error: null }), resendVerificationEmail: async () => {} }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      signIn: async () => {}, 
+      signOut: async () => {}, 
+      signUp: async () => ({ user: null, error: null }), 
+      resendVerificationEmail: async () => {} 
+    }}>
       {children}
     </AuthContext.Provider>
   );
