@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/components/ui/use-toast";
 import { 
   Loader2, User, MapPin, Phone, Mail, List, Plus, Upload,
-  Wave, PersonStanding, Volleyball, Dumbbell, Target, Sword, BookOpen, Disc
+  Waves, PersonStanding, Volleyball, Dumbbell, Target, Sword, BookOpen, Disc
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
@@ -14,7 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 const getSportIcon = (sport: string) => {
   switch (sport.toLowerCase()) {
     case 'natação':
-      return <Wave className="h-6 w-6" />;
+      return <Waves className="h-6 w-6" />;
     case 'corrida':
       return <PersonStanding className="h-6 w-6" />;
     case 'vôlei':
