@@ -12,7 +12,7 @@ interface Athlete {
   nome_completo: string;
   telefone: string;
   foto_perfil: string | null;
-  filial: {
+  filiais: {
     nome: string;
   };
   inscricoes: Array<{
@@ -33,7 +33,7 @@ interface ModalityStats {
 interface BranchStats {
   status: string;
   usuarios: {
-    filial: {
+    filiais: {
       nome: string;
     };
   } | null;
@@ -64,7 +64,7 @@ export default function OrganizerDashboard() {
           nome_completo,
           telefone,
           foto_perfil,
-          filial:filial_id (nome),
+          filiais:filial_id (nome),
           inscricoes (
             status,
             modalidade:modalidade_id (nome)
@@ -124,7 +124,7 @@ export default function OrganizerDashboard() {
         .select(`
           status,
           usuarios!inscricoes_usuario_id_fkey (
-            filial:filiais (
+            filiais:filial_id (
               nome
             )
           )
@@ -138,8 +138,7 @@ export default function OrganizerDashboard() {
       if (!data) return [];
 
       const stats = data.reduce((acc: Record<string, Record<string, number>>, curr) => {
-        // Access the first filial if it exists
-        const branchName = curr.usuarios?.filial?.nome || 'Unknown';
+        const branchName = curr.usuarios?.filiais?.nome || 'Unknown';
         if (!acc[branchName]) {
           acc[branchName] = {
             Pendente: 0,
@@ -211,7 +210,7 @@ export default function OrganizerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {new Set(athletes?.map(a => a.filial.nome)).size}
+              {new Set(athletes?.map(a => a.filiais.nome)).size}
             </div>
           </CardContent>
         </Card>
@@ -297,7 +296,7 @@ export default function OrganizerDashboard() {
                       {athlete.telefone}
                     </a>
                   </TableCell>
-                  <TableCell>{athlete.filial.nome}</TableCell>
+                  <TableCell>{athlete.filiais.nome}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {athlete.inscricoes.map((insc, idx) => (
