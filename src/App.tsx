@@ -11,6 +11,7 @@ import RoleSelection from './components/RoleSelection';
 import ResetPassword from './pages/ResetPassword';
 import { MainNavigation } from './components/MainNavigation';
 import LandingPage from './pages/LandingPage';
+import Footer from './components/Footer';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,7 @@ function App() {
               <Route path="/admin-dashboard" element={<Dashboard />} />
             </Route>
           </Routes>
+          <Footer />
           <Toaster />
         </AuthProvider>
       </Router>

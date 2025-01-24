@@ -16,6 +16,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchModalities, fetchBranches, fetchRoles } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import InputMask from 'react-input-mask';
+import PaymentInfo from '@/components/PaymentInfo';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -634,8 +635,9 @@ const Login = () => {
                 />
               )}
 
+              <PaymentInfo />
               <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
-                Após completar seu cadastro, você receberá um email com instruções para ativação da sua conta.
+                Após completar seu cadastro, você receberá um email com instruções para enviar seu comprovante de pagamento. 
                 Por favor, siga as instruções no email para completar seu cadastro.
               </div>
 
