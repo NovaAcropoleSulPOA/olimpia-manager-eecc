@@ -17,7 +17,7 @@ const LandingPage = () => {
   const handleCalendarSync = () => {
     const startDate = '2025-04-11';
     const endDate = '2025-04-13';
-    const title = 'Olimpíadas Estaduais da Nova Acrópole';
+    const title = 'Olimpíadas Estaduais da Nova Acrópole 2025 - Porto Alegre';
     const location = 'Parque Esportivo PUC-RS, Av. Ipiranga, 6690 - Partenon, Porto Alegre, RS';
     
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate.replace(/-/g, '')}/${endDate.replace(/-/g, '')}&location=${encodeURIComponent(location)}`;
@@ -26,12 +26,7 @@ const LandingPage = () => {
       window.open(googleCalendarUrl, '_blank');
       toast.success('Redirecionando para o Google Calendar');
     }
-  };
-
-  const handlePaymentClick = () => {
-    navigate('/?showPayment=true');
-    toast.success('Escaneie o QR Code para realizar o pagamento via PIX');
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-olimpics-background to-white">
@@ -42,6 +37,9 @@ const LandingPage = () => {
           <div className="md:w-1/2 text-white">
             <div className="relative w-24 h-24 mb-6 mx-auto md:mx-0">
               <Flame className="w-full h-full text-olimpics-orange-primary animate-pulse" />
+              <p className="text-xl md:text-2xl font-semibold mb-4">
+              Areté
+            </p>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
               Olimpíadas Estaduais da Nova Acrópole 2025 - Porto Alegre
@@ -49,10 +47,6 @@ const LandingPage = () => {
             <p className="text-xl md:text-2xl italic mb-8">
               "Mais rápidos, mais altos, mais fortes, estamos unidos!"
             </p>
-            <p className="text-xl md:text-2xl font-semibold mb-4">
-              Areté
-            </p>
-
             {/* Interactive Info Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
               <Card 
