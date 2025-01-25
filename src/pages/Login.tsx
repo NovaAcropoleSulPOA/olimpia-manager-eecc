@@ -82,10 +82,11 @@ const Login = () => {
     queryKey: ['branches'],
     queryFn: fetchBranches,
     select: (data) => {
-      // Sort branches alphabetically by name
       return [...data].sort((a, b) => a.nome.localeCompare(b.nome));
     }
   });
+
+  console.log('Branches data:', branches); // Add this log to debug
 
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
@@ -388,36 +389,45 @@ const Login = () => {
                                     "w-full justify-between",
                                     !field.value && "text-muted-foreground"
                                   )}
+                                  disabled={isLoadingBranches}
                                 >
-                                  {field.value
-                                    ? branches.find((branch) => branch.id === field.value)?.nome
-                                    : "Selecione uma filial"}
+                                  {isLoadingBranches ? (
+                                    "Carregando filiais..."
+                                  ) : field.value ? (
+                                    branches.find((branch) => branch.id === field.value)?.nome
+                                  ) : (
+                                    "Selecione uma filial"
+                                  )}
                                   <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
                             <PopoverContent className="w-full p-0">
-                              <Command>
-                                <CommandInput
-                                  placeholder="Procurar filial..."
-                                  className="h-9"
-                                />
-                                <CommandEmpty>Nenhuma filial encontrada.</CommandEmpty>
-                                <CommandGroup>
-                                  {branches.map((branch) => (
-                                    <CommandItem
-                                      value={branch.nome}
-                                      key={branch.id}
-                                      onSelect={() => {
-                                        field.onChange(branch.id);
-                                        setOpen(false);
-                                      }}
-                                    >
-                                      {branch.nome} - {branch.cidade}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </Command>
+                              {isLoadingBranches ? (
+                                <div className="p-4 text-center">Carregando...</div>
+                              ) : (
+                                <Command>
+                                  <CommandInput
+                                    placeholder="Procurar filial..."
+                                    className="h-9"
+                                  />
+                                  <CommandEmpty>Nenhuma filial encontrada.</CommandEmpty>
+                                  <CommandGroup>
+                                    {branches.map((branch) => (
+                                      <CommandItem
+                                        value={branch.nome}
+                                        key={branch.id}
+                                        onSelect={() => {
+                                          field.onChange(branch.id);
+                                          setOpen(false);
+                                        }}
+                                      >
+                                        {branch.nome} - {branch.cidade}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </Command>
+                              )}
                             </PopoverContent>
                           </Popover>
                           <FormMessage />
