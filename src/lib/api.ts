@@ -281,7 +281,9 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     const typedModalityRegistrations = (modalityRegistrations || []).map(reg => ({
       status: reg.status,
       modalidade_id: reg.modalidade_id,
-      modalidades: reg.modalidades
+      modalidades: {
+        nome: reg.modalidades.nome
+      }
     })) as ModalityData[];
 
     console.log('Typed modality registrations:', typedModalityRegistrations);
