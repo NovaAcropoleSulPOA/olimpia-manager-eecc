@@ -36,6 +36,14 @@ export default function AthleteProfilePage() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ['athlete-profile', user?.id],
     queryFn: async () => {
+      console.log('Fetching athlete profile for user:', user?.id);
+      
+      // Set the user ID in the app settings
+      await supabase.rpc('set_claim', {
+        claim: 'app.current_user_id',
+        value: user?.id
+      });
+
       const { data, error } = await supabase
         .from('view_perfil_atleta')
         .select('*')
@@ -46,6 +54,7 @@ export default function AthleteProfilePage() {
         throw error;
       }
 
+      console.log('Fetched athlete profile:', data);
       return data as AthleteProfile;
     },
     enabled: !!user?.id,
