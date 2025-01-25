@@ -1,87 +1,34 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { fetchBranchAnalytics } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
-import { toast } from "sonner";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
-interface PendingUser {
-  id: string;
-  nome_completo: string;
-  email: string;
-  telefone: string;
-  filial_nome: string;
-  papeis: string[];
-}
+const COLORS = [
+  "#009B40",
+  "#EE7E01",
+  "#4CAF50",
+  "#2196F3",
+  "#9C27B0",
+  "#FF5722",
+];
 
 export default function OrganizerDashboard() {
-  const { data: pendingUsers, isLoading, refetch } = useQuery({
-    queryKey: ['pending-users'],
-    queryFn: async () => {
-      console.log('Fetching pending users...');
-      const { data, error } = await supabase
-        .from('view_usuarios_pendentes')
-        .select(`
-          id,
-          nome_completo,
-          email,
-          telefone,
-          filial_nome,
-          papeis
-        `);
-
-      if (error) {
-        console.error('Error fetching pending users:', error);
-        throw error;
-      }
-
-      console.log('Fetched pending users:', data);
-
-      return (data as any[]).map(user => ({
-        id: user.id,
-        nome_completo: user.nome_completo,
-        email: user.email,
-        telefone: user.telefone,
-        filial_nome: user.filial_nome || 'N/A',
-        papeis: user.papeis || []
-      })) as PendingUser[];
-    },
+  const { data: branchAnalytics, isLoading } = useQuery({
+    queryKey: ['branch-analytics'],
+    queryFn: fetchBranchAnalytics,
   });
-
-  const handleApprove = async (userId: string) => {
-    try {
-      const { error } = await supabase
-        .from('usuarios')
-        .update({ confirmado: true })
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      toast.success('Usuário aprovado com sucesso!');
-      refetch();
-    } catch (error) {
-      console.error('Error approving user:', error);
-      toast.error('Erro ao aprovar usuário');
-    }
-  };
-
-  const handleReject = async (userId: string) => {
-    try {
-      const { error } = await supabase
-        .from('usuarios')
-        .delete()
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      toast.success('Usuário rejeitado com sucesso!');
-      refetch();
-    } catch (error) {
-      console.error('Error rejecting user:', error);
-      toast.error('Erro ao rejeitar usuário');
-    }
-  };
 
   if (isLoading) {
     return (
@@ -91,61 +38,175 @@ export default function OrganizerDashboard() {
     );
   }
 
+  const totalAthletes = branchAnalytics?.reduce((acc, branch) => acc + branch.total_inscritos, 0) || 0;
+  const totalRevenue = branchAnalytics?.reduce((acc, branch) => acc + branch.valor_total_arrecadado, 0) || 0;
+  const totalRegistrations = branchAnalytics?.reduce((acc, branch) => acc + branch.total_inscricoes, 0) || 0;
+  const averageScore = branchAnalytics?.reduce((acc, branch) => acc + branch.media_pontuacao_atletas, 0) || 0;
+
+  const registrationStatusData = branchAnalytics?.map(branch => ({
+    name: branch.filial,
+    Confirmadas: branch.inscricoes_confirmadas,
+    Pendentes: branch.inscricoes_pendentes,
+    Canceladas: branch.inscricoes_canceladas,
+    Recusadas: branch.inscricoes_recusadas,
+  }));
+
+  const popularModalitiesData = branchAnalytics?.flatMap(branch => 
+    Object.entries(branch.modalidades_populares).map(([modalidade, count]) => ({
+      name: modalidade,
+      value: count,
+    }))
+  ).reduce((acc, curr) => {
+    const existing = acc.find(item => item.name === curr.name);
+    if (existing) {
+      existing.value += curr.value;
+    } else {
+      acc.push(curr);
+    }
+    return acc;
+  }, [] as { name: string; value: number }[]) || [];
+
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Atletas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalAthletes}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Inscrições</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalRegistrations}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Valor Total Arrecadado</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+              }).format(totalRevenue)}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Média de Pontuação</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {(averageScore / (branchAnalytics?.length || 1)).toFixed(1)}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Status das Inscrições por Filial</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={registrationStatusData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="Confirmadas" stackId="a" fill="#4CAF50" />
+                  <Bar dataKey="Pendentes" stackId="a" fill="#FFC107" />
+                  <Bar dataKey="Canceladas" stackId="a" fill="#F44336" />
+                  <Bar dataKey="Recusadas" stackId="a" fill="#9C27B0" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Modalidades Mais Populares</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={popularModalitiesData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                    outerRadius={150}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {popularModalitiesData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>Aprovação de Usuários</CardTitle>
+          <CardTitle>Detalhes por Filial</CardTitle>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[600px]">
-            <div className="space-y-4">
-              {pendingUsers?.map((user) => (
-                <Card key={user.id}>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <h3 className="font-semibold">{user.nome_completo}</h3>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Telefone: {user.telefone}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Filial: {user.filial_nome}
-                        </p>
-                        <div className="flex gap-2">
-                          {user.papeis?.map((role, index) => (
-                            <span
-                              key={index}
-                              className="text-xs bg-olimpics-green-primary/10 text-olimpics-green-primary px-2 py-1 rounded"
-                            >
-                              {role}
-                            </span>
-                          ))}
+          <ScrollArea className="h-[400px]">
+            <div className="w-full">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-2">Filial</th>
+                    <th className="text-right p-2">Atletas</th>
+                    <th className="text-right p-2">Inscrições</th>
+                    <th className="text-right p-2">Valor Arrecadado</th>
+                    <th className="text-right p-2">Modalidades Ativas</th>
+                    <th className="text-right p-2">Pontuação Média</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {branchAnalytics?.map((branch) => (
+                    <tr key={branch.filial_id} className="border-b">
+                      <td className="p-2">
+                        <div className="font-medium">{branch.filial}</div>
+                        <div className="text-sm text-gray-500">
+                          {branch.cidade}, {branch.estado}
                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-green-600 hover:text-green-700"
-                          onClick={() => handleApprove(user.id)}
-                        >
-                          <Check className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600 hover:text-red-700"
-                          onClick={() => handleReject(user.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      </td>
+                      <td className="text-right p-2">{branch.total_inscritos}</td>
+                      <td className="text-right p-2">{branch.total_inscricoes}</td>
+                      <td className="text-right p-2">
+                        {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL'
+                        }).format(branch.valor_total_arrecadado)}
+                      </td>
+                      <td className="text-right p-2">{branch.modalidades_ativas}</td>
+                      <td className="text-right p-2">{branch.media_pontuacao_atletas.toFixed(1)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </ScrollArea>
         </CardContent>

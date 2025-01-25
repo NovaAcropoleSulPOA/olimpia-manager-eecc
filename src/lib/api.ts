@@ -229,3 +229,36 @@ export const registerModality = async (userId: string, modalityId: number) => {
     throw error;
   }
 };
+
+export interface BranchAnalytics {
+  filial_id: string;
+  filial: string;
+  cidade: string;
+  estado: string;
+  total_inscritos: number;
+  total_inscricoes: number;
+  inscricoes_pendentes: number;
+  inscricoes_confirmadas: number;
+  inscricoes_canceladas: number;
+  inscricoes_recusadas: number;
+  valor_total_arrecadado: number;
+  modalidades_ativas: number;
+  modalidades_populares: { [key: string]: number };
+  total_pontos: number;
+  media_pontuacao_atletas: number;
+}
+
+export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
+  console.log('Fetching branch analytics...');
+  const { data, error } = await supabase
+    .from('vw_analytics_inscricoes')
+    .select('*');
+
+  if (error) {
+    console.error('Error fetching branch analytics:', error);
+    throw error;
+  }
+
+  console.log('Fetched branch analytics:', data);
+  return data;
+};
