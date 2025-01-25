@@ -101,130 +101,129 @@ export default function AthleteProfilePage() {
   );
 }
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmado':
-        return 'text-green-600 bg-green-100';
-      case 'pendente':
-        return 'text-yellow-600 bg-yellow-100';
-      case 'cancelado':
-        return 'text-red-600 bg-red-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
-    }
-  };
+const getPaymentStatusColor = (status: string) => {
+  switch (status) {
+    case 'confirmado':
+      return 'text-green-600 bg-green-100';
+    case 'pendente':
+      return 'text-yellow-600 bg-yellow-100';
+    case 'cancelado':
+      return 'text-red-600 bg-red-100';
+    default:
+      return 'text-gray-600 bg-gray-100';
+  }
+};
 
-  return (
-    <div className="container mx-auto py-6 space-y-6">
-      <h1 className="text-2xl font-bold text-olimpics-green-primary">
-        Perfil do Atleta
-      </h1>
+return (
+  <div className="container mx-auto py-6 space-y-6">
+    <h1 className="text-2xl font-bold text-olimpics-green-primary">
+      Perfil do Atleta
+    </h1>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Profile Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações Pessoais</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col items-center space-y-4 mb-6">
-              <div className="h-24 w-24 rounded-full bg-olimpics-green-primary/10 flex items-center justify-center">
-                <User className="h-12 w-12 text-olimpics-green-primary" />
-              </div>
-              <div className="text-center">
-                <h3 className="font-semibold text-lg">{profile.nome_completo}</h3>
-                <p className="text-sm text-muted-foreground">
-                  ID: {profile.numero_identificador}
-                </p>
-              </div>
+    <div className="grid gap-6 md:grid-cols-2">
+      {/* Profile Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Informações Pessoais</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col items-center space-y-4 mb-6">
+            <div className="h-24 w-24 rounded-full bg-olimpics-green-primary/10 flex items-center justify-center">
+              <User className="h-12 w-12 text-olimpics-green-primary" />
             </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <UserCircle className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">
-                  {profile.genero || 'Não informado'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">
-                  {profile.tipo_documento}: {profile.numero_documento}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{profile.telefone}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{profile.email}</span>
-              </div>
+            <div className="text-center">
+              <h3 className="font-semibold text-lg">{profile.nome_completo}</h3>
+              <p className="text-sm text-muted-foreground">
+                ID: {profile.numero_identificador}
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Branch Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações da Filial</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">{profile.filial_nome}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <UserCircle className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">
-                {profile.filial_cidade}, {profile.filial_estado}
+                {profile.genero || 'Não informado'}
               </span>
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">
+                {profile.tipo_documento}: {profile.numero_documento}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">{profile.telefone}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">{profile.email}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Payment Information */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Informações de Pagamento</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    Valor: R$ {profile.pagamento_valor.toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 rounded-full text-xs ${getPaymentStatusColor(profile.pagamento_status)}`}>
-                    {profile.pagamento_status.toUpperCase()}
-                  </span>
-                </div>
+      {/* Branch Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Informações da Filial</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">{profile.filial_nome}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">
+              {profile.filial_cidade}, {profile.filial_estado}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Payment Information */}
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <CardTitle>Informações de Pagamento</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">
+                  Valor: R$ {profile.pagamento_valor.toFixed(2)}
+                </span>
               </div>
-              <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className={`px-2 py-1 rounded-full text-xs ${getPaymentStatusColor(profile.pagamento_status)}`}>
+                  {profile.pagamento_status.toUpperCase()}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">
+                  Data de Criação:{' '}
+                  {format(new Date(profile.pagamento_data_criacao), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                </span>
+              </div>
+              {profile.data_validacao && (
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
-                    Data de Criação:{' '}
-                    {format(new Date(profile.pagamento_data_criacao), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                    Data de Validação:{' '}
+                    {format(new Date(profile.data_validacao), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                   </span>
                 </div>
-                {profile.data_validacao && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
-                      Data de Validação:{' '}
-                      {format(new Date(profile.data_validacao), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                    </span>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
-  );
-}
+  </div>
+);
