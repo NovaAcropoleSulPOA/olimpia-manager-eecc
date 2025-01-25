@@ -209,7 +209,7 @@ export default function AthleteProfilePage() {
     );
   }, [allModalities, profile]);
 
-  // Mutation for withdrawing from a modality
+  // Updated withdrawal mutation with proper vacancy management
   const withdrawMutation = useMutation({
     mutationFn: async (modalityId: number) => {
       console.log('Withdrawing from modality:', modalityId);
@@ -219,11 +219,12 @@ export default function AthleteProfilePage() {
         reg => reg.modalidade_id === modalityId
       );
 
-      // If the registration was pending or confirmed, decrement vagas_ocupadas
+      // If the registration was pending or confirmed, handle vacancy count
       if (registration?.status === 'pendente' || registration?.status === 'confirmado') {
+        // Get current modality data
         const { data: modalityData, error: fetchError } = await supabase
           .from('modalidades')
-          .select('vagas_ocupadas')
+          .select('vagas_ocupadas, limite_vagas, status')
           .eq('id', modalityId)
           .maybeSingle();
 
@@ -237,28 +238,33 @@ export default function AthleteProfilePage() {
           throw new Error('Modality not found');
         }
 
-        if (modalityData.vagas_ocupadas > 0) {
-          const { error: updateError } = await supabase
-            .from('modalidades')
-            .update({ 
-              vagas_ocupadas: modalityData.vagas_ocupadas - 1
-            })
-            .eq('id', modalityId);
+        // Calculate new values
+        const newVagasOcupadas = Math.max(0, modalityData.vagas_ocupadas - 1);
+        const newStatus = newVagasOcupadas < modalityData.limite_vagas ? 'Ativa' : modalityData.status;
 
-          if (updateError) {
-            console.error('Error updating vacancy count:', updateError);
-            throw new Error('Failed to update vacancy count');
-          }
+        // Update modality with new vacancy count and status
+        const { error: updateError } = await supabase
+          .from('modalidades')
+          .update({ 
+            vagas_ocupadas: newVagasOcupadas,
+            status: newStatus
+          })
+          .eq('id', modalityId);
+
+        if (updateError) {
+          console.error('Error updating modality:', updateError);
+          throw new Error('Failed to update modality');
         }
       }
       
-      const { error } = await supabase
+      // Delete the registration
+      const { error: deleteError } = await supabase
         .from('inscricoes_modalidades')
         .delete()
         .eq('modalidade_id', modalityId)
         .eq('atleta_id', user.id);
       
-      if (error) throw error;
+      if (deleteError) throw deleteError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['athlete-modalities'] });
@@ -279,7 +285,7 @@ export default function AthleteProfilePage() {
     },
   });
 
-  // Mutation for registering in a modality
+  // Updated registration mutation with proper vacancy management
   const registerMutation = useMutation({
     mutationFn: async (modalityId: number) => {
       if (!user?.id) throw new Error('User not authenticated');
@@ -287,7 +293,7 @@ export default function AthleteProfilePage() {
       // Get current modality data
       const { data: modalityData, error: fetchError } = await supabase
         .from('modalidades')
-        .select('vagas_ocupadas, limite_vagas')
+        .select('vagas_ocupadas, limite_vagas, status')
         .eq('id', modalityId)
         .maybeSingle();
 
@@ -306,19 +312,25 @@ export default function AthleteProfilePage() {
         throw new Error('No available spots');
       }
 
-      // Update vagas_ocupadas
+      // Calculate new values
+      const newVagasOcupadas = modalityData.vagas_ocupadas + 1;
+      const newStatus = newVagasOcupadas >= modalityData.limite_vagas ? 'Esgotada' : 'Ativa';
+
+      // Update modality with new vacancy count and status
       const { error: updateError } = await supabase
         .from('modalidades')
         .update({ 
-          vagas_ocupadas: modalityData.vagas_ocupadas + 1
+          vagas_ocupadas: newVagasOcupadas,
+          status: newStatus
         })
         .eq('id', modalityId);
 
       if (updateError) {
-        console.error('Error updating vacancy count:', updateError);
+        console.error('Error updating modality:', updateError);
         throw new Error('Failed to update vacancy count');
       }
 
+      // Create the registration
       const { error: insertError } = await supabase
         .from('inscricoes_modalidades')
         .insert([{
@@ -333,12 +345,13 @@ export default function AthleteProfilePage() {
         const { error: rollbackError } = await supabase
           .from('modalidades')
           .update({ 
-            vagas_ocupadas: modalityData.vagas_ocupadas
+            vagas_ocupadas: modalityData.vagas_ocupadas,
+            status: modalityData.status
           })
           .eq('id', modalityId);
 
         if (rollbackError) {
-          console.error('Error rolling back vacancy count:', rollbackError);
+          console.error('Error rolling back modality:', rollbackError);
         }
         throw new Error('Failed to register for modality');
       }
