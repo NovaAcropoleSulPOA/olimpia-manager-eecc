@@ -213,7 +213,7 @@ export default function AthleteProfilePage() {
         const { error: updateError } = await supabase
           .from('modalidades')
           .update({ 
-            vagas_ocupadas: supabase.raw('vagas_ocupadas - 1') 
+            vagas_ocupadas: supabase.sql`vagas_ocupadas - 1` 
           })
           .eq('id', modalityId)
           .gt('vagas_ocupadas', 0);
@@ -263,10 +263,10 @@ export default function AthleteProfilePage() {
       const { data: modalityData, error: modalityError } = await supabase
         .from('modalidades')
         .update({ 
-          vagas_ocupadas: supabase.raw('vagas_ocupadas + 1') 
+          vagas_ocupadas: supabase.sql`vagas_ocupadas + 1` 
         })
         .eq('id', modalityId)
-        .lt('vagas_ocupadas', supabase.raw('limite_vagas'))
+        .lt('vagas_ocupadas', supabase.sql`limite_vagas`)
         .select('vagas_ocupadas')
         .single();
 
@@ -288,7 +288,7 @@ export default function AthleteProfilePage() {
         await supabase
           .from('modalidades')
           .update({ 
-            vagas_ocupadas: supabase.raw('vagas_ocupadas - 1') 
+            vagas_ocupadas: supabase.sql`vagas_ocupadas - 1` 
           })
           .eq('id', modalityId);
         throw insertError;
