@@ -30,6 +30,8 @@ export interface User {
   filial_id: string;
   confirmado: boolean;
   data_criacao: string;
+  tipo_documento: 'CPF' | 'RG';
+  numero_documento: string;
   roles: Role[];
 }
 
@@ -108,7 +110,9 @@ export const createUserProfile = async (userId: string, data: any) => {
       email: data.email,
       filial_id: data.branchId,
       confirmado: false,
-      data_criacao: new Date().toISOString()
+      data_criacao: new Date().toISOString(),
+      tipo_documento: data.tipo_documento,
+      numero_documento: data.numero_documento.replace(/\D/g, '')
     }]);
 
   if (error) {
