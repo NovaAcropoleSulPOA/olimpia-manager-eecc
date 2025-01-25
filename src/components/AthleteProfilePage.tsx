@@ -98,6 +98,7 @@ export default function AthleteProfilePage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch athlete profile
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['athlete-profile', user?.id],
     queryFn: async () => {
@@ -121,7 +122,9 @@ export default function AthleteProfilePage() {
       console.log('Fetching modalities');
       const { data, error } = await supabase
         .from('modalidades')
-        .select('*');
+        .select('*')
+        .in('status', ['Ativa', 'Em análise'])
+        .lt('vagas_ocupadas', 'limite_vagas');
       
       if (error) {
         console.error('Error fetching modalities:', error);
@@ -129,9 +132,7 @@ export default function AthleteProfilePage() {
       }
       
       console.log('Fetched modalities:', data);
-      return data.filter(modality => 
-        modality.vagas_ocupadas < modality.limite_vagas
-      );
+      return data;
     }
   });
 
@@ -143,7 +144,15 @@ export default function AthleteProfilePage() {
       console.log('Fetching athlete modalities for user:', user.id);
       const { data, error } = await supabase
         .from('inscricoes_modalidades')
-        .select('*')
+        .select(`
+          *,
+          modalidade:modalidades (
+            nome,
+            categoria,
+            limite_vagas,
+            vagas_ocupadas
+          )
+        `)
         .eq('atleta_id', user.id);
       
       if (error) {
@@ -210,7 +219,6 @@ export default function AthleteProfilePage() {
 
       // If the registration was pending or confirmed, decrement vagas_ocupadas
       if (registration?.status === 'pendente' || registration?.status === 'confirmado') {
-        // First, get current vagas_ocupadas
         const { data: modalityData, error: fetchError } = await supabase
           .from('modalidades')
           .select('vagas_ocupadas')
