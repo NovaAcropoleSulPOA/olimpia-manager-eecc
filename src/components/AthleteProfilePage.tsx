@@ -47,6 +47,7 @@ export default function AthleteProfilePage() {
       const { data, error } = await supabase
         .from('view_perfil_atleta')
         .select('*')
+        .eq('atleta_id', user.id) // Passando o ID do usuário autenticado
         .single();
 
       if (error) {
