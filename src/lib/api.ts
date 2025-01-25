@@ -259,7 +259,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       .select(`
         status,
         modalidade_id,
-        modalidades:modalidades (
+        modalidade:modalidades (
           nome
         )
       `)
@@ -270,16 +270,18 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       return null;
     }
 
-    // Type assertion for modalityRegistrations
-    type ModalityData = {
+    // Define the correct type for modality data
+    interface ModalityData {
       status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
       modalidade_id: number;
-      modalidades: {
+      modalidade: {
         nome: string;
       };
-    };
+    }
 
-    const typedModalityRegistrations = modalityRegistrations as ModalityData[];
+    // Type assertion after verifying the structure
+    const typedModalityRegistrations = modalityRegistrations as unknown as ModalityData[];
+    console.log('Typed modality registrations:', typedModalityRegistrations);
 
     // Fetch payment status
     const { data: payments, error: paymentError } = await supabase
@@ -306,7 +308,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     // Process modality registrations with proper type checking
     const modalityNames = typedModalityRegistrations
-      ? typedModalityRegistrations.map(reg => reg.modalidades?.nome).filter(Boolean)
+      ? typedModalityRegistrations.map(reg => reg.modalidade?.nome).filter(Boolean)
       : [];
     
     const registrationStatus = typedModalityRegistrations?.[0]?.status || 'Pendente';
