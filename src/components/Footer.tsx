@@ -1,6 +1,14 @@
-import { Github, Instagram, Linkedin, Mail, MessageCircle } from "lucide-react";
+import { Github, Instagram, Linkedin, Mail, MessageCircle, Home, Users, User, Settings, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocation, useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const Footer = () => {
+  const { user, signOut } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   const socialLinks = [
     {
       icon: <Linkedin className="w-4 h-4" />,
@@ -29,28 +37,106 @@ const Footer = () => {
     },
   ];
 
+  const navigationItems = [
+    {
+      icon: Home,
+      label: "Início",
+      path: "/athlete-dashboard",
+      roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"],
+    },
+    {
+      icon: Users,
+      label: "Inscrições",
+      path: "/registrations",
+      roles: ["Organizador"],
+    },
+    {
+      icon: User,
+      label: "Perfil",
+      path: "/profile",
+      roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"],
+    },
+    {
+      icon: Settings,
+      label: "Painel",
+      path: "/organizer-dashboard",
+      roles: ["Organizador"],
+    },
+  ];
+
+  const handleLogout = async () => {
+    try {
+      console.log('Initiating logout process...');
+      await signOut();
+      console.log('User signed out successfully');
+      toast.success('Logout realizado com sucesso!');
+      navigate('/');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      toast.error('Erro ao fazer logout');
+    }
+  };
+
+  const userRoles = user?.papeis || [];
+  const filteredNavItems = navigationItems.filter(item => 
+    item.roles.some(role => userRoles.includes(role))
+  );
+
   return (
-    <footer className="relative z-50 w-full bg-white/80 backdrop-blur-sm border-t py-2 px-4 mt-auto">
-      <div className="container mx-auto flex justify-end items-center gap-4">
-        <span className="text-xs text-gray-500">
-          Desenvolvido por: Olimar Teixeira Borges
-        </span>
-        <div className="flex gap-2">
-          {socialLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-500 hover:text-olimpics-green-primary transition-colors"
-              title={link.label}
+    <>
+      {/* Mobile Navigation Menu */}
+      {user && (
+        <nav className="fixed bottom-16 left-0 right-0 z-50 bg-white border-t md:hidden">
+          <div className="grid grid-cols-5 gap-1 px-2 py-2">
+            {filteredNavItems.map((item) => (
+              <button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                className={cn(
+                  "flex flex-col items-center justify-center p-2 text-xs rounded-lg transition-colors",
+                  location.pathname === item.path
+                    ? "text-olimpics-green-primary bg-olimpics-green-primary/10"
+                    : "text-gray-500 hover:text-olimpics-green-primary hover:bg-olimpics-green-primary/5"
+                )}
+              >
+                <item.icon className="w-5 h-5 mb-1" />
+                <span>{item.label}</span>
+              </button>
+            ))}
+            <button
+              onClick={handleLogout}
+              className="flex flex-col items-center justify-center p-2 text-xs text-red-500 rounded-lg hover:bg-red-50"
             >
-              {link.icon}
-            </a>
-          ))}
+              <LogOut className="w-5 h-5 mb-1" />
+              <span>Sair</span>
+            </button>
+          </div>
+        </nav>
+      )}
+
+      {/* Original Footer Content */}
+      <footer className="relative z-50 w-full bg-white/80 backdrop-blur-sm border-t py-2 px-4 mt-auto">
+        <div className="container mx-auto flex justify-end items-center gap-4">
+          <span className="text-xs text-gray-500">
+            Desenvolvido por: Olimar Teixeira Borges
+          </span>
+          <div className="flex gap-2">
+            {socialLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-olimpics-green-primary transition-colors"
+                title={link.label}
+              >
+                {link.icon}
+              </a>
+            ))}
+          </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+    </>
   );
 };
 
