@@ -275,10 +275,17 @@ export interface AthleteRegistration {
   pontos_totais: number;
 }
 
+interface ModalityRegistration {
+  status: string;
+  modalidade_id: number;
+  modalidades: {
+    nome: string;
+  };
+}
+
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
   console.log('Fetching athlete registrations from tables...');
   
-  // First fetch confirmed users
   const { data: users, error: usersError } = await supabase
     .from('usuarios')
     .select(`
@@ -298,9 +305,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     throw usersError;
   }
 
-  // For each user, fetch their registrations, payments, and scores
-  const registrations = await Promise.all(users.map(async (user) => {
-    // Fetch modality registrations
+  return Promise.all(users.map(async (user) => {
     const { data: modalityRegistrations } = await supabase
       .from('inscricoes_modalidades')
       .select(`
@@ -312,26 +317,20 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       `)
       .eq('atleta_id', user.id);
 
-    // Fetch payment status - removed order by created_at since the column doesn't exist
     const { data: payments } = await supabase
       .from('pagamentos')
       .select('status')
       .eq('atleta_id', user.id)
       .limit(1);
 
-    // Fetch points - assuming the column is named 'pontuacao' instead of 'pontos'
     const { data: scores } = await supabase
       .from('pontuacoes')
       .select('pontuacao')
       .eq('atleta_id', user.id);
 
-    // Transform modalityRegistrations to get modalidade names with proper type checking
-    const modalidades = modalityRegistrations?.map(reg => {
-      if (reg.modalidades && typeof reg.modalidades === 'object' && 'nome' in reg.modalidades) {
-        return reg.modalidades.nome as string;
-      }
-      return '';
-    }).filter(Boolean) || [];
+    const modalidades = (modalityRegistrations as ModalityRegistration[] || [])
+      .map(reg => reg.modalidades?.nome || '')
+      .filter(Boolean);
 
     return {
       id: user.id,
@@ -345,9 +344,6 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       pontos_totais: scores?.reduce((sum, score) => sum + (score.pontuacao || 0), 0) || 0
     };
   }));
-
-  console.log('Transformed registrations:', registrations);
-  return registrations;
 };
 
 export const updateRegistrationStatus = async (
