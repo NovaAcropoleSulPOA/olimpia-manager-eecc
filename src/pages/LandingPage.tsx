@@ -27,7 +27,7 @@ const LandingPage = () => {
     const startDate = '2025-04-11';
     const endDate = '2025-04-13';
     const title = 'Olimpíadas Estaduais da Nova Acrópole 2025 - Porto Alegre';
-    const location = 'Parque Esportivo PUC-RS, Av. Ipiranga, 6690 - Partenon, Porto Alegre, RS';
+    const location = 'Parque Esportivo PUCRS, Av. Ipiranga, 6690 - Partenon, Porto Alegre, RS';
     
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate.replace(/-/g, '')}/${endDate.replace(/-/g, '')}&location=${encodeURIComponent(location)}`;
     
