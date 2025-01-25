@@ -211,21 +211,34 @@ export default function AthleteProfilePage() {
       // If the registration was pending or confirmed, decrement vagas_ocupadas
       if (registration?.status === 'pendente' || registration?.status === 'confirmado') {
         // First, get current vagas_ocupadas
-        const { data: currentModality } = await supabase
+        const { data: modalityData, error: fetchError } = await supabase
           .from('modalidades')
           .select('vagas_ocupadas')
           .eq('id', modalityId)
-          .single();
+          .maybeSingle();
 
-        if (currentModality && currentModality.vagas_ocupadas > 0) {
+        if (fetchError) {
+          console.error('Error fetching modality:', fetchError);
+          throw new Error('Failed to fetch modality data');
+        }
+
+        if (!modalityData) {
+          console.error('Modality not found:', modalityId);
+          throw new Error('Modality not found');
+        }
+
+        if (modalityData.vagas_ocupadas > 0) {
           const { error: updateError } = await supabase
             .from('modalidades')
             .update({ 
-              vagas_ocupadas: currentModality.vagas_ocupadas - 1
+              vagas_ocupadas: modalityData.vagas_ocupadas - 1
             })
             .eq('id', modalityId);
 
-          if (updateError) throw updateError;
+          if (updateError) {
+            console.error('Error updating vacancy count:', updateError);
+            throw new Error('Failed to update vacancy count');
+          }
         }
       }
       
@@ -262,30 +275,37 @@ export default function AthleteProfilePage() {
       if (!user?.id) throw new Error('User not authenticated');
       
       // Get current modality data
-      const { data: currentModality } = await supabase
+      const { data: modalityData, error: fetchError } = await supabase
         .from('modalidades')
         .select('vagas_ocupadas, limite_vagas')
         .eq('id', modalityId)
-        .single();
+        .maybeSingle();
 
-      if (!currentModality) throw new Error('Modality not found');
+      if (fetchError) {
+        console.error('Error fetching modality:', fetchError);
+        throw new Error('Failed to fetch modality data');
+      }
+
+      if (!modalityData) {
+        console.error('Modality not found:', modalityId);
+        throw new Error('Modality not found');
+      }
       
       // Check if there are available spots
-      if (currentModality.vagas_ocupadas >= currentModality.limite_vagas) {
+      if (modalityData.vagas_ocupadas >= modalityData.limite_vagas) {
         throw new Error('No available spots');
       }
 
       // Update vagas_ocupadas
-      const { data: modalityData, error: modalityError } = await supabase
+      const { error: updateError } = await supabase
         .from('modalidades')
         .update({ 
-          vagas_ocupadas: currentModality.vagas_ocupadas + 1
+          vagas_ocupadas: modalityData.vagas_ocupadas + 1
         })
-        .eq('id', modalityId)
-        .select('vagas_ocupadas')
-        .single();
+        .eq('id', modalityId);
 
-      if (modalityError || !modalityData) {
+      if (updateError) {
+        console.error('Error updating vacancy count:', updateError);
         throw new Error('Failed to update vacancy count');
       }
 
@@ -300,13 +320,17 @@ export default function AthleteProfilePage() {
       
       if (insertError) {
         // Rollback the vacancy count if inscription fails
-        await supabase
+        const { error: rollbackError } = await supabase
           .from('modalidades')
           .update({ 
-            vagas_ocupadas: currentModality.vagas_ocupadas
+            vagas_ocupadas: modalityData.vagas_ocupadas
           })
           .eq('id', modalityId);
-        throw insertError;
+
+        if (rollbackError) {
+          console.error('Error rolling back vacancy count:', rollbackError);
+        }
+        throw new Error('Failed to register for modality');
       }
     },
     onSuccess: () => {
@@ -324,6 +348,8 @@ export default function AthleteProfilePage() {
         title: "Erro na inscrição",
         description: error.message === 'No available spots' 
           ? "Não há vagas disponíveis nesta modalidade."
+          : error.message === 'Modality not found'
+          ? "Modalidade não encontrada."
           : "Não foi possível processar sua inscrição. Tente novamente.",
         variant: "destructive",
       });
