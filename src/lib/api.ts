@@ -56,6 +56,26 @@ export interface BranchAnalytics {
   media_pontuacao_atletas: number;
 }
 
+export interface ModalityRegistration {
+  status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
+  modalidade_id: number;
+  modalidades: {
+    nome: string;
+  };
+}
+
+export interface AthleteRegistration {
+  id: string;
+  nome_atleta: string;
+  email: string;
+  telefone: string;
+  filial: string;
+  modalidades: string[];
+  status_inscricao: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
+  status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
+  pontos_totais: number;
+}
+
 export const fetchModalities = async (): Promise<Modality[]> => {
   console.log('Fetching modalities from database');
   const { data, error } = await supabase
@@ -208,29 +228,10 @@ export const rejectUser = async (userId: string) => {
   }
 };
 
-export interface ModalityRegistration {
-  status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
-  modalidade_id: number;
-  modalidades: {
-    nome: string;
-  };
-}
-
-export interface AthleteRegistration {
-  id: string;
-  nome_atleta: string;
-  email: string;
-  telefone: string;
-  filial: string;
-  modalidades: string[];
-  status_inscricao: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
-  status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
-  pontos_totais: number;
-}
-
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
   console.log('Fetching athlete registrations from tables...');
   
+  // First, fetch all confirmed users with their branch information
   const { data: users, error: usersError } = await supabase
     .from('usuarios')
     .select(`
@@ -250,8 +251,10 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     throw usersError;
   }
 
-  return Promise.all(users.map(async (user) => {
-    const { data: modalityRegistrations } = await supabase
+  // Process each user to get their complete registration information
+  const registrations = await Promise.all(users.map(async (user) => {
+    // Fetch modality registrations for the user
+    const { data: modalityRegistrations, error: modalityError } = await supabase
       .from('inscricoes_modalidades')
       .select(`
         status,
@@ -262,29 +265,39 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       `)
       .eq('atleta_id', user.id);
 
-    console.log('Raw modality registrations:', modalityRegistrations);
+    if (modalityError) {
+      console.error('Error fetching modality registrations:', modalityError);
+      return null;
+    }
 
-    const { data: payments } = await supabase
+    // Fetch payment status
+    const { data: payments, error: paymentError } = await supabase
       .from('pagamentos')
       .select('status')
       .eq('atleta_id', user.id)
       .limit(1);
 
-    const { data: scores } = await supabase
+    if (paymentError) {
+      console.error('Error fetching payment status:', paymentError);
+      return null;
+    }
+
+    // Fetch scores
+    const { data: scores, error: scoresError } = await supabase
       .from('pontuacoes')
       .select('pontuacao')
       .eq('atleta_id', user.id);
 
-    // Type assertion to handle the Supabase response type
-    const typedModalityRegistrations = modalityRegistrations as unknown as ModalityRegistration[];
-    
-    // Safely transform the modalidades with proper type checking
-    const modalidades = typedModalityRegistrations?.map(reg => reg.modalidades.nome).filter(Boolean);
+    if (scoresError) {
+      console.error('Error fetching scores:', scoresError);
+      return null;
+    }
 
-    console.log('Transformed modalidades:', modalidades);
-
-    const status_inscricao = (typedModalityRegistrations?.[0]?.status || 'Pendente') as 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
-    const status_pagamento = payments?.[0]?.status as 'pendente' | 'confirmado' | 'cancelado' || 'pendente';
+    // Process modality registrations
+    const modalityNames = modalityRegistrations?.map(reg => reg.modalidades?.nome).filter(Boolean) || [];
+    const registrationStatus = modalityRegistrations?.[0]?.status as 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada' || 'Pendente';
+    const paymentStatus = (payments?.[0]?.status || 'pendente') as 'pendente' | 'confirmado' | 'cancelado';
+    const totalPoints = scores?.reduce((sum, score) => sum + (score.pontuacao || 0), 0) || 0;
 
     return {
       id: user.id,
@@ -292,12 +305,15 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       email: user.email,
       telefone: user.telefone,
       filial: user.filiais?.nome || 'N/A',
-      modalidades: modalidades || [],
-      status_inscricao,
-      status_pagamento,
-      pontos_totais: scores?.reduce((sum, score) => sum + (score.pontuacao || 0), 0) || 0
+      modalidades: modalityNames,
+      status_inscricao: registrationStatus,
+      status_pagamento: paymentStatus,
+      pontos_totais: totalPoints
     };
   }));
+
+  // Filter out any null values from failed fetches
+  return registrations.filter((reg): reg is AthleteRegistration => reg !== null);
 };
 
 export const updateRegistrationStatus = async (
