@@ -5,11 +5,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   User, MapPin, Phone, Mail, CreditCard, 
   Building2, Calendar, FileText, UserCircle,
   CheckCircle2, XCircle, Clock, AlertCircle,
-  Plus
+  Plus, Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -47,6 +48,7 @@ interface Modality {
   nome: string;
   status: 'pendente' | 'confirmado' | 'rejeitado' | 'cancelado';
   data_inscricao: string;
+  categoria: 'misto' | 'masculino' | 'feminino';
 }
 
 const getPaymentStatusColor = (status: string) => {
@@ -109,15 +111,21 @@ export default function AthleteProfilePage() {
     enabled: !!user?.id,
   });
 
-  // Fetch all available modalities
+  // Fetch all available modalities with category filtering
   const { data: allModalities, isLoading: modalitiesLoading } = useQuery({
     queryKey: ['modalities'],
     queryFn: async () => {
+      console.log('Fetching modalities');
       const { data, error } = await supabase
         .from('modalidades')
         .select('*');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching modalities:', error);
+        throw error;
+      }
+      
+      console.log('Fetched modalities:', data);
       return data;
     }
   });
@@ -127,16 +135,57 @@ export default function AthleteProfilePage() {
     queryKey: ['athlete-modalities', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
+      console.log('Fetching athlete modalities for user:', user.id);
       const { data, error } = await supabase
         .from('inscricoes_modalidades')
         .select('*')
         .eq('atleta_id', user.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching athlete modalities:', error);
+        throw error;
+      }
+      
+      console.log('Fetched athlete modalities:', data);
       return data;
     },
     enabled: !!user?.id,
   });
+
+  // Filter modalities based on athlete's gender
+  const filteredModalities = React.useMemo(() => {
+    if (!allModalities || !profile) return [];
+    
+    const allowedCategories = ['misto'];
+    if (profile.genero?.toLowerCase() === 'masculino') {
+      allowedCategories.push('masculino');
+    } else if (profile.genero?.toLowerCase() === 'feminino') {
+      allowedCategories.push('feminino');
+    }
+    
+    return allModalities.filter(modality => 
+      allowedCategories.includes(modality.categoria?.toLowerCase())
+    );
+  }, [allModalities, profile]);
+
+  // Sort modalities by status
+  const sortModalities = (modalities: any[]) => {
+    const statusOrder = {
+      'confirmado': 0,
+      'pendente': 1,
+      'rejeitado': 2,
+      'cancelado': 3,
+      'não inscrito': 4
+    };
+
+    return [...modalities].sort((a, b) => {
+      const regA = registeredModalities?.find(reg => reg.modalidade_id === a.id);
+      const regB = registeredModalities?.find(reg => reg.modalidade_id === b.id);
+      const statusA = regA?.status || 'não inscrito';
+      const statusB = regB?.status || 'não inscrito';
+      return statusOrder[statusA] - statusOrder[statusB];
+    });
+  };
 
   // Mutation for withdrawing from a modality
   const withdrawMutation = useMutation({
@@ -203,14 +252,6 @@ export default function AthleteProfilePage() {
       });
     },
   });
-
-  const handleWithdraw = (modalityId: number) => {
-    withdrawMutation.mutate(modalityId);
-  };
-
-  const handleRegister = (modalityId: number) => {
-    registerMutation.mutate(modalityId);
-  };
 
   if (profileLoading || modalitiesLoading || registrationsLoading) {
     return (
@@ -330,73 +371,112 @@ export default function AthleteProfilePage() {
           <h3 className="text-lg font-semibold mb-4 text-olimpics-green-primary">
             Modalidades Disponíveis
           </h3>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Modalidade</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Data de Inscrição</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {allModalities?.map((modality) => {
-                const registration = registeredModalities?.find(
-                  reg => reg.modalidade_id === modality.id
-                );
-                
-                return (
-                  <TableRow key={modality.id}>
-                    <TableCell>{modality.nome}</TableCell>
-                    <TableCell>
-                      {registration ? (
-                        <div className="flex items-center gap-2">
-                          {getModalityStatusIcon(registration.status)}
-                          <span className="capitalize">{registration.status}</span>
-                        </div>
-                      ) : (
-                        <span className="text-gray-500">Não inscrito</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {registration?.data_inscricao ? 
-                        format(new Date(registration.data_inscricao), "dd/MM/yyyy") :
-                        "-"
-                      }
-                    </TableCell>
-                    <TableCell>
-                      {registration ? (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          disabled={registration.status !== 'pendente' || 
-                                  withdrawMutation.isPending}
-                          onClick={() => handleWithdraw(modality.id)}
-                        >
-                          {withdrawMutation.isPending ? "Processando..." : "Desistir"}
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          disabled={registerMutation.isPending}
-                          onClick={() => handleRegister(modality.id)}
-                        >
-                          <Plus className="h-4 w-4 mr-1" />
-                          {registerMutation.isPending ? "Processando..." : "Inscrever"}
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-          {(modalitiesLoading || registrationsLoading) && (
-            <div className="flex items-center justify-center p-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
-            </div>
-          )}
+          
+          <Tabs defaultValue="todos" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="todos">Todas</TabsTrigger>
+              {profile?.genero?.toLowerCase() !== 'feminino' && (
+                <TabsTrigger value="masculino">Masculino</TabsTrigger>
+              )}
+              {profile?.genero?.toLowerCase() !== 'masculino' && (
+                <TabsTrigger value="feminino">Feminino</TabsTrigger>
+              )}
+              <TabsTrigger value="misto">Misto</TabsTrigger>
+            </TabsList>
+
+            {['todos', 'masculino', 'feminino', 'misto'].map((category) => (
+              <TabsContent key={category} value={category}>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Modalidade</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Data de Inscrição</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sortModalities(filteredModalities)
+                      .filter(modality => 
+                        category === 'todos' || 
+                        modality.categoria?.toLowerCase() === category
+                      )
+                      .map((modality) => {
+                        const registration = registeredModalities?.find(
+                          reg => reg.modalidade_id === modality.id
+                        );
+                        
+                        return (
+                          <TableRow key={modality.id}>
+                            <TableCell>{modality.nome}</TableCell>
+                            <TableCell>
+                              {registration ? (
+                                <div className="flex items-center gap-2">
+                                  {getModalityStatusIcon(registration.status)}
+                                  <span className="capitalize">{registration.status}</span>
+                                </div>
+                              ) : (
+                                <span className="text-gray-500">Não inscrito</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {registration?.data_inscricao ? 
+                                format(new Date(registration.data_inscricao), "dd/MM/yyyy") :
+                                "-"
+                              }
+                            </TableCell>
+                            <TableCell>
+                              {registration ? (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  disabled={registration.status !== 'pendente' || 
+                                          withdrawMutation.isPending}
+                                  onClick={() => withdrawMutation.mutate(modality.id)}
+                                >
+                                  {withdrawMutation.isPending ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      Processando...
+                                    </>
+                                  ) : (
+                                    "Desistir"
+                                  )}
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  disabled={registerMutation.isPending}
+                                  onClick={() => registerMutation.mutate(modality.id)}
+                                >
+                                  {registerMutation.isPending ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      Processando...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Plus className="h-4 w-4 mr-1" />
+                                      Inscrever
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                  </TableBody>
+                </Table>
+                {(modalitiesLoading || registrationsLoading) && (
+                  <div className="flex items-center justify-center p-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-olimpics-green-primary" />
+                  </div>
+                )}
+              </TabsContent>
+            ))}
+          </Tabs>
         </CardContent>
       </Card>
     </div>
