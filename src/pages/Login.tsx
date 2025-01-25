@@ -17,14 +17,11 @@ import { supabase } from '@/lib/supabase';
 import InputMask from 'react-input-mask';
 import PaymentInfo from '@/components/PaymentInfo';
 import { useNavigate } from 'react-router-dom';
+import { validateCPF } from '@/utils/documentValidation';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
-});
-
-const forgotPasswordSchema = z.object({
-  email: z.string().email('Email inválido'),
 });
 
 const registerSchema = z.object({
@@ -36,6 +33,23 @@ const registerSchema = z.object({
   branchId: z.string({
     required_error: "Selecione uma filial",
   }),
+  tipo_documento: z.enum(['CPF', 'RG'], {
+    required_error: "Selecione o tipo de documento",
+  }),
+  numero_documento: z.string()
+    .min(1, 'Número do documento é obrigatório')
+    .refine((val) => {
+      if (!val) return false;
+      const clean = val.replace(/\D/g, '');
+      return clean.length >= 9;
+    }, 'Documento inválido')
+    .refine((val) => {
+      const tipo = registerForm.getValues('tipo_documento');
+      if (tipo === 'CPF') {
+        return validateCPF(val);
+      }
+      return true;
+    }, 'CPF inválido'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
@@ -64,6 +78,8 @@ const Login = () => {
       password: '',
       confirmPassword: '',
       branchId: '',
+      tipo_documento: 'CPF',
+      numero_documento: '',
     },
   });
 
@@ -138,6 +154,8 @@ const Login = () => {
       const signUpResult = await signUp({
         ...values,
         telefone: values.telefone.replace(/\D/g, ''),
+        tipo_documento: values.tipo_documento,
+        numero_documento: values.numero_documento.replace(/\D/g, ''),
       });
   
       if (signUpResult.error || !signUpResult.user) {
@@ -355,6 +373,58 @@ const Login = () => {
                               className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
                               {...field}
                             />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={registerForm.control}
+                      name="tipo_documento"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo de Documento</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o tipo de documento" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="CPF">CPF</SelectItem>
+                              <SelectItem value="RG">RG</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={registerForm.control}
+                      name="numero_documento"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Número do Documento</FormLabel>
+                          <FormControl>
+                            <InputMask
+                              mask={registerForm.getValues('tipo_documento') === 'CPF' ? "999.999.999-99" : "9999999999"}
+                              value={field.value}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                            >
+                              {(inputProps: any) => (
+                                <Input
+                                  {...inputProps}
+                                  placeholder={registerForm.getValues('tipo_documento') === 'CPF' ? "000.000.000-00" : "0000000000"}
+                                  className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                                />
+                              )}
+                            </InputMask>
                           </FormControl>
                           <FormMessage />
                         </FormItem>

@@ -18,24 +18,6 @@ export function GlobalHeader() {
             Olimpíadas Estaduais da Nova Acrópole
           </Button>
         </div>
-        <div className="flex items-center gap-2">
-          {!user && (
-            <>
-              <Button
-                variant="ghost"
-                onClick={() => navigate('/login')}
-              >
-                Login
-              </Button>
-              <Button
-                className="bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
-                onClick={() => navigate('/login?tab=register')}
-              >
-                Cadastrar
-              </Button>
-            </>
-          )}
-        </div>
       </div>
     </header>
   );
