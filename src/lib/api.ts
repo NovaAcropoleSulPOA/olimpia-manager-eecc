@@ -293,7 +293,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     const { data: scores, error: scoresError } = await supabase
       .from('pontuacoes')
-      .select('pontuacao')
+      .select('valor_pontuacao')
       .eq('atleta_id', user.id);
 
     if (scoresError) {
@@ -302,12 +302,12 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     }
 
     const modalityNames = typedModalityRegistrations
-      ? typedModalityRegistrations.map(reg => reg.modalidades.nome).filter(Boolean)
+      ? typedModalityRegistrations.map(reg => reg.modalidades.nome)
       : [];
     
     const registrationStatus = typedModalityRegistrations?.[0]?.status || 'Pendente';
     const paymentStatus = (payments?.[0]?.status || 'pendente') as 'pendente' | 'confirmado' | 'cancelado';
-    const totalPoints = scores?.reduce((sum, score) => sum + (score.pontuacao || 0), 0) || 0;
+    const totalPoints = scores?.reduce((sum, score) => sum + (score.valor_pontuacao || 0), 0) || 0;
 
     return {
       id: user.id,
