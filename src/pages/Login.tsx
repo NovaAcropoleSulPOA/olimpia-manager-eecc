@@ -78,15 +78,16 @@ const Login = () => {
     },
   });
 
-  const { data: branches = [], isLoading: isLoadingBranches } = useQuery({
+  const { data: branches = [], isLoading: isLoadingBranches, error: branchesError } = useQuery({
     queryKey: ['branches'],
     queryFn: fetchBranches,
     select: (data) => {
-      return [...data].sort((a, b) => a.nome.localeCompare(b.nome));
+      console.log('Processing branches data:', data);
+      return data ? [...data].sort((a, b) => a.nome.localeCompare(b.nome)) : [];
     }
   });
 
-  console.log('Branches data:', branches); // Add this log to debug
+  console.log('Current branches state:', { branches, isLoadingBranches, branchesError });
 
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
@@ -163,7 +164,6 @@ const Login = () => {
         return;
       }
   
-      // Automatically assign the Athlete role (ID: 1)
       const { error: rolesError } = await supabase
         .from('papeis_usuarios')
         .insert([{
@@ -179,7 +179,6 @@ const Login = () => {
   
       console.log('Athlete role assigned successfully');
   
-      // Register payment for athlete
       const { error: paymentError } = await supabase
         .from('pagamentos')
         .insert([{
@@ -392,7 +391,10 @@ const Login = () => {
                                   disabled={isLoadingBranches}
                                 >
                                   {isLoadingBranches ? (
-                                    "Carregando filiais..."
+                                    <div className="flex items-center">
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      Carregando filiais...
+                                    </div>
                                   ) : field.value ? (
                                     branches.find((branch) => branch.id === field.value)?.nome
                                   ) : (
@@ -404,8 +406,15 @@ const Login = () => {
                             </PopoverTrigger>
                             <PopoverContent className="w-full p-0">
                               {isLoadingBranches ? (
-                                <div className="p-4 text-center">Carregando...</div>
-                              ) : (
+                                <div className="p-4 text-center">
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
+                                  Carregando...
+                                </div>
+                              ) : branchesError ? (
+                                <div className="p-4 text-center text-red-500">
+                                  Erro ao carregar filiais. Tente novamente.
+                                </div>
+                              ) : branches && branches.length > 0 ? (
                                 <Command>
                                   <CommandInput
                                     placeholder="Procurar filial..."
@@ -427,6 +436,10 @@ const Login = () => {
                                     ))}
                                   </CommandGroup>
                                 </Command>
+                              ) : (
+                                <div className="p-4 text-center">
+                                  Nenhuma filial disponível.
+                                </div>
                               )}
                             </PopoverContent>
                           </Popover>
@@ -521,7 +534,6 @@ const Login = () => {
               </CardContent>
             </Card>
 
-            {/* Quotes Section - Only visible in login tab */}
             <div className="mt-8 space-y-6">
               <Card>
                 <CardContent className="p-6 space-y-6">
