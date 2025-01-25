@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchBranchAnalytics } from "@/lib/api";
+import { fetchBranchAnalytics, fetchAthleteRegistrations } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   BarChart,
   Bar,
@@ -24,20 +26,7 @@ const COLORS = [
   "#FF5722",
 ];
 
-export default function OrganizerDashboard() {
-  const { data: branchAnalytics, isLoading } = useQuery({
-    queryKey: ['branch-analytics'],
-    queryFn: fetchBranchAnalytics,
-  });
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
-      </div>
-    );
-  }
-
+const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
   const totalAthletes = branchAnalytics?.reduce((acc, branch) => acc + branch.total_inscritos, 0) || 0;
   const totalRevenue = branchAnalytics?.reduce((acc, branch) => acc + branch.valor_total_arrecadado, 0) || 0;
   const totalRegistrations = branchAnalytics?.reduce((acc, branch) => acc + branch.total_inscricoes, 0) || 0;
@@ -67,7 +56,7 @@ export default function OrganizerDashboard() {
   }, [] as { name: string; value: number }[]) || [];
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -211,6 +200,106 @@ export default function OrganizerDashboard() {
           </ScrollArea>
         </CardContent>
       </Card>
+    </div>
+  );
+};
+
+const RegistrationsManagement = () => {
+  const { data: registrations, isLoading } = useQuery({
+    queryKey: ['athlete-registrations'],
+    queryFn: fetchAthleteRegistrations,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
+      </div>
+    );
+  }
+
+  const handleWhatsAppClick = (phone: string) => {
+    const formattedPhone = phone.replace(/\D/g, '');
+    const message = encodeURIComponent('Olá! Gostaria de falar sobre sua inscrição nas Olimpíadas.');
+    window.open(`https://wa.me/${formattedPhone}?text=${message}`, '_blank');
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Gerenciamento de Inscrições</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[600px]">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome do Atleta</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Filial</TableHead>
+                <TableHead>Modalidades</TableHead>
+                <TableHead>Status da Inscrição</TableHead>
+                <TableHead>Status do Pagamento</TableHead>
+                <TableHead>Pontos Totais</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {registrations?.map((registration) => (
+                <TableRow key={registration.id}>
+                  <TableCell>{registration.nome_atleta}</TableCell>
+                  <TableCell>{registration.email}</TableCell>
+                  <TableCell>
+                    <button
+                      onClick={() => handleWhatsAppClick(registration.telefone)}
+                      className="text-olimpics-green-primary hover:underline"
+                    >
+                      {registration.telefone}
+                    </button>
+                  </TableCell>
+                  <TableCell>{registration.filial}</TableCell>
+                  <TableCell>{registration.modalidades.join(', ')}</TableCell>
+                  <TableCell>{registration.status_inscricao}</TableCell>
+                  <TableCell>{registration.status_pagamento}</TableCell>
+                  <TableCell>{registration.pontos_totais}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default function OrganizerDashboard() {
+  const { data: branchAnalytics, isLoading } = useQuery({
+    queryKey: ['branch-analytics'],
+    queryFn: fetchBranchAnalytics,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-6 space-y-6">
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList>
+          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="registrations">Gerenciamento de Inscrições</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview">
+          <DashboardOverview branchAnalytics={branchAnalytics} />
+        </TabsContent>
+        <TabsContent value="registrations">
+          <RegistrationsManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

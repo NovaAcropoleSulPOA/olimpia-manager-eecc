@@ -262,3 +262,30 @@ export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
   console.log('Fetched branch analytics:', data);
   return data;
 };
+
+export interface AthleteRegistration {
+  id: string;
+  nome_atleta: string;
+  email: string;
+  telefone: string;
+  filial: string;
+  modalidades: string[];
+  status_inscricao: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
+  status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
+  pontos_totais: number;
+}
+
+export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
+  console.log('Fetching athlete registrations...');
+  const { data, error } = await supabase
+    .from('vw_inscricoes_atletas')
+    .select('*');
+
+  if (error) {
+    console.error('Error fetching athlete registrations:', error);
+    throw error;
+  }
+
+  console.log('Fetched athlete registrations:', data);
+  return data;
+};
