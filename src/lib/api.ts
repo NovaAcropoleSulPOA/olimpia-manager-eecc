@@ -311,11 +311,13 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       .select(`
         status,
         modalidade_id,
-        modalidades (
+        modalidades:modalidades (
           nome
         )
       `)
       .eq('atleta_id', user.id);
+
+    console.log('Raw modality registrations:', modalityRegistrations);
 
     const { data: payments } = await supabase
       .from('pagamentos')
@@ -328,9 +330,16 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       .select('pontuacao')
       .eq('atleta_id', user.id);
 
-    const modalidades = (modalityRegistrations as ModalityRegistration[] || [])
-      .map(reg => reg.modalidades?.nome || '')
-      .filter(Boolean);
+    // Safely transform the modalityRegistrations with proper type checking
+    const modalidades = (modalityRegistrations || []).map(reg => {
+      // Ensure modalidades exists and has the nome property
+      if (reg.modalidades && typeof reg.modalidades === 'object' && 'nome' in reg.modalidades) {
+        return reg.modalidades.nome as string;
+      }
+      return '';
+    }).filter(Boolean);
+
+    console.log('Transformed modalidades:', modalidades);
 
     return {
       id: user.id,
