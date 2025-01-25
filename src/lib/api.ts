@@ -99,7 +99,7 @@ export const assignUserRoles = async (userId: string, roleIds: number[]) => {
 };
 
 export const createUserProfile = async (userId: string, data: any) => {
-  console.log('Creating user profile:', userId, data);
+  console.log('Creating user profile with data:', { userId, data });
   
   const { error } = await supabase
     .from('usuarios')
@@ -133,6 +133,8 @@ export const fetchPendingUsers = async (): Promise<User[]> => {
       filial_id,
       confirmado,
       data_criacao,
+      tipo_documento,
+      numero_documento,
       papeis_usuarios (
         perfis (
           id,
