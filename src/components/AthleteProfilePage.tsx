@@ -227,7 +227,7 @@ export default function AthleteProfilePage() {
       if (registration.status === 'pendente' || registration.status === 'confirmado') {
         const { data: modalityData, error: fetchError } = await supabase
           .from('modalidades')
-          .select('vagas_ocupadas')
+          .select('vagas_ocupadas, limite_vagas')  // Added limite_vagas to the query
           .eq('id', modalityId)
           .single();
 
