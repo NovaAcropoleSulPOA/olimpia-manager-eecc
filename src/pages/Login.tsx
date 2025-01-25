@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Loader2, Search } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from '@tanstack/react-query';
 import { fetchBranches } from '@/lib/api';
@@ -17,9 +17,6 @@ import { supabase } from '@/lib/supabase';
 import InputMask from 'react-input-mask';
 import PaymentInfo from '@/components/PaymentInfo';
 import { useNavigate } from 'react-router-dom';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -46,8 +43,6 @@ const registerSchema = z.object({
 
 const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [open, setOpen] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -71,13 +66,7 @@ const Login = () => {
     },
   });
 
-  const forgotPasswordForm = useForm<z.infer<typeof forgotPasswordSchema>>({
-    resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: {
-      email: '',
-    },
-  });
-
+  // Fetch and sort branches
   const { data: branches = [], isLoading: isLoadingBranches, error: branchesError } = useQuery({
     queryKey: ['branches'],
     queryFn: fetchBranches,
@@ -244,57 +233,6 @@ const Login = () => {
     }
   };
 
-  const renderCommandMenu = () => {
-    if (isLoadingBranches) {
-      return (
-        <div className="p-4 text-center">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
-          Carregando...
-        </div>
-      );
-    }
-
-    if (branchesError) {
-      return (
-        <div className="p-4 text-center text-red-500">
-          Erro ao carregar filiais. Tente novamente.
-        </div>
-      );
-    }
-
-    if (!branches || branches.length === 0) {
-      return (
-        <div className="p-4 text-center">
-          Nenhuma filial disponível.
-        </div>
-      );
-    }
-
-    return (
-      <Command>
-        <CommandInput
-          placeholder="Procurar filial..."
-          className="h-9"
-        />
-        <CommandEmpty>Nenhuma filial encontrada.</CommandEmpty>
-        <CommandGroup>
-          {branches.map((branch) => (
-            <CommandItem
-              value={branch.nome}
-              key={branch.id}
-              onSelect={() => {
-                registerForm.setValue('branchId', branch.id);
-                setOpen(false);
-              }}
-            >
-              {branch.nome} - {branch.cidade}
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      </Command>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-olimpics-background">
       <div className="container mx-auto p-6">
@@ -426,39 +364,40 @@ const Login = () => {
                       control={registerForm.control}
                       name="branchId"
                       render={({ field }) => (
-                        <FormItem className="flex flex-col">
+                        <FormItem>
                           <FormLabel>Filial</FormLabel>
-                          <Popover open={open} onOpenChange={setOpen}>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button
-                                  variant="outline"
-                                  role="combobox"
-                                  aria-expanded={open}
-                                  className={cn(
-                                    "w-full justify-between",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                  disabled={isLoadingBranches}
-                                >
-                                  {isLoadingBranches ? (
-                                    <div className="flex items-center">
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      Carregando filiais...
-                                    </div>
-                                  ) : field.value ? (
-                                    branches.find((branch) => branch.id === field.value)?.nome
-                                  ) : (
-                                    "Selecione uma filial"
-                                  )}
-                                  <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-full p-0">
-                              {renderCommandMenu()}
-                            </PopoverContent>
-                          </Popover>
+                          <Select
+                            disabled={isLoadingBranches}
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder={
+                                  isLoadingBranches 
+                                    ? "Carregando filiais..." 
+                                    : "Selecione uma filial"
+                                } />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {branchesError ? (
+                                <div className="p-2 text-center text-red-500">
+                                  Erro ao carregar filiais
+                                </div>
+                              ) : branches.length === 0 ? (
+                                <div className="p-2 text-center">
+                                  Nenhuma filial disponível
+                                </div>
+                              ) : (
+                                branches.map((branch) => (
+                                  <SelectItem key={branch.id} value={branch.id}>
+                                    {branch.nome} - {branch.cidade}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -608,8 +547,7 @@ const Login = () => {
                       <p className="text-olimpics-text mt-2 italic">
                         "Ó minha alma, não aspire à vida imortal, mas esgote o campo do possível."
                       </p>
-                      <p className="text-sm text-gray-600 mt-1">— Píndaro, Píticas III</p>
-                      <p className="text-xs text-gray-500 mt-1">(Não filósofo, mas poeta dos Jogos Olímpicos)</p>
+                      <p className="text-sm text-gray-600 mt-1">(Não filósofo, mas poeta dos Jogos Olímpicos)</p>
                     </div>
                   </div>
                 </CardContent>
