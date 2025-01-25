@@ -11,9 +11,7 @@ interface PendingUser {
   nome_completo: string;
   email: string;
   telefone: string;
-  filial: {
-    nome: string;
-  };
+  filial_nome: string;
   papeis: string[];
 }
 
@@ -21,6 +19,7 @@ export default function OrganizerDashboard() {
   const { data: pendingUsers, isLoading, refetch } = useQuery({
     queryKey: ['pending-users'],
     queryFn: async () => {
+      console.log('Fetching pending users...');
       const { data, error } = await supabase
         .from('view_usuarios_pendentes')
         .select(`
@@ -28,9 +27,7 @@ export default function OrganizerDashboard() {
           nome_completo,
           email,
           telefone,
-          filial:filial_id (
-            nome
-          ),
+          filial_nome,
           papeis
         `);
 
@@ -39,18 +36,14 @@ export default function OrganizerDashboard() {
         throw error;
       }
 
-      // Log the data to see its structure
       console.log('Fetched pending users:', data);
 
-      // Ensure the data matches the PendingUser interface
       return (data as any[]).map(user => ({
         id: user.id,
         nome_completo: user.nome_completo,
         email: user.email,
         telefone: user.telefone,
-        filial: {
-          nome: user.filial?.nome || 'N/A'
-        },
+        filial_nome: user.filial_nome || 'N/A',
         papeis: user.papeis || []
       })) as PendingUser[];
     },
@@ -118,7 +111,7 @@ export default function OrganizerDashboard() {
                           Telefone: {user.telefone}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Filial: {user.filial?.nome}
+                          Filial: {user.filial_nome}
                         </p>
                         <div className="flex gap-2">
                           {user.papeis?.map((role, index) => (
