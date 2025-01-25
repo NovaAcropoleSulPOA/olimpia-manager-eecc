@@ -34,9 +34,7 @@ const registerSchema = z.object({
   telefone: z.string().min(14, 'Telefone inválido').max(15),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
-  branchId: z.string({
-    required_error: "Selecione uma filial",
-  }),
+  branchId: z.string().uuid('Filial inválida').min(1, 'Selecione uma filial'),
   tipo_documento: z.enum(['CPF', 'RG'], {
     required_error: "Selecione o tipo de documento",
   }),
@@ -48,10 +46,8 @@ const registerSchema = z.object({
       return clean.length >= 9;
     }, 'Documento inválido')
     .refine((val) => {
-      // Get the tipo_documento value from the form context
       const clean = val.replace(/\D/g, '');
-      // Only validate CPF if the document type is CPF
-      if (clean.length !== 11) return true; // Skip validation for non-CPF lengths
+      if (clean.length !== 11) return true;
       return validateCPF(clean);
     }, 'CPF inválido'),
   genero: z.enum(['Masculino', 'Feminino', 'Prefiro não informar'], {
