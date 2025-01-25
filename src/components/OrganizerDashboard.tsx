@@ -26,6 +26,10 @@ const COLORS = [
   "#FF5722",
 ];
 
+interface ModalidadePopular {
+  [key: string]: number;
+}
+
 const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
   const totalAthletes = branchAnalytics?.reduce((acc, branch) => acc + branch.total_inscritos, 0) || 0;
   const totalRevenue = branchAnalytics?.reduce((acc, branch) => acc + branch.valor_total_arrecadado, 0) || 0;
@@ -40,12 +44,13 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
     Recusadas: branch.inscricoes_recusadas,
   }));
 
-  const popularModalitiesData = branchAnalytics?.flatMap(branch => 
-    Object.entries(branch.modalidades_populares).map(([modalidade, count]) => ({
+  const popularModalitiesData = branchAnalytics?.flatMap(branch => {
+    const modalidades = branch.modalidades_populares as ModalidadePopular;
+    return Object.entries(modalidades).map(([modalidade, count]) => ({
       name: modalidade,
-      value: count,
-    }))
-  ).reduce((acc, curr) => {
+      value: count as number,
+    }));
+  }).reduce((acc, curr) => {
     const existing = acc.find(item => item.name === curr.name);
     if (existing) {
       existing.value += curr.value;
