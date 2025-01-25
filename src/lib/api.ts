@@ -259,7 +259,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       .select(`
         status,
         modalidade_id,
-        modalidades (
+        modalidades:modalidades (
           nome
         )
       `)
@@ -269,6 +269,17 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       console.error('Error fetching modality registrations:', modalityError);
       return null;
     }
+
+    // Type assertion for modalityRegistrations
+    type ModalityData = {
+      status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
+      modalidade_id: number;
+      modalidades: {
+        nome: string;
+      };
+    };
+
+    const typedModalityRegistrations = modalityRegistrations as ModalityData[];
 
     // Fetch payment status
     const { data: payments, error: paymentError } = await supabase
@@ -293,9 +304,12 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       return null;
     }
 
-    // Process modality registrations
-    const modalityNames = modalityRegistrations?.map(reg => reg.modalidades?.nome).filter(Boolean) || [];
-    const registrationStatus = modalityRegistrations?.[0]?.status as 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada' || 'Pendente';
+    // Process modality registrations with proper type checking
+    const modalityNames = typedModalityRegistrations
+      ? typedModalityRegistrations.map(reg => reg.modalidades?.nome).filter(Boolean)
+      : [];
+    
+    const registrationStatus = typedModalityRegistrations?.[0]?.status || 'Pendente';
     const paymentStatus = (payments?.[0]?.status || 'pendente') as 'pendente' | 'confirmado' | 'cancelado';
     const totalPoints = scores?.reduce((sum, score) => sum + (score.pontuacao || 0), 0) || 0;
 
