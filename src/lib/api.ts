@@ -311,7 +311,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       .select(`
         status,
         modalidade_id,
-        modalidades:modalidades (
+        modalidades (
           nome
         )
       `)
@@ -330,10 +330,13 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       .select('pontuacao')
       .eq('atleta_id', user.id);
 
+    // Type assertion to handle the Supabase response type
+    const typedModalityRegistrations = modalityRegistrations as unknown as ModalityRegistration[];
+    
     // Safely transform the modalityRegistrations with proper type checking
-    const modalidades = (modalityRegistrations || []).map((reg: ModalityRegistration) => {
-      return reg.modalidades?.nome || '';
-    }).filter(Boolean);
+    const modalidades = (typedModalityRegistrations || [])
+      .map(reg => reg.modalidades?.nome || '')
+      .filter(Boolean);
 
     console.log('Transformed modalidades:', modalidades);
 
@@ -344,7 +347,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       telefone: user.telefone,
       filial: user.filiais?.nome || 'N/A',
       modalidades,
-      status_inscricao: modalityRegistrations?.[0]?.status || 'Pendente',
+      status_inscricao: typedModalityRegistrations?.[0]?.status || 'Pendente',
       status_pagamento: payments?.[0]?.status || 'pendente',
       pontos_totais: scores?.reduce((sum, score) => sum + (score.pontuacao || 0), 0) || 0
     };
