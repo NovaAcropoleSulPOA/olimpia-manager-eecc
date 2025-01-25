@@ -79,7 +79,7 @@ export interface AthleteRegistration {
 export interface ModalityData {
   status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
   modalidade_id: number;
-  modalidade: {
+  modalidades: {
     nome: string;
   };
 }
@@ -264,7 +264,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       .select(`
         status,
         modalidade_id,
-        modalidade:modalidades (
+        modalidades (
           nome
         )
       `)
@@ -277,7 +277,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     console.log('Raw modality registrations:', modalityRegistrations);
 
-    const typedModalityRegistrations = modalityRegistrations as ModalityData[];
+    const typedModalityRegistrations = modalityRegistrations as unknown as ModalityData[];
     console.log('Typed modality registrations:', typedModalityRegistrations);
 
     const { data: payments, error: paymentError } = await supabase
@@ -293,7 +293,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     const { data: scores, error: scoresError } = await supabase
       .from('pontuacoes')
-      .select('valor')
+      .select('pontuacao')
       .eq('atleta_id', user.id);
 
     if (scoresError) {
@@ -302,12 +302,12 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     }
 
     const modalityNames = typedModalityRegistrations
-      ? typedModalityRegistrations.map(reg => reg.modalidade.nome).filter(Boolean)
+      ? typedModalityRegistrations.map(reg => reg.modalidades.nome).filter(Boolean)
       : [];
     
     const registrationStatus = typedModalityRegistrations?.[0]?.status || 'Pendente';
     const paymentStatus = (payments?.[0]?.status || 'pendente') as 'pendente' | 'confirmado' | 'cancelado';
-    const totalPoints = scores?.reduce((sum, score) => sum + (score.valor || 0), 0) || 0;
+    const totalPoints = scores?.reduce((sum, score) => sum + (score.pontuacao || 0), 0) || 0;
 
     return {
       id: user.id,
