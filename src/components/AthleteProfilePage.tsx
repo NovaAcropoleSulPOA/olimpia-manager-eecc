@@ -196,13 +196,10 @@ export default function AthleteProfilePage() {
 
       // If the registration was pending or confirmed, decrement vagas_ocupadas
       if (registration?.status === 'pendente' || registration?.status === 'confirmado') {
-        const { error: updateError } = await supabase
-          .from('modalidades')
-          .update({ 
-            vagas_ocupadas: supabase.sql`vagas_ocupadas - 1` 
-          })
-          .eq('id', modalityId)
-          .gt('vagas_ocupadas', 0);
+        const { error: updateError } = await supabase.rpc(
+          'decrement_vagas_ocupadas',
+          { modality_id: modalityId }
+        );
 
         if (updateError) throw updateError;
       }
@@ -257,14 +254,11 @@ export default function AthleteProfilePage() {
       
       if (insertError) throw insertError;
 
-      // Increment vagas_ocupadas
-      const { error: updateError } = await supabase
-        .from('modalidades')
-        .update({ 
-          vagas_ocupadas: supabase.sql`vagas_ocupadas + 1` 
-        })
-        .eq('id', modalityId)
-        .lt('vagas_ocupadas', supabase.sql`limite_vagas`);
+      // Increment vagas_ocupadas using RPC
+      const { error: updateError } = await supabase.rpc(
+        'increment_vagas_ocupadas',
+        { modality_id: modalityId }
+      );
       
       if (updateError) throw updateError;
     },
