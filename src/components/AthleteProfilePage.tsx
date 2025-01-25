@@ -219,29 +219,29 @@ export default function AthleteProfilePage() {
         reg => reg.modalidade_id === modalityId
       );
 
+      if (!registration) {
+        throw new Error('Registration not found');
+      }
+
       // If the registration was pending or confirmed, decrement vagas_ocupadas
-      if (registration?.status === 'pendente' || registration?.status === 'confirmado') {
+      if (registration.status === 'pendente' || registration.status === 'confirmado') {
         const { data: modalityData, error: fetchError } = await supabase
           .from('modalidades')
           .select('vagas_ocupadas')
           .eq('id', modalityId)
-          .maybeSingle();
+          .single();
 
         if (fetchError) {
           console.error('Error fetching modality:', fetchError);
           throw new Error('Failed to fetch modality data');
         }
 
-        if (!modalityData) {
-          console.error('Modality not found:', modalityId);
-          throw new Error('Modality not found');
-        }
-
         if (modalityData.vagas_ocupadas > 0) {
           const { error: updateError } = await supabase
             .from('modalidades')
             .update({ 
-              vagas_ocupadas: modalityData.vagas_ocupadas - 1
+              vagas_ocupadas: modalityData.vagas_ocupadas - 1,
+              status: modalityData.vagas_ocupadas - 1 < modalityData.limite_vagas ? 'Ativa' : 'Esgotada'
             })
             .eq('id', modalityId);
 
@@ -252,13 +252,17 @@ export default function AthleteProfilePage() {
         }
       }
       
-      const { error } = await supabase
+      // Delete the registration
+      const { error: deleteError } = await supabase
         .from('inscricoes_modalidades')
         .delete()
         .eq('modalidade_id', modalityId)
         .eq('atleta_id', user.id);
       
-      if (error) throw error;
+      if (deleteError) {
+        console.error('Error deleting registration:', deleteError);
+        throw deleteError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['athlete-modalities'] });
