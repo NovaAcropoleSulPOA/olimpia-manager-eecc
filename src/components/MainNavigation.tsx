@@ -10,11 +10,13 @@ import {
   SidebarHeader,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel
+  SidebarGroupLabel,
+  SidebarTrigger
 } from './ui/sidebar';
-import { Home, User, Medal, Users, Award, BarChart3, LogOut } from 'lucide-react';
+import { Home, User, Medal, Users, Award, BarChart3, LogOut, Menu } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { Button } from './ui/button';
 
 export function MainNavigation() {
   const { user, signOut } = useAuth();
@@ -95,11 +97,14 @@ export function MainNavigation() {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full">
         <Sidebar className="bg-olimpics-green-primary text-white transition-all duration-300">
-          <SidebarHeader className="p-6 border-b border-olimpics-green-secondary">
+          <SidebarHeader className="relative p-6 border-b border-olimpics-green-secondary">
             <h2 className="text-xl font-bold text-center">Olimpíadas</h2>
+            <SidebarTrigger className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden text-white hover:text-olimpics-green-secondary">
+              <Menu className="h-6 w-6" />
+            </SidebarTrigger>
           </SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
