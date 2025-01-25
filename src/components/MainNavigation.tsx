@@ -56,16 +56,17 @@ export function MainNavigation() {
 
   const handleLogout = async () => {
     try {
+      console.log('Initiating logout process...');
       await signOut();
+      console.log('User signed out successfully');
       toast.success('Logout realizado com sucesso!');
-      navigate('/login');
+      navigate('/');
     } catch (error) {
       console.error('Error during logout:', error);
       toast.error('Erro ao fazer logout');
     }
   };
 
-  // Filter menu items based on user roles
   const userRoles = user?.papeis || [];
   console.log('User roles:', userRoles);
   
@@ -78,25 +79,34 @@ export function MainNavigation() {
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <Sidebar className="bg-olimpics-green-primary text-white transition-all duration-300">
-          <SidebarHeader className="p-4">
-            <h2 className="text-lg font-bold">Olimpíadas</h2>
+          <SidebarHeader className="p-6 border-b border-olimpics-green-secondary">
+            <h2 className="text-xl font-bold text-center">Olimpíadas</h2>
           </SidebarHeader>
           <SidebarContent>
             <SidebarGroup>
-              <SidebarGroupLabel>Navegação</SidebarGroupLabel>
+              <SidebarGroupLabel className="text-center px-4 py-2 text-sm font-medium uppercase tracking-wider text-white/70">
+                Navegação
+              </SidebarGroupLabel>
               <SidebarGroupContent>
-                <SidebarMenu>
+                <SidebarMenu className="px-3">
                   {filteredMenuItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
+                    <SidebarMenuItem key={item.title} className="my-1">
                       <SidebarMenuButton
                         asChild
                         isActive={location.pathname === item.path}
                         tooltip={item.title}
-                        className="transition-colors duration-200 hover:bg-olimpics-green-secondary"
+                        className={`
+                          w-full rounded-lg transition-all duration-200
+                          hover:bg-olimpics-green-secondary
+                          ${location.pathname === item.path 
+                            ? 'bg-olimpics-green-secondary shadow-lg' 
+                            : 'hover:shadow-md'
+                          }
+                        `}
                       >
-                        <Link to={item.path} className="flex items-center gap-2 p-2">
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.title}</span>
+                        <Link to={item.path} className="flex items-center gap-3 p-3 justify-center">
+                          <item.icon className="h-5 w-5" />
+                          <span className="font-medium">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -105,16 +115,18 @@ export function MainNavigation() {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
-          <SidebarFooter className="mt-auto">
+          <SidebarFooter className="mt-auto border-t border-olimpics-green-secondary p-4">
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={handleLogout}
-                  className="text-red-300 hover:text-red-100 transition-colors duration-200"
+                  className="w-full rounded-lg p-3 flex items-center justify-center gap-3 
+                    text-red-300 hover:text-red-100 hover:bg-red-500/20 
+                    transition-all duration-200"
                   tooltip="Sair"
                 >
-                  <LogOut className="h-4 w-4" />
-                  <span>Sair</span>
+                  <LogOut className="h-5 w-5" />
+                  <span className="font-medium">Sair</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
