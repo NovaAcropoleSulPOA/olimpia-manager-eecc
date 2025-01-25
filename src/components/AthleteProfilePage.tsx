@@ -50,6 +50,8 @@ interface Modality {
   status: 'pendente' | 'confirmado' | 'rejeitado' | 'cancelado';
   data_inscricao: string;
   categoria: 'misto' | 'masculino' | 'feminino';
+  vagas_ocupadas: number;
+  limite_vagas: number;
 }
 
 const getPaymentStatusColor = (status: string) => {
@@ -112,7 +114,7 @@ export default function AthleteProfilePage() {
     enabled: !!user?.id,
   });
 
-  // Fetch all available modalities with category filtering
+  // Fetch all available modalities with category filtering and vacancy information
   const { data: allModalities, isLoading: modalitiesLoading } = useQuery({
     queryKey: ['modalities'],
     queryFn: async () => {
@@ -127,7 +129,9 @@ export default function AthleteProfilePage() {
       }
       
       console.log('Fetched modalities:', data);
-      return data;
+      return data.filter(modality => 
+        modality.vagas_ocupadas < modality.limite_vagas
+      );
     }
   });
 
@@ -153,6 +157,17 @@ export default function AthleteProfilePage() {
     enabled: !!user?.id,
   });
 
+  // Calculate registration statistics
+  const registrationStats = React.useMemo(() => {
+    if (!registeredModalities) return { total: 0, confirmed: 0, pending: 0, canceled: 0, rejected: 0 };
+    
+    return registeredModalities.reduce((acc, reg) => {
+      acc.total++;
+      acc[reg.status.toLowerCase()]++;
+      return acc;
+    }, { total: 0, confirmed: 0, pending: 0, canceled: 0, rejected: 0 });
+  }, [registeredModalities]);
+
   // Filter modalities based on athlete's gender
   const filteredModalities = React.useMemo(() => {
     if (!allModalities || !profile) return [];
@@ -169,30 +184,28 @@ export default function AthleteProfilePage() {
     );
   }, [allModalities, profile]);
 
-  // Sort modalities by status
-  const sortModalities = (modalities: any[]) => {
-    const statusOrder = {
-      'confirmado': 0,
-      'pendente': 1,
-      'rejeitado': 2,
-      'cancelado': 3,
-      'não inscrito': 4
-    };
-
-    return [...modalities].sort((a, b) => {
-      const regA = registeredModalities?.find(reg => reg.modalidade_id === a.id);
-      const regB = registeredModalities?.find(reg => reg.modalidade_id === b.id);
-      const statusA = regA?.status || 'não inscrito';
-      const statusB = regB?.status || 'não inscrito';
-      return statusOrder[statusA] - statusOrder[statusB];
-    });
-  };
-
   // Mutation for withdrawing from a modality
   const withdrawMutation = useMutation({
     mutationFn: async (modalityId: number) => {
       console.log('Withdrawing from modality:', modalityId);
       if (!user?.id) throw new Error('User not authenticated');
+      
+      const registration = registeredModalities?.find(
+        reg => reg.modalidade_id === modalityId
+      );
+
+      // If the registration was pending or confirmed, decrement vagas_ocupadas
+      if (registration?.status === 'pendente' || registration?.status === 'confirmado') {
+        const { error: updateError } = await supabase
+          .from('modalidades')
+          .update({ 
+            vagas_ocupadas: supabase.sql`vagas_ocupadas - 1` 
+          })
+          .eq('id', modalityId)
+          .gt('vagas_ocupadas', 0);
+
+        if (updateError) throw updateError;
+      }
       
       const { error } = await supabase
         .from('inscricoes_modalidades')
@@ -204,6 +217,7 @@ export default function AthleteProfilePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['athlete-modalities'] });
+      queryClient.invalidateQueries({ queryKey: ['modalities'] });
       toast({
         title: "Desistência confirmada",
         description: "Você desistiu da modalidade com sucesso.",
@@ -225,7 +239,14 @@ export default function AthleteProfilePage() {
     mutationFn: async (modalityId: number) => {
       if (!user?.id) throw new Error('User not authenticated');
       
-      const { error } = await supabase
+      // Check if there are available spots
+      const modality = allModalities?.find(m => m.id === modalityId);
+      if (!modality || modality.vagas_ocupadas >= modality.limite_vagas) {
+        throw new Error('No available spots');
+      }
+
+      // Start a transaction
+      const { error: insertError } = await supabase
         .from('inscricoes_modalidades')
         .insert([{
           atleta_id: user.id,
@@ -234,10 +255,22 @@ export default function AthleteProfilePage() {
           data_inscricao: new Date().toISOString()
         }]);
       
-      if (error) throw error;
+      if (insertError) throw insertError;
+
+      // Increment vagas_ocupadas
+      const { error: updateError } = await supabase
+        .from('modalidades')
+        .update({ 
+          vagas_ocupadas: supabase.sql`vagas_ocupadas + 1` 
+        })
+        .eq('id', modalityId)
+        .lt('vagas_ocupadas', supabase.sql`limite_vagas`);
+      
+      if (updateError) throw updateError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['athlete-modalities'] });
+      queryClient.invalidateQueries({ queryKey: ['modalities'] });
       toast({
         title: "Inscrição realizada",
         description: "Você se inscreveu na modalidade com sucesso.",
@@ -248,7 +281,9 @@ export default function AthleteProfilePage() {
       console.error('Error registering for modality:', error);
       toast({
         title: "Erro na inscrição",
-        description: "Não foi possível processar sua inscrição. Tente novamente.",
+        description: error.message === 'No available spots' 
+          ? "Não há vagas disponíveis nesta modalidade."
+          : "Não foi possível processar sua inscrição. Tente novamente.",
         variant: "destructive",
       });
     },
@@ -369,9 +404,17 @@ export default function AthleteProfilePage() {
       {/* Modalities Table */}
       <Card>
         <CardContent className="p-6">
-          <h3 className="text-lg font-semibold mb-4 text-olimpics-green-primary">
-            Modalidades Disponíveis
-          </h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-olimpics-green-primary">
+              Modalidades Disponíveis
+            </h3>
+            <div className="text-sm text-muted-foreground">
+              Total: {registrationStats.total} (
+              {registrationStats.confirmed} Confirmadas | 
+              {registrationStats.pending} Pendentes | 
+              {registrationStats.canceled + registrationStats.rejected} Canceladas/Rejeitadas)
+            </div>
+          </div>
           
           <Tabs defaultValue="todos" className="w-full">
             <TabsList className="mb-4">
@@ -392,12 +435,13 @@ export default function AthleteProfilePage() {
                     <TableRow>
                       <TableHead>Modalidade</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Vagas</TableHead>
                       <TableHead>Data de Inscrição</TableHead>
                       <TableHead>Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sortModalities(filteredModalities)
+                    {filteredModalities
                       .filter(modality => 
                         category === 'todos' || 
                         modality.categoria?.toLowerCase() === category
@@ -406,6 +450,8 @@ export default function AthleteProfilePage() {
                         const registration = registeredModalities?.find(
                           reg => reg.modalidade_id === modality.id
                         );
+                        
+                        const availableSpots = modality.limite_vagas - modality.vagas_ocupadas;
                         
                         return (
                           <TableRow key={modality.id}>
@@ -419,6 +465,9 @@ export default function AthleteProfilePage() {
                               ) : (
                                 <span className="text-gray-500">Não inscrito</span>
                               )}
+                            </TableCell>
+                            <TableCell>
+                              {availableSpots} disponíveis
                             </TableCell>
                             <TableCell>
                               {registration?.data_inscricao ? 
@@ -448,7 +497,7 @@ export default function AthleteProfilePage() {
                                 <Button
                                   variant="default"
                                   size="sm"
-                                  disabled={registerMutation.isPending}
+                                  disabled={registerMutation.isPending || availableSpots <= 0}
                                   onClick={() => registerMutation.mutate(modality.id)}
                                 >
                                   {registerMutation.isPending ? (
