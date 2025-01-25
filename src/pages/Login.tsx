@@ -244,6 +244,57 @@ const Login = () => {
     }
   };
 
+  const renderCommandMenu = () => {
+    if (isLoadingBranches) {
+      return (
+        <div className="p-4 text-center">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
+          Carregando...
+        </div>
+      );
+    }
+
+    if (branchesError) {
+      return (
+        <div className="p-4 text-center text-red-500">
+          Erro ao carregar filiais. Tente novamente.
+        </div>
+      );
+    }
+
+    if (!branches || branches.length === 0) {
+      return (
+        <div className="p-4 text-center">
+          Nenhuma filial disponível.
+        </div>
+      );
+    }
+
+    return (
+      <Command>
+        <CommandInput
+          placeholder="Procurar filial..."
+          className="h-9"
+        />
+        <CommandEmpty>Nenhuma filial encontrada.</CommandEmpty>
+        <CommandGroup>
+          {branches.map((branch) => (
+            <CommandItem
+              value={branch.nome}
+              key={branch.id}
+              onSelect={() => {
+                registerForm.setValue('branchId', branch.id);
+                setOpen(false);
+              }}
+            >
+              {branch.nome} - {branch.cidade}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      </Command>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-olimpics-background">
       <div className="container mx-auto p-6">
@@ -405,42 +456,7 @@ const Login = () => {
                               </FormControl>
                             </PopoverTrigger>
                             <PopoverContent className="w-full p-0">
-                              {isLoadingBranches ? (
-                                <div className="p-4 text-center">
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
-                                  Carregando...
-                                </div>
-                              ) : branchesError ? (
-                                <div className="p-4 text-center text-red-500">
-                                  Erro ao carregar filiais. Tente novamente.
-                                </div>
-                              ) : branches && branches.length > 0 ? (
-                                <Command>
-                                  <CommandInput
-                                    placeholder="Procurar filial..."
-                                    className="h-9"
-                                  />
-                                  <CommandEmpty>Nenhuma filial encontrada.</CommandEmpty>
-                                  <CommandGroup>
-                                    {branches.map((branch) => (
-                                      <CommandItem
-                                        value={branch.nome}
-                                        key={branch.id}
-                                        onSelect={() => {
-                                          field.onChange(branch.id);
-                                          setOpen(false);
-                                        }}
-                                      >
-                                        {branch.nome} - {branch.cidade}
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                </Command>
-                              ) : (
-                                <div className="p-4 text-center">
-                                  Nenhuma filial disponível.
-                                </div>
-                              )}
+                              {renderCommandMenu()}
                             </PopoverContent>
                           </Popover>
                           <FormMessage />
