@@ -157,7 +157,7 @@ export default function AthleteProfilePage() {
     enabled: !!user?.id,
   });
 
-  // Calculate registration statistics
+  // Calculate registration statistics with better organization
   const registrationStats = React.useMemo(() => {
     if (!registeredModalities) return { total: 0, confirmed: 0, pending: 0, canceled: 0, rejected: 0 };
     
@@ -168,7 +168,7 @@ export default function AthleteProfilePage() {
     }, { total: 0, confirmed: 0, pending: 0, canceled: 0, rejected: 0 });
   }, [registeredModalities]);
 
-  // Filter modalities based on athlete's gender
+  // Filter modalities based on athlete's gender and available spots
   const filteredModalities = React.useMemo(() => {
     if (!allModalities || !profile) return [];
     
@@ -180,7 +180,8 @@ export default function AthleteProfilePage() {
     }
     
     return allModalities.filter(modality => 
-      allowedCategories.includes(modality.categoria?.toLowerCase())
+      allowedCategories.includes(modality.categoria?.toLowerCase()) &&
+      modality.vagas_ocupadas < modality.limite_vagas
     );
   }, [allModalities, profile]);
 
@@ -395,55 +396,87 @@ export default function AthleteProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Modalities Table */}
       <Card>
         <CardContent className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-olimpics-green-primary">
-              Modalidades Disponíveis
-            </h3>
-            <div className="text-sm text-muted-foreground">
-              Total: {registrationStats.total} (
-              {registrationStats.confirmed} Confirmadas | 
-              {registrationStats.pending} Pendentes | 
-              {registrationStats.canceled + registrationStats.rejected} Canceladas/Rejeitadas)
+          <div className="flex flex-col space-y-4">
+            {/* Registration Statistics */}
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-olimpics-green-primary" />
+                  <span className="text-xl font-bold text-olimpics-green-primary">
+                    Total: {registrationStats.total}
+                  </span>
+                </div>
+                <div className="flex flex-wrap justify-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <span className="font-semibold text-green-600">
+                      {registrationStats.confirmed} Confirmadas
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-yellow-600" />
+                    <span className="font-semibold text-yellow-600">
+                      {registrationStats.pending} Pendentes
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <XCircle className="h-5 w-5 text-red-600" />
+                    <span className="font-semibold text-red-600">
+                      {registrationStats.canceled + registrationStats.rejected} Canceladas/Rejeitadas
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          
-          <Tabs defaultValue="todos" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="todos">Todas</TabsTrigger>
-              {profile?.genero?.toLowerCase() !== 'feminino' && (
-                <TabsTrigger value="masculino">Masculino</TabsTrigger>
-              )}
-              {profile?.genero?.toLowerCase() !== 'masculino' && (
-                <TabsTrigger value="feminino">Feminino</TabsTrigger>
-              )}
-              <TabsTrigger value="misto">Misto</TabsTrigger>
-            </TabsList>
 
-            {['todos', 'masculino', 'feminino', 'misto'].map((category) => (
-              <TabsContent key={category} value={category}>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Modalidade</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Vagas</TableHead>
-                      <TableHead>Data de Inscrição</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredModalities
-                      .filter(modality => 
-                        category === 'todos' || 
-                        modality.categoria?.toLowerCase() === category
-                      )
-                      .map((modality) => {
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-olimpics-green-primary">
+                Modalidades Disponíveis
+              </h3>
+            </div>
+            
+            <Tabs defaultValue="todos" className="w-full">
+              <TabsList className="mb-4">
+                <TabsTrigger value="todos">Minhas Inscrições</TabsTrigger>
+                {profile?.genero?.toLowerCase() !== 'feminino' && (
+                  <TabsTrigger value="masculino">Masculino</TabsTrigger>
+                )}
+                {profile?.genero?.toLowerCase() !== 'masculino' && (
+                  <TabsTrigger value="feminino">Feminino</TabsTrigger>
+                )}
+                <TabsTrigger value="misto">Misto</TabsTrigger>
+              </TabsList>
+
+              {['todos', 'masculino', 'feminino', 'misto'].map((category) => (
+                <TabsContent key={category} value={category}>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Modalidade</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Vagas</TableHead>
+                        <TableHead>Data de Inscrição</TableHead>
+                        <TableHead>Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(category === 'todos' 
+                        ? registeredModalities || []
+                        : filteredModalities.filter(modality => 
+                            modality.categoria?.toLowerCase() === category
+                          )
+                      ).map((item) => {
+                        const modality = category === 'todos'
+                          ? allModalities?.find(m => m.id === item.modalidade_id)
+                          : item;
+                        
                         const registration = registeredModalities?.find(
-                          reg => reg.modalidade_id === modality.id
+                          reg => reg.modalidade_id === (category === 'todos' ? item.modalidade_id : item.id)
                         );
+                        
+                        if (!modality) return null;
                         
                         const availableSpots = modality.limite_vagas - modality.vagas_ocupadas;
                         
@@ -461,7 +494,9 @@ export default function AthleteProfilePage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              {availableSpots} disponíveis
+                              <span className={availableSpots === 0 ? "text-red-500" : "text-green-600"}>
+                                {availableSpots} disponíveis
+                              </span>
                             </TableCell>
                             <TableCell>
                               {registration?.data_inscricao ? 
@@ -511,16 +546,17 @@ export default function AthleteProfilePage() {
                           </TableRow>
                         );
                       })}
-                  </TableBody>
-                </Table>
-                {(modalitiesLoading || registrationsLoading) && (
-                  <div className="flex items-center justify-center p-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-olimpics-green-primary" />
-                  </div>
-                )}
-              </TabsContent>
-            ))}
-          </Tabs>
+                    </TableBody>
+                  </Table>
+                  {(modalitiesLoading || registrationsLoading) && (
+                    <div className="flex items-center justify-center p-4">
+                      <Loader2 className="h-8 w-8 animate-spin text-olimpics-green-primary" />
+                    </div>
+                  )}
+                </TabsContent>
+              ))}
+            </Tabs>
+          </div>
         </CardContent>
       </Card>
     </div>
