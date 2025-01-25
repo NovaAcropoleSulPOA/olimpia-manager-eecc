@@ -285,19 +285,21 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       nome_completo,
       email,
       telefone,
-      filiais (
+      filial_id,
+      filiais!inner (
         nome
       ),
-      inscricoes_modalidades (
+      inscricoes_modalidades!left (
         status,
-        modalidades (
+        modalidade_id,
+        modalidades!inner (
           nome
         )
       ),
-      pagamentos (
+      pagamentos!left (
         status
       ),
-      pontuacoes (
+      pontuacoes!left (
         pontos
       )
     `)
