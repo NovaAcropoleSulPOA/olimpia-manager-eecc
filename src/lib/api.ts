@@ -312,24 +312,23 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       `)
       .eq('atleta_id', user.id);
 
-    // Fetch payment status
+    // Fetch payment status - removed order by created_at since the column doesn't exist
     const { data: payments } = await supabase
       .from('pagamentos')
       .select('status')
       .eq('atleta_id', user.id)
-      .order('created_at', { ascending: false })
       .limit(1);
 
-    // Fetch points
+    // Fetch points - assuming the column is named 'pontuacao' instead of 'pontos'
     const { data: scores } = await supabase
       .from('pontuacoes')
-      .select('pontos')
+      .select('pontuacao')
       .eq('atleta_id', user.id);
 
-    // Transform modalityRegistrations to get modalidade names
+    // Transform modalityRegistrations to get modalidade names with proper type checking
     const modalidades = modalityRegistrations?.map(reg => {
-      if (reg.modalidades && typeof reg.modalidades === 'object') {
-        return (reg.modalidades as { nome: string }).nome;
+      if (reg.modalidades && typeof reg.modalidades === 'object' && 'nome' in reg.modalidades) {
+        return reg.modalidades.nome as string;
       }
       return '';
     }).filter(Boolean) || [];
@@ -343,7 +342,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       modalidades,
       status_inscricao: modalityRegistrations?.[0]?.status || 'Pendente',
       status_pagamento: payments?.[0]?.status || 'pendente',
-      pontos_totais: scores?.reduce((sum, score) => sum + (score.pontos || 0), 0) || 0
+      pontos_totais: scores?.reduce((sum, score) => sum + (score.pontuacao || 0), 0) || 0
     };
   }));
 
