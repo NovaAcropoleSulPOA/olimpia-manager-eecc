@@ -279,11 +279,11 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     const typedModalityRegistrations = modalityRegistrations as unknown as ModalityRegistration[];
     
     // Safely transform the modalidades with proper type checking
-    const modalidades = typedModalityRegistrations?.map(reg => reg.modalidades?.nome || '').filter(Boolean);
+    const modalidades = typedModalityRegistrations?.map(reg => reg.modalidades.nome).filter(Boolean);
 
     console.log('Transformed modalidades:', modalidades);
 
-    const status_inscricao = typedModalityRegistrations?.[0]?.status || 'Pendente';
+    const status_inscricao = (typedModalityRegistrations?.[0]?.status || 'Pendente') as 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
     const status_pagamento = payments?.[0]?.status as 'pendente' | 'confirmado' | 'cancelado' || 'pendente';
 
     return {
@@ -292,7 +292,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       email: user.email,
       telefone: user.telefone,
       filial: user.filiais?.nome || 'N/A',
-      modalidades,
+      modalidades: modalidades || [],
       status_inscricao,
       status_pagamento,
       pontos_totais: scores?.reduce((sum, score) => sum + (score.pontuacao || 0), 0) || 0
