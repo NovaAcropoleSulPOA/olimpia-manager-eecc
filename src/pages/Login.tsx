@@ -28,7 +28,6 @@ const forgotPasswordSchema = z.object({
   email: z.string().email('Email inválido'),
 });
 
-// Move the registerSchema definition after all its dependencies
 const registerSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido'),
@@ -48,11 +47,12 @@ const registerSchema = z.object({
       const clean = val.replace(/\D/g, '');
       return clean.length >= 9;
     }, 'Documento inválido')
-    .refine((val, ctx) => {
-      if (ctx.parent.tipo_documento === 'CPF') {
-        return validateCPF(val);
-      }
-      return true;
+    .refine((val) => {
+      // Get the tipo_documento value from the form context
+      const clean = val.replace(/\D/g, '');
+      // Only validate CPF if the document type is CPF
+      if (clean.length !== 11) return true; // Skip validation for non-CPF lengths
+      return validateCPF(clean);
     }, 'CPF inválido'),
   genero: z.enum(['Masculino', 'Feminino', 'Prefiro não informar'], {
     required_error: "Selecione o gênero",
