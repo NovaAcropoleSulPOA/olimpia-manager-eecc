@@ -38,6 +38,24 @@ export interface User {
   modalidades?: Modality[];
 }
 
+export interface BranchAnalytics {
+  filial_id: string;
+  filial: string;
+  cidade: string;
+  estado: string;
+  total_inscritos: number;
+  total_inscricoes: number;
+  inscricoes_pendentes: number;
+  inscricoes_confirmadas: number;
+  inscricoes_canceladas: number;
+  inscricoes_recusadas: number;
+  valor_total_arrecadado: number;
+  modalidades_ativas: number;
+  modalidades_populares: { [key: string]: number };
+  total_pontos: number;
+  media_pontuacao_atletas: number;
+}
+
 export const fetchModalities = async (): Promise<Modality[]> => {
   console.log('Fetching modalities from database');
   const { data, error } = await supabase
@@ -260,10 +278,8 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     // Type assertion to handle the Supabase response type
     const typedModalityRegistrations = modalityRegistrations as unknown as ModalityRegistration[];
     
-    // Safely transform the modalityRegistrations with proper type checking
-    const modalidades = (typedModalityRegistrations || [])
-      .map(reg => reg.modalidades?.nome || '')
-      .filter(Boolean);
+    // Safely transform the modalidades with proper type checking
+    const modalidades = typedModalityRegistrations?.map(reg => reg.modalidades?.nome || '').filter(Boolean);
 
     console.log('Transformed modalidades:', modalidades);
 
