@@ -33,22 +33,21 @@ interface AthleteProfile {
 export default function AthleteProfilePage() {
   const { user } = useAuth();
 
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading, error } = useQuery({
     queryKey: ['athlete-profile', user?.id],
     queryFn: async () => {
-      console.log('Fetching athlete profile for user:', user?.id);
-      
-      // Set the user ID in the app settings
-      await supabase.rpc('set_claim', {
-        claim: 'app.current_user_id',
-        value: user?.id
-      });
+      if (!user?.id) {
+        console.warn("User ID is missing, skipping API call.");
+        return null;
+      }
+
+      console.log('Fetching athlete profile for user:', user.id);
 
       const { data, error } = await supabase
         .from('view_perfil_atleta')
         .select('*')
-        .eq('atleta_id', user.id) // Passando o ID do usuário autenticado
-        .single();
+        .eq('atleta_id', user.id) // 🔥 Passando o ID do usuário autenticado corretamente
+        .maybeSingle(); // Retorna null se não encontrar o usuário
 
       if (error) {
         console.error('Error fetching athlete profile:', error);
@@ -56,15 +55,23 @@ export default function AthleteProfilePage() {
       }
 
       console.log('Fetched athlete profile:', data);
-      return data as AthleteProfile;
+      return data as AthleteProfile | null;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id, // Evita que a query rode sem um usuário logado
   });
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-red-500">Erro ao carregar perfil: {error.message}</p>
       </div>
     );
   }
@@ -76,6 +83,23 @@ export default function AthleteProfilePage() {
       </div>
     );
   }
+
+  return (
+    <div className="container mx-auto p-4">
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <h1 className="text-xl font-bold">{profile.nome_completo}</h1>
+        <p>Email: {profile.email}</p>
+        <p>Telefone: {profile.telefone}</p>
+        <p>
+          Filial: {profile.filial_nome} - {profile.filial_cidade}/{profile.filial_estado}
+        </p>
+        <p className={`font-semibold ${profile.pagamento_status === 'confirmado' ? 'text-green-600' : 'text-red-600'}`}>
+          Pagamento: {profile.pagamento_status} ({profile.pagamento_valor} BRL)
+        </p>
+      </div>
+    </div>
+  );
+}
 
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
