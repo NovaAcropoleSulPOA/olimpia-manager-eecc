@@ -28,7 +28,9 @@ export default function OrganizerDashboard() {
           nome_completo,
           email,
           telefone,
-          filial:filial_id (nome),
+          filial:filial_id (
+            nome
+          ),
           papeis
         `);
 
@@ -37,7 +39,20 @@ export default function OrganizerDashboard() {
         throw error;
       }
 
-      return data as PendingUser[];
+      // Log the data to see its structure
+      console.log('Fetched pending users:', data);
+
+      // Ensure the data matches the PendingUser interface
+      return (data as any[]).map(user => ({
+        id: user.id,
+        nome_completo: user.nome_completo,
+        email: user.email,
+        telefone: user.telefone,
+        filial: {
+          nome: user.filial?.nome || 'N/A'
+        },
+        papeis: user.papeis || []
+      })) as PendingUser[];
     },
   });
 
