@@ -5,19 +5,21 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from '@tanstack/react-query';
-import { fetchModalities, fetchBranches, fetchRoles } from '@/lib/api';
+import { fetchBranches } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import InputMask from 'react-input-mask';
 import PaymentInfo from '@/components/PaymentInfo';
 import { useNavigate } from 'react-router-dom';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -34,7 +36,6 @@ const registerSchema = z.object({
   telefone: z.string().min(14, 'Telefone inválido').max(15),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
-  roleIds: z.array(z.number()).min(1, "Selecione pelo menos um perfil"),
   branchId: z.string({
     required_error: "Selecione uma filial",
   }),
@@ -46,6 +47,7 @@ const registerSchema = z.object({
 const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [open, setOpen] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -65,7 +67,6 @@ const Login = () => {
       telefone: '',
       password: '',
       confirmPassword: '',
-      roleIds: [],
       branchId: '',
     },
   });
@@ -77,19 +78,13 @@ const Login = () => {
     },
   });
 
-  const { data: modalities, isLoading: isLoadingModalities } = useQuery({
-    queryKey: ['modalities'],
-    queryFn: fetchModalities,
-  });
-
-  const { data: branches, isLoading: isLoadingBranches } = useQuery({
+  const { data: branches = [], isLoading: isLoadingBranches } = useQuery({
     queryKey: ['branches'],
     queryFn: fetchBranches,
-  });
-
-  const { data: roles, isLoading: isLoadingRoles } = useQuery({
-    queryKey: ['roles'],
-    queryFn: fetchRoles,
+    select: (data) => {
+      // Sort branches alphabetically by name
+      return [...data].sort((a, b) => a.nome.localeCompare(b.nome));
+    }
   });
 
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
@@ -103,22 +98,17 @@ const Login = () => {
       if (error) {
         console.error('Sign in error:', error);
   
-        // Tratamento específico para erro de credenciais inválidas
         if (error.code === "invalid_credentials") {
           toast.error("E-mail não cadastrado. Verifique os dados ou realize o cadastro.");
-          setIsSubmitting(false);
           return;
         }
   
-        // Tratamento para e-mail não confirmado
         if (error.code === "email_not_confirmed") {
           toast.error("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de ativação antes de tentar fazer login.");
-          setIsSubmitting(false);
           return;
         }
   
         toast.error("Erro ao fazer login. Verifique suas credenciais.");
-        setIsSubmitting(false);
         return;
       }
   
@@ -136,7 +126,6 @@ const Login = () => {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
   
-      // Verifica se o e-mail já existe
       const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
         .select('id')
@@ -146,83 +135,69 @@ const Login = () => {
       if (checkError) {
         console.error('Error checking existing user:', checkError);
         toast.error('Erro ao verificar cadastro existente.');
-        setIsSubmitting(false);
         return;
       }
   
       if (existingUser) {
         toast.error("Este e-mail já está cadastrado. Por favor, faça login.");
-        setIsSubmitting(false);
         return;
       }
   
-      // Criação do usuário no Supabase Auth
       const signUpResult = await signUp({
         ...values,
-        telefone: values.telefone.replace(/\D/g, ''), // Remove caracteres não numéricos
+        telefone: values.telefone.replace(/\D/g, ''),
       });
   
       if (signUpResult.error || !signUpResult.user) {
         console.error('Registration error:', signUpResult.error);
         toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
-        setIsSubmitting(false);
         return;
       }
   
       const userId = signUpResult.user.id;
       console.log(`User registered successfully with ID: ${userId}`);
   
-      // Se não houver ID de usuário, aborta o fluxo
       if (!userId) {
         toast.error("Erro ao obter ID do usuário.");
-        setIsSubmitting(false);
         return;
       }
   
-      // Cadastro dos papéis do usuário
+      // Automatically assign the Athlete role (ID: 1)
       const { error: rolesError } = await supabase
         .from('papeis_usuarios')
-        .insert(values.roleIds.map(roleId => ({
+        .insert([{
           usuario_id: userId,
-          perfil_id: roleId
-        })));
+          perfil_id: 1 // ID for "Atleta" role
+        }]);
   
       if (rolesError) {
         console.error('Role assignment error:', rolesError);
-        toast.error('Erro ao atribuir os papéis do usuário.');
-        setIsSubmitting(false);
+        toast.error('Erro ao atribuir papel de atleta ao usuário.');
         return;
       }
   
-      console.log('User roles assigned successfully');
+      console.log('Athlete role assigned successfully');
   
-      // Registro de pagamento se o usuário for atleta
-      if (values.roleIds.includes(1)) {
-        console.log(`Registering payment for user ID: ${userId}`);
-        const { error: paymentError } = await supabase
-          .from('pagamentos')
-          .insert([{
-            atleta_id: userId,
-            valor: 180.00,
-            status: 'pendente',
-            comprovante_url: null,
-            validado_sem_comprovante: false,
-            data_validacao: null,
-            data_criacao: new Date().toISOString()
-          }]);
+      // Register payment for athlete
+      const { error: paymentError } = await supabase
+        .from('pagamentos')
+        .insert([{
+          atleta_id: userId,
+          valor: 180.00,
+          status: 'pendente',
+          comprovante_url: null,
+          validado_sem_comprovante: false,
+          data_validacao: null,
+          data_criacao: new Date().toISOString()
+        }]);
   
-        if (paymentError) {
-          console.error('Payment record creation error:', paymentError);
-          toast.error('Erro ao criar registro de pagamento.');
-          setIsSubmitting(false);
-          return;
-        }
+      if (paymentError) {
+        console.error('Payment record creation error:', paymentError);
+        toast.error('Erro ao criar registro de pagamento.');
+        return;
       }
   
-      // ✅ Mensagem de sucesso exibida **somente se tudo der certo**
       toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
-  
-      // ✅ Redirecionamento para a aba de Login
       navigate('/');
   
     } catch (error) {
@@ -237,7 +212,6 @@ const Login = () => {
     try {
       setIsSubmitting(true);
       
-      // Check if email exists and is confirmed using the usuarios table
       const { data: userData, error: userError } = await supabase
         .from('usuarios')
         .select('id, email_confirmed_at')
@@ -401,77 +375,51 @@ const Login = () => {
                       control={registerForm.control}
                       name="branchId"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-left w-full">Filial</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary">
-                                <SelectValue placeholder="Selecione uma filial" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {isLoadingBranches ? (
-                                <SelectItem value="loading">Carregando...</SelectItem>
-                              ) : (
-                                branches?.map((branch) => (
-                                  <SelectItem key={branch.id} value={branch.id}>
-                                    {branch.nome} - {branch.cidade}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={registerForm.control}
-                      name="roleIds"
-                      render={() => (
-                        <FormItem>
-                          <FormLabel className="text-left w-full">Perfis</FormLabel>
-                          <div className="grid grid-cols-2 gap-2">
-                            {isLoadingRoles ? (
-                              <div>Carregando perfis...</div>
-                            ) : (
-                              roles?.map((role) => (
-                                <FormField
-                                  key={role.id}
-                                  control={registerForm.control}
-                                  name="roleIds"
-                                  render={({ field }) => {
-                                    return (
-                                      <FormItem
-                                        key={role.id}
-                                        className="flex flex-row items-start space-x-3 space-y-0"
-                                      >
-                                        <FormControl>
-                                          <Checkbox
-                                            checked={field.value?.includes(role.id)}
-                                            onCheckedChange={(checked) => {
-                                              const updatedValue = checked
-                                                ? [...(field.value || []), role.id]
-                                                : field.value?.filter((value) => value !== role.id);
-                                              field.onChange(updatedValue);
-                                            }}
-                                          />
-                                        </FormControl>
-                                        <FormLabel className="font-normal">
-                                          {role.nome}
-                                        </FormLabel>
-                                      </FormItem>
-                                    );
-                                  }}
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Filial</FormLabel>
+                          <Popover open={open} onOpenChange={setOpen}>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={open}
+                                  className={cn(
+                                    "w-full justify-between",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value
+                                    ? branches.find((branch) => branch.id === field.value)?.nome
+                                    : "Selecione uma filial"}
+                                  <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-full p-0">
+                              <Command>
+                                <CommandInput
+                                  placeholder="Procurar filial..."
+                                  className="h-9"
                                 />
-                              ))
-                            )}
-                          </div>
+                                <CommandEmpty>Nenhuma filial encontrada.</CommandEmpty>
+                                <CommandGroup>
+                                  {branches.map((branch) => (
+                                    <CommandItem
+                                      value={branch.nome}
+                                      key={branch.id}
+                                      onSelect={() => {
+                                        field.onChange(branch.id);
+                                        setOpen(false);
+                                      }}
+                                    >
+                                      {branch.nome} - {branch.cidade}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -571,7 +519,7 @@ const Login = () => {
                   
                   <div className="space-y-6">
                     <div className="quote-item">
-                      <h4 className="font-semibold text-olimpics-green-primary">1️⃣ Platão (428–348 a.C.)</h4>
+                      <h4 className="font-semibold text-olimpics-green-primary">Platão (428–348 a.C.)</h4>
                       <p className="text-olimpics-text mt-2 italic">
                         "O homem pode aprender virtudes e disciplina tanto na música quanto na ginástica, pois ambas moldam a alma e o corpo."
                       </p>
@@ -579,7 +527,7 @@ const Login = () => {
                     </div>
 
                     <div className="quote-item">
-                      <h4 className="font-semibold text-olimpics-green-primary">2️⃣ Aristóteles (384–322 a.C.)</h4>
+                      <h4 className="font-semibold text-olimpics-green-primary">Aristóteles (384–322 a.C.)</h4>
                       <p className="text-olimpics-text mt-2 italic">
                         "Somos o que repetidamente fazemos. A excelência, portanto, não é um feito, mas um hábito."
                       </p>
@@ -587,14 +535,14 @@ const Login = () => {
                     </div>
 
                     <div className="quote-item">
-                      <h4 className="font-semibold text-olimpics-green-primary">3️⃣ Epicteto (50–135 d.C.)</h4>
+                      <h4 className="font-semibold text-olimpics-green-primary">Epicteto (50–135 d.C.)</h4>
                       <p className="text-olimpics-text mt-2 italic">
                         "Se você quer vencer nos Jogos Olímpicos, deve se preparar, exercitar-se, comer moderadamente, suportar a fadiga e obedecer ao treinador."
                       </p>
                     </div>
 
                     <div className="quote-item">
-                      <h4 className="font-semibold text-olimpics-green-primary">4️⃣ Sêneca (4 a.C.–65 d.C.)</h4>
+                      <h4 className="font-semibold text-olimpics-green-primary">Sêneca (4 a.C.–65 d.C.)</h4>
                       <p className="text-olimpics-text mt-2 italic">
                         "A vida é como um gladiador nos jogos: não se trata apenas de sobreviver, mas de lutar bem."
                       </p>
@@ -602,7 +550,7 @@ const Login = () => {
                     </div>
 
                     <div className="quote-item">
-                      <h4 className="font-semibold text-olimpics-green-primary">5️⃣ Diógenes de Sinope (412–323 a.C.)</h4>
+                      <h4 className="font-semibold text-olimpics-green-primary">Diógenes de Sinope (412–323 a.C.)</h4>
                       <p className="text-olimpics-text mt-2 italic">
                         "Os vencedores dos Jogos Olímpicos recebem apenas uma coroa de louros; mas os que vivem com virtude recebem a verdadeira glória."
                       </p>
@@ -610,7 +558,7 @@ const Login = () => {
                     </div>
 
                     <div className="quote-item">
-                      <h4 className="font-semibold text-olimpics-green-primary">6️⃣ Cícero (106–43 a.C.)</h4>
+                      <h4 className="font-semibold text-olimpics-green-primary">Cícero (106–43 a.C.)</h4>
                       <p className="text-olimpics-text mt-2 italic">
                         "O esforço e a perseverança sempre superam o talento que não se disciplina."
                       </p>
@@ -618,7 +566,7 @@ const Login = () => {
                     </div>
 
                     <div className="quote-item">
-                      <h4 className="font-semibold text-olimpics-green-primary">7️⃣ Píndaro (518–438 a.C.)</h4>
+                      <h4 className="font-semibold text-olimpics-green-primary">Píndaro (518–438 a.C.)</h4>
                       <p className="text-olimpics-text mt-2 italic">
                         "Ó minha alma, não aspire à vida imortal, mas esgote o campo do possível."
                       </p>
