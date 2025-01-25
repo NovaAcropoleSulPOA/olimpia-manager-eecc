@@ -223,12 +223,6 @@ const RegistrationsManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
 
-  const handleWhatsAppClick = (phone: string) => {
-    const formattedPhone = phone.replace(/\D/g, '');
-    const message = encodeURIComponent('Olá! Gostaria de falar sobre sua inscrição nas Olimpíadas.');
-    window.open(`https://wa.me/${formattedPhone}?text=${message}`, '_blank');
-  };
-
   const updateRegistrationStatusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada' }) =>
       updateRegistrationStatus(id, status),
@@ -312,79 +306,20 @@ const RegistrationsManagement = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[600px]">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome do Atleta</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Telefone</TableHead>
-                <TableHead>Filial</TableHead>
-                <TableHead>Modalidades</TableHead>
-                <TableHead>Status da Inscrição</TableHead>
-                <TableHead>Status do Pagamento</TableHead>
-                <TableHead>Pontos Totais</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredRegistrations?.map((registration) => (
-                <TableRow 
-                  key={registration.id}
-                  className={registration.status_pagamento === 'pendente' ? 'bg-yellow-50' : ''}
-                >
-                  <TableCell>{registration.nome_atleta}</TableCell>
-                  <TableCell>{registration.email}</TableCell>
-                  <TableCell>
-                    <button
-                      onClick={() => handleWhatsAppClick(registration.telefone)}
-                      className="text-olimpics-green-primary hover:underline"
-                    >
-                      {registration.telefone}
-                    </button>
-                  </TableCell>
-                  <TableCell>{registration.filial}</TableCell>
-                  <TableCell>{registration.modalidades.join(', ')}</TableCell>
-                  <TableCell>
-                    <Select
-                      value={registration.status_inscricao}
-                      onValueChange={(value: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada') =>
-                        updateRegistrationStatusMutation.mutate({ id: registration.id, status: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Pendente">Pendente</SelectItem>
-                        <SelectItem value="Confirmada">Confirmada</SelectItem>
-                        <SelectItem value="Cancelada">Cancelada</SelectItem>
-                        <SelectItem value="Recusada">Recusada</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={registration.status_pagamento}
-                      onValueChange={(value: 'pendente' | 'confirmado' | 'cancelado') =>
-                        updatePaymentStatusMutation.mutate({ id: registration.id, status: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pendente">Pendente</SelectItem>
-                        <SelectItem value="confirmado">Confirmado</SelectItem>
-                        <SelectItem value="cancelado">Cancelado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>{registration.pontos_totais}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ScrollArea>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredRegistrations?.map((registration) => (
+            <AthleteRegistrationCard
+              key={registration.id}
+              registration={registration}
+              onStatusChange={(id, status) => 
+                updateRegistrationStatusMutation.mutate({ id, status })
+              }
+              onPaymentStatusChange={(id, status) =>
+                updatePaymentStatusMutation.mutate({ id, status })
+              }
+            />
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
