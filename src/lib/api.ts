@@ -278,7 +278,8 @@ export interface AthleteRegistration {
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
   console.log('Fetching athlete registrations from tables...');
   
-  const { data: registrations, error } = await supabase
+  // First fetch confirmed users
+  const { data: users, error: usersError } = await supabase
     .from('usuarios')
     .select(`
       id,
@@ -286,47 +287,60 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       email,
       telefone,
       filial_id,
-      filiais!inner (
+      filiais (
         nome
-      ),
-      inscricoes_modalidades!left (
-        status,
-        modalidade_id,
-        modalidades!inner (
-          nome
-        )
-      ),
-      pagamentos!left (
-        status
-      ),
-      pontuacoes!left (
-        pontos
       )
     `)
     .eq('confirmado', true);
 
-  if (error) {
-    console.error('Error fetching athlete registrations:', error);
-    throw error;
+  if (usersError) {
+    console.error('Error fetching users:', usersError);
+    throw usersError;
   }
 
-  console.log('Raw registration data:', registrations);
+  // For each user, fetch their registrations, payments, and scores
+  const registrations = await Promise.all(users.map(async (user) => {
+    // Fetch modality registrations
+    const { data: modalityRegistrations } = await supabase
+      .from('inscricoes_modalidades')
+      .select(`
+        status,
+        modalidade_id,
+        modalidades (
+          nome
+        )
+      `)
+      .eq('atleta_id', user.id);
 
-  // Transform the data to match our interface
-  const transformedData: AthleteRegistration[] = registrations.map((reg: any) => ({
-    id: reg.id,
-    nome_atleta: reg.nome_completo,
-    email: reg.email,
-    telefone: reg.telefone,
-    filial: reg.filiais?.nome || 'N/A',
-    modalidades: reg.inscricoes_modalidades?.map((im: any) => im.modalidades.nome) || [],
-    status_inscricao: reg.inscricoes_modalidades?.[0]?.status || 'Pendente',
-    status_pagamento: reg.pagamentos?.[0]?.status || 'pendente',
-    pontos_totais: reg.pontuacoes?.reduce((sum: number, p: any) => sum + (p.pontos || 0), 0) || 0
+    // Fetch payment status
+    const { data: payments } = await supabase
+      .from('pagamentos')
+      .select('status')
+      .eq('atleta_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    // Fetch points
+    const { data: scores } = await supabase
+      .from('pontuacoes')
+      .select('pontos')
+      .eq('atleta_id', user.id);
+
+    return {
+      id: user.id,
+      nome_atleta: user.nome_completo,
+      email: user.email,
+      telefone: user.telefone,
+      filial: user.filiais?.nome || 'N/A',
+      modalidades: modalityRegistrations?.map(reg => reg.modalidades?.nome) || [],
+      status_inscricao: modalityRegistrations?.[0]?.status || 'Pendente',
+      status_pagamento: payments?.[0]?.status || 'pendente',
+      pontos_totais: scores?.reduce((sum, score) => sum + (score.pontos || 0), 0) || 0
+    };
   }));
 
-  console.log('Transformed registrations:', transformedData);
-  return transformedData;
+  console.log('Transformed registrations:', registrations);
+  return registrations;
 };
 
 export const updateRegistrationStatus = async (
