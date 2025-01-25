@@ -210,15 +210,23 @@ export default function AthleteProfilePage() {
 
       // If the registration was pending or confirmed, decrement vagas_ocupadas
       if (registration?.status === 'pendente' || registration?.status === 'confirmado') {
-        const { error: updateError } = await supabase
+        // First, get current vagas_ocupadas
+        const { data: currentModality } = await supabase
           .from('modalidades')
-          .update({ 
-            vagas_ocupadas: supabase.sql`vagas_ocupadas - 1` 
-          })
+          .select('vagas_ocupadas')
           .eq('id', modalityId)
-          .gt('vagas_ocupadas', 0);
+          .single();
 
-        if (updateError) throw updateError;
+        if (currentModality && currentModality.vagas_ocupadas > 0) {
+          const { error: updateError } = await supabase
+            .from('modalidades')
+            .update({ 
+              vagas_ocupadas: currentModality.vagas_ocupadas - 1
+            })
+            .eq('id', modalityId);
+
+          if (updateError) throw updateError;
+        }
       }
       
       const { error } = await supabase
@@ -253,20 +261,27 @@ export default function AthleteProfilePage() {
     mutationFn: async (modalityId: number) => {
       if (!user?.id) throw new Error('User not authenticated');
       
+      // Get current modality data
+      const { data: currentModality } = await supabase
+        .from('modalidades')
+        .select('vagas_ocupadas, limite_vagas')
+        .eq('id', modalityId)
+        .single();
+
+      if (!currentModality) throw new Error('Modality not found');
+      
       // Check if there are available spots
-      const modality = allModalities?.find(m => m.id === modalityId);
-      if (!modality || modality.vagas_ocupadas >= modality.limite_vagas) {
+      if (currentModality.vagas_ocupadas >= currentModality.limite_vagas) {
         throw new Error('No available spots');
       }
 
-      // Start a transaction using Supabase's built-in transaction support
+      // Update vagas_ocupadas
       const { data: modalityData, error: modalityError } = await supabase
         .from('modalidades')
         .update({ 
-          vagas_ocupadas: supabase.sql`vagas_ocupadas + 1` 
+          vagas_ocupadas: currentModality.vagas_ocupadas + 1
         })
         .eq('id', modalityId)
-        .lt('vagas_ocupadas', supabase.sql`limite_vagas`)
         .select('vagas_ocupadas')
         .single();
 
@@ -288,7 +303,7 @@ export default function AthleteProfilePage() {
         await supabase
           .from('modalidades')
           .update({ 
-            vagas_ocupadas: supabase.sql`vagas_ocupadas - 1` 
+            vagas_ocupadas: currentModality.vagas_ocupadas
           })
           .eq('id', modalityId);
         throw insertError;
