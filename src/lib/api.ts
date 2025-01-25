@@ -190,78 +190,13 @@ export const rejectUser = async (userId: string) => {
   }
 };
 
-export const fetchUserModalities = async (userId: string): Promise<Modality[]> => {
-  console.log('Fetching user modalities for:', userId);
-  const { data, error } = await supabase
-    .from('modalidades_usuarios')
-    .select(`
-      modalidades (
-        id,
-        nome,
-        tipo_pontuacao,
-        tipo_modalidade,
-        categoria,
-        status
-      )
-    `)
-    .eq('usuario_id', userId);
-
-  if (error) {
-    console.error('Error fetching user modalities:', error);
-    throw error;
-  }
-
-  return data.map((item: any) => item.modalidades);
-};
-
-export const registerModality = async (userId: string, modalityId: number) => {
-  console.log('Registering modality:', { userId, modalityId });
-  const { error } = await supabase
-    .from('modalidades_usuarios')
-    .insert([{
-      usuario_id: userId,
-      modalidade_id: modalityId,
-      status: 'pendente'
-    }]);
-
-  if (error) {
-    console.error('Error registering modality:', error);
-    throw error;
-  }
-};
-
-export interface BranchAnalytics {
-  filial_id: string;
-  filial: string;
-  cidade: string;
-  estado: string;
-  total_inscritos: number;
-  total_inscricoes: number;
-  inscricoes_pendentes: number;
-  inscricoes_confirmadas: number;
-  inscricoes_canceladas: number;
-  inscricoes_recusadas: number;
-  valor_total_arrecadado: number;
-  modalidades_ativas: number;
-  modalidades_populares: { [key: string]: number };
-  total_pontos: number;
-  media_pontuacao_atletas: number;
+export interface ModalityRegistration {
+  status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
+  modalidade_id: number;
+  modalidades: {
+    nome: string;
+  };
 }
-
-export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
-  console.log('Fetching branch analytics...');
-  const { data, error } = await supabase
-    .from('vw_analytics_inscricoes')
-    .select('*');
-
-  if (error) {
-    console.error('Error fetching branch analytics:', error);
-    throw error;
-  }
-
-  console.log('Fetched branch analytics:', data);
-  return data;
-};
 
 export interface AthleteRegistration {
   id: string;
@@ -273,14 +208,6 @@ export interface AthleteRegistration {
   status_inscricao: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
   status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
   pontos_totais: number;
-}
-
-interface ModalityRegistration {
-  status: string;
-  modalidade_id: number;
-  modalidades: {
-    nome: string;
-  };
 }
 
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
@@ -340,6 +267,9 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     console.log('Transformed modalidades:', modalidades);
 
+    const status_inscricao = typedModalityRegistrations?.[0]?.status || 'Pendente';
+    const status_pagamento = payments?.[0]?.status as 'pendente' | 'confirmado' | 'cancelado' || 'pendente';
+
     return {
       id: user.id,
       nome_atleta: user.nome_completo,
@@ -347,8 +277,8 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       telefone: user.telefone,
       filial: user.filiais?.nome || 'N/A',
       modalidades,
-      status_inscricao: typedModalityRegistrations?.[0]?.status || 'Pendente',
-      status_pagamento: payments?.[0]?.status || 'pendente',
+      status_inscricao,
+      status_pagamento,
       pontos_totais: scores?.reduce((sum, score) => sum + (score.pontuacao || 0), 0) || 0
     };
   }));
@@ -386,4 +316,19 @@ export const updatePaymentStatus = async (
     console.error('Error updating payment status:', error);
     throw error;
   }
+};
+
+export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
+  console.log('Fetching branch analytics...');
+  const { data, error } = await supabase
+    .from('vw_analytics_inscricoes')
+    .select('*');
+
+  if (error) {
+    console.error('Error fetching branch analytics:', error);
+    throw error;
+  }
+
+  console.log('Fetched branch analytics:', data);
+  return data;
 };
