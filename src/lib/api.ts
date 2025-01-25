@@ -76,6 +76,14 @@ export interface AthleteRegistration {
   pontos_totais: number;
 }
 
+export interface ModalityData {
+  status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
+  modalidade_id: number;
+  modalidade: {
+    nome: string;
+  };
+}
+
 export const fetchModalities = async (): Promise<Modality[]> => {
   console.log('Fetching modalities from database');
   const { data, error } = await supabase
@@ -267,15 +275,9 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       return null;
     }
 
-    interface ModalityData {
-      status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
-      modalidade_id: number;
-      modalidade: {
-        nome: string;
-      };
-    }
+    console.log('Raw modality registrations:', modalityRegistrations);
 
-    const typedModalityRegistrations = modalityRegistrations as unknown as ModalityData[];
+    const typedModalityRegistrations = modalityRegistrations as ModalityData[];
     console.log('Typed modality registrations:', typedModalityRegistrations);
 
     const { data: payments, error: paymentError } = await supabase
@@ -291,7 +293,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     const { data: scores, error: scoresError } = await supabase
       .from('pontuacoes')
-      .select('valor')  // Changed from 'pontuacao' to 'valor'
+      .select('valor')
       .eq('atleta_id', user.id);
 
     if (scoresError) {
