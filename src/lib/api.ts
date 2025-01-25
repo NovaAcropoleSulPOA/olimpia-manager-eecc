@@ -276,16 +276,87 @@ export interface AthleteRegistration {
 }
 
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
-  console.log('Fetching athlete registrations...');
-  const { data, error } = await supabase
-    .from('vw_inscricoes_atletas')
-    .select('*');
+  console.log('Fetching athlete registrations from tables...');
+  
+  const { data: registrations, error } = await supabase
+    .from('usuarios')
+    .select(`
+      id,
+      nome_completo,
+      email,
+      telefone,
+      filiais (
+        nome
+      ),
+      inscricoes_modalidades (
+        status,
+        modalidades (
+          nome
+        )
+      ),
+      pagamentos (
+        status
+      ),
+      pontuacoes (
+        pontos
+      )
+    `)
+    .eq('confirmado', true);
 
   if (error) {
     console.error('Error fetching athlete registrations:', error);
     throw error;
   }
 
-  console.log('Fetched athlete registrations:', data);
-  return data;
+  console.log('Raw registration data:', registrations);
+
+  // Transform the data to match our interface
+  const transformedData: AthleteRegistration[] = registrations.map((reg: any) => ({
+    id: reg.id,
+    nome_atleta: reg.nome_completo,
+    email: reg.email,
+    telefone: reg.telefone,
+    filial: reg.filiais?.nome || 'N/A',
+    modalidades: reg.inscricoes_modalidades?.map((im: any) => im.modalidades.nome) || [],
+    status_inscricao: reg.inscricoes_modalidades?.[0]?.status || 'Pendente',
+    status_pagamento: reg.pagamentos?.[0]?.status || 'pendente',
+    pontos_totais: reg.pontuacoes?.reduce((sum: number, p: any) => sum + (p.pontos || 0), 0) || 0
+  }));
+
+  console.log('Transformed registrations:', transformedData);
+  return transformedData;
+};
+
+export const updateRegistrationStatus = async (
+  registrationId: string,
+  status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada'
+) => {
+  console.log('Updating registration status:', { registrationId, status });
+  
+  const { error } = await supabase
+    .from('inscricoes_modalidades')
+    .update({ status })
+    .eq('atleta_id', registrationId);
+
+  if (error) {
+    console.error('Error updating registration status:', error);
+    throw error;
+  }
+};
+
+export const updatePaymentStatus = async (
+  registrationId: string,
+  status: 'pendente' | 'confirmado' | 'cancelado'
+) => {
+  console.log('Updating payment status:', { registrationId, status });
+  
+  const { error } = await supabase
+    .from('pagamentos')
+    .update({ status })
+    .eq('atleta_id', registrationId);
+
+  if (error) {
+    console.error('Error updating payment status:', error);
+    throw error;
+  }
 };

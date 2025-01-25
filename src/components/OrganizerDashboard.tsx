@@ -1,9 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchBranchAnalytics, fetchAthleteRegistrations } from "@/lib/api";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { fetchBranchAnalytics, fetchAthleteRegistrations, updateRegistrationStatus, updatePaymentStatus } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 import {
   BarChart,
   Bar,
@@ -210,9 +213,57 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
 };
 
 const RegistrationsManagement = () => {
-  const { data: registrations, isLoading } = useQuery({
+  const { data: registrations, isLoading, refetch } = useQuery({
     queryKey: ['athlete-registrations'],
     queryFn: fetchAthleteRegistrations,
+  });
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [paymentFilter, setPaymentFilter] = useState<string>('all');
+
+  const handleWhatsAppClick = (phone: string) => {
+    const formattedPhone = phone.replace(/\D/g, '');
+    const message = encodeURIComponent('Olá! Gostaria de falar sobre sua inscrição nas Olimpíadas.');
+    window.open(`https://wa.me/${formattedPhone}?text=${message}`, '_blank');
+  };
+
+  const updateRegistrationStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada' }) =>
+      updateRegistrationStatus(id, status),
+    onSuccess: () => {
+      refetch();
+      toast.success('Status da inscrição atualizado com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Error updating registration status:', error);
+      toast.error('Erro ao atualizar status da inscrição');
+    },
+  });
+
+  const updatePaymentStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: 'pendente' | 'confirmado' | 'cancelado' }) =>
+      updatePaymentStatus(id, status),
+    onSuccess: () => {
+      refetch();
+      toast.success('Status do pagamento atualizado com sucesso!');
+    },
+    onError: (error) => {
+      console.error('Error updating payment status:', error);
+      toast.error('Erro ao atualizar status do pagamento');
+    },
+  });
+
+  const filteredRegistrations = registrations?.filter(registration => {
+    const matchesSearch = 
+      registration.nome_atleta.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      registration.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      registration.filial.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || registration.status_inscricao === statusFilter;
+    const matchesPayment = paymentFilter === 'all' || registration.status_pagamento === paymentFilter;
+    
+    return matchesSearch && matchesStatus && matchesPayment;
   });
 
   if (isLoading) {
@@ -223,16 +274,41 @@ const RegistrationsManagement = () => {
     );
   }
 
-  const handleWhatsAppClick = (phone: string) => {
-    const formattedPhone = phone.replace(/\D/g, '');
-    const message = encodeURIComponent('Olá! Gostaria de falar sobre sua inscrição nas Olimpíadas.');
-    window.open(`https://wa.me/${formattedPhone}?text=${message}`, '_blank');
-  };
-
   return (
     <Card>
       <CardHeader>
         <CardTitle>Gerenciamento de Inscrições</CardTitle>
+        <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0 mt-4">
+          <Input
+            placeholder="Buscar por nome, email ou filial..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Status da Inscrição" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Status</SelectItem>
+              <SelectItem value="Pendente">Pendente</SelectItem>
+              <SelectItem value="Confirmada">Confirmada</SelectItem>
+              <SelectItem value="Cancelada">Cancelada</SelectItem>
+              <SelectItem value="Recusada">Recusada</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Status do Pagamento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Status</SelectItem>
+              <SelectItem value="pendente">Pendente</SelectItem>
+              <SelectItem value="confirmado">Confirmado</SelectItem>
+              <SelectItem value="cancelado">Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[600px]">
@@ -250,8 +326,11 @@ const RegistrationsManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {registrations?.map((registration) => (
-                <TableRow key={registration.id}>
+              {filteredRegistrations?.map((registration) => (
+                <TableRow 
+                  key={registration.id}
+                  className={registration.status_pagamento === 'pendente' ? 'bg-yellow-50' : ''}
+                >
                   <TableCell>{registration.nome_atleta}</TableCell>
                   <TableCell>{registration.email}</TableCell>
                   <TableCell>
@@ -264,8 +343,41 @@ const RegistrationsManagement = () => {
                   </TableCell>
                   <TableCell>{registration.filial}</TableCell>
                   <TableCell>{registration.modalidades.join(', ')}</TableCell>
-                  <TableCell>{registration.status_inscricao}</TableCell>
-                  <TableCell>{registration.status_pagamento}</TableCell>
+                  <TableCell>
+                    <Select
+                      value={registration.status_inscricao}
+                      onValueChange={(value: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada') =>
+                        updateRegistrationStatusMutation.mutate({ id: registration.id, status: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pendente">Pendente</SelectItem>
+                        <SelectItem value="Confirmada">Confirmada</SelectItem>
+                        <SelectItem value="Cancelada">Cancelada</SelectItem>
+                        <SelectItem value="Recusada">Recusada</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={registration.status_pagamento}
+                      onValueChange={(value: 'pendente' | 'confirmado' | 'cancelado') =>
+                        updatePaymentStatusMutation.mutate({ id: registration.id, status: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pendente">Pendente</SelectItem>
+                        <SelectItem value="confirmado">Confirmado</SelectItem>
+                        <SelectItem value="cancelado">Cancelado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
                   <TableCell>{registration.pontos_totais}</TableCell>
                 </TableRow>
               ))}
