@@ -67,13 +67,32 @@ export function MainNavigation() {
     }
   };
 
+  // If user is not loaded yet, show loading state
+  if (!user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
+      </div>
+    );
+  }
+
   const userRoles = user?.papeis || [];
   console.log('User roles:', userRoles);
   
+  // Filter menu items based on user roles
   const filteredMenuItems = menuItems.filter(item => 
     item.roles.some(role => userRoles.includes(role))
   );
   console.log('Filtered menu items:', filteredMenuItems);
+
+  // If user tries to access a route they don't have permission for, redirect to home
+  const currentMenuItem = menuItems.find(item => item.path === location.pathname);
+  if (currentMenuItem && !currentMenuItem.roles.some(role => userRoles.includes(role))) {
+    console.log('Unauthorized access attempt, redirecting to home');
+    toast.error('Você não tem permissão para acessar esta área');
+    navigate('/');
+    return null;
+  }
 
   return (
     <SidebarProvider>
