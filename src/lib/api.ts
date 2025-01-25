@@ -7,6 +7,7 @@ export interface Modality {
   tipo_pontuacao: 'tempo' | 'distancia' | 'pontos';
   tipo_modalidade: 'individual' | 'coletivo';
   categoria: 'misto' | 'masculino' | 'feminino';
+  status?: 'pendente' | 'confirmado' | 'rejeitado';
 }
 
 export interface Branch {
@@ -32,7 +33,9 @@ export interface User {
   data_criacao: string;
   tipo_documento: 'CPF' | 'RG';
   numero_documento: string;
+  genero: 'Masculino' | 'Feminino' | 'Prefiro não informar';
   roles: Role[];
+  modalidades?: Modality[];
 }
 
 export const fetchModalities = async (): Promise<Modality[]> => {
@@ -112,7 +115,8 @@ export const createUserProfile = async (userId: string, data: any) => {
       confirmado: false,
       data_criacao: new Date().toISOString(),
       tipo_documento: data.tipo_documento,
-      numero_documento: data.numero_documento.replace(/\D/g, '')
+      numero_documento: data.numero_documento.replace(/\D/g, ''),
+      genero: data.genero
     }]);
 
   if (error) {
@@ -182,6 +186,46 @@ export const rejectUser = async (userId: string) => {
 
   if (error) {
     console.error('Error rejecting user:', error);
+    throw error;
+  }
+};
+
+export const fetchUserModalities = async (userId: string): Promise<Modality[]> => {
+  console.log('Fetching user modalities for:', userId);
+  const { data, error } = await supabase
+    .from('modalidades_usuarios')
+    .select(`
+      modalidades (
+        id,
+        nome,
+        tipo_pontuacao,
+        tipo_modalidade,
+        categoria,
+        status
+      )
+    `)
+    .eq('usuario_id', userId);
+
+  if (error) {
+    console.error('Error fetching user modalities:', error);
+    throw error;
+  }
+
+  return data.map((item: any) => item.modalidades);
+};
+
+export const registerModality = async (userId: string, modalityId: number) => {
+  console.log('Registering modality:', { userId, modalityId });
+  const { error } = await supabase
+    .from('modalidades_usuarios')
+    .insert([{
+      usuario_id: userId,
+      modalidade_id: modalityId,
+      status: 'pendente'
+    }]);
+
+  if (error) {
+    console.error('Error registering modality:', error);
     throw error;
   }
 };

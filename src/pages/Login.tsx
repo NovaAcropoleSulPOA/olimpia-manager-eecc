@@ -47,7 +47,16 @@ const registerSchema = z.object({
       if (!val) return false;
       const clean = val.replace(/\D/g, '');
       return clean.length >= 9;
-    }, 'Documento inválido'),
+    }, 'Documento inválido')
+    .refine((val, ctx) => {
+      if (ctx.parent.tipo_documento === 'CPF') {
+        return validateCPF(val);
+      }
+      return true;
+    }, 'CPF inválido'),
+  genero: z.enum(['Masculino', 'Feminino', 'Prefiro não informar'], {
+    required_error: "Selecione o gênero",
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
@@ -78,6 +87,7 @@ const Login = () => {
       branchId: '',
       tipo_documento: 'CPF',
       numero_documento: '',
+      genero: 'Prefiro não informar',
     },
   });
 
@@ -154,6 +164,7 @@ const Login = () => {
         telefone: values.telefone.replace(/\D/g, ''),
         tipo_documento: values.tipo_documento,
         numero_documento: values.numero_documento.replace(/\D/g, ''),
+        genero: values.genero,
       });
   
       if (signUpResult.error || !signUpResult.user) {
@@ -431,40 +442,23 @@ const Login = () => {
 
                     <FormField
                       control={registerForm.control}
-                      name="branchId"
+                      name="genero"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Filial</FormLabel>
+                          <FormLabel>Gênero</FormLabel>
                           <Select
-                            disabled={isLoadingBranches}
                             onValueChange={field.onChange}
-                            value={field.value}
+                            defaultValue={field.value}
                           >
                             <FormControl>
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder={
-                                  isLoadingBranches 
-                                    ? "Carregando filiais..." 
-                                    : "Selecione uma filial"
-                                } />
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o gênero" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {branchesError ? (
-                                <div className="p-2 text-center text-red-500">
-                                  Erro ao carregar filiais
-                                </div>
-                              ) : branches.length === 0 ? (
-                                <div className="p-2 text-center">
-                                  Nenhuma filial disponível
-                                </div>
-                              ) : (
-                                branches.map((branch) => (
-                                  <SelectItem key={branch.id} value={branch.id}>
-                                    {branch.nome} - {branch.cidade}
-                                  </SelectItem>
-                                ))
-                              )}
+                              <SelectItem value="Masculino">Masculino</SelectItem>
+                              <SelectItem value="Feminino">Feminino</SelectItem>
+                              <SelectItem value="Prefiro não informar">Prefiro não informar</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -630,3 +624,4 @@ const Login = () => {
 };
 
 export default Login;
+
