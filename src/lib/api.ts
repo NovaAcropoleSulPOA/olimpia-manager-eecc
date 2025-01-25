@@ -331,12 +331,8 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       .eq('atleta_id', user.id);
 
     // Safely transform the modalityRegistrations with proper type checking
-    const modalidades = (modalityRegistrations || []).map(reg => {
-      // Ensure modalidades exists and has the nome property
-      if (reg.modalidades && typeof reg.modalidades === 'object' && 'nome' in reg.modalidades) {
-        return reg.modalidades.nome as string;
-      }
-      return '';
+    const modalidades = (modalityRegistrations || []).map((reg: ModalityRegistration) => {
+      return reg.modalidades?.nome || '';
     }).filter(Boolean);
 
     console.log('Transformed modalidades:', modalidades);
