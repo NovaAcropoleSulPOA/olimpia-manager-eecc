@@ -277,7 +277,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     console.log('Raw modality registrations:', modalityRegistrations);
 
-    // Cast to the correct type structure
+    // Cast to the correct type structure and ensure we're accessing the first modalidade
     const typedModalityRegistrations = (modalityRegistrations || []).map(reg => ({
       status: reg.status,
       modalidade_id: reg.modalidade_id,
@@ -309,6 +309,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       return null;
     }
 
+    // Get modality names from the typed registrations
     const modalityNames = typedModalityRegistrations.map(reg => reg.modalidades.nome);
     
     const registrationStatus = typedModalityRegistrations[0]?.status || 'Pendente';
