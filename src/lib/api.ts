@@ -326,13 +326,21 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       .select('pontos')
       .eq('atleta_id', user.id);
 
+    // Transform modalityRegistrations to get modalidade names
+    const modalidades = modalityRegistrations?.map(reg => {
+      if (reg.modalidades && typeof reg.modalidades === 'object') {
+        return (reg.modalidades as { nome: string }).nome;
+      }
+      return '';
+    }).filter(Boolean) || [];
+
     return {
       id: user.id,
       nome_atleta: user.nome_completo,
       email: user.email,
       telefone: user.telefone,
       filial: user.filiais?.nome || 'N/A',
-      modalidades: modalityRegistrations?.map(reg => reg.modalidades?.nome) || [],
+      modalidades,
       status_inscricao: modalityRegistrations?.[0]?.status || 'Pendente',
       status_pagamento: payments?.[0]?.status || 'pendente',
       pontos_totais: scores?.reduce((sum, score) => sum + (score.pontos || 0), 0) || 0
