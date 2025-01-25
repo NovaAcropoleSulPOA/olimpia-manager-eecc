@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Phone, Mail, Building2, Award, CreditCard } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AthleteRegistration } from '@/lib/api';
@@ -88,6 +88,9 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Detalhes da Inscrição - {registration.nome_atleta}</DialogTitle>
+          <DialogDescription>
+            Gerencie as modalidades e status da inscrição
+          </DialogDescription>
         </DialogHeader>
 
         <div className="mt-4">

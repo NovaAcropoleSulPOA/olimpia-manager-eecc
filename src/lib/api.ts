@@ -277,8 +277,13 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     console.log('Raw modality registrations:', modalityRegistrations);
 
-    // First cast to unknown, then to ModalityData[] to satisfy TypeScript
-    const typedModalityRegistrations = modalityRegistrations as unknown as ModalityData[];
+    // Cast to the correct type structure
+    const typedModalityRegistrations = (modalityRegistrations || []).map(reg => ({
+      status: reg.status,
+      modalidade_id: reg.modalidade_id,
+      modalidades: reg.modalidades
+    })) as ModalityData[];
+
     console.log('Typed modality registrations:', typedModalityRegistrations);
 
     const { data: payments, error: paymentError } = await supabase
@@ -302,11 +307,9 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       return null;
     }
 
-    const modalityNames = typedModalityRegistrations
-      ? typedModalityRegistrations.map(reg => reg.modalidades.nome)
-      : [];
+    const modalityNames = typedModalityRegistrations.map(reg => reg.modalidades.nome);
     
-    const registrationStatus = typedModalityRegistrations?.[0]?.status || 'Pendente';
+    const registrationStatus = typedModalityRegistrations[0]?.status || 'Pendente';
     const paymentStatus = (payments?.[0]?.status || 'pendente') as 'pendente' | 'confirmado' | 'cancelado';
     const totalPoints = scores?.reduce((sum, score) => sum + (score.valor_pontuacao || 0), 0) || 0;
 
