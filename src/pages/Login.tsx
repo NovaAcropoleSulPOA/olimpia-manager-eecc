@@ -24,6 +24,11 @@ const loginSchema = z.object({
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Email inválido'),
+});
+
+// Move the registerSchema definition after all its dependencies
 const registerSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido'),
@@ -42,14 +47,7 @@ const registerSchema = z.object({
       if (!val) return false;
       const clean = val.replace(/\D/g, '');
       return clean.length >= 9;
-    }, 'Documento inválido')
-    .refine((val) => {
-      const tipo = registerForm.getValues('tipo_documento');
-      if (tipo === 'CPF') {
-        return validateCPF(val);
-      }
-      return true;
-    }, 'CPF inválido'),
+    }, 'Documento inválido'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
