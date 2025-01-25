@@ -277,7 +277,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     console.log('Raw modality registrations:', modalityRegistrations);
 
-    const typedModalityRegistrations = modalityRegistrations as unknown as ModalityData[];
+    const typedModalityRegistrations = modalityRegistrations as ModalityData[];
     console.log('Typed modality registrations:', typedModalityRegistrations);
 
     const { data: payments, error: paymentError } = await supabase
