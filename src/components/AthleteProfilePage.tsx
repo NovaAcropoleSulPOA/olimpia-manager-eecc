@@ -123,8 +123,7 @@ export default function AthleteProfilePage() {
       const { data, error } = await supabase
         .from('modalidades')
         .select('*')
-        .in('status', ['Ativa', 'Em análise'])
-        .lt('vagas_ocupadas', 'limite_vagas');
+        .in('status', ['Ativa', 'Em análise']);
       
       if (error) {
         console.error('Error fetching modalities:', error);
@@ -132,7 +131,10 @@ export default function AthleteProfilePage() {
       }
       
       console.log('Fetched modalities:', data);
-      return data;
+      // Filter modalities with available spots in JavaScript
+      return data.filter(modality => 
+        modality.vagas_ocupadas < modality.limite_vagas
+      );
     }
   });
 
