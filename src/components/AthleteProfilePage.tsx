@@ -1,13 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { 
   User, MapPin, Phone, Mail, CreditCard, 
   Building2, Calendar, FileText, UserCircle,
-  CheckCircle2, XCircle, Clock, AlertCircle
+  CheckCircle2, XCircle, Clock, AlertCircle,
+  Plus
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -88,8 +90,10 @@ const getProfileImage = (gender: string) => {
 
 export default function AthleteProfilePage() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: profile, isLoading, error } = useQuery({
+  const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['athlete-profile', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -105,14 +109,110 @@ export default function AthleteProfilePage() {
     enabled: !!user?.id,
   });
 
-  // Mock data for modalities - replace with actual API call
-  const modalities: Modality[] = [
-    { id: 1, nome: "Corrida 100m", status: "pendente", data_inscricao: "2024-03-10" },
-    { id: 2, nome: "Salto em Distância", status: "confirmado", data_inscricao: "2024-03-09" },
-    { id: 3, nome: "Arremesso de Peso", status: "rejeitado", data_inscricao: "2024-03-08" },
-  ];
+  // Fetch all available modalities
+  const { data: allModalities, isLoading: modalitiesLoading } = useQuery({
+    queryKey: ['modalities'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('modalidades')
+        .select('*');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
 
-  if (isLoading) {
+  // Fetch athlete's modality registrations
+  const { data: registeredModalities, isLoading: registrationsLoading } = useQuery({
+    queryKey: ['athlete-modalities', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from('inscricoes_modalidades')
+        .select('*')
+        .eq('atleta_id', user.id);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Mutation for withdrawing from a modality
+  const withdrawMutation = useMutation({
+    mutationFn: async (modalityId: number) => {
+      console.log('Withdrawing from modality:', modalityId);
+      if (!user?.id) throw new Error('User not authenticated');
+      
+      const { error } = await supabase
+        .from('inscricoes_modalidades')
+        .delete()
+        .eq('modalidade_id', modalityId)
+        .eq('atleta_id', user.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['athlete-modalities'] });
+      toast({
+        title: "Desistência confirmada",
+        description: "Você desistiu da modalidade com sucesso.",
+        variant: "default",
+      });
+    },
+    onError: (error) => {
+      console.error('Error withdrawing from modality:', error);
+      toast({
+        title: "Erro ao desistir",
+        description: "Não foi possível processar sua desistência. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for registering in a modality
+  const registerMutation = useMutation({
+    mutationFn: async (modalityId: number) => {
+      if (!user?.id) throw new Error('User not authenticated');
+      
+      const { error } = await supabase
+        .from('inscricoes_modalidades')
+        .insert([{
+          atleta_id: user.id,
+          modalidade_id: modalityId,
+          status: 'pendente',
+          data_inscricao: new Date().toISOString()
+        }]);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['athlete-modalities'] });
+      toast({
+        title: "Inscrição realizada",
+        description: "Você se inscreveu na modalidade com sucesso.",
+        variant: "default",
+      });
+    },
+    onError: (error) => {
+      console.error('Error registering for modality:', error);
+      toast({
+        title: "Erro na inscrição",
+        description: "Não foi possível processar sua inscrição. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleWithdraw = (modalityId: number) => {
+    withdrawMutation.mutate(modalityId);
+  };
+
+  const handleRegister = (modalityId: number) => {
+    registerMutation.mutate(modalityId);
+  };
+
+  if (profileLoading || modalitiesLoading || registrationsLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
@@ -120,20 +220,13 @@ export default function AthleteProfilePage() {
     );
   }
 
-  if (error || !profile) {
+  if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-red-500">
-          {error ? `Erro ao carregar perfil: ${error.message}` : 'Perfil não encontrado'}
-        </p>
+        <p className="text-red-500">Perfil não encontrado</p>
       </div>
     );
   }
-
-  const handleWithdraw = (modalityId: number) => {
-    console.log('Withdrawing from modality:', modalityId);
-    // Implement withdrawal logic here
-  };
 
   return (
     <div className="container mx-auto py-6 space-y-8">
@@ -235,44 +328,75 @@ export default function AthleteProfilePage() {
       <Card>
         <CardContent className="p-6">
           <h3 className="text-lg font-semibold mb-4 text-olimpics-green-primary">
-            Modalidades Inscritas
+            Modalidades Disponíveis
           </h3>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Modalidade</TableHead>
-                <TableHead>Data de Inscrição</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Data de Inscrição</TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {modalities.map((modality) => (
-                <TableRow key={modality.id}>
-                  <TableCell>{modality.nome}</TableCell>
-                  <TableCell>
-                    {format(new Date(modality.data_inscricao), "dd/MM/yyyy")}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {getModalityStatusIcon(modality.status)}
-                      <span className="capitalize">{modality.status}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      disabled={modality.status !== 'pendente'}
-                      onClick={() => handleWithdraw(modality.id)}
-                    >
-                      Desistir
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {allModalities?.map((modality) => {
+                const registration = registeredModalities?.find(
+                  reg => reg.modalidade_id === modality.id
+                );
+                
+                return (
+                  <TableRow key={modality.id}>
+                    <TableCell>{modality.nome}</TableCell>
+                    <TableCell>
+                      {registration ? (
+                        <div className="flex items-center gap-2">
+                          {getModalityStatusIcon(registration.status)}
+                          <span className="capitalize">{registration.status}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-500">Não inscrito</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {registration?.data_inscricao ? 
+                        format(new Date(registration.data_inscricao), "dd/MM/yyyy") :
+                        "-"
+                      }
+                    </TableCell>
+                    <TableCell>
+                      {registration ? (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={registration.status !== 'pendente' || 
+                                  withdrawMutation.isPending}
+                          onClick={() => handleWithdraw(modality.id)}
+                        >
+                          {withdrawMutation.isPending ? "Processando..." : "Desistir"}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          disabled={registerMutation.isPending}
+                          onClick={() => handleRegister(modality.id)}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          {registerMutation.isPending ? "Processando..." : "Inscrever"}
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
+          {(modalitiesLoading || registrationsLoading) && (
+            <div className="flex items-center justify-center p-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
