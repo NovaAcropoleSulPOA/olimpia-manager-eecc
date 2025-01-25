@@ -163,7 +163,20 @@ export default function AthleteProfilePage() {
     
     return registeredModalities.reduce((acc, reg) => {
       acc.total++;
-      acc[reg.status.toLowerCase()]++;
+      switch(reg.status.toLowerCase()) {
+        case 'confirmado':
+          acc.confirmed++;
+          break;
+        case 'pendente':
+          acc.pending++;
+          break;
+        case 'cancelado':
+          acc.canceled++;
+          break;
+        case 'rejeitado':
+          acc.rejected++;
+          break;
+      }
       return acc;
     }, { total: 0, confirmed: 0, pending: 0, canceled: 0, rejected: 0 });
   }, [registeredModalities]);
@@ -197,10 +210,13 @@ export default function AthleteProfilePage() {
 
       // If the registration was pending or confirmed, decrement vagas_ocupadas
       if (registration?.status === 'pendente' || registration?.status === 'confirmado') {
-        const { error: updateError } = await supabase.rpc(
-          'decrement_vagas_ocupadas',
-          { modality_id: modalityId }
-        );
+        const { error: updateError } = await supabase
+          .from('modalidades')
+          .update({ 
+            vagas_ocupadas: supabase.raw('vagas_ocupadas - 1') 
+          })
+          .eq('id', modalityId)
+          .gt('vagas_ocupadas', 0);
 
         if (updateError) throw updateError;
       }
@@ -243,7 +259,21 @@ export default function AthleteProfilePage() {
         throw new Error('No available spots');
       }
 
-      // Start a transaction
+      // Start a transaction using Supabase's built-in transaction support
+      const { data: modalityData, error: modalityError } = await supabase
+        .from('modalidades')
+        .update({ 
+          vagas_ocupadas: supabase.raw('vagas_ocupadas + 1') 
+        })
+        .eq('id', modalityId)
+        .lt('vagas_ocupadas', supabase.raw('limite_vagas'))
+        .select('vagas_ocupadas')
+        .single();
+
+      if (modalityError || !modalityData) {
+        throw new Error('Failed to update vacancy count');
+      }
+
       const { error: insertError } = await supabase
         .from('inscricoes_modalidades')
         .insert([{
@@ -253,15 +283,16 @@ export default function AthleteProfilePage() {
           data_inscricao: new Date().toISOString()
         }]);
       
-      if (insertError) throw insertError;
-
-      // Increment vagas_ocupadas using RPC
-      const { error: updateError } = await supabase.rpc(
-        'increment_vagas_ocupadas',
-        { modality_id: modalityId }
-      );
-      
-      if (updateError) throw updateError;
+      if (insertError) {
+        // Rollback the vacancy count if inscription fails
+        await supabase
+          .from('modalidades')
+          .update({ 
+            vagas_ocupadas: supabase.raw('vagas_ocupadas - 1') 
+          })
+          .eq('id', modalityId);
+        throw insertError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['athlete-modalities'] });
@@ -399,34 +430,47 @@ export default function AthleteProfilePage() {
       <Card>
         <CardContent className="p-6">
           <div className="flex flex-col space-y-4">
-            {/* Registration Statistics */}
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-              <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-olimpics-green-primary" />
-                  <span className="text-xl font-bold text-olimpics-green-primary">
-                    Total: {registrationStats.total}
+            {/* Updated Registration Statistics with better visual styling */}
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="flex flex-col items-center justify-center p-4 bg-olimpics-green-primary/10 rounded-lg">
+                  <FileText className="h-8 w-8 text-olimpics-green-primary mb-2" />
+                  <span className="text-2xl font-bold text-olimpics-green-primary">
+                    {registrationStats.total}
                   </span>
+                  <span className="text-sm text-gray-600">Total de Inscrições</span>
                 </div>
-                <div className="flex flex-wrap justify-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    <span className="font-semibold text-green-600">
-                      {registrationStats.confirmed} Confirmadas
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-yellow-600" />
-                    <span className="font-semibold text-yellow-600">
-                      {registrationStats.pending} Pendentes
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <XCircle className="h-5 w-5 text-red-600" />
-                    <span className="font-semibold text-red-600">
-                      {registrationStats.canceled + registrationStats.rejected} Canceladas/Rejeitadas
-                    </span>
-                  </div>
+                
+                <div className="flex flex-col items-center justify-center p-4 bg-green-100 rounded-lg">
+                  <CheckCircle2 className="h-8 w-8 text-green-600 mb-2" />
+                  <span className="text-2xl font-bold text-green-600">
+                    {registrationStats.confirmed}
+                  </span>
+                  <span className="text-sm text-gray-600">Confirmadas</span>
+                </div>
+
+                <div className="flex flex-col items-center justify-center p-4 bg-yellow-100 rounded-lg">
+                  <Clock className="h-8 w-8 text-yellow-600 mb-2" />
+                  <span className="text-2xl font-bold text-yellow-600">
+                    {registrationStats.pending}
+                  </span>
+                  <span className="text-sm text-gray-600">Pendentes</span>
+                </div>
+
+                <div className="flex flex-col items-center justify-center p-4 bg-red-100 rounded-lg">
+                  <XCircle className="h-8 w-8 text-red-600 mb-2" />
+                  <span className="text-2xl font-bold text-red-600">
+                    {registrationStats.canceled}
+                  </span>
+                  <span className="text-sm text-gray-600">Canceladas</span>
+                </div>
+
+                <div className="flex flex-col items-center justify-center p-4 bg-gray-100 rounded-lg">
+                  <AlertCircle className="h-8 w-8 text-gray-600 mb-2" />
+                  <span className="text-2xl font-bold text-gray-600">
+                    {registrationStats.rejected}
+                  </span>
+                  <span className="text-sm text-gray-600">Rejeitadas</span>
                 </div>
               </div>
             </div>
