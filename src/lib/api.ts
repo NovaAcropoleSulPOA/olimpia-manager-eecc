@@ -231,7 +231,6 @@ export const rejectUser = async (userId: string) => {
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
   console.log('Fetching athlete registrations from tables...');
   
-  // First, fetch all confirmed users with their branch information
   const { data: users, error: usersError } = await supabase
     .from('usuarios')
     .select(`
@@ -251,9 +250,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     throw usersError;
   }
 
-  // Process each user to get their complete registration information
   const registrations = await Promise.all(users.map(async (user) => {
-    // Fetch modality registrations for the user
     const { data: modalityRegistrations, error: modalityError } = await supabase
       .from('inscricoes_modalidades')
       .select(`
@@ -270,7 +267,6 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       return null;
     }
 
-    // Define the correct type for modality data
     interface ModalityData {
       status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
       modalidade_id: number;
@@ -279,11 +275,9 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       };
     }
 
-    // Type assertion after verifying the structure
     const typedModalityRegistrations = modalityRegistrations as unknown as ModalityData[];
     console.log('Typed modality registrations:', typedModalityRegistrations);
 
-    // Fetch payment status
     const { data: payments, error: paymentError } = await supabase
       .from('pagamentos')
       .select('status')
@@ -295,10 +289,9 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       return null;
     }
 
-    // Fetch scores
     const { data: scores, error: scoresError } = await supabase
       .from('pontuacoes')
-      .select('pontuacao')
+      .select('valor')  // Changed from 'pontuacao' to 'valor'
       .eq('atleta_id', user.id);
 
     if (scoresError) {
@@ -306,14 +299,13 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       return null;
     }
 
-    // Process modality registrations with proper type checking
     const modalityNames = typedModalityRegistrations
-      ? typedModalityRegistrations.map(reg => reg.modalidade?.nome).filter(Boolean)
+      ? typedModalityRegistrations.map(reg => reg.modalidade.nome).filter(Boolean)
       : [];
     
     const registrationStatus = typedModalityRegistrations?.[0]?.status || 'Pendente';
     const paymentStatus = (payments?.[0]?.status || 'pendente') as 'pendente' | 'confirmado' | 'cancelado';
-    const totalPoints = scores?.reduce((sum, score) => sum + (score.pontuacao || 0), 0) || 0;
+    const totalPoints = scores?.reduce((sum, score) => sum + (score.valor || 0), 0) || 0;
 
     return {
       id: user.id,
@@ -328,7 +320,6 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     };
   }));
 
-  // Filter out any null values from failed fetches
   return registrations.filter((reg): reg is AthleteRegistration => reg !== null);
 };
 

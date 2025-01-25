@@ -20,6 +20,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { AthleteRegistrationCard } from './AthleteRegistrationCard';
 
 const COLORS = [
   "#009B40",
