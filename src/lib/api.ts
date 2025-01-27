@@ -277,7 +277,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     console.log('Raw modality registrations:', modalityRegistrations);
 
-    // Ensure modalityRegistrations is properly typed
+    // Ensure modalityRegistrations is properly typed and handle the nome property correctly
     const typedModalityRegistrations = (modalityRegistrations || []).map(reg => ({
       status: reg.status,
       modalidade_id: reg.modalidade_id,
