@@ -277,12 +277,12 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     console.log('Raw modality registrations:', modalityRegistrations);
 
-    // Cast to the correct type structure and ensure we're accessing the first modalidade
+    // Ensure modalityRegistrations is properly typed
     const typedModalityRegistrations = (modalityRegistrations || []).map(reg => ({
       status: reg.status,
       modalidade_id: reg.modalidade_id,
       modalidades: {
-        nome: reg.modalidades.nome
+        nome: reg.modalidades?.nome || 'N/A'
       }
     })) as ModalityData[];
 
