@@ -275,18 +275,9 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       return null;
     }
 
-    console.log('Raw modality registrations:', modalityRegistrations);
-
-    // Ensure modalityRegistrations is properly typed and handle the nome property correctly
-    const typedModalityRegistrations = (modalityRegistrations || []).map(reg => ({
-      status: reg.status,
-      modalidade_id: reg.modalidade_id,
-      modalidades: {
-        nome: reg.modalidades?.nome || 'N/A'
-      }
-    })) as ModalityData[];
-
-    console.log('Typed modality registrations:', typedModalityRegistrations);
+    const modalityNames = modalityRegistrations?.map(reg => 
+      reg.modalidades?.nome || 'N/A'
+    ) || [];
 
     const { data: payments, error: paymentError } = await supabase
       .from('pagamentos')
@@ -309,12 +300,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       return null;
     }
 
-    // Get modality names from the typed registrations
-    const modalityNames = typedModalityRegistrations.map(reg => 
-      reg.modalidades?.nome || 'N/A'
-    );
-    
-    const registrationStatus = typedModalityRegistrations[0]?.status || 'Pendente';
+    const registrationStatus = modalityRegistrations?.[0]?.status || 'Pendente';
     const paymentStatus = (payments?.[0]?.status || 'pendente') as 'pendente' | 'confirmado' | 'cancelado';
     const totalPoints = scores?.reduce((sum, score) => sum + (score.valor_pontuacao || 0), 0) || 0;
 

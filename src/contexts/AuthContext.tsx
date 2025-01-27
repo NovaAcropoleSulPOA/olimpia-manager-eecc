@@ -10,6 +10,13 @@ interface AuthUser extends User {
   filial_id?: string;
   confirmado?: boolean;
   papeis?: string[];
+  genero?: string;
+  numero_identificador?: string;
+  tipo_documento?: string;
+  numero_documento?: string;
+  filial_nome?: string;
+  filial_cidade?: string;
+  filial_estado?: string;
 }
 
 interface AuthContextType {
