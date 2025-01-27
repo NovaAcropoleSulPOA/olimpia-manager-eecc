@@ -5,7 +5,6 @@ import { Toaster } from './components/ui/sonner';
 import { GlobalHeader } from './components/GlobalHeader';
 import './App.css';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
 import PendingApproval from './pages/PendingApproval';
 import RoleSelection from './components/RoleSelection';
 import ResetPassword from './pages/ResetPassword';
@@ -13,7 +12,7 @@ import { MainNavigation } from './components/MainNavigation';
 import LandingPage from './pages/LandingPage';
 import Footer from './components/Footer';
 import OrganizerDashboard from './components/OrganizerDashboard';
-import AthleteProfilePage from './components/AthleteProfilePage';
+import AthleteProfile from './components/AthleteProfile';
 import AthleteRegistrations from './components/AthleteRegistrations';
 
 const queryClient = new QueryClient({
@@ -42,12 +41,9 @@ function App() {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route element={<MainNavigation />}>
                   <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
-                  <Route path="/athlete-dashboard" element={<Dashboard />} />
-                  <Route path="/athlete-profile" element={<AthleteProfilePage />} />
+                  <Route path="/athlete-profile" element={<AthleteProfile />} />
                   <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
                   <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
-                  <Route path="/judge-dashboard" element={<Dashboard />} />
-                  <Route path="/delegation-dashboard" element={<Dashboard />} />
                 </Route>
               </Routes>
             </div>

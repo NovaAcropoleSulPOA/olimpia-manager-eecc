@@ -310,7 +310,9 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     }
 
     // Get modality names from the typed registrations
-    const modalityNames = typedModalityRegistrations.map(reg => reg.modalidades.nome);
+    const modalityNames = typedModalityRegistrations.map(reg => 
+      reg.modalidades?.nome || 'N/A'
+    );
     
     const registrationStatus = typedModalityRegistrations[0]?.status || 'Pendente';
     const paymentStatus = (payments?.[0]?.status || 'pendente') as 'pendente' | 'confirmado' | 'cancelado';
