@@ -13,10 +13,9 @@ import {
   SidebarGroupLabel,
   SidebarTrigger
 } from './ui/sidebar';
-import { Home, User, Medal, Users, Award, BarChart3, LogOut, Menu } from 'lucide-react';
+import { Home, User, Medal, Users, Award, BarChart3, LogOut, Menu, ClipboardList } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Button } from './ui/button';
 
 export function MainNavigation() {
   const { user, signOut } = useAuth();
@@ -31,9 +30,15 @@ export function MainNavigation() {
       roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"]
     },
     {
-      title: "Perfil do Atleta",
-      icon: Award,
-      path: "/athlete-dashboard",
+      title: "Perfil",
+      icon: User,
+      path: "/athlete-profile",
+      roles: ["Atleta"]
+    },
+    {
+      title: "Inscrições",
+      icon: ClipboardList,
+      path: "/athlete-registrations",
       roles: ["Atleta"]
     },
     {
@@ -69,7 +74,6 @@ export function MainNavigation() {
     }
   };
 
-  // If user is not loaded yet, show loading state
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -81,13 +85,11 @@ export function MainNavigation() {
   const userRoles = user?.papeis || [];
   console.log('User roles:', userRoles);
   
-  // Filter menu items based on user roles
   const filteredMenuItems = menuItems.filter(item => 
     item.roles.some(role => userRoles.includes(role))
   );
   console.log('Filtered menu items:', filteredMenuItems);
 
-  // If user tries to access a route they don't have permission for, redirect to home
   const currentMenuItem = menuItems.find(item => item.path === location.pathname);
   if (currentMenuItem && !currentMenuItem.roles.some(role => userRoles.includes(role))) {
     console.log('Unauthorized access attempt, redirecting to home');
@@ -97,11 +99,11 @@ export function MainNavigation() {
   }
 
   return (
-    <SidebarProvider defaultOpen={false}>
+    <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen w-full">
         <Sidebar className="bg-olimpics-green-primary text-white transition-all duration-300">
           <SidebarHeader className="relative p-6 border-b border-olimpics-green-secondary">
-            <h2 className="text-xl font-bold text-center">Olimpíadas</h2>
+            <h2 className="text-xl font-bold text-center">Menu</h2>
             <SidebarTrigger className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden text-white hover:text-olimpics-green-secondary">
               <Menu className="h-6 w-6" />
             </SidebarTrigger>
@@ -114,7 +116,7 @@ export function MainNavigation() {
               <SidebarGroupContent>
                 <SidebarMenu className="px-3">
                   {filteredMenuItems.map((item) => (
-                    <SidebarMenuItem key={item.title} className="my-1">
+                    <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
                         isActive={location.pathname === item.path}
@@ -128,7 +130,7 @@ export function MainNavigation() {
                           }
                         `}
                       >
-                        <Link to={item.path} className="flex items-center gap-3 p-3 justify-center">
+                        <Link to={item.path} className="flex items-center gap-3 p-3">
                           <item.icon className="h-5 w-5" />
                           <span className="font-medium">{item.title}</span>
                         </Link>
@@ -144,7 +146,7 @@ export function MainNavigation() {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={handleLogout}
-                  className="w-full rounded-lg p-3 flex items-center justify-center gap-3 
+                  className="w-full rounded-lg p-3 flex items-center gap-3 
                     text-red-300 hover:text-red-100 hover:bg-red-500/20 
                     transition-all duration-200"
                   tooltip="Sair"

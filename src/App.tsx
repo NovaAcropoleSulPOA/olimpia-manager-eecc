@@ -13,6 +13,8 @@ import { MainNavigation } from './components/MainNavigation';
 import LandingPage from './pages/LandingPage';
 import Footer from './components/Footer';
 import OrganizerDashboard from './components/OrganizerDashboard';
+import AthleteProfilePage from './components/AthleteProfilePage';
+import AthleteRegistrations from './components/AthleteRegistrations';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,22 +32,28 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
-          <GlobalHeader />
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/pending-approval" element={<PendingApproval />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route element={<MainNavigation />}>
-              <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
-              <Route path="/athlete-dashboard" element={<Dashboard />} />
-              <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
-              <Route path="/judge-dashboard" element={<Dashboard />} />
-              <Route path="/delegation-dashboard" element={<Dashboard />} />
-            </Route>
-          </Routes>
-          <Footer />
-          <Toaster />
+          <div className="flex flex-col min-h-screen">
+            <GlobalHeader />
+            <div className="flex-1">
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/pending-approval" element={<PendingApproval />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route element={<MainNavigation />}>
+                  <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
+                  <Route path="/athlete-dashboard" element={<Dashboard />} />
+                  <Route path="/athlete-profile" element={<AthleteProfilePage />} />
+                  <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
+                  <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
+                  <Route path="/judge-dashboard" element={<Dashboard />} />
+                  <Route path="/delegation-dashboard" element={<Dashboard />} />
+                </Route>
+              </Routes>
+            </div>
+            <Footer />
+            <Toaster />
+          </div>
         </AuthProvider>
       </Router>
     </QueryClientProvider>
