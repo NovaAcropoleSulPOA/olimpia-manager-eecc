@@ -28,7 +28,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { AthleteRegistrationCard } from './AthleteRegistrationCard';
 
-// Define the ModalidadePopular type
 interface ModalidadePopular {
   [key: string]: number;
 }
@@ -42,25 +41,33 @@ const COLORS = [
   "#FF5722",
 ];
 
-const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
-  const totalAthletes = branchAnalytics?.reduce((acc, branch) => acc + branch.total_inscritos, 0) || 0;
-  const totalRevenue = branchAnalytics?.reduce((acc, branch) => acc + branch.valor_total_arrecadado, 0) || 0;
-  const totalRegistrations = branchAnalytics?.reduce((acc, branch) => acc + branch.total_inscricoes, 0) || 0;
-  const averageScore = branchAnalytics?.reduce((acc, branch) => acc + branch.media_pontuacao_atletas, 0) || 0;
+const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalytics[] | undefined }) => {
+  if (!branchAnalytics || branchAnalytics.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <p className="text-muted-foreground">Nenhum dado disponível</p>
+      </div>
+    );
+  }
 
-  const registrationStatusData = branchAnalytics?.map(branch => ({
-    name: branch.filial,
-    Confirmadas: branch.inscricoes_confirmadas,
-    Pendentes: branch.inscricoes_pendentes,
-    Canceladas: branch.inscricoes_canceladas,
-    Recusadas: branch.inscricoes_recusadas,
+  const totalAthletes = branchAnalytics.reduce((acc, branch) => acc + (branch.total_inscritos || 0), 0);
+  const totalRevenue = branchAnalytics.reduce((acc, branch) => acc + (branch.valor_total_arrecadado || 0), 0);
+  const totalRegistrations = branchAnalytics.reduce((acc, branch) => acc + (branch.total_inscricoes || 0), 0);
+  const averageScore = branchAnalytics.reduce((acc, branch) => acc + (branch.media_pontuacao_atletas || 0), 0);
+
+  const registrationStatusData = branchAnalytics.map(branch => ({
+    name: branch.filial || 'Desconhecido',
+    Confirmadas: branch.inscricoes_confirmadas || 0,
+    Pendentes: branch.inscricoes_pendentes || 0,
+    Canceladas: branch.inscricoes_canceladas || 0,
+    Recusadas: branch.inscricoes_recusadas || 0,
   }));
 
-  const popularModalitiesData = branchAnalytics?.flatMap(branch => {
-    const modalidades = branch.modalidades_populares as ModalidadePopular;
+  const popularModalitiesData = branchAnalytics.flatMap(branch => {
+    const modalidades = branch.modalidades_populares as ModalidadePopular || {};
     return Object.entries(modalidades).map(([modalidade, count]) => ({
       name: modalidade,
-      value: count as number,
+      value: count || 0,
     }));
   }).reduce((acc, curr) => {
     const existing = acc.find(item => item.name === curr.name);
@@ -70,7 +77,7 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
       acc.push(curr);
     }
     return acc;
-  }, [] as { name: string; value: number }[]) || [];
+  }, [] as { name: string; value: number }[]);
 
   return (
     <div className="space-y-6">
@@ -110,7 +117,7 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(averageScore / (branchAnalytics?.length || 1)).toFixed(1)}
+              {(averageScore / (branchAnalytics.length || 1)).toFixed(1)}
             </div>
           </CardContent>
         </Card>
@@ -191,7 +198,7 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {branchAnalytics?.map((branch) => (
+                  {branchAnalytics.map((branch) => (
                     <tr key={branch.filial_id} className="border-b">
                       <td className="p-2">
                         <div className="font-medium">{branch.filial}</div>
