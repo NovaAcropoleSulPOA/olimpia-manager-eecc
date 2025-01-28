@@ -147,11 +147,11 @@ export const updatePaymentStatus = async (
 ): Promise<void> => {
   console.log('Updating payment status:', { athleteId, status });
   
-  // Get the registration data from the view
+  // Get the registration data from the view using atleta_id
   const { data: registrations, error: fetchError } = await supabase
     .from('vw_inscricoes_atletas')
     .select('*')
-    .eq('id', athleteId);
+    .eq('atleta_id', athleteId);
 
   if (fetchError) {
     console.error('Error fetching registrations:', fetchError);
