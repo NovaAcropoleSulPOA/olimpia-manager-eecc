@@ -61,17 +61,36 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
   console.log('Fetching athlete registrations...');
   const { data, error } = await supabase
     .from('vw_inscricoes_atletas')
-    .select('*');
+    .select(`
+      id,
+      nome_atleta,
+      email,
+      telefone,
+      filial,
+      modalidades:inscricoes_modalidades(
+        id,
+        modalidade:modalidades(nome),
+        status,
+        justificativa_status
+      ),
+      status_inscricao,
+      status_pagamento
+    `);
 
   if (error) {
     console.error('Error fetching registrations:', error);
     throw error;
   }
 
-  // The view now returns modalidades as a JSON array
+  // Transform the data to match the expected format
   const transformedData = data?.map(registration => ({
     ...registration,
-    modalidades: registration.modalidades || []
+    modalidades: registration.modalidades.map((m: any) => ({
+      id: m.id,
+      modalidade: m.modalidade.nome,
+      status: m.status,
+      justificativa_status: m.justificativa_status
+    }))
   })) || [];
 
   console.log('Transformed registrations data:', transformedData);
@@ -144,5 +163,6 @@ export const updateModalityStatus = async (
     throw error;
   }
 
+  // Return a Promise that resolves when the update is complete
   return Promise.resolve();
 };
