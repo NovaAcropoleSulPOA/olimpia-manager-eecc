@@ -84,7 +84,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               <div className="flex justify-between items-start">
                 <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
                 <div className="flex gap-2">
-                  <Badge variant={registration.email_confirmado ? "success" : "destructive"}>
+                  <Badge variant={registration.email_confirmado ? "default" : "destructive"}>
                     {registration.email_confirmado ? (
                       <CheckCircle2 className="w-4 h-4 mr-1" />
                     ) : (

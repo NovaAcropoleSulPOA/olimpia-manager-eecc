@@ -66,6 +66,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     id: registration.atleta_id,
     nome_atleta: registration.atleta_nome,
     email: registration.email || '',
+    email_confirmado: registration.email_confirmado || false,
     telefone: registration.telefone,
     filial: registration.filial_nome,
     modalidades: [{
