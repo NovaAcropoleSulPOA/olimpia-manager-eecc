@@ -3,8 +3,8 @@ DROP FUNCTION IF EXISTS public.atualizar_status_pagamento(uuid, text);
 
 -- Create updated function
 CREATE OR REPLACE FUNCTION public.atualizar_status_pagamento(
-    p_atleta_id uuid,
-    p_novo_status text
+    novo_status text,
+    p_atleta_id uuid
 )
 RETURNS SETOF public.inscricoes_modalidades
 LANGUAGE plpgsql
@@ -15,7 +15,7 @@ DECLARE
     v_count integer;
 BEGIN
     -- Validate status
-    IF p_novo_status NOT IN ('pendente', 'confirmado', 'cancelado') THEN
+    IF novo_status NOT IN ('pendente', 'confirmado', 'cancelado') THEN
         RAISE EXCEPTION 'Status inválido. Use: pendente, confirmado ou cancelado';
     END IF;
 
@@ -33,7 +33,7 @@ BEGIN
     RETURN QUERY
     UPDATE inscricoes_modalidades
     SET 
-        status_pagamento = p_novo_status,
+        status_pagamento = novo_status,
         updated_at = NOW()
     WHERE atleta_id = p_atleta_id
     RETURNING *;
@@ -41,4 +41,4 @@ END;
 $$;
 
 -- Grant execute permission to authenticated users
-GRANT EXECUTE ON FUNCTION public.atualizar_status_pagamento(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.atualizar_status_pagamento(text, uuid) TO authenticated;

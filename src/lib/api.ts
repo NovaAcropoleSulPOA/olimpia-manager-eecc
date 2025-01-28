@@ -150,8 +150,8 @@ export const updatePaymentStatus = async (
   try {
     const { data: updateResult, error: updateError } = await supabase
       .rpc('atualizar_status_pagamento', {
-        p_atleta_id: athleteId,
-        p_novo_status: status
+        novo_status: status,
+        p_atleta_id: athleteId
       });
 
     console.log('Payment status update result:', updateResult);
