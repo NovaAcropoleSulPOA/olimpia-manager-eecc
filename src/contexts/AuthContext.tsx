@@ -40,8 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Only redirect to default page on initial login
-    if (isInitialLogin) {
+    // Only redirect to default page on initial login and if we're on a public route
+    if (isInitialLogin && PUBLIC_ROUTES.includes(location.pathname)) {
       const roles = userProfile.papeis || [];
       console.log('AuthContext - User roles:', roles);
 
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userProfile = await fetchUserProfile(session.user.id);
           if (mounted) {
             setUser({ ...session.user, ...userProfile });
-            // Only redirect on initial mount if on a public route
+            // Only redirect if on a public route
             if (PUBLIC_ROUTES.includes(location.pathname)) {
               handleAuthRedirect(userProfile, true);
             }
@@ -123,8 +123,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (mounted) {
                   setUser({ ...session.user, ...userProfile });
                 }
-                // Only redirect on sign in
-                if (event === 'SIGNED_IN') {
+                // Only redirect on sign in and if on a public route
+                if (event === 'SIGNED_IN' && PUBLIC_ROUTES.includes(location.pathname)) {
                   handleAuthRedirect(userProfile, true);
                 }
               } catch (error) {
