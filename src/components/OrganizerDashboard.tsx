@@ -43,6 +43,8 @@ const DashboardOverview = ({ branchAnalytics, selectedBranch, onBranchChange }: 
   selectedBranch: string;
   onBranchChange: (branchId: string) => void;
 }) => {
+  console.log('Branch analytics data:', branchAnalytics);
+  
   if (!branchAnalytics || branchAnalytics.length === 0) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -54,6 +56,15 @@ const DashboardOverview = ({ branchAnalytics, selectedBranch, onBranchChange }: 
   const currentBranch = branchAnalytics.find(b => b.filial_id === selectedBranch) || branchAnalytics[0];
   const totalAthletes = branchAnalytics.reduce((acc, branch) => acc + (branch.total_inscritos || 0), 0);
   const totalRevenue = branchAnalytics.reduce((acc, branch) => acc + (branch.valor_total_arrecadado || 0), 0);
+
+  // Transform modalidades_populares into the correct format for charts
+  const popularModalitiesData = Object.entries(currentBranch.modalidades_populares || {})
+    .map(([modalidade, count]) => ({
+      name: modalidade,
+      value: typeof count === 'number' ? count : 0
+    }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5);
 
   const statusData = Object.entries(currentBranch.inscritos_por_status || {}).map(([status, count]) => ({
     name: status,
@@ -69,14 +80,6 @@ const DashboardOverview = ({ branchAnalytics, selectedBranch, onBranchChange }: 
     name: category,
     value: count
   }));
-
-  const popularModalitiesData = Object.entries(currentBranch.modalidades_populares || {})
-    .map(([modalidade, count]) => ({
-      name: modalidade,
-      value: count || 0,
-    }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -206,7 +209,7 @@ const DashboardOverview = ({ branchAnalytics, selectedBranch, onBranchChange }: 
                       <td className="p-2">
                         <div className="font-medium">{modalidade}</div>
                       </td>
-                      <td className="text-right p-2">{media.toFixed(1)}</td>
+                      <td className="text-right p-2">{typeof media === 'number' ? media.toFixed(1) : 'N/A'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -332,12 +335,14 @@ export default function OrganizerDashboard() {
   const { data: branchAnalytics, isLoading } = useQuery<BranchAnalytics[]>({
     queryKey: ['branch-analytics'],
     queryFn: fetchBranchAnalytics,
-    onSuccess: (data) => {
-      if (data.length > 0 && !selectedBranch) {
-        setSelectedBranch(data[0].filial_id);
-      }
-    }
+    initialData: []
   });
+
+  React.useEffect(() => {
+    if (branchAnalytics && branchAnalytics.length > 0 && !selectedBranch) {
+      setSelectedBranch(branchAnalytics[0].filial_id);
+    }
+  }, [branchAnalytics, selectedBranch]);
 
   if (isLoading) {
     return (
