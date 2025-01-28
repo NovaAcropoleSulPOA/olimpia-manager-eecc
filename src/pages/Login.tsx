@@ -210,6 +210,19 @@ const Login = () => {
         return;
       }
   
+      // Reset form after successful registration
+      registerForm.reset({
+        nome: '',
+        email: '',
+        telefone: '',
+        password: '',
+        confirmPassword: '',
+        branchId: '',
+        tipo_documento: 'CPF',
+        numero_documento: '',
+        genero: 'Prefiro não informar',
+      });
+      
       toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
       navigate('/');
   
@@ -470,7 +483,7 @@ const Login = () => {
 
                     <Button
                       type="submit"
-                      className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
+                      className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
@@ -620,4 +633,3 @@ const Login = () => {
 };
 
 export default Login;
-
