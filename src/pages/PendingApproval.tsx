@@ -31,11 +31,11 @@ export default function PendingApproval() {
             variant="outline"
             onClick={() => {
               signOut();
-              navigate('/login');
+              navigate('/');
             }}
             className="w-full"
           >
-            Voltar para Login
+            Voltar para a Tela Inicial
           </Button>
         </CardContent>
       </Card>
