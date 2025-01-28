@@ -52,7 +52,7 @@ export const fetchBranches = async (): Promise<Branch[]> => {
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
   console.log('Fetching athlete registrations...');
   const { data, error } = await supabase
-    .from('inscricoes')
+    .from('registros_atletas') // Updated table name from 'inscricoes' to 'registros_atletas'
     .select(`
       id,
       nome_atleta,
@@ -83,7 +83,7 @@ export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
   if (branchError) throw branchError;
 
   const { data: registrations, error: regError } = await supabase
-    .from('inscricoes')
+    .from('registros_atletas') // Updated table name from 'inscricoes' to 'registros_atletas'
     .select('*');
 
   if (regError) throw regError;
@@ -127,7 +127,7 @@ export const updateRegistrationStatus = async (
 ): Promise<void> => {
   console.log('Updating registration status:', { id, status });
   const { error } = await supabase
-    .from('inscricoes')
+    .from('registros_atletas') // Updated table name from 'inscricoes' to 'registros_atletas'
     .update({ status_inscricao: status })
     .eq('id', id);
 
@@ -143,7 +143,7 @@ export const updatePaymentStatus = async (
 ): Promise<void> => {
   console.log('Updating payment status:', { id, status });
   const { error } = await supabase
-    .from('inscricoes')
+    .from('registros_atletas') // Updated table name from 'inscricoes' to 'registros_atletas'
     .update({ status_pagamento: status })
     .eq('id', id);
 
