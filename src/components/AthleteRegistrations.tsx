@@ -111,7 +111,8 @@ export default function AthleteRegistrations() {
           *,
           modalidade:modalidades (
             nome,
-            categoria
+            categoria,
+            tipo_modalidade
           )
         `)
         .eq('atleta_id', user.id);
@@ -206,6 +207,8 @@ export default function AthleteRegistrations() {
             <TableHeader>
               <TableRow>
                 <TableHead>Modalidade</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Categoria</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Data de Inscrição</TableHead>
                 <TableHead>Ações</TableHead>
@@ -215,6 +218,8 @@ export default function AthleteRegistrations() {
               {registeredModalities?.map((registration) => (
                 <TableRow key={registration.modalidade_id}>
                   <TableCell>{registration.modalidade?.nome}</TableCell>
+                  <TableCell className="capitalize">{registration.modalidade?.tipo_modalidade}</TableCell>
+                  <TableCell className="capitalize">{registration.modalidade?.categoria}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {getModalityStatusIcon(registration.status)}
@@ -252,6 +257,8 @@ export default function AthleteRegistrations() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Modalidade</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Categoria</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -266,6 +273,8 @@ export default function AthleteRegistrations() {
                   return (
                     <TableRow key={modality.id}>
                       <TableCell>{modality.nome}</TableCell>
+                      <TableCell className="capitalize">{modality.tipo_modalidade}</TableCell>
+                      <TableCell className="capitalize">{modality.categoria}</TableCell>
                       <TableCell>
                         <Button
                           variant="default"
