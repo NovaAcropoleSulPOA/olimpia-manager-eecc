@@ -1,12 +1,11 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Building2, Award } from "lucide-react";
+import { Phone, Mail, Building2, Award, MessageSquare } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 interface AthleteModality {
@@ -34,8 +33,10 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   onStatusChange,
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
+  const isValidated = athlete.modalidades.length > 0;
 
-  const handleWhatsAppClick = (phone: string) => {
+  const handleWhatsAppClick = (e: React.MouseEvent, phone: string) => {
+    e.stopPropagation();
     const formattedPhone = phone.replace(/\D/g, '');
     const message = encodeURIComponent('Olá! Gostaria de falar sobre sua inscrição nas Olimpíadas.');
     window.open(`https://wa.me/${formattedPhone}?text=${message}`, '_blank');
@@ -71,104 +72,115 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
     }
   };
 
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Card className={`cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(athlete.status_pagamento)}`}>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">{athlete.nome_atleta}</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate">{athlete.email}</span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <Button
-                    variant="link"
-                    className="p-0 h-auto font-normal"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleWhatsAppClick(athlete.telefone);
-                    }}
-                  >
-                    {athlete.telefone}
-                  </Button>
-                </div>
+  const CardWrapper = isValidated ? Dialog : React.Fragment;
+  const CardTrigger = isValidated ? DialogTrigger : React.Fragment;
 
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span>{athlete.filial}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-muted-foreground" />
-                  <span>{athlete.modalidades.length} modalidades</span>
-                </div>
-              </div>
+  const cardContent = (
+    <Card 
+      className={`${getStatusColor(athlete.status_pagamento)} ${
+        isValidated ? 'cursor-pointer hover:shadow-md transition-shadow' : 'cursor-default'
+      }`}
+    >
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">{athlete.nome_atleta}</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              <span className="truncate">{athlete.email}</span>
             </div>
-          </CardContent>
-        </Card>
-      </DialogTrigger>
+            
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-muted-foreground" />
+              <Button
+                variant="link"
+                className="p-0 h-auto font-normal flex items-center gap-1"
+                onClick={(e) => handleWhatsAppClick(e, athlete.telefone)}
+              >
+                {athlete.telefone}
+                <MessageSquare className="h-4 w-4 text-olimpics-green-primary" />
+              </Button>
+            </div>
 
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Gerenciar Modalidades - {athlete.nome_atleta}</DialogTitle>
-          <DialogDescription>
-            Gerencie as modalidades e status do atleta
-          </DialogDescription>
-        </DialogHeader>
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <span>{athlete.filial}</span>
+            </div>
 
-        <div className="mt-4">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Modalidade</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Justificativa</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {athlete.modalidades.map((modalidade) => (
-                <TableRow key={modalidade.id}>
-                  <TableCell>{modalidade.modalidade}</TableCell>
-                  <TableCell>{modalidade.status}</TableCell>
-                  <TableCell>
-                    <Input
-                      placeholder="Justificativa para alteração"
-                      value={justifications[modalidade.id] || ''}
-                      onChange={(e) => setJustifications(prev => ({
-                        ...prev,
-                        [modalidade.id]: e.target.value
-                      }))}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={modalidade.status}
-                      onValueChange={(value) => handleStatusChange(modalidade.id, value)}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Selecione o status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Pendente">Pendente</SelectItem>
-                        <SelectItem value="Confirmada">Confirmada</SelectItem>
-                        <SelectItem value="Cancelada">Cancelada</SelectItem>
-                        <SelectItem value="Recusada">Recusada</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+            <div className="flex items-center gap-2">
+              <Award className="h-4 w-4 text-muted-foreground" />
+              <span>{athlete.modalidades.length} modalidades</span>
+            </div>
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <CardWrapper>
+      <CardTrigger asChild>
+        {cardContent}
+      </CardTrigger>
+
+      {isValidated && (
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Modalidades - {athlete.nome_atleta}</DialogTitle>
+            <DialogDescription>
+              Gerencie as modalidades e status do atleta
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Modalidade</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Justificativa</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {athlete.modalidades.map((modalidade) => (
+                  <TableRow key={modalidade.id}>
+                    <TableCell>{modalidade.modalidade}</TableCell>
+                    <TableCell>{modalidade.status}</TableCell>
+                    <TableCell>
+                      <Input
+                        placeholder="Justificativa para alteração"
+                        value={justifications[modalidade.id] || ''}
+                        onChange={(e) => setJustifications(prev => ({
+                          ...prev,
+                          [modalidade.id]: e.target.value
+                        }))}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={modalidade.status}
+                        onValueChange={(value) => handleStatusChange(modalidade.id, value)}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Selecione o status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Pendente">Pendente</SelectItem>
+                          <SelectItem value="Confirmada">Confirmada</SelectItem>
+                          <SelectItem value="Cancelada">Cancelada</SelectItem>
+                          <SelectItem value="Recusada">Recusada</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      )}
+    </CardWrapper>
   );
 };
