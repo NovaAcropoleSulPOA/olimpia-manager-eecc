@@ -8,6 +8,8 @@ export interface Modality {
   tipo_modalidade: 'individual' | 'coletivo';
   categoria: 'misto' | 'masculino' | 'feminino';
   status?: 'pendente' | 'confirmado' | 'rejeitado';
+  limite_vagas: number;
+  vagas_ocupadas: number;
 }
 
 export interface Branch {
@@ -19,7 +21,7 @@ export interface Branch {
 
 export interface Role {
   id: number;
-  nome: 'atleta' | 'organizador' | 'juiz';
+  nome: 'atleta' | 'organizador' | 'juiz' | 'representante de delegacao';
   descricao?: string;
 }
 
@@ -33,6 +35,7 @@ export interface User {
   data_criacao: string;
   tipo_documento: 'CPF' | 'RG';
   numero_documento: string;
+  numero_identificador: string;
   genero: 'Masculino' | 'Feminino' | 'Prefiro não informar';
   roles: Role[];
   modalidades?: Modality[];
@@ -57,7 +60,8 @@ export interface BranchAnalytics {
 }
 
 export interface ModalityRegistration {
-  status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
+  id: number;
+  status: 'pendente' | 'confirmado' | 'cancelado' | 'rejeitado';
   modalidade_id: number;
   modalidades: {
     nome: string;
