@@ -21,10 +21,10 @@ interface DashboardChartsProps {
 }
 
 export function DashboardCharts({ data }: DashboardChartsProps) {
-  // Transform data for revenue chart
-  const revenueData = data.map(branch => ({
+  // Transform data for athletes per branch chart
+  const athletesData = data.map(branch => ({
     name: branch.filial,
-    value: branch.valor_total_arrecadado
+    value: branch.total_inscritos
   }));
 
   // Transform and aggregate modalities data
@@ -46,30 +46,15 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
     <div className="grid gap-4 md:grid-cols-2">
       <Card className="col-span-1">
         <CardHeader>
-          <CardTitle>Receita por Filial</CardTitle>
+          <CardTitle>Atletas por Filial</CardTitle>
         </CardHeader>
         <CardContent className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={revenueData}>
+            <BarChart data={athletesData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
-              <YAxis
-                tickFormatter={(value) =>
-                  new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                    notation: 'compact'
-                  }).format(value)
-                }
-              />
-              <Tooltip
-                formatter={(value: number) =>
-                  new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                  }).format(value)
-                }
-              />
+              <YAxis />
+              <Tooltip />
               <Bar dataKey="value" fill="#009B40" />
             </BarChart>
           </ResponsiveContainer>

@@ -52,6 +52,11 @@ export function DashboardTable({ data }: DashboardTableProps) {
     }));
   };
 
+  const getModalitiesList = (modalidades: Record<string, number> | null) => {
+    if (!modalidades) return "Nenhuma modalidade";
+    return Object.keys(modalidades).join(", ");
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -82,11 +87,8 @@ export function DashboardTable({ data }: DashboardTableProps) {
                 >
                   Total de Atletas
                 </TableHead>
-                <TableHead
-                  className="cursor-pointer text-right"
-                  onClick={() => handleSort('valor_total_arrecadado')}
-                >
-                  Receita
+                <TableHead>
+                  Modalidades Disponíveis
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -95,12 +97,7 @@ export function DashboardTable({ data }: DashboardTableProps) {
                 <TableRow key={branch.filial_id}>
                   <TableCell className="font-medium">{branch.filial}</TableCell>
                   <TableCell className="text-right">{branch.total_inscritos}</TableCell>
-                  <TableCell className="text-right">
-                    {new Intl.NumberFormat('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL'
-                    }).format(branch.valor_total_arrecadado)}
-                  </TableCell>
+                  <TableCell>{getModalitiesList(branch.modalidades_populares)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
