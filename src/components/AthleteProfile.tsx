@@ -17,7 +17,7 @@ interface AthleteProfileProps {
   };
 }
 
-const getProfileImage = (gender: string) => {
+const getProfileImage = (gender: string | undefined) => {
   switch (gender?.toLowerCase()) {
     case 'masculino':
       return "/lovable-uploads/71dd91ef-fe30-4b2b-9292-5c7ecebb1b69.png";
@@ -29,6 +29,10 @@ const getProfileImage = (gender: string) => {
 };
 
 export default function AthleteProfile({ profile }: AthleteProfileProps) {
+  if (!profile) {
+    return null;
+  }
+
   return (
     <Card>
       <CardContent className="p-6">

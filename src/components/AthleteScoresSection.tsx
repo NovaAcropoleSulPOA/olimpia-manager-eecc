@@ -86,7 +86,9 @@ export default function AthleteScoresSection({ athleteId }: AthleteScoresSection
                 <TableCell className="font-medium">{score.modalidade_nome}</TableCell>
                 <TableCell className="text-right">{score.pontuacao_total}</TableCell>
                 <TableCell className="text-right">
-                  {score.media_pontuacao.toFixed(2)}
+                  {typeof score.media_pontuacao === 'number' 
+                    ? score.media_pontuacao.toFixed(2) 
+                    : 'N/A'}
                 </TableCell>
               </TableRow>
             ))}
