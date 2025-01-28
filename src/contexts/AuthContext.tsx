@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // Fetch user profile
               const { data: userProfile, error: profileError } = await supabase
                 .from('usuarios')
-                .select('*')
+                .select('nome_completo, telefone, filial_id, confirmado')
                 .eq('id', session.user.id)
                 .single();
 
@@ -110,14 +110,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
               // Only redirect on initial sign in
               if (event === 'SIGNED_IN') {
-                if (papeis.length > 1) {
-                  console.log('Multiple roles found, redirecting to role selection');
-                  navigate('/role-selection', { state: { roles: papeis } });
-                } else {
-                  const redirectPath = getDefaultRoute(papeis);
-                  console.log('Single role, redirecting to:', redirectPath);
-                  navigate(redirectPath);
-                }
+                const redirectPath = getDefaultRoute(papeis);
+                console.log('Redirecting to:', redirectPath);
+                navigate(redirectPath);
               }
             } catch (error) {
               console.error('Error setting up user session:', error);
@@ -161,7 +156,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [navigate, location]);
 
   const getDefaultRoute = (roles: string[]) => {
-    console.log('Getting default route for roles:', roles);
     if (!roles.length) return '/login';
     if (roles.includes('Atleta')) {
       return '/athlete-profile';
@@ -253,7 +247,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
   
       // Direct redirect for single role
-      const redirectPath = getDefaultRoute(roles);
+      let redirectPath = '/dashboard';
+      if (roles.includes('Atleta')) {
+        redirectPath = '/athlete-profile';
+      } else if (roles.includes('Juiz')) {
+        redirectPath = '/judge-dashboard';
+      } else if (roles.includes('Organizador')) {
+        redirectPath = '/organizer-dashboard';
+      }
+  
       console.log('Redirecting to:', redirectPath);
       navigate(redirectPath);
       toast.success("Login realizado com sucesso!");
@@ -281,8 +283,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (userData: any) => {
     try {
+      console.log('Checking if email already exists:', userData.email);
+      
+      // Check if the email is already registered
+      const { data: existingUser, error: checkError } = await supabase
+        .from('usuarios')
+        .select('id')
+        .eq('email', userData.email)
+        .maybeSingle();
+  
+      if (checkError) {
+        console.error('Error checking existing user:', checkError);
+        toast.error('Erro ao verificar cadastro existente.');
+        return { user: null, error: checkError };
+      }
+  
+      if (existingUser) {
+        toast.error("Este e-mail já está cadastrado. Por favor, faça login com sua conta existente.");
+        return { user: null, error: new Error('Email already exists') };
+      }
+  
       console.log('Starting new user registration.');
-
+  
       const { data, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -290,75 +312,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           emailRedirectTo: `${window.location.origin}/verify-email`,
         },
       });
-
+  
       if (authError) {
         console.error('Auth Error:', authError.message);
         toast.error('Erro ao criar conta. Tente novamente.');
         return { user: null, error: authError };
       }
-
+  
       if (!data.user) {
         toast.error('Erro ao criar conta. Tente novamente.');
         return { user: null, error: new Error('User creation failed') };
       }
-
+  
       const userId = data.user.id;
-
-      // Create user profile in usuarios table with all required fields
+  
+      // Create user profile in usuarios table
       const { error: profileError } = await supabase
         .from('usuarios')
         .insert([{
           id: userId,
           nome_completo: userData.nome,
-          telefone: userData.telefone,
+          telefone: userData.telefone.replace(/\D/g, ''),
           email: userData.email,
           filial_id: userData.branchId,
           confirmado: false,
-          tipo_documento: userData.tipo_documento,
-          numero_documento: userData.numero_documento,
-          genero: userData.genero
         }]);
-
+  
       if (profileError) {
         console.error('Profile creation error:', profileError);
         toast.error('Erro ao salvar dados do usuário.');
         return { user: null, error: profileError };
       }
-
-      // Assign athlete role
-      const { error: rolesError } = await supabase
-        .from('papeis_usuarios')
-        .insert([{
-          usuario_id: userId,
-          perfil_id: 1 // ID for "Atleta" role
-        }]);
-
-      if (rolesError) {
-        console.error('Role assignment error:', rolesError);
-        toast.error('Erro ao atribuir papel de atleta ao usuário.');
-        return { user: null, error: rolesError };
-      }
-
-      // Create payment record
-      const { error: paymentError } = await supabase
-        .from('pagamentos')
-        .insert([{
-          atleta_id: userId,
-          valor: 180.00,
-          status: 'pendente',
-          comprovante_url: null,
-          validado_sem_comprovante: false,
-          data_validacao: null,
-          data_criacao: new Date().toISOString()
-        }]);
-
-      if (paymentError) {
-        console.error('Payment record creation error:', paymentError);
-        toast.error('Erro ao criar registro de pagamento.');
-        return { user: null, error: paymentError };
-      }
-
-      console.log('User profile created successfully');
+  
+      console.log('User profile created in usuarios table.');
+  
+      // Registration successful, instruct user to check email
+      toast.success('Cadastro realizado com sucesso! Verifique seu email para ativação.');
+      navigate('/login');
+  
       return { user: data.user, error: null };
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -366,6 +357,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { user: null, error };
     }
   };
+  
 
   const resendVerificationEmail = async (email: string) => {
     try {
