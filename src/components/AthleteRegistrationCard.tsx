@@ -21,6 +21,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   onStatusChange,
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
+  const hasModalities = registration.modalidades.length > 0;
 
   const handleWhatsAppClick = (phone: string) => {
     const formattedPhone = phone.replace(/\D/g, '');
@@ -75,67 +76,85 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     }
   };
 
+  const CardContent = () => (
+    <div className="space-y-4">
+      <div className="flex justify-between items-start">
+        <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
+        <div className="flex gap-2">
+          <Badge variant={registration.confirmado ? "default" : "destructive"}>
+            {registration.confirmado ? (
+              <>
+                <CheckCircle2 className="w-4 h-4 mr-1" />
+                Validado
+              </>
+            ) : (
+              <>
+                <XCircle className="w-4 h-4 mr-1" />
+                Não Validado
+              </>
+            )}
+          </Badge>
+          <Badge className={cn("capitalize", getStatusTextColor(registration.status_pagamento))}>
+            {registration.status_pagamento}
+          </Badge>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+        <div className="flex items-center gap-2">
+          <Mail className="h-4 w-4 text-muted-foreground" />
+          <span className="truncate">
+            {registration.email?.trim() ? registration.email : "Email não informado"}
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Phone className="h-4 w-4 text-muted-foreground" />
+          <Button
+            variant="link"
+            className="p-0 h-auto font-normal"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleWhatsAppClick(registration.telefone);
+            }}
+          >
+            {registration.telefone}
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Building2 className="h-4 w-4 text-muted-foreground" />
+          <span>{registration.filial}</span>
+        </div>
+
+        {hasModalities && (
+          <div className="flex items-center gap-2">
+            <Award className="h-4 w-4 text-muted-foreground" />
+            <span>{registration.modalidades.length} modalidades</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // If the athlete has no modalities, render a non-clickable card
+  if (!hasModalities) {
+    return (
+      <Card className={`${getStatusColor(registration.status_pagamento)}`}>
+        <CardContent className="p-6">
+          <CardContent />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // If the athlete has modalities, render a clickable card with dialog
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Card className={`cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(registration.status_pagamento)}`}>
           <CardContent className="p-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-start">
-                <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
-                <div className="flex gap-2">
-                  <Badge variant={registration.confirmado ? "default" : "destructive"}>
-                    {registration.confirmado ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 mr-1" />
-                        Validado
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="w-4 h-4 mr-1" />
-                        Não Validado
-                      </>
-                    )}
-                  </Badge>
-                  <Badge className={cn("capitalize", getStatusTextColor(registration.status_pagamento))}>
-                    {registration.status_pagamento}
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate">
-                    {registration.email?.trim() ? registration.email : "Email não informado"}
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <Button
-                    variant="link"
-                    className="p-0 h-auto font-normal"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleWhatsAppClick(registration.telefone);
-                    }}
-                  >
-                    {registration.telefone}
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span>{registration.filial}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-muted-foreground" />
-                  <span>{registration.modalidades.length} modalidades</span>
-                </div>
-              </div>
-            </div>
+            <CardContent />
           </CardContent>
         </Card>
       </DialogTrigger>

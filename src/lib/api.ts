@@ -69,22 +69,22 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     confirmado: registration.status_confirmacao,
     telefone: registration.telefone,
     filial: registration.filial_nome,
-    modalidades: [{
+    modalidades: registration.modalidade_id ? [{
       id: registration.inscricao_id.toString(),
       modalidade: registration.modalidade_nome,
       status: registration.status_inscricao,
       justificativa_status: registration.justificativa_status || ''
-    }],
-    status_inscricao: registration.status_inscricao,
-    status_pagamento: registration.status_pagamento
+    }] : [],
+    status_inscricao: registration.status_inscricao || 'pendente',
+    status_pagamento: registration.status_pagamento || 'pendente'
   })) || [];
 
   // Group registrations by athlete
   const groupedData = transformedData.reduce((acc, curr) => {
     const existingAthlete = acc.find(a => a.id === curr.id);
-    if (existingAthlete) {
+    if (existingAthlete && curr.modalidades.length > 0) {
       existingAthlete.modalidades.push(...curr.modalidades);
-    } else {
+    } else if (!existingAthlete) {
       acc.push(curr);
     }
     return acc;
