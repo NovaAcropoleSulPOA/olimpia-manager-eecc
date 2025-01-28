@@ -1,37 +1,35 @@
 CREATE OR REPLACE VIEW public.vw_inscricoes_atletas AS
 SELECT 
-    u.id,
-    u.nome_completo as nome_atleta,
-    u.email,
-    u.telefone,
-    f.nome as filial,
-    ARRAY_AGG(DISTINCT m.nome) as modalidades,
-    im.status as status_inscricao,
-    p.status as status_pagamento,
-    COALESCE(SUM(p2.pontos), 0) as pontos_totais
+    ra.id,
+    ra.nome_atleta,
+    ra.email,
+    ra.telefone,
+    ra.filial,
+    ra.status_inscricao,
+    ra.status_pagamento,
+    COALESCE(
+        json_agg(
+            json_build_object(
+                'id', im.id,
+                'modalidade', m.nome,
+                'status', im.status,
+                'justificativa_status', im.justificativa_status
+            )
+        ) FILTER (WHERE im.id IS NOT NULL),
+        '[]'::json
+    ) as modalidades
 FROM 
-    usuarios u
-    LEFT JOIN filiais f ON u.filial_id = f.id
-    LEFT JOIN inscricoes_modalidades im ON u.id = im.atleta_id
+    registros_atletas ra
+    LEFT JOIN inscricoes_modalidades im ON ra.id = im.atleta_id
     LEFT JOIN modalidades m ON im.modalidade_id = m.id
-    LEFT JOIN pagamentos p ON u.id = p.atleta_id
-    LEFT JOIN pontuacoes p2 ON u.id = p2.atleta_id
-WHERE 
-    EXISTS (
-        SELECT 1 
-        FROM papeis_usuarios pu 
-        JOIN perfis pe ON pu.perfil_id = pe.id 
-        WHERE pu.usuario_id = u.id 
-        AND pe.nome = 'Atleta'
-    )
 GROUP BY 
-    u.id, 
-    u.nome_completo, 
-    u.email, 
-    u.telefone, 
-    f.nome,
-    im.status,
-    p.status;
+    ra.id, 
+    ra.nome_atleta, 
+    ra.email, 
+    ra.telefone, 
+    ra.filial,
+    ra.status_inscricao,
+    ra.status_pagamento;
 
 -- Grant necessary permissions
 GRANT SELECT ON public.vw_inscricoes_atletas TO authenticated;
