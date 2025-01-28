@@ -34,7 +34,6 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   onStatusChange,
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   
   // Only allow interaction if payment is confirmed
   const isInteractive = athlete.status_pagamento === "confirmado";
@@ -64,18 +63,6 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error('Erro ao atualizar status');
-    }
-  };
-
-  const handleCardClick = () => {
-    console.log('Card clicked:', { 
-      athleteName: athlete.nome_atleta, 
-      isInteractive, 
-      currentDialogState: isDialogOpen 
-    });
-    
-    if (isInteractive) {
-      setIsDialogOpen(true);
     }
   };
 
@@ -147,10 +134,15 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   );
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <div onClick={handleCardClick}>
-        {cardContent}
-      </div>
+    <Dialog>
+      {isInteractive ? (
+        <DialogTrigger asChild>
+          {cardContent}
+        </DialogTrigger>
+      ) : (
+        cardContent
+      )}
+      
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Gerenciar Modalidades - {athlete.nome_atleta}</DialogTitle>
