@@ -147,9 +147,10 @@ export const updatePaymentStatus = async (
 ): Promise<void> => {
   console.log('Updating payment status:', { athleteId, status });
   const { error } = await supabase
-    .rpc('atualizar_status_pagamento', {
-      atleta_id: athleteId,
-      novo_status: status
+    .rpc('atualizar_status_inscricao', {
+      inscricao_id: athleteId,
+      novo_status: status,
+      justificativa: `Payment status updated to ${status}`
     });
 
   if (error) {
