@@ -142,12 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
 
               if (event === 'SIGNED_IN') {
-                if (userProfile.papeis.length > 1) {
-                  navigate('/role-selection', { state: { roles: userProfile.papeis } });
-                } else {
-                  const redirectPath = getDefaultRoute(userProfile.papeis);
-                  navigate(redirectPath);
-                }
+                handleAuthRedirect(userProfile);
               }
             } catch (error) {
               console.error('Error setting up user session:', error);
