@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
   fetchBranchAnalytics, 
-  fetchAthleteRegistrations, 
-  updateRegistrationStatus, 
+  fetchAthleteRegistrations,
+  updateRegistrationStatus,
   updatePaymentStatus,
+  updateModalityStatus,
   type AthleteRegistration,
   type BranchAnalytics 
 } from "@/lib/api";
@@ -26,7 +27,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { AthleteRegistrationCard } from './AthleteRegistrationCard';
+import { AthleteManagementCard } from './AthleteManagementCard';
 
 const COLORS = [
   "#009B40",
@@ -221,7 +222,7 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
 };
 
 const RegistrationsManagement = () => {
-  const { data: registrations, isLoading, refetch } = useQuery<AthleteRegistration[]>({
+  const { data: registrations, isLoading, refetch } = useQuery({
     queryKey: ['athlete-registrations'],
     queryFn: fetchAthleteRegistrations,
   });
@@ -230,29 +231,16 @@ const RegistrationsManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
 
-  const updateRegistrationStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada' }) =>
-      updateRegistrationStatus(id, status),
+  const updateModalityStatusMutation = useMutation({
+    mutationFn: ({ modalityId, status, justification }: { modalityId: string; status: string; justification: string }) =>
+      updateModalityStatus(modalityId, status, justification),
     onSuccess: () => {
       refetch();
-      toast.success('Status da inscrição atualizado com sucesso!');
+      toast.success('Status da modalidade atualizado com sucesso!');
     },
     onError: (error) => {
-      console.error('Error updating registration status:', error);
-      toast.error('Erro ao atualizar status da inscrição');
-    },
-  });
-
-  const updatePaymentStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: 'pendente' | 'confirmado' | 'cancelado' }) =>
-      updatePaymentStatus(id, status),
-    onSuccess: () => {
-      refetch();
-      toast.success('Status do pagamento atualizado com sucesso!');
-    },
-    onError: (error) => {
-      console.error('Error updating payment status:', error);
-      toast.error('Erro ao atualizar status do pagamento');
+      console.error('Error updating modality status:', error);
+      toast.error('Erro ao atualizar status da modalidade');
     },
   });
 
@@ -279,7 +267,7 @@ const RegistrationsManagement = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Gerenciamento de Inscrições</CardTitle>
+        <CardTitle>Gerenciamento de Atletas</CardTitle>
         <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0 mt-4">
           <Input
             placeholder="Buscar por nome, email ou filial..."
@@ -315,14 +303,11 @@ const RegistrationsManagement = () => {
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredRegistrations?.map((registration) => (
-            <AthleteRegistrationCard
+            <AthleteManagementCard
               key={registration.id}
-              registration={registration}
-              onStatusChange={(id, status) => 
-                updateRegistrationStatusMutation.mutate({ id, status })
-              }
-              onPaymentStatusChange={(id, status) =>
-                updatePaymentStatusMutation.mutate({ id, status })
+              athlete={registration}
+              onStatusChange={(modalityId, status, justification) =>
+                updateModalityStatusMutation.mutate({ modalityId, status, justification })
               }
             />
           ))}

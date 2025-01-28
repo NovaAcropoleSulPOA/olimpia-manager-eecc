@@ -119,3 +119,23 @@ export const fetchBranches = async (): Promise<Branch[]> => {
 
   return data || [];
 };
+
+export const updateModalityStatus = async (
+  modalityId: string,
+  status: string,
+  justification: string
+): Promise<void> => {
+  console.log('Updating modality status:', { modalityId, status, justification });
+  const { error } = await supabase
+    .from('inscricoes_modalidades')
+    .update({ 
+      status: status,
+      justificativa_status: justification 
+    })
+    .eq('id', modalityId);
+
+  if (error) {
+    console.error('Error updating modality status:', error);
+    throw error;
+  }
+};
