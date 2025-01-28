@@ -74,16 +74,51 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
 export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
   console.log('Fetching branch analytics...');
-  const { data, error } = await supabase
-    .from('analytics_filiais')
+  
+  // Fetch all the necessary data
+  const { data: branches, error: branchError } = await supabase
+    .from('filiais')
+    .select('id, nome, cidade, estado');
+
+  if (branchError) throw branchError;
+
+  const { data: registrations, error: regError } = await supabase
+    .from('inscricoes')
     .select('*');
 
-  if (error) {
-    console.error('Error fetching branch analytics:', error);
-    throw error;
-  }
+  if (regError) throw regError;
 
-  return data || [];
+  // Calculate analytics for each branch
+  const analytics: BranchAnalytics[] = (branches || []).map(branch => {
+    const branchRegistrations = (registrations || []).filter(reg => reg.filial_id === branch.id);
+    
+    const modalidadesCount: Record<string, number> = {};
+    branchRegistrations.forEach(reg => {
+      (reg.modalidades || []).forEach((modalidade: string) => {
+        modalidadesCount[modalidade] = (modalidadesCount[modalidade] || 0) + 1;
+      });
+    });
+
+    return {
+      filial_id: branch.id,
+      filial: branch.nome,
+      cidade: branch.cidade,
+      estado: branch.estado,
+      total_inscritos: new Set(branchRegistrations.map(reg => reg.atleta_id)).size,
+      total_inscricoes: branchRegistrations.length,
+      valor_total_arrecadado: branchRegistrations.reduce((sum, reg) => sum + (reg.valor_total || 0), 0),
+      modalidades_ativas: Object.keys(modalidadesCount).length,
+      media_pontuacao_atletas: branchRegistrations.reduce((sum, reg) => sum + (reg.pontuacao || 0), 0) / 
+        (branchRegistrations.length || 1),
+      inscricoes_confirmadas: branchRegistrations.filter(reg => reg.status_inscricao === 'Confirmada').length,
+      inscricoes_pendentes: branchRegistrations.filter(reg => reg.status_inscricao === 'Pendente').length,
+      inscricoes_canceladas: branchRegistrations.filter(reg => reg.status_inscricao === 'Cancelada').length,
+      inscricoes_recusadas: branchRegistrations.filter(reg => reg.status_inscricao === 'Recusada').length,
+      modalidades_populares: modalidadesCount
+    };
+  });
+
+  return analytics;
 };
 
 export const updateRegistrationStatus = async (
