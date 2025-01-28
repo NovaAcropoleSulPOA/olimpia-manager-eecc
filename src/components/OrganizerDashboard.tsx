@@ -28,6 +28,11 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { AthleteRegistrationCard } from './AthleteRegistrationCard';
 
+// Define the ModalidadePopular type
+interface ModalidadePopular {
+  [key: string]: number;
+}
+
 const COLORS = [
   "#009B40",
   "#EE7E01",
@@ -37,26 +42,25 @@ const COLORS = [
   "#FF5722",
 ];
 
-const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalytics[] }) => {
-  const totalAthletes = branchAnalytics?.reduce((acc, branch) => acc + (branch.total_inscritos || 0), 0) || 0;
-  const totalRevenue = branchAnalytics?.reduce((acc, branch) => acc + (branch.valor_total_arrecadado || 0), 0) || 0;
-  const totalRegistrations = branchAnalytics?.reduce((acc, branch) => acc + (branch.total_inscricoes || 0), 0) || 0;
-  const averageScore = branchAnalytics?.reduce((acc, branch) => acc + (branch.media_pontuacao_atletas || 0), 0) || 0;
-  const branchCount = branchAnalytics?.length || 1;
+const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
+  const totalAthletes = branchAnalytics?.reduce((acc, branch) => acc + branch.total_inscritos, 0) || 0;
+  const totalRevenue = branchAnalytics?.reduce((acc, branch) => acc + branch.valor_total_arrecadado, 0) || 0;
+  const totalRegistrations = branchAnalytics?.reduce((acc, branch) => acc + branch.total_inscricoes, 0) || 0;
+  const averageScore = branchAnalytics?.reduce((acc, branch) => acc + branch.media_pontuacao_atletas, 0) || 0;
 
   const registrationStatusData = branchAnalytics?.map(branch => ({
-    name: branch.filial || 'Unknown',
-    Confirmadas: branch.inscricoes_confirmadas || 0,
-    Pendentes: branch.inscricoes_pendentes || 0,
-    Canceladas: branch.inscricoes_canceladas || 0,
-    Recusadas: branch.inscricoes_recusadas || 0,
-  })) || [];
+    name: branch.filial,
+    Confirmadas: branch.inscricoes_confirmadas,
+    Pendentes: branch.inscricoes_pendentes,
+    Canceladas: branch.inscricoes_canceladas,
+    Recusadas: branch.inscricoes_recusadas,
+  }));
 
   const popularModalitiesData = branchAnalytics?.flatMap(branch => {
-    const modalidades = branch.modalidades_populares as Record<string, number> || {};
-    return Object.entries(modalidades || {}).map(([modalidade, count]) => ({
-      name: modalidade || 'Unknown',
-      value: count || 0,
+    const modalidades = branch.modalidades_populares as ModalidadePopular;
+    return Object.entries(modalidades).map(([modalidade, count]) => ({
+      name: modalidade,
+      value: count as number,
     }));
   }).reduce((acc, curr) => {
     const existing = acc.find(item => item.name === curr.name);
@@ -106,7 +110,7 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalyti
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(averageScore / branchCount).toFixed(1)}
+              {(averageScore / (branchAnalytics?.length || 1)).toFixed(1)}
             </div>
           </CardContent>
         </Card>
@@ -325,7 +329,7 @@ const RegistrationsManagement = () => {
 };
 
 export default function OrganizerDashboard() {
-  const { data: branchAnalytics, isLoading } = useQuery({
+  const { data: branchAnalytics, isLoading } = useQuery<BranchAnalytics[]>({
     queryKey: ['branch-analytics'],
     queryFn: fetchBranchAnalytics,
   });
@@ -334,16 +338,6 @@ export default function OrganizerDashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
-      </div>
-    );
-  }
-
-  if (!branchAnalytics || branchAnalytics.length === 0) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="text-center text-gray-500">
-          No analytics data available
-        </div>
       </div>
     );
   }
