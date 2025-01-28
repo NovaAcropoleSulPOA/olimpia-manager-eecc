@@ -224,14 +224,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      console.log('AuthContext - Starting logout process...');
+      
+      // First clear local state
       setUser(null);
+      
+      // Attempt to sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('AuthContext - Error during signOut:', error);
+        
+        // If the error is due to session not found, we can ignore it
+        // since we've already cleared the local state
+        if (error.message?.includes('session_not_found')) {
+          console.log('AuthContext - Session already expired, continuing with local cleanup');
+        } else {
+          throw error;
+        }
+      }
+
+      console.log('AuthContext - Logout successful, navigating to login page');
       navigate('/login');
       toast.success('Logout realizado com sucesso!');
+      
     } catch (error: any) {
-      console.error('Error signing out:', error);
-      toast.error('Erro ao fazer logout.');
+      console.error('AuthContext - Unexpected error during signOut:', error);
+      // Even if there's an error, we want to ensure the user is logged out locally
+      setUser(null);
+      navigate('/login');
+      toast.error('Erro ao fazer logout, mas sua sessão foi encerrada localmente.');
     }
   };
 
