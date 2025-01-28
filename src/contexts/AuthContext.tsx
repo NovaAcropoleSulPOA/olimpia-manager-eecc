@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleAuthRedirect = (userProfile: any) => {
+  const handleAuthRedirect = (userProfile: any, isInitialLogin: boolean = false) => {
     console.log('Handling auth redirect for user profile:', userProfile);
     
     if (!userProfile.confirmado) {
@@ -40,19 +40,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const roles = userProfile.papeis || [];
-    console.log('User roles:', roles);
+    // Only redirect to default page on initial login
+    if (isInitialLogin) {
+      const roles = userProfile.papeis || [];
+      console.log('User roles:', roles);
 
-    if (roles.includes('Atleta')) {
-      console.log('Redirecting to athlete profile');
-      navigate('/athlete-profile');
-    } else if (roles.includes('Organizador')) {
-      console.log('Redirecting to organizer dashboard');
-      navigate('/organizer-dashboard');
-    } else {
-      console.error('No valid role found for navigation');
-      toast.error('Erro ao determinar perfil de acesso');
-      navigate('/login');
+      if (roles.includes('Atleta')) {
+        console.log('Redirecting to athlete profile');
+        navigate('/athlete-profile');
+      } else if (roles.includes('Organizador')) {
+        console.log('Redirecting to organizer dashboard');
+        navigate('/organizer-dashboard');
+      } else {
+        console.error('No valid role found for navigation');
+        toast.error('Erro ao determinar perfil de acesso');
+        navigate('/login');
+      }
     }
   };
 
@@ -102,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (mounted) {
             setUser({ ...session.user, ...userProfile });
             if (!PUBLIC_ROUTES.includes(location.pathname)) {
-              handleAuthRedirect(userProfile);
+              handleAuthRedirect(userProfile, true);
             }
           }
         } else if (!PUBLIC_ROUTES.includes(location.pathname)) {
@@ -120,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   setUser({ ...session.user, ...userProfile });
                 }
                 if (event === 'SIGNED_IN') {
-                  handleAuthRedirect(userProfile);
+                  handleAuthRedirect(userProfile, true);
                 }
               } catch (error) {
                 console.error('Error setting up user session:', error);
