@@ -17,7 +17,8 @@ import {
   Bar,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  Legend
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -28,10 +29,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { AthleteRegistrationCard } from './AthleteRegistrationCard';
 
-interface ModalidadePopular {
-  [key: string]: number;
-}
-
 const COLORS = [
   "#009B40",
   "#EE7E01",
@@ -41,7 +38,11 @@ const COLORS = [
   "#FF5722",
 ];
 
-const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalytics[] | undefined }) => {
+const DashboardOverview = ({ branchAnalytics, selectedBranch, onBranchChange }: { 
+  branchAnalytics: BranchAnalytics[]; 
+  selectedBranch: string;
+  onBranchChange: (branchId: string) => void;
+}) => {
   if (!branchAnalytics || branchAnalytics.length === 0) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -50,37 +51,50 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalyti
     );
   }
 
+  const currentBranch = branchAnalytics.find(b => b.filial_id === selectedBranch) || branchAnalytics[0];
   const totalAthletes = branchAnalytics.reduce((acc, branch) => acc + (branch.total_inscritos || 0), 0);
   const totalRevenue = branchAnalytics.reduce((acc, branch) => acc + (branch.valor_total_arrecadado || 0), 0);
-  const totalRegistrations = branchAnalytics.reduce((acc, branch) => acc + (branch.total_inscricoes || 0), 0);
-  const averageScore = branchAnalytics.reduce((acc, branch) => acc + (branch.media_pontuacao_atletas || 0), 0);
 
-  const registrationStatusData = branchAnalytics.map(branch => ({
-    name: branch.filial || 'Desconhecido',
-    Confirmadas: branch.inscricoes_confirmadas || 0,
-    Pendentes: branch.inscricoes_pendentes || 0,
-    Canceladas: branch.inscricoes_canceladas || 0,
-    Recusadas: branch.inscricoes_recusadas || 0,
+  const statusData = Object.entries(currentBranch.inscritos_por_status || {}).map(([status, count]) => ({
+    name: status,
+    value: count
   }));
 
-  const popularModalitiesData = branchAnalytics.flatMap(branch => {
-    const modalidades = branch.modalidades_populares || {};
-    return Object.entries(modalidades).map(([modalidade, count]) => ({
+  const paymentStatusData = Object.entries(currentBranch.inscritos_por_status_pagamento || {}).map(([status, count]) => ({
+    name: status,
+    value: count
+  }));
+
+  const categoryData = Object.entries(currentBranch.atletas_por_categoria || {}).map(([category, count]) => ({
+    name: category,
+    value: count
+  }));
+
+  const popularModalitiesData = Object.entries(currentBranch.modalidades_populares || {})
+    .map(([modalidade, count]) => ({
       name: modalidade,
       value: count || 0,
-    }));
-  }).reduce((acc, curr) => {
-    const existing = acc.find(item => item.name === curr.name);
-    if (existing) {
-      existing.value += curr.value;
-    } else {
-      acc.push(curr);
-    }
-    return acc;
-  }, [] as { name: string; value: number }[]);
+    }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 5);
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-end mb-4">
+        <Select value={selectedBranch} onValueChange={onBranchChange}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Selecionar Filial" />
+          </SelectTrigger>
+          <SelectContent>
+            {branchAnalytics.map((branch) => (
+              <SelectItem key={branch.filial_id} value={branch.filial_id}>
+                {branch.filial}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -88,14 +102,6 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalyti
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalAthletes}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Inscrições</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalRegistrations}</div>
           </CardContent>
         </Card>
         <Card>
@@ -113,12 +119,15 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalyti
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Média de Pontuação</CardTitle>
+            <CardTitle className="text-sm font-medium">Ranking da Filial</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(averageScore / branchAnalytics.length).toFixed(1)}
+              {currentBranch.ranking_posicao}º Lugar
             </div>
+            <p className="text-xs text-muted-foreground">
+              {currentBranch.ranking_pontos} pontos
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -126,23 +135,20 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalyti
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Status das Inscrições por Filial</CardTitle>
+            <CardTitle>Modalidades Mais Populares</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={registrationStatusData}
+                  data={popularModalitiesData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="Confirmadas" stackId="a" fill="#4CAF50" />
-                  <Bar dataKey="Pendentes" stackId="a" fill="#FFC107" />
-                  <Bar dataKey="Canceladas" stackId="a" fill="#F44336" />
-                  <Bar dataKey="Recusadas" stackId="a" fill="#9C27B0" />
+                  <Bar dataKey="value" fill="#4CAF50" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -151,14 +157,14 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalyti
 
         <Card>
           <CardHeader>
-            <CardTitle>Modalidades Mais Populares</CardTitle>
+            <CardTitle>Status das Inscrições</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={popularModalitiesData}
+                    data={statusData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -167,11 +173,12 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalyti
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {popularModalitiesData.map((entry, index) => (
+                    {statusData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip />
+                  <Legend />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -181,7 +188,7 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalyti
 
       <Card>
         <CardHeader>
-          <CardTitle>Detalhes por Filial</CardTitle>
+          <CardTitle>Média de Pontuação por Modalidade</CardTitle>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[400px]">
@@ -189,33 +196,17 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalyti
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left p-2">Filial</th>
-                    <th className="text-right p-2">Atletas</th>
-                    <th className="text-right p-2">Inscrições</th>
-                    <th className="text-right p-2">Valor Arrecadado</th>
-                    <th className="text-right p-2">Modalidades Ativas</th>
-                    <th className="text-right p-2">Pontuação Média</th>
+                    <th className="text-left p-2">Modalidade</th>
+                    <th className="text-right p-2">Média de Pontuação</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {branchAnalytics.map((branch) => (
-                    <tr key={branch.filial_id} className="border-b">
+                  {Object.entries(currentBranch.media_pontuacao_por_modalidade || {}).map(([modalidade, media]) => (
+                    <tr key={modalidade} className="border-b">
                       <td className="p-2">
-                        <div className="font-medium">{branch.filial}</div>
-                        <div className="text-sm text-gray-500">
-                          {branch.cidade}, {branch.estado}
-                        </div>
+                        <div className="font-medium">{modalidade}</div>
                       </td>
-                      <td className="text-right p-2">{branch.total_inscritos}</td>
-                      <td className="text-right p-2">{branch.total_inscricoes}</td>
-                      <td className="text-right p-2">
-                        {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL'
-                        }).format(branch.valor_total_arrecadado)}
-                      </td>
-                      <td className="text-right p-2">{branch.modalidades_ativas}</td>
-                      <td className="text-right p-2">{branch.media_pontuacao_atletas.toFixed(1)}</td>
+                      <td className="text-right p-2">{media.toFixed(1)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -336,9 +327,16 @@ const RegistrationsManagement = () => {
 };
 
 export default function OrganizerDashboard() {
+  const [selectedBranch, setSelectedBranch] = useState<string>("");
+  
   const { data: branchAnalytics, isLoading } = useQuery<BranchAnalytics[]>({
     queryKey: ['branch-analytics'],
     queryFn: fetchBranchAnalytics,
+    onSuccess: (data) => {
+      if (data.length > 0 && !selectedBranch) {
+        setSelectedBranch(data[0].filial_id);
+      }
+    }
   });
 
   if (isLoading) {
@@ -357,7 +355,11 @@ export default function OrganizerDashboard() {
           <TabsTrigger value="registrations">Gerenciamento de Inscrições</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
-          <DashboardOverview branchAnalytics={branchAnalytics} />
+          <DashboardOverview 
+            branchAnalytics={branchAnalytics || []} 
+            selectedBranch={selectedBranch}
+            onBranchChange={setSelectedBranch}
+          />
         </TabsContent>
         <TabsContent value="registrations">
           <RegistrationsManagement />

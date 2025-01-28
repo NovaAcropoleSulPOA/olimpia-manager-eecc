@@ -25,15 +25,14 @@ export interface BranchAnalytics {
   cidade: string;
   estado: string;
   total_inscritos: number;
-  total_inscricoes: number;
   valor_total_arrecadado: number;
-  modalidades_ativas: number;
-  media_pontuacao_atletas: number;
-  inscricoes_confirmadas: number;
-  inscricoes_pendentes: number;
-  inscricoes_canceladas: number;
-  inscricoes_recusadas: number;
+  ranking_pontos: number;
+  ranking_posicao: number;
   modalidades_populares: Record<string, number>;
+  inscritos_por_status: Record<string, number>;
+  inscritos_por_status_pagamento: Record<string, number>;
+  atletas_por_categoria: Record<string, number>;
+  media_pontuacao_por_modalidade: Record<string, number>;
 }
 
 export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
