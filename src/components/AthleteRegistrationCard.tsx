@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { AthleteRegistration } from '@/lib/api';
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface AthleteRegistrationCardProps {
   registration: AthleteRegistration;
@@ -44,15 +45,32 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'confirmado':
         return 'border-l-4 border-l-green-500 bg-green-50';
       case 'pendente':
         return 'border-l-4 border-l-yellow-500 bg-yellow-50';
-      case 'cancelado':
+      case 'rejeitado':
         return 'border-l-4 border-l-red-500 bg-red-50';
+      case 'cancelado':
+        return 'border-l-4 border-l-gray-500 bg-gray-50';
       default:
         return 'border-l-4 border-l-gray-500 bg-gray-50';
+    }
+  };
+
+  const getStatusTextColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'confirmado':
+        return 'text-green-700';
+      case 'pendente':
+        return 'text-yellow-700';
+      case 'rejeitado':
+        return 'text-red-700';
+      case 'cancelado':
+        return 'text-gray-700';
+      default:
+        return 'text-gray-700';
     }
   };
 
@@ -121,7 +139,11 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               {registration.modalidades.map((modalidade) => (
                 <TableRow key={modalidade.id}>
                   <TableCell>{modalidade.modalidade}</TableCell>
-                  <TableCell>{modalidade.status}</TableCell>
+                  <TableCell>
+                    <span className={cn("px-2 py-1 rounded-full text-sm font-medium", getStatusTextColor(modalidade.status))}>
+                      {modalidade.status}
+                    </span>
+                  </TableCell>
                   <TableCell>
                     <Input
                       placeholder="Justificativa para alteração"
@@ -141,10 +163,10 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                         <SelectValue placeholder="Selecione o status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Pendente">Pendente</SelectItem>
-                        <SelectItem value="Confirmada">Confirmada</SelectItem>
-                        <SelectItem value="Cancelada">Cancelada</SelectItem>
-                        <SelectItem value="Recusada">Recusada</SelectItem>
+                        <SelectItem value="pendente">Pendente</SelectItem>
+                        <SelectItem value="confirmado">Confirmado</SelectItem>
+                        <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                        <SelectItem value="cancelado">Cancelado</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>

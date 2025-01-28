@@ -24,6 +24,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { AthleteRegistrationCard } from './AthleteRegistrationCard';
 
@@ -227,7 +228,6 @@ const RegistrationsManagement = () => {
   });
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
 
   const updateModalityStatusMutation = useMutation({
@@ -250,10 +250,9 @@ const RegistrationsManagement = () => {
       registration.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       registration.filial.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === 'all' || registration.status_inscricao === statusFilter;
     const matchesPayment = paymentFilter === 'all' || registration.status_pagamento === paymentFilter;
     
-    return matchesSearch && matchesStatus && matchesPayment;
+    return matchesSearch && matchesPayment;
   });
 
   if (isLoading) {
@@ -269,35 +268,29 @@ const RegistrationsManagement = () => {
       <CardHeader>
         <CardTitle>Gerenciamento de Atletas</CardTitle>
         <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0 mt-4">
-          <Input
-            placeholder="Buscar por nome, email ou filial..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
-          />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Status da Inscrição" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Status</SelectItem>
-              <SelectItem value="Pendente">Pendente</SelectItem>
-              <SelectItem value="Confirmada">Confirmada</SelectItem>
-              <SelectItem value="Cancelada">Cancelada</SelectItem>
-              <SelectItem value="Recusada">Recusada</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Status do Pagamento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Status</SelectItem>
-              <SelectItem value="pendente">Pendente</SelectItem>
-              <SelectItem value="confirmado">Confirmado</SelectItem>
-              <SelectItem value="cancelado">Cancelado</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex-1">
+            <Input
+              placeholder="Buscar por nome, email ou filial..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+          
+          <div className="flex flex-col space-y-2">
+            <Label htmlFor="payment-status">Status Pagamento</Label>
+            <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+              <SelectTrigger id="payment-status" className="w-[180px]">
+                <SelectValue placeholder="Filtrar por pagamento" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="pendente">Pendente</SelectItem>
+                <SelectItem value="confirmado">Confirmado</SelectItem>
+                <SelectItem value="cancelado">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
