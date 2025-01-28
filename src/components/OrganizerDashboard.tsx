@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
   fetchBranchAnalytics, 
@@ -338,7 +338,7 @@ export default function OrganizerDashboard() {
     initialData: []
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (branchAnalytics && branchAnalytics.length > 0 && !selectedBranch) {
       setSelectedBranch(branchAnalytics[0].filial_id);
     }
