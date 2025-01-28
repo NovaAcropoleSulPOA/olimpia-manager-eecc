@@ -37,17 +37,27 @@ export interface BranchAnalytics {
 
 export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
   console.log('Fetching branch analytics from view...');
-  const { data, error } = await supabase
-    .from('vw_analytics_inscricoes')
-    .select('*');
+  try {
+    const { data, error } = await supabase
+      .from('vw_analytics_inscricoes')
+      .select('*');
 
-  if (error) {
-    console.error('Error fetching analytics:', error);
+    if (error) {
+      console.error('Error fetching analytics:', error);
+      throw error;
+    }
+
+    if (!data) {
+      console.log('No data returned from analytics view');
+      return [];
+    }
+
+    console.log('Branch analytics response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error in fetchBranchAnalytics:', error);
     throw error;
   }
-
-  console.log('Branch analytics response:', data);
-  return data || [];
 };
 
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
