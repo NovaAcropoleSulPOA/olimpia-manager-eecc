@@ -50,6 +50,7 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   };
 
   const handleStatusChange = async (modalityId: string, newStatus: string) => {
+    console.log('Attempting to change status:', { modalityId, newStatus });
     const justification = justifications[modalityId];
     if (!justification) {
       toast.error('É necessário fornecer uma justificativa para alterar o status.');
@@ -63,6 +64,18 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error('Erro ao atualizar status');
+    }
+  };
+
+  const handleCardClick = () => {
+    console.log('Card clicked:', { 
+      athleteName: athlete.nome_atleta, 
+      isInteractive, 
+      currentDialogState: isDialogOpen 
+    });
+    
+    if (isInteractive) {
+      setIsDialogOpen(true);
     }
   };
 
@@ -135,7 +148,7 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <div onClick={() => isInteractive && setIsDialogOpen(true)}>
+      <div onClick={handleCardClick}>
         {cardContent}
       </div>
       <DialogContent className="max-w-3xl">
