@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { 
   fetchBranchAnalytics, 
   fetchAthleteRegistrations,
@@ -28,11 +28,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { AthleteRegistrationCard } from './AthleteRegistrationCard';
 
-// Define the ModalidadePopular type
-interface ModalidadePopular {
-  [key: string]: number;
-}
-
 const COLORS = [
   "#009B40",
   "#EE7E01",
@@ -42,7 +37,7 @@ const COLORS = [
   "#FF5722",
 ];
 
-const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
+const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalytics[] }) => {
   const totalAthletes = branchAnalytics?.reduce((acc, branch) => acc + branch.total_inscritos, 0) || 0;
   const totalRevenue = branchAnalytics?.reduce((acc, branch) => acc + branch.valor_total_arrecadado, 0) || 0;
   const totalRegistrations = branchAnalytics?.reduce((acc, branch) => acc + branch.total_inscricoes, 0) || 0;
@@ -57,7 +52,7 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
   }));
 
   const popularModalitiesData = branchAnalytics?.flatMap(branch => {
-    const modalidades = branch.modalidades_populares as ModalidadePopular;
+    const modalidades = branch.modalidades_populares as Record<string, number>;
     return Object.entries(modalidades).map(([modalidade, count]) => ({
       name: modalidade,
       value: count as number,
@@ -329,7 +324,7 @@ const RegistrationsManagement = () => {
 };
 
 export default function OrganizerDashboard() {
-  const { data: branchAnalytics, isLoading } = useQuery<BranchAnalytics[]>({
+  const { data: branchAnalytics, isLoading } = useQuery({
     queryKey: ['branch-analytics'],
     queryFn: fetchBranchAnalytics,
   });

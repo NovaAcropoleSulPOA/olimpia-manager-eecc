@@ -21,7 +21,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   onStatusChange,
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
-  const hasModalities = registration.modalidades.length > 0;
+  const hasModalities = registration.modalidades && registration.modalidades.length > 0;
 
   const handleWhatsAppClick = (phone: string) => {
     const formattedPhone = phone.replace(/\D/g, '');
@@ -76,22 +76,22 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     }
   };
 
-  const CardContent = () => (
+  const CardContentComponent = () => (
     <div className="space-y-4">
       <div className="flex justify-between items-start">
         <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
         <div className="flex gap-2">
           <Badge variant={registration.confirmado ? "default" : "destructive"}>
             {registration.confirmado ? (
-              <>
+              <div className="flex items-center">
                 <CheckCircle2 className="w-4 h-4 mr-1" />
                 Validado
-              </>
+              </div>
             ) : (
-              <>
+              <div className="flex items-center">
                 <XCircle className="w-4 h-4 mr-1" />
                 Não Validado
-              </>
+              </div>
             )}
           </Badge>
           <Badge className={cn("capitalize", getStatusTextColor(registration.status_pagamento))}>
@@ -140,9 +140,9 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   // If the athlete has no modalities, render a non-clickable card
   if (!hasModalities) {
     return (
-      <Card className={`${getStatusColor(registration.status_pagamento)}`}>
+      <Card className={cn(getStatusColor(registration.status_pagamento))}>
         <CardContent className="p-6">
-          <CardContent />
+          <CardContentComponent />
         </CardContent>
       </Card>
     );
@@ -152,9 +152,9 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Card className={`cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(registration.status_pagamento)}`}>
+        <Card className={cn("cursor-pointer hover:shadow-md transition-shadow", getStatusColor(registration.status_pagamento))}>
           <CardContent className="p-6">
-            <CardContent />
+            <CardContentComponent />
           </CardContent>
         </Card>
       </DialogTrigger>
