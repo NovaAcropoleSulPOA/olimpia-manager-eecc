@@ -24,6 +24,7 @@ interface AthleteManagementCardProps {
     filial: string;
     status_pagamento: string;
     modalidades: AthleteModality[];
+    confirmado?: boolean;
   };
   onStatusChange: (modalityId: string, status: string, justification: string) => Promise<void>;
 }
@@ -33,7 +34,7 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   onStatusChange,
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
-  const isValidated = athlete.modalidades.length > 0;
+  const isValidated = athlete.modalidades?.length > 0 && athlete.confirmado;
 
   const handleWhatsAppClick = (e: React.MouseEvent, phone: string) => {
     e.stopPropagation();
@@ -75,7 +76,7 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   const cardContent = (
     <Card 
       className={`${getStatusColor(athlete.status_pagamento)} ${
-        isValidated ? 'cursor-pointer hover:shadow-md transition-shadow' : 'cursor-default'
+        isValidated ? 'cursor-pointer hover:shadow-md transition-shadow' : 'cursor-default opacity-75'
       }`}
     >
       <CardContent className="p-6">
@@ -107,7 +108,7 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
 
             <div className="flex items-center gap-2">
               <Award className="h-4 w-4 text-muted-foreground" />
-              <span>{athlete.modalidades.length} modalidades</span>
+              <span>{athlete.modalidades?.length || 0} modalidades</span>
             </div>
           </div>
         </div>
@@ -141,7 +142,7 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {athlete.modalidades.map((modalidade) => (
+              {athlete.modalidades?.map((modalidade) => (
                 <TableRow key={modalidade.id}>
                   <TableCell>{modalidade.modalidade}</TableCell>
                   <TableCell>{modalidade.status}</TableCell>
@@ -157,17 +158,16 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
                   </TableCell>
                   <TableCell>
                     <Select
-                      value={modalidade.status}
                       onValueChange={(value) => handleStatusChange(modalidade.id, value)}
                     >
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Selecione o status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Pendente">Pendente</SelectItem>
-                        <SelectItem value="Confirmada">Confirmada</SelectItem>
-                        <SelectItem value="Cancelada">Cancelada</SelectItem>
-                        <SelectItem value="Recusada">Recusada</SelectItem>
+                        <SelectItem value="pendente">Pendente</SelectItem>
+                        <SelectItem value="confirmado">Confirmada</SelectItem>
+                        <SelectItem value="cancelado">Cancelada</SelectItem>
+                        <SelectItem value="recusado">Recusada</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
