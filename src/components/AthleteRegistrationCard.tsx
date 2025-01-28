@@ -84,13 +84,13 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               <div className="flex justify-between items-start">
                 <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
                 <div className="flex gap-2">
-                  <Badge variant={registration.email_confirmado ? "default" : "destructive"}>
-                    {registration.email_confirmado ? (
+                  <Badge variant={registration.confirmado ? "default" : "destructive"}>
+                    {registration.confirmado ? (
                       <CheckCircle2 className="w-4 h-4 mr-1" />
                     ) : (
                       <XCircle className="w-4 h-4 mr-1" />
                     )}
-                    {registration.email_confirmado ? "Validado" : "Não Validado"}
+                    {registration.confirmado ? "Validado" : "Não Validado"}
                   </Badge>
                   <Badge className={cn("capitalize", getStatusTextColor(registration.status_pagamento))}>
                     {registration.status_pagamento}

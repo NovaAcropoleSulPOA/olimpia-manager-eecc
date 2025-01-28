@@ -11,7 +11,7 @@ export interface AthleteRegistration {
   id: string;
   nome_atleta: string;
   email: string;
-  email_confirmado: boolean;
+  confirmado: boolean;
   telefone: string;
   filial: string;
   modalidades: AthleteModality[];
@@ -66,7 +66,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     id: registration.atleta_id,
     nome_atleta: registration.atleta_nome,
     email: registration.email || '',
-    email_confirmado: registration.email_confirmado || false,
+    confirmado: registration.confirmado || false,
     telefone: registration.telefone,
     filial: registration.filial_nome,
     modalidades: [{
