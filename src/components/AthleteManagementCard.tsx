@@ -25,6 +25,7 @@ interface AthleteManagementCardProps {
     filial: string;
     status_pagamento: string;
     modalidades: AthleteModality[];
+    confirmado?: boolean;
   };
   onStatusChange: (modalityId: string, status: string, justification: string) => Promise<void>;
 }
@@ -39,7 +40,7 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   const isInteractive = athlete.status_pagamento === "confirmado";
   
   // Only show modalities if they exist AND payment is confirmed
-  const hasValidModalities = athlete.modalidades?.length > 0 && isInteractive;
+  const hasValidModalities = athlete.modalidades?.length > 0 && athlete.status_pagamento === "confirmado";
 
   const handleWhatsAppClick = (e: React.MouseEvent, phone: string) => {
     e.stopPropagation();
@@ -49,7 +50,6 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   };
 
   const handleStatusChange = async (modalityId: string, newStatus: string) => {
-    console.log('Attempting to change status:', { modalityId, newStatus });
     const justification = justifications[modalityId];
     if (!justification) {
       toast.error('É necessário fornecer uma justificativa para alterar o status.');
@@ -133,16 +133,15 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
     </Card>
   );
 
+  if (!isInteractive) {
+    return cardContent;
+  }
+
   return (
     <Dialog>
-      {isInteractive ? (
-        <DialogTrigger asChild>
-          {cardContent}
-        </DialogTrigger>
-      ) : (
-        cardContent
-      )}
-      
+      <DialogTrigger asChild>
+        <div>{cardContent}</div>
+      </DialogTrigger>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Gerenciar Modalidades - {athlete.nome_atleta}</DialogTitle>

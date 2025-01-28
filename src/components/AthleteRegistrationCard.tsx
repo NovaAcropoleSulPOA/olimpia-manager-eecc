@@ -75,80 +75,10 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     }
   };
 
-  // Bloquear clique no card se status_pagamento não for "confirmado"
-  const isCardClickable = registration.status_pagamento === "confirmado";
-
   return (
     <Dialog>
-      {/* Bloqueia o DialogTrigger se o pagamento não for confirmado */}
-      {isCardClickable ? (
-        <DialogTrigger asChild>
-          <Card className={`cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(registration.status_pagamento)}`}>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="flex justify-between items-start">
-                  <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
-                  <div className="flex gap-2">
-                    <Badge variant={registration.confirmado ? "default" : "destructive"}>
-                      {registration.confirmado ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 mr-1" />
-                          Validado
-                        </>
-                      ) : (
-                        <>
-                          <XCircle className="w-4 h-4 mr-1" />
-                          Não Validado
-                        </>
-                      )}
-                    </Badge>
-                    <Badge className={cn("capitalize", getStatusTextColor(registration.status_pagamento))}>
-                      {registration.status_pagamento}
-                    </Badge>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="truncate">
-                      {registration.email?.trim() ? registration.email : "Email não informado"}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <Button
-                      variant="link"
-                      className="p-0 h-auto font-normal flex items-center gap-2"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleWhatsAppClick(registration.telefone);
-                      }}
-                    >
-                      <span>{registration.telefone}</span>
-                      <img src="/whatsapp-icon.png" alt="WhatsApp" className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <span>{registration.filial}</span>
-                  </div>
-
-                  {isCardClickable && (
-                    <div className="flex items-center gap-2">
-                      <Award className="h-4 w-4 text-muted-foreground" />
-                      <span>{registration.modalidades.length} modalidades</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </DialogTrigger>
-      ) : (
-        <Card className={`cursor-not-allowed opacity-50 transition-shadow ${getStatusColor(registration.status_pagamento)}`}>
+      <DialogTrigger asChild>
+        <Card className={`cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(registration.status_pagamento)}`}>
           <CardContent className="p-6">
             <div className="space-y-4">
               <div className="flex justify-between items-start">
@@ -172,7 +102,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                   </Badge>
                 </div>
               </div>
-
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
@@ -180,26 +110,99 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                     {registration.email?.trim() ? registration.email : "Email não informado"}
                   </span>
                 </div>
-
+                
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <Button
                     variant="link"
-                    className="p-0 h-auto font-normal flex items-center gap-2"
+                    className="p-0 h-auto font-normal"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleWhatsAppClick(registration.telefone);
                     }}
                   >
-                    <span>{registration.telefone}</span>
-                    <img src="/whatsapp-icon.png" alt="WhatsApp" className="w-4 h-4" />
+                    {registration.telefone}
                   </Button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <span>{registration.filial}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Award className="h-4 w-4 text-muted-foreground" />
+                  <span>{registration.modalidades.length} modalidades</span>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
-      )}
+      </DialogTrigger>
+
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Gerenciar Modalidades - {registration.nome_atleta}</DialogTitle>
+          <DialogDescription>
+            Gerencie as modalidades e status do atleta
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="mt-4">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Modalidade</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Justificativa</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {registration.modalidades.map((modalidade) => (
+                <TableRow key={modalidade.id}>
+                  <TableCell>{modalidade.modalidade}</TableCell>
+                  <TableCell>
+                    <Badge className={cn("capitalize", getStatusTextColor(modalidade.status))}>
+                      {modalidade.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      placeholder="Justificativa para alteração"
+                      value={justifications[modalidade.id] || ''}
+                      onChange={(e) => setJustifications(prev => ({
+                        ...prev,
+                        [modalidade.id]: e.target.value
+                      }))}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={modalidade.status}
+                      onValueChange={(value) => handleStatusChange(modalidade.id, value)}
+                      disabled={!justifications[modalidade.id]}
+                    >
+                      <SelectTrigger className={cn(
+                        "w-[180px]",
+                        !justifications[modalidade.id] && "opacity-50 cursor-not-allowed"
+                      )}>
+                        <SelectValue placeholder="Selecione o status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pendente">pendente</SelectItem>
+                        <SelectItem value="confirmado">confirmado</SelectItem>
+                        <SelectItem value="rejeitado">rejeitado</SelectItem>
+                        <SelectItem value="cancelado">cancelado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </DialogContent>
     </Dialog>
   );
 };
