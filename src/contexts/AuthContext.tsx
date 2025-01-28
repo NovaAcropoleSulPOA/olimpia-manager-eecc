@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-import { supabase, handleSupabaseError } from '@/lib/supabase';
+import { supabase, handleSupabaseError, recoverSession } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 interface AuthUser extends User {
