@@ -3,8 +3,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { 
   fetchBranchAnalytics, 
   fetchAthleteRegistrations,
-  updateRegistrationStatus,
-  updatePaymentStatus,
   updateModalityStatus,
   type AthleteRegistration,
   type BranchAnalytics 
@@ -232,8 +230,9 @@ const RegistrationsManagement = () => {
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
 
   const updateModalityStatusMutation = useMutation({
-    mutationFn: ({ modalityId, status, justification }: { modalityId: string; status: string; justification: string }) =>
-      updateModalityStatus(modalityId, status, justification),
+    mutationFn: async ({ modalityId, status, justification }: { modalityId: string; status: string; justification: string }) => {
+      await updateModalityStatus(modalityId, status, justification);
+    },
     onSuccess: () => {
       refetch();
       toast.success('Status da modalidade atualizado com sucesso!');

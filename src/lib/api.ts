@@ -1,12 +1,19 @@
 import { supabase } from './supabase';
 
+export interface AthleteModality {
+  id: string;
+  modalidade: string;
+  status: string;
+  justificativa_status: string;
+}
+
 export interface AthleteRegistration {
   id: string;
   nome_atleta: string;
   email: string;
   telefone: string;
   filial: string;
-  modalidades: string[];
+  modalidades: AthleteModality[];
   status_inscricao: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
   status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
 }
@@ -60,7 +67,12 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       email,
       telefone,
       filial,
-      modalidades,
+      modalidades:inscricoes_modalidades(
+        id,
+        modalidade:modalidades(nome),
+        status,
+        justificativa_status
+      ),
       status_inscricao,
       status_pagamento
     `);
@@ -70,7 +82,19 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     throw error;
   }
 
-  return data || [];
+  // Transform the data to match the expected format
+  const transformedData = data?.map(registration => ({
+    ...registration,
+    modalidades: registration.modalidades.map((m: any) => ({
+      id: m.id,
+      modalidade: m.modalidade.nome,
+      status: m.status,
+      justificativa_status: m.justificativa_status
+    }))
+  })) || [];
+
+  console.log('Transformed registrations data:', transformedData);
+  return transformedData;
 };
 
 export const updateRegistrationStatus = async (
@@ -138,4 +162,7 @@ export const updateModalityStatus = async (
     console.error('Error updating modality status:', error);
     throw error;
   }
+
+  // Return a Promise that resolves when the update is complete
+  return Promise.resolve();
 };
