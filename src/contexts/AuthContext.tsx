@@ -59,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (profileError) throw profileError;
 
       const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
+      console.log('User roles fetched:', papeis);
       
       return {
         ...userProfile,
@@ -116,8 +117,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
 
               if (event === 'SIGNED_IN') {
-                const redirectPath = getDefaultRoute(userProfile.papeis);
-                navigate(redirectPath);
+                if (userProfile.papeis.length > 1) {
+                  navigate('/role-selection', { state: { roles: userProfile.papeis } });
+                } else {
+                  const redirectPath = getDefaultRoute(userProfile.papeis);
+                  navigate(redirectPath);
+                }
               }
             } catch (error) {
               console.error('Error setting up user session:', error);
@@ -178,6 +183,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [navigate, location]);
 
   const getDefaultRoute = (roles: string[]) => {
+    console.log('Getting default route for roles:', roles);
     if (!roles.length) return '/login';
     if (roles.includes('Atleta')) {
       return '/athlete-profile';
@@ -203,13 +209,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       if (error) {
         console.error('Login error:', error);
-        if (error.message.includes('Invalid login credentials')) {
-          toast.error("Email ou senha incorretos");
-        } else if (error.message.includes('Email not confirmed')) {
-          toast.error("Por favor, confirme seu email antes de fazer login");
-        } else {
-          toast.error("Erro ao fazer login. Tente novamente.");
-        }
+        toast.error(handleSupabaseError(error));
         return;
       }
   
@@ -221,66 +221,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       console.log('Login successful, fetching user roles...');
       
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('papeis_usuarios')
-        .select('perfis (id, nome)')
-        .eq('usuario_id', data.user.id);
+      const userProfile = await fetchUserProfile(data.user.id);
+      console.log('User profile fetched:', userProfile);
 
-      console.log("User roles data:", userRoles);
-  
-      if (rolesError) {
-        console.error('Error loading roles:', rolesError);
-        toast.error('Erro ao carregar perfis do usuário');
-        return;
-      }
-  
-      const roles = userRoles?.map((ur: any) => ur.perfis.nome) || [];
-      console.log('User roles:', roles);
-  
-      const { data: userProfile, error: profileError } = await supabase
-        .from('usuarios')
-        .select('confirmado')
-        .eq('id', data.user.id)
-        .single();
-  
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
-        toast.error('Erro ao carregar perfil do usuário');
-        return;
-      }
-  
-      if (!userProfile?.confirmado) {
+      if (!userProfile.confirmado) {
         console.log('User not confirmed, redirecting to pending approval page');
         toast.warning('Seu cadastro está pendente de aprovação.');
         navigate('/pending-approval');
         return;
       }
   
-      setUser({ ...data.user, papeis: roles });
+      setUser({ ...data.user, ...userProfile });
   
-      if (roles.length > 1) {
+      if (userProfile.papeis.length > 1) {
         console.log('Multiple roles found, redirecting to role selection');
-        navigate('/role-selection', { state: { roles } });
+        navigate('/role-selection', { state: { roles: userProfile.papeis } });
         toast.success('Login realizado com sucesso! Selecione seu perfil.');
         return;
       }
   
-      let redirectPath = '/dashboard';
-      if (roles.includes('Atleta')) {
-        redirectPath = '/athlete-profile';
-      } else if (roles.includes('Juiz')) {
-        redirectPath = '/judge-dashboard';
-      } else if (roles.includes('Organizador')) {
-        redirectPath = '/organizer-dashboard';
-      }
-  
+      const redirectPath = getDefaultRoute(userProfile.papeis);
       console.log('Redirecting to:', redirectPath);
       navigate(redirectPath);
       toast.success("Login realizado com sucesso!");
   
     } catch (error) {
       console.error("Unexpected login error:", error);
-      toast.error("Ocorreu um erro inesperado. Tente novamente.");
+      toast.error(handleSupabaseError(error));
     } finally {
       setLoading(false);
     }

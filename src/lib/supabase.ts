@@ -7,9 +7,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     storageKey: 'olimpics_auth_token',
-    storage: window.localStorage,
+    storage: localStorage,
     autoRefreshToken: true,
-    detectSessionInUrl: false
+    detectSessionInUrl: true
   },
   global: {
     headers: {
@@ -22,30 +22,51 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export const handleSupabaseError = (error: any) => {
   console.error('Supabase error:', error);
   
-  // Check if it's a refresh token error
   if (error.message?.includes('refresh_token_not_found')) {
     console.log('Refresh token not found, clearing session');
-    supabase.auth.signOut(); // Clear the invalid session
+    supabase.auth.signOut();
     return 'Sua sessão expirou. Por favor, faça login novamente.';
+  }
+  
+  if (error.message?.includes('Invalid login credentials')) {
+    return 'Email ou senha incorretos.';
+  }
+  
+  if (error.message?.includes('Email not confirmed')) {
+    return 'Por favor, confirme seu email antes de fazer login.';
   }
   
   if (error.message?.includes('JWT')) {
     return 'Sessão expirada. Por favor, faça login novamente.';
   }
+  
   if (error.message?.includes('network')) {
     return 'Erro de conexão. Verifique sua internet.';
   }
+  
   return error.message || 'Ocorreu um erro inesperado.';
 };
 
 // Add session recovery helper
 export const recoverSession = async () => {
   try {
+    console.log('Attempting to recover session...');
     const { data: { session }, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    return session;
+    
+    if (error) {
+      console.error('Error recovering session:', error);
+      throw error;
+    }
+    
+    if (session) {
+      console.log('Session recovered successfully');
+      return session;
+    }
+    
+    console.log('No active session found');
+    return null;
   } catch (error) {
-    console.error('Error recovering session:', error);
+    console.error('Error in session recovery:', error);
     return null;
   }
 };
