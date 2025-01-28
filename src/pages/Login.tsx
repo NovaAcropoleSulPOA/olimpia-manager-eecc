@@ -60,6 +60,7 @@ const registerSchema = z.object({
 
 const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
