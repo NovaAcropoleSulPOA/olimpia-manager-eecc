@@ -72,9 +72,6 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
     }
   };
 
-  const CardWrapper = isValidated ? Dialog : React.Fragment;
-  const CardTrigger = isValidated ? DialogTrigger : React.Fragment;
-
   const cardContent = (
     <Card 
       className={`${getStatusColor(athlete.status_pagamento)} ${
@@ -118,69 +115,68 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
     </Card>
   );
 
+  if (!isValidated) {
+    return cardContent;
+  }
+
   return (
-    <CardWrapper>
-      <CardTrigger asChild>
-        {cardContent}
-      </CardTrigger>
+    <Dialog>
+      <DialogTrigger>{cardContent}</DialogTrigger>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Gerenciar Modalidades - {athlete.nome_atleta}</DialogTitle>
+          <DialogDescription>
+            Gerencie as modalidades e status do atleta
+          </DialogDescription>
+        </DialogHeader>
 
-      {isValidated && (
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Gerenciar Modalidades - {athlete.nome_atleta}</DialogTitle>
-            <DialogDescription>
-              Gerencie as modalidades e status do atleta
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="mt-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Modalidade</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Justificativa</TableHead>
-                  <TableHead>Ações</TableHead>
+        <div className="mt-4">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Modalidade</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Justificativa</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {athlete.modalidades.map((modalidade) => (
+                <TableRow key={modalidade.id}>
+                  <TableCell>{modalidade.modalidade}</TableCell>
+                  <TableCell>{modalidade.status}</TableCell>
+                  <TableCell>
+                    <Input
+                      placeholder="Justificativa para alteração"
+                      value={justifications[modalidade.id] || ''}
+                      onChange={(e) => setJustifications(prev => ({
+                        ...prev,
+                        [modalidade.id]: e.target.value
+                      }))}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={modalidade.status}
+                      onValueChange={(value) => handleStatusChange(modalidade.id, value)}
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Selecione o status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pendente">Pendente</SelectItem>
+                        <SelectItem value="Confirmada">Confirmada</SelectItem>
+                        <SelectItem value="Cancelada">Cancelada</SelectItem>
+                        <SelectItem value="Recusada">Recusada</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {athlete.modalidades.map((modalidade) => (
-                  <TableRow key={modalidade.id}>
-                    <TableCell>{modalidade.modalidade}</TableCell>
-                    <TableCell>{modalidade.status}</TableCell>
-                    <TableCell>
-                      <Input
-                        placeholder="Justificativa para alteração"
-                        value={justifications[modalidade.id] || ''}
-                        onChange={(e) => setJustifications(prev => ({
-                          ...prev,
-                          [modalidade.id]: e.target.value
-                        }))}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={modalidade.status}
-                        onValueChange={(value) => handleStatusChange(modalidade.id, value)}
-                      >
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Selecione o status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Pendente">Pendente</SelectItem>
-                          <SelectItem value="Confirmada">Confirmada</SelectItem>
-                          <SelectItem value="Cancelada">Cancelada</SelectItem>
-                          <SelectItem value="Recusada">Recusada</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </DialogContent>
-      )}
-    </CardWrapper>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
