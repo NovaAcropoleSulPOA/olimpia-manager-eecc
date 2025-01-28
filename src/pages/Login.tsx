@@ -137,24 +137,30 @@ const Login = () => {
     try {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
-  
+
+      // Validate branch selection
+      if (!values.branchId) {
+        toast.error('Por favor, selecione uma filial');
+        return;
+      }
+
       const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
         .select('id')
         .eq('email', values.email)
         .maybeSingle();
-  
+
       if (checkError) {
         console.error('Error checking existing user:', checkError);
         toast.error('Erro ao verificar cadastro existente.');
         return;
       }
-  
+
       if (existingUser) {
         toast.error("Este e-mail já está cadastrado. Por favor, faça login.");
         return;
       }
-  
+
       const signUpResult = await signUp({
         ...values,
         telefone: values.telefone.replace(/\D/g, ''),
@@ -162,36 +168,40 @@ const Login = () => {
         numero_documento: values.numero_documento.replace(/\D/g, ''),
         genero: values.genero,
       });
-  
+
+      console.log('SignUp result:', signUpResult);
+
       if (signUpResult.error || !signUpResult.user) {
         console.error('Registration error:', signUpResult.error);
-        toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
+        toast.error(signUpResult.error?.message || 'Erro ao realizar cadastro. Por favor, tente novamente.');
         return;
       }
-  
+
       const userId = signUpResult.user.id;
       console.log(`User registered successfully with ID: ${userId}`);
-  
+
       if (!userId) {
         toast.error("Erro ao obter ID do usuário.");
         return;
       }
-  
+
+      // Assign athlete role
       const { error: rolesError } = await supabase
         .from('papeis_usuarios')
         .insert([{
           usuario_id: userId,
           perfil_id: 1 // ID for "Atleta" role
         }]);
-  
+
       if (rolesError) {
         console.error('Role assignment error:', rolesError);
         toast.error('Erro ao atribuir papel de atleta ao usuário.');
         return;
       }
-  
+
       console.log('Athlete role assigned successfully');
-  
+
+      // Create payment record
       const { error: paymentError } = await supabase
         .from('pagamentos')
         .insert([{
@@ -203,16 +213,16 @@ const Login = () => {
           data_validacao: null,
           data_criacao: new Date().toISOString()
         }]);
-  
+
       if (paymentError) {
         console.error('Payment record creation error:', paymentError);
         toast.error('Erro ao criar registro de pagamento.');
         return;
       }
-  
+
       toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
       navigate('/');
-  
+
     } catch (error) {
       console.error('Registration process error:', error);
       toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
@@ -462,6 +472,34 @@ const Login = () => {
                       )}
                     />
 
+                    <FormField
+                      control={registerForm.control}
+                      name="branchId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Filial</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione uma filial" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {branches.map((branch) => (
+                                <SelectItem key={branch.id} value={branch.id}>
+                                  {branch.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
                     <PaymentInfo />
                     <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
                       Após completar seu cadastro, você receberá um email com instruções para enviar seu comprovante de pagamento. 
@@ -620,4 +658,3 @@ const Login = () => {
 };
 
 export default Login;
-
