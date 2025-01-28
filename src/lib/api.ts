@@ -147,27 +147,26 @@ export const updatePaymentStatus = async (
 ): Promise<void> => {
   console.log('Updating payment status:', { athleteId, status });
   
-  // First, we need to get the inscricao_id for this athlete
-  const { data: inscricoes, error: fetchError } = await supabase
-    .from('inscricoes')
+  // Get all modality registrations for this athlete
+  const { data: registrations, error: fetchError } = await supabase
+    .from('inscricoes_modalidades')
     .select('id')
-    .eq('atleta_id', athleteId)
-    .single();
+    .eq('atleta_id', athleteId);
 
   if (fetchError) {
-    console.error('Error fetching inscription:', fetchError);
+    console.error('Error fetching registrations:', fetchError);
     throw fetchError;
   }
 
-  if (!inscricoes) {
-    console.error('No inscription found for athlete:', athleteId);
-    throw new Error('No inscription found for athlete');
+  if (!registrations?.length) {
+    console.error('No registrations found for athlete:', athleteId);
+    throw new Error('No registrations found for athlete');
   }
 
-  // Now update the status using the numeric inscription ID
+  // Update the status for all registrations
   const { error } = await supabase
     .rpc('atualizar_status_inscricao', {
-      inscricao_id: inscricoes.id,
+      inscricao_id: registrations[0].id,
       novo_status: status,
       justificativa: `Payment status updated to ${status}`
     });
