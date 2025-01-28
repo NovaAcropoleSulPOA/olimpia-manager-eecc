@@ -141,6 +141,25 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
   }
 };
 
+export const updatePaymentStatus = async (
+  athleteId: string,
+  status: string
+): Promise<void> => {
+  console.log('Updating payment status:', { athleteId, status });
+  const { error } = await supabase
+    .rpc('atualizar_status_pagamento', {
+      atleta_id: athleteId,
+      novo_status: status
+    });
+
+  if (error) {
+    console.error('Error updating payment status:', error);
+    throw error;
+  }
+
+  return Promise.resolve();
+};
+
 export const updateModalityStatus = async (
   modalityId: string,
   status: string,

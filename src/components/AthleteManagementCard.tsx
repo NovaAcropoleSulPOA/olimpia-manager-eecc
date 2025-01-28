@@ -28,11 +28,13 @@ interface AthleteManagementCardProps {
     confirmado?: boolean;
   };
   onStatusChange: (modalityId: string, status: string, justification: string) => Promise<void>;
+  onPaymentStatusChange?: (athleteId: string, status: string) => Promise<void>;
 }
 
 export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   athlete,
   onStatusChange,
+  onPaymentStatusChange,
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
   
@@ -63,6 +65,18 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error('Erro ao atualizar status');
+    }
+  };
+
+  const handlePaymentStatusChange = async (newStatus: string) => {
+    if (!onPaymentStatusChange) return;
+    
+    try {
+      await onPaymentStatusChange(athlete.id, newStatus);
+      toast.success('Status de pagamento atualizado com sucesso!');
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      toast.error('Erro ao atualizar status de pagamento');
     }
   };
 
@@ -128,6 +142,21 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
               </div>
             )}
           </div>
+
+          {athlete.status_pagamento === "pendente" && onPaymentStatusChange && (
+            <div className="mt-4 flex items-center gap-2">
+              <label className="text-sm text-muted-foreground">Status do pagamento:</label>
+              <Select onValueChange={handlePaymentStatusChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Alterar status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="confirmado">Confirmado</SelectItem>
+                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
