@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-import { supabase, handleSupabaseError, recoverSession } from '@/lib/supabase';
+import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 interface AuthUser extends User {
@@ -28,9 +28,33 @@ const PUBLIC_ROUTES = ['/', '/login', '/reset-password', '/pending-approval'];
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleAuthRedirect = (userProfile: any) => {
+    console.log('Handling auth redirect for user profile:', userProfile);
+    
+    if (!userProfile.confirmado) {
+      console.log('User not confirmed, redirecting to pending approval');
+      navigate('/pending-approval');
+      return;
+    }
+
+    const roles = userProfile.papeis || [];
+    console.log('User roles:', roles);
+
+    if (roles.includes('Atleta')) {
+      console.log('Redirecting to athlete profile');
+      navigate('/athlete-profile');
+    } else if (roles.includes('Organizador')) {
+      console.log('Redirecting to organizer dashboard');
+      navigate('/organizer-dashboard');
+    } else {
+      console.error('No valid role found for navigation');
+      toast.error('Erro ao determinar perfil de acesso');
+      navigate('/login');
+    }
+  };
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -64,124 +88,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const handleAuthRedirect = (userProfile: any) => {
-    if (!userProfile.confirmado) {
-      navigate('/pending-approval');
-      return;
-    }
-
-    if (userProfile.papeis.length > 1) {
-      navigate('/role-selection', { state: { roles: userProfile.papeis } });
-    } else if (userProfile.papeis.length === 1) {
-      const role = userProfile.papeis[0].toLowerCase();
-      switch (role) {
-        case 'atleta':
-          navigate('/athlete-profile');
-          break;
-        case 'organizador':
-          navigate('/organizer-dashboard');
-          break;
-        case 'representante de delegação':
-          navigate('/delegation-dashboard');
-          break;
-        default:
-          console.error('Unknown role:', role);
-          toast.error('Erro ao determinar perfil de acesso');
-          navigate('/login');
-      }
-    } else {
-      console.error('No roles assigned');
-      toast.error('Nenhum perfil atribuído ao usuário');
-      navigate('/login');
-    }
-  };
-
   useEffect(() => {
-    console.log('Initializing auth state...');
+    console.log('Setting up auth state...');
     let mounted = true;
-    
+
     const setupAuth = async () => {
       try {
-        const existingSession = await recoverSession();
-        console.log('Recovered session:', existingSession?.user?.id);
-        
-        if (!existingSession) {
-          console.log('No active session found');
-          if (!PUBLIC_ROUTES.includes(location.pathname)) {
-            navigate('/login');
-          }
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial session:', session?.user?.id);
+
+        if (session?.user) {
+          const userProfile = await fetchUserProfile(session.user.id);
           if (mounted) {
-            setLoading(false);
-            setInitialLoadComplete(true);
+            setUser({ ...session.user, ...userProfile });
+            if (!PUBLIC_ROUTES.includes(location.pathname)) {
+              handleAuthRedirect(userProfile);
+            }
           }
-          return;
+        } else if (!PUBLIC_ROUTES.includes(location.pathname)) {
+          navigate('/login');
         }
 
-        const {
-          data: { subscription },
-        } = supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log('Auth state changed:', event, session?.user?.id);
-          
-          if (session?.user) {
-            try {
-              const userProfile = await fetchUserProfile(session.user.id);
-              
-              const updatedUser = {
-                ...session.user,
-                ...userProfile,
-              };
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log('Auth state changed:', event, session?.user?.id);
 
-              console.log('Setting authenticated user:', updatedUser);
-              if (mounted) {
-                setUser(updatedUser);
+            if (session?.user) {
+              try {
+                const userProfile = await fetchUserProfile(session.user.id);
+                if (mounted) {
+                  setUser({ ...session.user, ...userProfile });
+                }
+                if (event === 'SIGNED_IN') {
+                  handleAuthRedirect(userProfile);
+                }
+              } catch (error) {
+                console.error('Error setting up user session:', error);
+                toast.error(handleSupabaseError(error));
+                if (mounted) {
+                  setUser(null);
+                  navigate('/login');
+                }
               }
-
-              if (!userProfile.confirmado) {
-                navigate('/pending-approval');
-                return;
-              }
-
-              if (event === 'SIGNED_IN') {
-                handleAuthRedirect(userProfile);
-              }
-            } catch (error) {
-              console.error('Error setting up user session:', error);
-              toast.error(handleSupabaseError(error));
+            } else {
               if (mounted) {
                 setUser(null);
-                navigate('/login');
+                if (!PUBLIC_ROUTES.includes(location.pathname)) {
+                  navigate('/login');
+                }
               }
             }
-          } else {
-            if (mounted) {
-              setUser(null);
-            }
-            if (!PUBLIC_ROUTES.includes(location.pathname)) {
-              navigate('/login');
-            }
           }
-          
-          if (mounted) {
-            setLoading(false);
-            setInitialLoadComplete(true);
-          }
-        });
-
-        if (existingSession?.user) {
-          try {
-            const userProfile = await fetchUserProfile(existingSession.user.id);
-            const updatedUser = {
-              ...existingSession.user,
-              ...userProfile,
-            };
-            if (mounted) {
-              setUser(updatedUser);
-            }
-          } catch (error) {
-            console.error('Error fetching initial user profile:', error);
-            toast.error(handleSupabaseError(error));
-          }
-        }
+        );
 
         return () => {
           subscription.unsubscribe();
@@ -189,18 +147,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error('Error in auth setup:', error);
         if (mounted) {
+          setUser(null);
+          if (!PUBLIC_ROUTES.includes(location.pathname)) {
+            navigate('/login');
+          }
+        }
+      } finally {
+        if (mounted) {
           setLoading(false);
-          setInitialLoadComplete(true);
         }
       }
     };
 
     setupAuth();
-
     return () => {
       mounted = false;
     };
-  }, [navigate, location]);
+  }, [navigate, location.pathname]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -379,7 +342,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  if (!initialLoadComplete) {
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />

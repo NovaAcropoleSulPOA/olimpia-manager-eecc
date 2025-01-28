@@ -6,7 +6,6 @@ import { GlobalHeader } from './components/GlobalHeader';
 import './App.css';
 import Login from './pages/Login';
 import PendingApproval from './pages/PendingApproval';
-import RoleSelection from './components/RoleSelection';
 import ResetPassword from './pages/ResetPassword';
 import { MainNavigation } from './components/MainNavigation';
 import LandingPage from './pages/LandingPage';
@@ -28,8 +27,8 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
+    <Router>
+      <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <div className="flex flex-col min-h-screen">
             <GlobalHeader />
@@ -40,7 +39,6 @@ function App() {
                 <Route path="/pending-approval" element={<PendingApproval />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route element={<MainNavigation />}>
-                  <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
                   <Route path="/athlete-profile" element={<AthleteProfilePage />} />
                   <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
                   <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
@@ -51,8 +49,8 @@ function App() {
             <Toaster />
           </div>
         </AuthProvider>
-      </Router>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </Router>
   );
 }
 

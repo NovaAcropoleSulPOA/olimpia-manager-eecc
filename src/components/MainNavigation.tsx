@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   Sidebar, 
   SidebarProvider, 
@@ -16,6 +16,7 @@ import {
 import { User, BarChart3, LogOut, Menu, ClipboardList } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 export function MainNavigation() {
   const { user, signOut } = useAuth();
@@ -25,7 +26,6 @@ export function MainNavigation() {
   console.log('Current user roles:', user?.papeis);
   console.log('Current location:', location.pathname);
 
-  // Updated menu items to match current screens
   const menuItems = [
     {
       title: "Perfil do Atleta",
