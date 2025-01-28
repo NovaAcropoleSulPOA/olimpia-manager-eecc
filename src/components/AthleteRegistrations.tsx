@@ -95,7 +95,12 @@ export default function AthleteRegistrations() {
         modality.vagas_ocupadas < modality.limite_vagas
       );
 
-      return filterModalitiesByGender(filteredByVacancies);
+      const filteredModalities = filterModalitiesByGender(filteredByVacancies);
+      
+      // Sort modalities alphabetically by name
+      return filteredModalities.sort((a, b) => 
+        a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' })
+      );
     },
     enabled: !!athleteProfile,
   });
