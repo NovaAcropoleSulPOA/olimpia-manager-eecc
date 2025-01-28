@@ -86,11 +86,16 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                 <div className="flex gap-2">
                   <Badge variant={registration.confirmado ? "default" : "destructive"}>
                     {registration.confirmado ? (
-                      <CheckCircle2 className="w-4 h-4 mr-1" />
+                      <>
+                        <CheckCircle2 className="w-4 h-4 mr-1" />
+                        Validado
+                      </>
                     ) : (
-                      <XCircle className="w-4 h-4 mr-1" />
+                      <>
+                        <XCircle className="w-4 h-4 mr-1" />
+                        Não Validado
+                      </>
                     )}
-                    {registration.confirmado ? "Validado" : "Não Validado"}
                   </Badge>
                   <Badge className={cn("capitalize", getStatusTextColor(registration.status_pagamento))}>
                     {registration.status_pagamento}
@@ -101,7 +106,9 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate">{registration.email || "Email não informado"}</span>
+                  <span className="truncate">
+                    {registration.email?.trim() ? registration.email : "Email não informado"}
+                  </span>
                 </div>
                 
                 <div className="flex items-center gap-2">
