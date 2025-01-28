@@ -12,7 +12,7 @@ import { MainNavigation } from './components/MainNavigation';
 import LandingPage from './pages/LandingPage';
 import Footer from './components/Footer';
 import OrganizerDashboard from './components/OrganizerDashboard';
-import AthleteProfile from './components/AthleteProfile';
+import AthleteProfilePage from './components/AthleteProfilePage';
 import AthleteRegistrations from './components/AthleteRegistrations';
 
 const queryClient = new QueryClient({
@@ -41,7 +41,7 @@ function App() {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route element={<MainNavigation />}>
                   <Route path="/role-selection" element={<RoleSelection roles={[]} />} />
-                  <Route path="/athlete-profile" element={<AthleteProfile />} />
+                  <Route path="/athlete-profile" element={<AthleteProfilePage />} />
                   <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
                   <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
                 </Route>
