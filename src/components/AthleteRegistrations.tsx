@@ -44,13 +44,17 @@ export default function AthleteRegistrations() {
     queryKey: ['athlete-profile', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
+      console.log('Fetching athlete profile for user:', user.id);
       const { data, error } = await supabase
         .from('view_perfil_atleta')
         .select('*')
-        .eq('id', user.id)
+        .eq('atleta_id', user.id)  // Changed from 'id' to 'atleta_id'
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching athlete profile:', error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user?.id,
