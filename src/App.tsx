@@ -1,9 +1,10 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { Toaster } from './components/ui/sonner';
 import { GlobalHeader } from './components/GlobalHeader';
 import './App.css';
+import { Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import PendingApproval from './pages/PendingApproval';
 import ResetPassword from './pages/ResetPassword';
