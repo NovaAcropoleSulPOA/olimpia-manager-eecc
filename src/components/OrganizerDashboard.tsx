@@ -229,6 +229,7 @@ const RegistrationsManagement = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
+  const [validationFilter, setValidationFilter] = useState<string>('all');
 
   const updateModalityStatusMutation = useMutation({
     mutationFn: async ({ modalityId, status, justification }: { modalityId: string; status: string; justification: string }) => {
@@ -251,8 +252,11 @@ const RegistrationsManagement = () => {
       registration.filial.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesPayment = paymentFilter === 'all' || registration.status_pagamento === paymentFilter;
+    const matchesValidation = validationFilter === 'all' || 
+      (validationFilter === 'validated' && registration.confirmado) ||
+      (validationFilter === 'unvalidated' && !registration.confirmado);
     
-    return matchesSearch && matchesPayment;
+    return matchesSearch && matchesPayment && matchesValidation;
   });
 
   if (isLoading) {
@@ -288,6 +292,20 @@ const RegistrationsManagement = () => {
                 <SelectItem value="pendente">Pendente</SelectItem>
                 <SelectItem value="confirmado">Confirmado</SelectItem>
                 <SelectItem value="cancelado">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col space-y-2">
+            <Label htmlFor="validation-status">Status de Validação</Label>
+            <Select value={validationFilter} onValueChange={setValidationFilter}>
+              <SelectTrigger id="validation-status" className="w-[180px]">
+                <SelectValue placeholder="Filtrar por validação" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="validated">Validado</SelectItem>
+                <SelectItem value="unvalidated">Não Validado</SelectItem>
               </SelectContent>
             </Select>
           </div>
