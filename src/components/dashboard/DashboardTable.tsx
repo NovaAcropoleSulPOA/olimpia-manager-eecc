@@ -52,9 +52,11 @@ export function DashboardTable({ data }: DashboardTableProps) {
     }));
   };
 
-  const getModalitiesList = (modalidades: Record<string, number> | null) => {
+  const formatModalities = (modalidades: Record<string, number> | null) => {
     if (!modalidades) return "Nenhuma modalidade";
-    return Object.keys(modalidades).join(", ");
+    return Object.entries(modalidades)
+      .map(([modalidade, count]) => `${modalidade} (${count})`)
+      .join(", ");
   };
 
   return (
@@ -97,7 +99,7 @@ export function DashboardTable({ data }: DashboardTableProps) {
                 <TableRow key={branch.filial_id}>
                   <TableCell className="font-medium">{branch.filial}</TableCell>
                   <TableCell className="text-right">{branch.total_inscritos}</TableCell>
-                  <TableCell>{getModalitiesList(branch.modalidades_populares)}</TableCell>
+                  <TableCell>{formatModalities(branch.modalidades_populares)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

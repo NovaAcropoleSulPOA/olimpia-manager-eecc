@@ -21,8 +21,13 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
   });
   const totalModalities = uniqueModalities.size;
 
+  // Calculate total revenue (R$180 per confirmed athlete)
+  const totalRevenue = data.reduce((acc, branch) => {
+    return acc + (branch.valor_total_arrecadado || 0);
+  }, 0);
+
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total de Atletas</CardTitle>
@@ -32,6 +37,7 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
           <div className="text-2xl font-bold">{totalAthletes}</div>
         </CardContent>
       </Card>
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Modalidades Ativas</CardTitle>
@@ -41,6 +47,7 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
           <div className="text-2xl font-bold">{totalModalities}</div>
         </CardContent>
       </Card>
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Filiais Ativas</CardTitle>
@@ -48,6 +55,21 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{activeBranches}</div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Valor Total Arrecadado</CardTitle>
+          <span className="text-2xl">💰</span>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">
+            {new Intl.NumberFormat('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(totalRevenue)}
+          </div>
         </CardContent>
       </Card>
     </div>
