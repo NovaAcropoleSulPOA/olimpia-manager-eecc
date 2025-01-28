@@ -64,7 +64,7 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalyti
   }));
 
   const popularModalitiesData = branchAnalytics.flatMap(branch => {
-    const modalidades = branch.modalidades_populares as ModalidadePopular || {};
+    const modalidades = branch.modalidades_populares || {};
     return Object.entries(modalidades).map(([modalidade, count]) => ({
       name: modalidade,
       value: count || 0,
@@ -117,7 +117,7 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: BranchAnalyti
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(averageScore / (branchAnalytics.length || 1)).toFixed(1)}
+              {(averageScore / branchAnalytics.length).toFixed(1)}
             </div>
           </CardContent>
         </Card>
