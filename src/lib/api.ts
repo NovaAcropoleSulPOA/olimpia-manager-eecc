@@ -28,6 +28,14 @@ export interface BranchAnalytics {
   modalidades_populares: Record<string, number>;
 }
 
+export interface Branch {
+  id: string;
+  nome: string;
+  cidade: string;
+  estado: string;
+  created_at: string;
+}
+
 export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
   console.log('Fetching branch analytics from view...');
   const { data, error } = await supabase
@@ -95,4 +103,19 @@ export const updatePaymentStatus = async (
     console.error('Error updating payment status:', error);
     throw error;
   }
+};
+
+export const fetchBranches = async (): Promise<Branch[]> => {
+  console.log('Fetching branches...');
+  const { data, error } = await supabase
+    .from('filiais')
+    .select('*')
+    .order('nome');
+
+  if (error) {
+    console.error('Error fetching branches:', error);
+    throw error;
+  }
+
+  return data || [];
 };
