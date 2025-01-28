@@ -76,10 +76,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     const setupAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('Initial session check:', session?.user?.id);
+        const existingSession = await recoverSession();
+        console.log('Recovered session:', existingSession?.user?.id);
         
-        if (!session) {
+        if (!existingSession) {
           console.log('No active session found');
           if (!PUBLIC_ROUTES.includes(location.pathname)) {
             navigate('/login');
@@ -142,11 +142,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         });
 
-        if (session.user) {
+        if (existingSession?.user) {
           try {
-            const userProfile = await fetchUserProfile(session.user.id);
+            const userProfile = await fetchUserProfile(existingSession.user.id);
             const updatedUser = {
-              ...session.user,
+              ...existingSession.user,
               ...userProfile,
             };
             if (mounted) {
@@ -221,7 +221,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       console.log('Login successful, fetching user roles...');
       
-      // Fetch user roles
       const { data: userRoles, error: rolesError } = await supabase
         .from('papeis_usuarios')
         .select('perfis (id, nome)')
@@ -238,7 +237,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const roles = userRoles?.map((ur: any) => ur.perfis.nome) || [];
       console.log('User roles:', roles);
   
-      // Check if user is confirmed
       const { data: userProfile, error: profileError } = await supabase
         .from('usuarios')
         .select('confirmado')
@@ -260,7 +258,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       setUser({ ...data.user, papeis: roles });
   
-      // Redirect logic
       if (roles.length > 1) {
         console.log('Multiple roles found, redirecting to role selection');
         navigate('/role-selection', { state: { roles } });
@@ -268,7 +265,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
   
-      // Direct redirect for single role
       let redirectPath = '/dashboard';
       if (roles.includes('Atleta')) {
         redirectPath = '/athlete-profile';
@@ -307,7 +303,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Checking if email already exists:', userData.email);
       
-      // Check if the email is already registered
       const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
         .select('id')
@@ -348,7 +343,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       const userId = data.user.id;
   
-      // Create user profile in usuarios table
       const { error: profileError } = await supabase
         .from('usuarios')
         .insert([{
@@ -368,7 +362,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       console.log('User profile created in usuarios table.');
   
-      // Registration successful, instruct user to check email
       toast.success('Cadastro realizado com sucesso! Verifique seu email para ativação.');
       navigate('/login');
   
@@ -383,7 +376,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resendVerificationEmail = async (email: string) => {
     try {
-      // Check if email exists in the database first
       const { data: userData, error: userError } = await supabase
         .from('usuarios')
         .select('id, email_confirmed_at')

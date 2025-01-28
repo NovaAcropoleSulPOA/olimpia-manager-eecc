@@ -6,8 +6,10 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
+    storageKey: 'olimpics_auth_token',
+    storage: window.localStorage,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: false
   },
   global: {
     headers: {
@@ -19,6 +21,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // Add error handling helper
 export const handleSupabaseError = (error: any) => {
   console.error('Supabase error:', error);
+  
+  // Check if it's a refresh token error
+  if (error.message?.includes('refresh_token_not_found')) {
+    console.log('Refresh token not found, clearing session');
+    supabase.auth.signOut(); // Clear the invalid session
+    return 'Sua sessão expirou. Por favor, faça login novamente.';
+  }
+  
   if (error.message?.includes('JWT')) {
     return 'Sessão expirada. Por favor, faça login novamente.';
   }
@@ -26,4 +36,16 @@ export const handleSupabaseError = (error: any) => {
     return 'Erro de conexão. Verifique sua internet.';
   }
   return error.message || 'Ocorreu um erro inesperado.';
+};
+
+// Add session recovery helper
+export const recoverSession = async () => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    return session;
+  } catch (error) {
+    console.error('Error recovering session:', error);
+    return null;
+  }
 };
