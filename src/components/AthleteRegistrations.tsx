@@ -39,9 +39,46 @@ export default function AthleteRegistrations() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch athlete's profile to get gender
+  const { data: athleteProfile } = useQuery({
+    queryKey: ['athlete-profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('view_perfil_atleta')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Filter modalities based on athlete's gender
+  const filterModalitiesByGender = (modalities: any[]) => {
+    const gender = athleteProfile?.genero?.toLowerCase();
+    if (!gender) return modalities;
+
+    return modalities.filter(modality => {
+      const category = modality.categoria?.toLowerCase();
+      switch (gender) {
+        case 'masculino':
+          return category === 'masculino' || category === 'misto';
+        case 'feminino':
+          return category === 'feminino' || category === 'misto';
+        case 'prefiro não informar':
+          return category === 'misto';
+        default:
+          return true;
+      }
+    });
+  };
+
   // Fetch all available modalities
   const { data: allModalities, isLoading: modalitiesLoading } = useQuery({
-    queryKey: ['modalities'],
+    queryKey: ['modalities', athleteProfile?.genero],
     queryFn: async () => {
       console.log('Fetching modalities');
       const { data, error } = await supabase
@@ -54,10 +91,13 @@ export default function AthleteRegistrations() {
         throw error;
       }
       
-      return data.filter(modality => 
+      const filteredByVacancies = data.filter(modality => 
         modality.vagas_ocupadas < modality.limite_vagas
       );
-    }
+
+      return filterModalitiesByGender(filteredByVacancies);
+    },
+    enabled: !!athleteProfile,
   });
 
   // Fetch athlete's modality registrations
@@ -71,9 +111,7 @@ export default function AthleteRegistrations() {
           *,
           modalidade:modalidades (
             nome,
-            categoria,
-            limite_vagas,
-            vagas_ocupadas
+            categoria
           )
         `)
         .eq('atleta_id', user.id);
@@ -214,7 +252,6 @@ export default function AthleteRegistrations() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Modalidade</TableHead>
-                  <TableHead>Vagas</TableHead>
                   <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -223,7 +260,6 @@ export default function AthleteRegistrations() {
                   const isRegistered = registeredModalities?.some(
                     reg => reg.modalidade_id === modality.id
                   );
-                  const availableSpots = modality.limite_vagas - modality.vagas_ocupadas;
 
                   if (isRegistered) return null;
 
@@ -231,15 +267,10 @@ export default function AthleteRegistrations() {
                     <TableRow key={modality.id}>
                       <TableCell>{modality.nome}</TableCell>
                       <TableCell>
-                        <span className={availableSpots === 0 ? "text-red-500" : "text-green-600"}>
-                          {availableSpots} disponíveis
-                        </span>
-                      </TableCell>
-                      <TableCell>
                         <Button
                           variant="default"
                           size="sm"
-                          disabled={registerMutation.isPending || availableSpots <= 0}
+                          disabled={registerMutation.isPending}
                           onClick={() => registerMutation.mutate(modality.id)}
                         >
                           {registerMutation.isPending ? (
