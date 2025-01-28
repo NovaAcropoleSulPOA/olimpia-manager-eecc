@@ -39,8 +39,10 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   // Only allow interaction if payment is confirmed AND athlete is validated
   const isInteractive = athlete.status_pagamento === "confirmado" && athlete.confirmado === true;
   
-  // Only show modalities if they exist AND athlete is validated
-  const hasValidModalities = athlete.modalidades?.length > 0 && athlete.confirmado === true;
+  // Only show modalities if they exist AND athlete is validated AND payment is confirmed
+  const hasValidModalities = athlete.modalidades?.length > 0 && 
+                           athlete.confirmado === true && 
+                           athlete.status_pagamento === "confirmado";
 
   const handleWhatsAppClick = (e: React.MouseEvent, phone: string) => {
     e.stopPropagation();
@@ -89,9 +91,18 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
         <div className="space-y-4">
           <div className="flex justify-between items-start">
             <h3 className="text-lg font-semibold">{athlete.nome_atleta}</h3>
-            <Badge variant={athlete.confirmado ? "default" : "destructive"}>
-              {athlete.confirmado ? "Validado" : "Não Validado"}
-            </Badge>
+            <div className="flex gap-2">
+              <Badge variant={athlete.confirmado ? "default" : "destructive"}>
+                {athlete.confirmado ? "Validado" : "Não Validado"}
+              </Badge>
+              <Badge variant="outline" className={
+                athlete.status_pagamento === "confirmado" ? "bg-green-100 text-green-800" :
+                athlete.status_pagamento === "pendente" ? "bg-yellow-100 text-yellow-800" :
+                "bg-red-100 text-red-800"
+              }>
+                {athlete.status_pagamento}
+              </Badge>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
@@ -157,7 +168,11 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
                 <TableRow key={modalidade.id}>
                   <TableCell>{modalidade.modalidade}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">
+                    <Badge variant="outline" className={
+                      modalidade.status === "confirmado" ? "bg-green-100 text-green-800" :
+                      modalidade.status === "pendente" ? "bg-yellow-100 text-yellow-800" :
+                      "bg-red-100 text-red-800"
+                    }>
                       {modalidade.status}
                     </Badge>
                   </TableCell>
