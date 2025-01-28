@@ -40,7 +40,7 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   const isInteractive = athlete.status_pagamento === "confirmado";
   
   // Only show modalities if they exist AND payment is confirmed
-  const hasValidModalities = athlete.modalidades?.length > 0 && athlete.status_pagamento === "confirmado";
+  const hasValidModalities = athlete.modalidades?.length > 0 && isInteractive;
 
   const handleWhatsAppClick = (e: React.MouseEvent, phone: string) => {
     e.stopPropagation();
@@ -133,17 +133,11 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
     </Card>
   );
 
-  if (!isInteractive) {
-    return cardContent;
-  }
-
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger asChild>
-        <div onClick={() => isInteractive && setIsDialogOpen(true)}>
-          {cardContent}
-        </div>
-      </DialogTrigger>
+      <div onClick={() => isInteractive && setIsDialogOpen(true)}>
+        {cardContent}
+      </div>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Gerenciar Modalidades - {athlete.nome_atleta}</DialogTitle>
