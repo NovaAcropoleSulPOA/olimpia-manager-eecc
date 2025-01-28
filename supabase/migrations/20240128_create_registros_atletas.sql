@@ -1,3 +1,4 @@
+-- Create the registros_atletas table
 create table if not exists public.registros_atletas (
   id uuid default gen_random_uuid() primary key,
   nome_atleta text not null,
@@ -13,7 +14,11 @@ create table if not exists public.registros_atletas (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Create RLS policies
+-- Add useful indexes
+create index if not exists idx_registros_atletas_email on public.registros_atletas(email);
+create index if not exists idx_registros_atletas_status on public.registros_atletas(status_inscricao, status_pagamento);
+
+-- Enable RLS
 alter table public.registros_atletas enable row level security;
 
 -- Allow read access to all authenticated users
@@ -53,3 +58,8 @@ create trigger handle_registros_atletas_updated_at
   before update on public.registros_atletas
   for each row
   execute function public.handle_updated_at();
+
+-- Grant necessary permissions
+grant usage on schema public to anon, authenticated;
+grant all on public.registros_atletas to anon, authenticated;
+grant all on public.registros_atletas_id_seq to anon, authenticated;
