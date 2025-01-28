@@ -28,11 +28,13 @@ const PUBLIC_ROUTES = ['/', '/login', '/reset-password', '/pending-approval'];
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialAuthCheckDone, setInitialAuthCheckDone] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleAuthRedirect = (userProfile: any, isInitialLogin: boolean = false) => {
-    console.log('AuthContext - Handling auth redirect for user profile:', userProfile);
+    console.log('AuthContext - Handling auth redirect. Initial login:', isInitialLogin);
+    console.log('AuthContext - Current location:', location.pathname);
     
     if (!userProfile.confirmado) {
       console.log('AuthContext - User not confirmed, redirecting to pending approval');
@@ -40,16 +42,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Only redirect to default page on initial login and if we're on a public route
-    if (isInitialLogin && PUBLIC_ROUTES.includes(location.pathname)) {
+    // Only redirect if:
+    // 1. It's the initial login AND
+    // 2. We're on a public route AND
+    // 3. Initial auth check is not done
+    if (isInitialLogin && PUBLIC_ROUTES.includes(location.pathname) && !initialAuthCheckDone) {
       const roles = userProfile.papeis || [];
-      console.log('AuthContext - User roles:', roles);
+      console.log('AuthContext - User roles for redirect:', roles);
 
       if (roles.includes('Atleta')) {
-        console.log('AuthContext - Redirecting to athlete profile');
+        console.log('AuthContext - Initial redirect to athlete profile');
         navigate('/athlete-profile');
       } else if (roles.includes('Organizador')) {
-        console.log('AuthContext - Redirecting to organizer dashboard');
+        console.log('AuthContext - Initial redirect to organizer dashboard');
         navigate('/organizer-dashboard');
       } else {
         console.error('AuthContext - No valid role found for navigation');
@@ -104,10 +109,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userProfile = await fetchUserProfile(session.user.id);
           if (mounted) {
             setUser({ ...session.user, ...userProfile });
-            // Only redirect if on a public route
-            if (PUBLIC_ROUTES.includes(location.pathname)) {
-              handleAuthRedirect(userProfile, true);
-            }
+            handleAuthRedirect(userProfile, true);
+            setInitialAuthCheckDone(true);
           }
         } else if (!PUBLIC_ROUTES.includes(location.pathname)) {
           navigate('/login');
@@ -123,9 +126,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (mounted) {
                   setUser({ ...session.user, ...userProfile });
                 }
-                // Only redirect on sign in and if on a public route
-                if (event === 'SIGNED_IN' && PUBLIC_ROUTES.includes(location.pathname)) {
+                // Only redirect on sign in, public route, and initial auth
+                if (event === 'SIGNED_IN' && PUBLIC_ROUTES.includes(location.pathname) && !initialAuthCheckDone) {
                   handleAuthRedirect(userProfile, true);
+                  setInitialAuthCheckDone(true);
                 }
               } catch (error) {
                 console.error('AuthContext - Error setting up user session:', error);
@@ -160,6 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } finally {
         if (mounted) {
           setLoading(false);
+          setInitialAuthCheckDone(true);
         }
       }
     };
