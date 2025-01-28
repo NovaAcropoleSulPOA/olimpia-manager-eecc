@@ -52,10 +52,10 @@ export function DashboardTable({ data }: DashboardTableProps) {
     }));
   };
 
-  const formatModalities = (modalidades: Record<string, number> | null) => {
-    if (!modalidades) return "Nenhuma modalidade";
-    return Object.entries(modalidades)
-      .map(([modalidade, count]) => `${modalidade} (${count})`)
+  const formatModalities = (modalidades: Array<{ modalidade: string; total_inscritos: number }>) => {
+    if (!modalidades || modalidades.length === 0) return "Nenhuma modalidade";
+    return modalidades
+      .map(({ modalidade, total_inscritos }) => `${modalidade} (${total_inscritos})`)
       .join(", ");
   };
 

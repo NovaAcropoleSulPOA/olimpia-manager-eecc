@@ -26,13 +26,22 @@ export interface BranchAnalytics {
   estado: string;
   total_inscritos: number;
   valor_total_arrecadado: number;
-  ranking_pontos: number;
-  ranking_posicao: number;
-  modalidades_populares: Record<string, number>;
-  inscritos_por_status: Record<string, number>;
-  inscritos_por_status_pagamento: Record<string, number>;
-  atletas_por_categoria: Record<string, number>;
-  media_pontuacao_por_modalidade: Record<string, number>;
+  modalidades_populares: Array<{
+    modalidade: string;
+    total_inscritos: number;
+  }>;
+  inscritos_por_status: Array<{
+    status_inscricao: string;
+    quantidade: number;
+  }>;
+  inscritos_por_status_pagamento: Array<{
+    status_pagamento: string;
+    quantidade: number;
+  }>;
+  atletas_por_categoria: Array<{
+    categoria: string;
+    quantidade: number;
+  }>;
 }
 
 export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
@@ -61,47 +70,57 @@ export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
 };
 
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
-  console.log('Fetching athlete registrations from vw_inscricoes_atletas...');
-  const { data, error } = await supabase
-    .from('vw_inscricoes_atletas')
-    .select('*');
+  console.log('Fetching athlete registrations...');
+  try {
+    const { data, error } = await supabase
+      .from('vw_inscricoes_atletas')
+      .select('*');
 
-  if (error) {
-    console.error('Error fetching registrations:', error);
+    if (error) {
+      console.error('Error fetching registrations:', error);
+      throw error;
+    }
+
+    if (!data) {
+      console.log('No registrations data returned');
+      return [];
+    }
+
+    // Transform the data to match the expected format
+    const transformedData = data.map(registration => ({
+      id: registration.atleta_id || registration.id,
+      nome_atleta: registration.atleta_nome || registration.nome_atleta,
+      email: registration.atleta_email || registration.email || '',
+      confirmado: registration.status_confirmacao || false,
+      telefone: registration.telefone || '',
+      filial: registration.filial_nome || registration.filial,
+      modalidades: [{
+        id: (registration.inscricao_id || registration.id).toString(),
+        modalidade: registration.modalidade_nome || registration.modalidade,
+        status: registration.status_inscricao || 'pendente',
+        justificativa_status: registration.justificativa_status || ''
+      }],
+      status_inscricao: registration.status_inscricao || 'pendente',
+      status_pagamento: registration.status_pagamento || 'pendente'
+    }));
+
+    // Group registrations by athlete
+    const groupedData = transformedData.reduce((acc, curr) => {
+      const existingAthlete = acc.find(a => a.id === curr.id);
+      if (existingAthlete) {
+        existingAthlete.modalidades.push(...curr.modalidades);
+      } else {
+        acc.push(curr);
+      }
+      return acc;
+    }, [] as AthleteRegistration[]);
+
+    console.log('Transformed registrations data:', groupedData);
+    return groupedData;
+  } catch (error) {
+    console.error('Error in fetchAthleteRegistrations:', error);
     throw error;
   }
-
-  // Transform the data to match the expected format
-  const transformedData = data?.map(registration => ({
-    id: registration.atleta_id,
-    nome_atleta: registration.atleta_nome,
-    email: registration.atleta_email || '',
-    confirmado: registration.status_confirmacao,
-    telefone: registration.telefone,
-    filial: registration.filial_nome,
-    modalidades: [{
-      id: registration.inscricao_id.toString(),
-      modalidade: registration.modalidade_nome,
-      status: registration.status_inscricao,
-      justificativa_status: registration.justificativa_status || ''
-    }],
-    status_inscricao: registration.status_inscricao,
-    status_pagamento: registration.status_pagamento
-  })) || [];
-
-  // Group registrations by athlete
-  const groupedData = transformedData.reduce((acc, curr) => {
-    const existingAthlete = acc.find(a => a.id === curr.id);
-    if (existingAthlete) {
-      existingAthlete.modalidades.push(...curr.modalidades);
-    } else {
-      acc.push(curr);
-    }
-    return acc;
-  }, [] as AthleteRegistration[]);
-
-  console.log('Transformed registrations data:', groupedData);
-  return groupedData;
 };
 
 export const updateModalityStatus = async (
@@ -123,19 +142,4 @@ export const updateModalityStatus = async (
   }
 
   return Promise.resolve();
-};
-
-export const fetchBranches = async () => {
-  console.log('Fetching branches...');
-  const { data, error } = await supabase
-    .from('filiais')
-    .select('*')
-    .order('nome');
-
-  if (error) {
-    console.error('Error fetching branches:', error);
-    throw error;
-  }
-
-  return data || [];
 };
