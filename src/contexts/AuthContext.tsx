@@ -157,16 +157,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const getDefaultRoute = (roles: string[]) => {
     if (!roles.length) return '/login';
-    switch (roles[0]) {
-      case 'Atleta':
-        return '/athlete-dashboard';
-      case 'Juiz':
-        return '/referee-dashboard';
-      case 'Organizador':
-        return '/admin-dashboard';
-      default:
-        return '/login';
+    if (roles.includes('Atleta')) {
+      return '/athlete-profile';
     }
+    if (roles.includes('Juiz')) {
+      return '/judge-dashboard';
+    }
+    if (roles.includes('Organizador')) {
+      return '/organizer-dashboard';
+    }
+    return '/login';
   };
 
   const signIn = async (email: string, password: string) => {
@@ -249,11 +249,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Direct redirect for single role
       let redirectPath = '/dashboard';
       if (roles.includes('Atleta')) {
-        redirectPath = '/athlete-dashboard';
+        redirectPath = '/athlete-profile';
       } else if (roles.includes('Juiz')) {
-        redirectPath = '/referee-dashboard';
+        redirectPath = '/judge-dashboard';
       } else if (roles.includes('Organizador')) {
-        redirectPath = '/admin-dashboard';
+        redirectPath = '/organizer-dashboard';
       }
   
       console.log('Redirecting to:', redirectPath);

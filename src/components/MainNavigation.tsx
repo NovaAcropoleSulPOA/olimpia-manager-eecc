@@ -13,7 +13,7 @@ import {
   SidebarGroupLabel,
   SidebarTrigger
 } from './ui/sidebar';
-import { Home, User, Medal, Users, Award, BarChart3, LogOut, Menu, ClipboardList } from 'lucide-react';
+import { User, Medal, Users, Award, BarChart3, LogOut, Menu, ClipboardList } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -23,12 +23,6 @@ export function MainNavigation() {
   const navigate = useNavigate();
 
   const menuItems = [
-    {
-      title: "Início",
-      icon: Home,
-      path: "/athlete-dashboard",
-      roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"]
-    },
     {
       title: "Perfil",
       icon: User,
