@@ -32,10 +32,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   const handleAuthRedirect = (userProfile: any, isInitialLogin: boolean = false) => {
-    console.log('Handling auth redirect for user profile:', userProfile);
+    console.log('AuthContext - Handling auth redirect for user profile:', userProfile);
     
     if (!userProfile.confirmado) {
-      console.log('User not confirmed, redirecting to pending approval');
+      console.log('AuthContext - User not confirmed, redirecting to pending approval');
       navigate('/pending-approval');
       return;
     }
@@ -43,16 +43,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Only redirect to default page on initial login
     if (isInitialLogin) {
       const roles = userProfile.papeis || [];
-      console.log('User roles:', roles);
+      console.log('AuthContext - User roles:', roles);
 
       if (roles.includes('Atleta')) {
-        console.log('Redirecting to athlete profile');
+        console.log('AuthContext - Redirecting to athlete profile');
         navigate('/athlete-profile');
       } else if (roles.includes('Organizador')) {
-        console.log('Redirecting to organizer dashboard');
+        console.log('AuthContext - Redirecting to organizer dashboard');
         navigate('/organizer-dashboard');
       } else {
-        console.error('No valid role found for navigation');
+        console.error('AuthContext - No valid role found for navigation');
         toast.error('Erro ao determinar perfil de acesso');
         navigate('/login');
       }
@@ -92,19 +92,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    console.log('Setting up auth state...');
+    console.log('AuthContext - Setting up auth state...');
     let mounted = true;
 
     const setupAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('Initial session:', session?.user?.id);
+        console.log('AuthContext - Initial session:', session?.user?.id);
 
         if (session?.user) {
           const userProfile = await fetchUserProfile(session.user.id);
           if (mounted) {
             setUser({ ...session.user, ...userProfile });
-            if (!PUBLIC_ROUTES.includes(location.pathname)) {
+            // Only redirect on initial mount if on a public route
+            if (PUBLIC_ROUTES.includes(location.pathname)) {
               handleAuthRedirect(userProfile, true);
             }
           }
@@ -114,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            console.log('Auth state changed:', event, session?.user?.id);
+            console.log('AuthContext - Auth state changed:', event, session?.user?.id);
 
             if (session?.user) {
               try {
@@ -122,11 +123,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (mounted) {
                   setUser({ ...session.user, ...userProfile });
                 }
+                // Only redirect on sign in
                 if (event === 'SIGNED_IN') {
                   handleAuthRedirect(userProfile, true);
                 }
               } catch (error) {
-                console.error('Error setting up user session:', error);
+                console.error('AuthContext - Error setting up user session:', error);
                 toast.error(handleSupabaseError(error));
                 if (mounted) {
                   setUser(null);
@@ -148,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           subscription.unsubscribe();
         };
       } catch (error) {
-        console.error('Error in auth setup:', error);
+        console.error('AuthContext - Error in auth setup:', error);
         if (mounted) {
           setUser(null);
           if (!PUBLIC_ROUTES.includes(location.pathname)) {

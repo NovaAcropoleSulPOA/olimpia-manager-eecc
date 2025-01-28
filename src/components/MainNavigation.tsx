@@ -23,8 +23,8 @@ export function MainNavigation() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  console.log('Current user roles:', user?.papeis);
-  console.log('Current location:', location.pathname);
+  console.log('MainNavigation - Current user roles:', user?.papeis);
+  console.log('MainNavigation - Current location:', location.pathname);
 
   const menuItems = [
     {
@@ -49,13 +49,13 @@ export function MainNavigation() {
 
   const handleLogout = async () => {
     try {
-      console.log('Initiating logout process...');
+      console.log('MainNavigation - Initiating logout process...');
       await signOut();
-      console.log('User signed out successfully');
+      console.log('MainNavigation - User signed out successfully');
       toast.success('Logout realizado com sucesso!');
       navigate('/');
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error('MainNavigation - Error during logout:', error);
       toast.error('Erro ao fazer logout');
     }
   };
@@ -69,12 +69,12 @@ export function MainNavigation() {
   }
 
   const userRoles = user?.papeis || [];
-  console.log('User roles:', userRoles);
+  console.log('MainNavigation - User roles:', userRoles);
   
   const filteredMenuItems = menuItems.filter(item => 
     item.roles.some(role => userRoles.includes(role))
   );
-  console.log('Filtered menu items:', filteredMenuItems);
+  console.log('MainNavigation - Filtered menu items:', filteredMenuItems);
 
   return (
     <SidebarProvider defaultOpen={true}>
