@@ -10,13 +10,6 @@ interface AuthUser extends User {
   filial_id?: string;
   confirmado?: boolean;
   papeis?: string[];
-  genero?: string;
-  numero_identificador?: string;
-  tipo_documento?: string;
-  numero_documento?: string;
-  filial_nome?: string;
-  filial_cidade?: string;
-  filial_estado?: string;
 }
 
 interface AuthContextType {
@@ -68,6 +61,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error fetching user profile:', error);
       throw error;
+    }
+  };
+
+  const handleAuthRedirect = (userProfile: any) => {
+    if (!userProfile.confirmado) {
+      navigate('/pending-approval');
+      return;
+    }
+
+    if (userProfile.papeis.length > 1) {
+      navigate('/role-selection', { state: { roles: userProfile.papeis } });
+    } else if (userProfile.papeis.length === 1) {
+      const role = userProfile.papeis[0].toLowerCase();
+      switch (role) {
+        case 'atleta':
+          navigate('/athlete-profile');
+          break;
+        case 'organizador':
+          navigate('/organizer-dashboard');
+          break;
+        case 'representante de delegação':
+          navigate('/delegation-dashboard');
+          break;
+        default:
+          console.error('Unknown role:', role);
+          toast.error('Erro ao determinar perfil de acesso');
+          navigate('/login');
+      }
+    } else {
+      console.error('No roles assigned');
+      toast.error('Nenhum perfil atribuído ao usuário');
+      navigate('/login');
     }
   };
 
@@ -182,21 +207,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [navigate, location]);
 
-  const getDefaultRoute = (roles: string[]) => {
-    console.log('Getting default route for roles:', roles);
-    if (!roles.length) return '/login';
-    if (roles.includes('Atleta')) {
-      return '/athlete-profile';
-    }
-    if (roles.includes('Juiz')) {
-      return '/judge-dashboard';
-    }
-    if (roles.includes('Organizador')) {
-      return '/organizer-dashboard';
-    }
-    return '/login';
-  };
-
   const signIn = async (email: string, password: string) => {
     try {
       console.log('Attempting login with:', email);
@@ -209,7 +219,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       if (error) {
         console.error('Login error:', error);
-        toast.error(handleSupabaseError(error));
+        if (error.message.includes('Email not confirmed')) {
+          toast.error('Email não confirmado. Por favor, verifique sua caixa de entrada.');
+        } else if (error.message.includes('Invalid login credentials')) {
+          toast.error('Email ou senha incorretos.');
+        } else {
+          toast.error(handleSupabaseError(error));
+        }
         return;
       }
   
@@ -232,22 +248,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
   
       setUser({ ...data.user, ...userProfile });
-  
-      if (userProfile.papeis.length > 1) {
-        console.log('Multiple roles found, redirecting to role selection');
-        navigate('/role-selection', { state: { roles: userProfile.papeis } });
-        toast.success('Login realizado com sucesso! Selecione seu perfil.');
-        return;
-      }
-  
-      const redirectPath = getDefaultRoute(userProfile.papeis);
-      console.log('Redirecting to:', redirectPath);
-      navigate(redirectPath);
+      handleAuthRedirect(userProfile);
       toast.success("Login realizado com sucesso!");
   
     } catch (error) {
       console.error("Unexpected login error:", error);
-      toast.error(handleSupabaseError(error));
+      toast.error('Erro ao fazer login. Por favor, tente novamente.');
     } finally {
       setLoading(false);
     }

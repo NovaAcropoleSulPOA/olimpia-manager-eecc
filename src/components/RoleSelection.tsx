@@ -28,23 +28,27 @@ export default function RoleSelection({ roles: propRoles }: RoleSelectionProps) 
   const handleRoleSelect = async (role: string) => {
     try {
       setIsLoading(true);
-      console.log('Perfil selecionado:', role);
-      let redirectPath = '/dashboard';
-    
-      switch (role) {
-        case 'Atleta':
-          redirectPath = '/athlete-dashboard';
+      console.log('Selected role:', role);
+      
+      let redirectPath;
+      switch (role.toLowerCase()) {
+        case 'atleta':
+          redirectPath = '/athlete-profile';
           break;
-        case 'Juiz':
-          redirectPath = '/referee-dashboard';
+        case 'organizador':
+          redirectPath = '/organizer-dashboard';
           break;
-        case 'Organizador':
-          redirectPath = '/admin-dashboard';
+        case 'representante de delegação':
+          redirectPath = '/delegation-dashboard';
           break;
+        default:
+          console.error('Invalid role selected:', role);
+          toast.error('Perfil inválido selecionado');
+          return;
       }
     
       toast.success(`Acessando painel de ${role.toLowerCase()}`);
-      console.log('Redirecionando para:', redirectPath);
+      console.log('Redirecting to:', redirectPath);
       navigate(redirectPath);
     } catch (error) {
       console.error('Error selecting role:', error);
