@@ -36,13 +36,11 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
   
-  // Only allow interaction if payment is confirmed AND athlete is validated
-  const isInteractive = athlete.status_pagamento === "confirmado" && athlete.confirmado === true;
+  // Only allow interaction if payment is confirmed
+  const isInteractive = athlete.status_pagamento === "confirmado";
   
-  // Only show modalities if they exist AND athlete is validated AND payment is confirmed
-  const hasValidModalities = athlete.modalidades?.length > 0 && 
-                           athlete.confirmado === true && 
-                           athlete.status_pagamento === "confirmado";
+  // Only show modalities if they exist AND payment is confirmed
+  const hasValidModalities = athlete.modalidades?.length > 0 && athlete.status_pagamento === "confirmado";
 
   const handleWhatsAppClick = (e: React.MouseEvent, phone: string) => {
     e.stopPropagation();
@@ -84,25 +82,20 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   const cardContent = (
     <Card 
       className={`${getStatusColor(athlete.status_pagamento)} ${
-        isInteractive ? 'cursor-pointer hover:shadow-md transition-shadow' : 'cursor-default opacity-75'
+        isInteractive ? 'cursor-pointer hover:shadow-md transition-shadow' : 'cursor-not-allowed opacity-75'
       }`}
     >
       <CardContent className="p-6">
         <div className="space-y-4">
           <div className="flex justify-between items-start">
             <h3 className="text-lg font-semibold">{athlete.nome_atleta}</h3>
-            <div className="flex gap-2">
-              <Badge variant={athlete.confirmado ? "default" : "destructive"}>
-                {athlete.confirmado ? "Validado" : "Não Validado"}
-              </Badge>
-              <Badge variant="outline" className={
-                athlete.status_pagamento === "confirmado" ? "bg-green-100 text-green-800" :
-                athlete.status_pagamento === "pendente" ? "bg-yellow-100 text-yellow-800" :
-                "bg-red-100 text-red-800"
-              }>
-                {athlete.status_pagamento}
-              </Badge>
-            </div>
+            <Badge variant="outline" className={
+              athlete.status_pagamento === "confirmado" ? "bg-green-100 text-green-800" :
+              athlete.status_pagamento === "pendente" ? "bg-yellow-100 text-yellow-800" :
+              "bg-red-100 text-red-800"
+            }>
+              {athlete.status_pagamento}
+            </Badge>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
@@ -128,10 +121,12 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
               <span>{athlete.filial}</span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Award className="h-4 w-4 text-muted-foreground" />
-              <span>{hasValidModalities ? `${athlete.modalidades.length} modalidades` : 'Sem modalidades'}</span>
-            </div>
+            {hasValidModalities && (
+              <div className="flex items-center gap-2">
+                <Award className="h-4 w-4 text-muted-foreground" />
+                <span>{athlete.modalidades.length} modalidades</span>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
@@ -144,7 +139,9 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
 
   return (
     <Dialog>
-      <DialogTrigger>{cardContent}</DialogTrigger>
+      <DialogTrigger asChild>
+        <div>{cardContent}</div>
+      </DialogTrigger>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Gerenciar Modalidades - {athlete.nome_atleta}</DialogTitle>
