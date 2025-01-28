@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBranchAnalytics, fetchAthleteRegistrations, updateModalityStatus } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { DashboardMetrics } from "./dashboard/DashboardMetrics";
@@ -27,12 +27,23 @@ const EmptyState = () => (
 );
 
 export default function OrganizerDashboard() {
-  const { data: branchAnalytics, isLoading: isLoadingAnalytics, error: analyticsError, refetch: refetchAnalytics } = useQuery({
+  const queryClient = useQueryClient();
+
+  const { 
+    data: branchAnalytics, 
+    isLoading: isLoadingAnalytics, 
+    error: analyticsError, 
+    refetch: refetchAnalytics 
+  } = useQuery({
     queryKey: ['branch-analytics'],
     queryFn: fetchBranchAnalytics,
   });
 
-  const { data: registrations, isLoading: isLoadingRegistrations, error: registrationsError } = useQuery({
+  const { 
+    data: registrations, 
+    isLoading: isLoadingRegistrations, 
+    error: registrationsError 
+  } = useQuery({
     queryKey: ['athlete-registrations'],
     queryFn: fetchAthleteRegistrations,
   });
@@ -44,7 +55,14 @@ export default function OrganizerDashboard() {
     try {
       await updateModalityStatus(modalityId, status, justification);
       toast.success("Status atualizado com sucesso!");
-      refetchAnalytics();
+      
+      // Invalidate and refetch both queries to ensure fresh data
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
+        queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
+      ]);
+      
+      console.log('Data refreshed after status update');
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error("Erro ao atualizar status");
@@ -55,7 +73,14 @@ export default function OrganizerDashboard() {
     try {
       await updatePaymentStatus(athleteId, status);
       toast.success("Status de pagamento atualizado com sucesso!");
-      refetchAnalytics();
+      
+      // Invalidate and refetch both queries to ensure fresh data
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
+        queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
+      ]);
+      
+      console.log('Data refreshed after payment status update');
     } catch (error) {
       console.error('Error updating payment status:', error);
       toast.error("Erro ao atualizar status de pagamento");
