@@ -51,7 +51,7 @@ export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
 };
 
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
-  console.log('Fetching athlete registrations...');
+  console.log('Fetching athlete registrations from vw_inscricoes_atletas...');
   const { data, error } = await supabase
     .from('vw_inscricoes_atletas')
     .select('*');
@@ -65,8 +65,8 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
   const transformedData = data?.map(registration => ({
     id: registration.atleta_id,
     nome_atleta: registration.atleta_nome,
-    email: registration.email || '',
-    confirmado: registration.confirmado || false,
+    email: registration.atleta_email || '',
+    confirmado: registration.status_confirmacao,
     telefone: registration.telefone,
     filial: registration.filial_nome,
     modalidades: [{
