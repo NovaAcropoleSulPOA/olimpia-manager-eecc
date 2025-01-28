@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Building2, Award } from "lucide-react";
+import { Phone, Mail, Building2, Award, CheckCircle2, XCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { AthleteRegistration } from '@/lib/api';
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface AthleteRegistrationCardProps {
   registration: AthleteRegistration;
@@ -62,15 +63,15 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const getStatusTextColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'confirmado':
-        return 'text-green-700';
+        return 'text-green-700 bg-green-100';
       case 'pendente':
-        return 'text-yellow-700';
+        return 'text-yellow-700 bg-yellow-100';
       case 'rejeitado':
-        return 'text-red-700';
+        return 'text-red-700 bg-red-100';
       case 'cancelado':
-        return 'text-gray-700';
+        return 'text-gray-700 bg-gray-100';
       default:
-        return 'text-gray-700';
+        return 'text-gray-700 bg-gray-100';
     }
   };
 
@@ -80,12 +81,27 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
         <Card className={`cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(registration.status_pagamento)}`}>
           <CardContent className="p-6">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
+              <div className="flex justify-between items-start">
+                <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
+                <div className="flex gap-2">
+                  <Badge variant={registration.email_confirmado ? "success" : "destructive"}>
+                    {registration.email_confirmado ? (
+                      <CheckCircle2 className="w-4 h-4 mr-1" />
+                    ) : (
+                      <XCircle className="w-4 h-4 mr-1" />
+                    )}
+                    {registration.email_confirmado ? "Validado" : "Não Validado"}
+                  </Badge>
+                  <Badge className={cn("capitalize", getStatusTextColor(registration.status_pagamento))}>
+                    {registration.status_pagamento}
+                  </Badge>
+                </div>
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate">{registration.email}</span>
+                  <span className="truncate">{registration.email || "Email não informado"}</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -140,9 +156,9 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                 <TableRow key={modalidade.id}>
                   <TableCell>{modalidade.modalidade}</TableCell>
                   <TableCell>
-                    <span className={cn("px-2 py-1 rounded-full text-sm font-medium", getStatusTextColor(modalidade.status))}>
+                    <Badge className={cn("capitalize", getStatusTextColor(modalidade.status))}>
                       {modalidade.status}
-                    </span>
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Input
@@ -158,15 +174,19 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                     <Select
                       value={modalidade.status}
                       onValueChange={(value) => handleStatusChange(modalidade.id, value)}
+                      disabled={!justifications[modalidade.id]}
                     >
-                      <SelectTrigger className="w-[180px]">
+                      <SelectTrigger className={cn(
+                        "w-[180px]",
+                        !justifications[modalidade.id] && "opacity-50 cursor-not-allowed"
+                      )}>
                         <SelectValue placeholder="Selecione o status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="pendente">Pendente</SelectItem>
-                        <SelectItem value="confirmado">Confirmado</SelectItem>
-                        <SelectItem value="rejeitado">Rejeitado</SelectItem>
-                        <SelectItem value="cancelado">Cancelado</SelectItem>
+                        <SelectItem value="pendente">pendente</SelectItem>
+                        <SelectItem value="confirmado">confirmado</SelectItem>
+                        <SelectItem value="rejeitado">rejeitado</SelectItem>
+                        <SelectItem value="cancelado">cancelado</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>

@@ -11,10 +11,11 @@ export interface AthleteRegistration {
   id: string;
   nome_atleta: string;
   email: string;
+  email_confirmado: boolean;
   telefone: string;
   filial: string;
   modalidades: AthleteModality[];
-  status_inscricao: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada';
+  status_inscricao: 'pendente' | 'confirmado' | 'rejeitado' | 'cancelado';
   status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
 }
 
