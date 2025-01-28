@@ -148,11 +148,10 @@ export const updatePaymentStatus = async (
   console.log('Updating payment status:', { athleteId, status });
   
   try {
-    // First, call the RPC function to update payment status
     const { data: updateResult, error: updateError } = await supabase
       .rpc('atualizar_status_pagamento', {
-        atleta_id: athleteId,
-        novo_status: status
+        p_atleta_id: athleteId,
+        p_novo_status: status
       });
 
     console.log('Payment status update result:', updateResult);
@@ -176,7 +175,7 @@ export const updatePaymentStatus = async (
       throw verifyError;
     }
 
-    if (verifyData?.status_pagamento !== status) {
+    if (!verifyData || verifyData.status_pagamento !== status) {
       console.error('Status not updated correctly:', {
         expected: status,
         actual: verifyData?.status_pagamento
