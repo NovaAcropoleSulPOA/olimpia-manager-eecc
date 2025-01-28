@@ -283,28 +283,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (userData: any) => {
     try {
-      console.log('Checking if email already exists:', userData.email);
-      
-      // Check if the email is already registered
-      const { data: existingUser, error: checkError } = await supabase
-        .from('usuarios')
-        .select('id')
-        .eq('email', userData.email)
-        .maybeSingle();
-  
-      if (checkError) {
-        console.error('Error checking existing user:', checkError);
-        toast.error('Erro ao verificar cadastro existente.');
-        return { user: null, error: checkError };
-      }
-  
-      if (existingUser) {
-        toast.error("Este e-mail já está cadastrado. Por favor, faça login com sua conta existente.");
-        return { user: null, error: new Error('Email already exists') };
-      }
-  
       console.log('Starting new user registration.');
-  
+
       const { data, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -312,20 +292,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           emailRedirectTo: `${window.location.origin}/verify-email`,
         },
       });
-  
+
       if (authError) {
         console.error('Auth Error:', authError.message);
         toast.error('Erro ao criar conta. Tente novamente.');
         return { user: null, error: authError };
       }
-  
+
       if (!data.user) {
         toast.error('Erro ao criar conta. Tente novamente.');
         return { user: null, error: new Error('User creation failed') };
       }
-  
+
       const userId = data.user.id;
-  
+
       // Create user profile in usuarios table with all required fields
       const { error: profileError } = await supabase
         .from('usuarios')
@@ -340,18 +320,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           numero_documento: userData.numero_documento.replace(/\D/g, ''),
           genero: userData.genero
         }]);
-  
+
       if (profileError) {
         console.error('Profile creation error:', profileError);
         toast.error('Erro ao salvar dados do usuário.');
         return { user: null, error: profileError };
       }
-  
-      console.log('User profile created in usuarios table.');
-  
-      // Registration successful, instruct user to check email
-      toast.success('Cadastro realizado com sucesso! Verifique seu email para ativação.');
-      
+
+      console.log('User profile created successfully');
       return { user: data.user, error: null };
     } catch (error: any) {
       console.error('Registration error:', error);

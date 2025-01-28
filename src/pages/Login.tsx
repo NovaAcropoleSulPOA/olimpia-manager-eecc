@@ -177,51 +177,27 @@ const Login = () => {
         return;
       }
 
-      const userId = signUpResult.user.id;
-      console.log(`User registered successfully with ID: ${userId}`);
+      // Reset form after successful registration
+      registerForm.reset({
+        nome: '',
+        email: '',
+        telefone: '',
+        password: '',
+        confirmPassword: '',
+        branchId: '',
+        tipo_documento: 'CPF',
+        numero_documento: '',
+        genero: 'Prefiro não informar',
+      });
 
-      if (!userId) {
-        toast.error("Erro ao obter ID do usuário.");
-        return;
-      }
-
-      // Assign athlete role
-      const { error: rolesError } = await supabase
-        .from('papeis_usuarios')
-        .insert([{
-          usuario_id: userId,
-          perfil_id: 1 // ID for "Atleta" role
-        }]);
-
-      if (rolesError) {
-        console.error('Role assignment error:', rolesError);
-        toast.error('Erro ao atribuir papel de atleta ao usuário.');
-        return;
-      }
-
-      console.log('Athlete role assigned successfully');
-
-      // Create payment record
-      const { error: paymentError } = await supabase
-        .from('pagamentos')
-        .insert([{
-          atleta_id: userId,
-          valor: 180.00,
-          status: 'pendente',
-          comprovante_url: null,
-          validado_sem_comprovante: false,
-          data_validacao: null,
-          data_criacao: new Date().toISOString()
-        }]);
-
-      if (paymentError) {
-        console.error('Payment record creation error:', paymentError);
-        toast.error('Erro ao criar registro de pagamento.');
-        return;
+      // Switch to login tab after successful registration
+      const tabsList = document.querySelector('[role="tablist"]');
+      const loginTab = tabsList?.querySelector('[value="login"]') as HTMLButtonElement;
+      if (loginTab) {
+        loginTab.click();
       }
 
       toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
-      navigate('/');
 
     } catch (error) {
       console.error('Registration process error:', error);
