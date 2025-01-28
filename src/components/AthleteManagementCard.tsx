@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 interface AthleteModality {
   id: string;
@@ -34,7 +35,12 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   onStatusChange,
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
-  const isValidated = athlete.modalidades?.length > 0 && athlete.confirmado;
+  
+  // Only allow interaction if payment is confirmed AND athlete is validated
+  const isInteractive = athlete.status_pagamento === "confirmado" && athlete.confirmado === true;
+  
+  // Only show modalities if they exist AND athlete is validated
+  const hasValidModalities = athlete.modalidades?.length > 0 && athlete.confirmado === true;
 
   const handleWhatsAppClick = (e: React.MouseEvent, phone: string) => {
     e.stopPropagation();
@@ -76,12 +82,17 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   const cardContent = (
     <Card 
       className={`${getStatusColor(athlete.status_pagamento)} ${
-        isValidated ? 'cursor-pointer hover:shadow-md transition-shadow' : 'cursor-default opacity-75'
+        isInteractive ? 'cursor-pointer hover:shadow-md transition-shadow' : 'cursor-default opacity-75'
       }`}
     >
       <CardContent className="p-6">
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">{athlete.nome_atleta}</h3>
+          <div className="flex justify-between items-start">
+            <h3 className="text-lg font-semibold">{athlete.nome_atleta}</h3>
+            <Badge variant={athlete.confirmado ? "default" : "destructive"}>
+              {athlete.confirmado ? "Validado" : "Não Validado"}
+            </Badge>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
             <div className="flex items-center gap-2">
@@ -108,7 +119,7 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
 
             <div className="flex items-center gap-2">
               <Award className="h-4 w-4 text-muted-foreground" />
-              <span>{athlete.modalidades?.length || 0} modalidades</span>
+              <span>{hasValidModalities ? `${athlete.modalidades.length} modalidades` : 'Sem modalidades'}</span>
             </div>
           </div>
         </div>
@@ -116,7 +127,7 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
     </Card>
   );
 
-  if (!isValidated) {
+  if (!isInteractive) {
     return cardContent;
   }
 
@@ -145,7 +156,11 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
               {athlete.modalidades?.map((modalidade) => (
                 <TableRow key={modalidade.id}>
                   <TableCell>{modalidade.modalidade}</TableCell>
-                  <TableCell>{modalidade.status}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {modalidade.status}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     <Input
                       placeholder="Justificativa para alteração"
