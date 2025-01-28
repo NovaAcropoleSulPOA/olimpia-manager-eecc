@@ -38,6 +38,13 @@ const COLORS = [
   "#FF5722",
 ];
 
+const EmptyState = () => (
+  <div className="flex flex-col items-center justify-center h-96 text-center">
+    <p className="text-muted-foreground mb-2">Nenhum dado disponível no momento</p>
+    <p className="text-sm text-muted-foreground">Verifique se existem inscrições registradas no sistema</p>
+  </div>
+);
+
 const DashboardOverview = ({ branchAnalytics, selectedBranch, onBranchChange }: { 
   branchAnalytics: BranchAnalytics[]; 
   selectedBranch: string;
@@ -46,11 +53,7 @@ const DashboardOverview = ({ branchAnalytics, selectedBranch, onBranchChange }: 
   console.log('Branch analytics data:', branchAnalytics);
   
   if (!branchAnalytics || branchAnalytics.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <p className="text-muted-foreground">Nenhum dado disponível</p>
-      </div>
-    );
+    return <EmptyState />;
   }
 
   const currentBranch = branchAnalytics.find(b => b.filial_id === selectedBranch) || branchAnalytics[0];
@@ -135,89 +138,99 @@ const DashboardOverview = ({ branchAnalytics, selectedBranch, onBranchChange }: 
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Modalidades Mais Populares</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={popularModalitiesData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#4CAF50" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Status das Inscrições</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    outerRadius={150}
-                    fill="#8884d8"
-                    dataKey="value"
+      {popularModalitiesData.length > 0 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Modalidades Mais Populares</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={popularModalitiesData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                   >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#4CAF50" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Status das Inscrições</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                      outerRadius={150}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <Card>
+          <CardContent>
+            <EmptyState />
           </CardContent>
         </Card>
-      </div>
+      )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Média de Pontuação por Modalidade</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[400px]">
-            <div className="w-full">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2">Modalidade</th>
-                    <th className="text-right p-2">Média de Pontuação</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(currentBranch.media_pontuacao_por_modalidade || {}).map(([modalidade, media]) => (
-                    <tr key={modalidade} className="border-b">
-                      <td className="p-2">
-                        <div className="font-medium">{modalidade}</div>
-                      </td>
-                      <td className="text-right p-2">{typeof media === 'number' ? media.toFixed(1) : 'N/A'}</td>
+      {Object.keys(currentBranch.media_pontuacao_por_modalidade || {}).length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Média de Pontuação por Modalidade</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[400px]">
+              <div className="w-full">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2">Modalidade</th>
+                      <th className="text-right p-2">Média de Pontuação</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
+                  </thead>
+                  <tbody>
+                    {Object.entries(currentBranch.media_pontuacao_por_modalidade || {}).map(([modalidade, media]) => (
+                      <tr key={modalidade} className="border-b">
+                        <td className="p-2">
+                          <div className="font-medium">{modalidade}</div>
+                        </td>
+                        <td className="text-right p-2">{typeof media === 'number' ? media.toFixed(1) : 'N/A'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 };
@@ -332,7 +345,7 @@ const RegistrationsManagement = () => {
 export default function OrganizerDashboard() {
   const [selectedBranch, setSelectedBranch] = useState<string>("");
   
-  const { data: branchAnalytics, isLoading } = useQuery<BranchAnalytics[]>({
+  const { data: branchAnalytics, isLoading, error } = useQuery({
     queryKey: ['branch-analytics'],
     queryFn: fetchBranchAnalytics,
     initialData: []
@@ -352,6 +365,18 @@ export default function OrganizerDashboard() {
     );
   }
 
+  if (error) {
+    console.error('Error fetching branch analytics:', error);
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-500 mb-2">Erro ao carregar dados</p>
+          <p className="text-sm text-muted-foreground">Por favor, tente novamente mais tarde</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <Tabs defaultValue="overview" className="w-full">
@@ -361,7 +386,7 @@ export default function OrganizerDashboard() {
         </TabsList>
         <TabsContent value="overview">
           <DashboardOverview 
-            branchAnalytics={branchAnalytics || []} 
+            branchAnalytics={branchAnalytics} 
             selectedBranch={selectedBranch}
             onBranchChange={setSelectedBranch}
           />

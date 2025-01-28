@@ -46,6 +46,7 @@ export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
     throw error;
   }
 
+  console.log('Branch analytics response:', data);
   return data || [];
 };
 
