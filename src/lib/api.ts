@@ -35,14 +35,6 @@ export interface BranchAnalytics {
   modalidades_populares: Record<string, number>;
 }
 
-export interface Branch {
-  id: string;
-  nome: string;
-  cidade: string;
-  estado: string;
-  created_at: string;
-}
-
 export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
   console.log('Fetching branch analytics from view...');
   const { data, error } = await supabase
@@ -61,21 +53,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
   console.log('Fetching athlete registrations...');
   const { data, error } = await supabase
     .from('vw_inscricoes_atletas')
-    .select(`
-      id,
-      nome_atleta,
-      email,
-      telefone,
-      filial,
-      modalidades:inscricoes_modalidades(
-        id,
-        modalidade:modalidades(nome),
-        status,
-        justificativa_status
-      ),
-      status_inscricao,
-      status_pagamento
-    `);
+    .select('*');
 
   if (error) {
     console.error('Error fetching registrations:', error);
@@ -84,52 +62,58 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
   // Transform the data to match the expected format
   const transformedData = data?.map(registration => ({
-    ...registration,
-    modalidades: registration.modalidades.map((m: any) => ({
-      id: m.id,
-      modalidade: m.modalidade.nome,
-      status: m.status,
-      justificativa_status: m.justificativa_status
-    }))
+    id: registration.atleta_id,
+    nome_atleta: registration.atleta_nome,
+    email: registration.email || '',
+    telefone: registration.telefone,
+    filial: registration.filial_nome,
+    modalidades: [{
+      id: registration.inscricao_id.toString(),
+      modalidade: registration.modalidade_nome,
+      status: registration.status_inscricao,
+      justificativa_status: registration.justificativa_status || ''
+    }],
+    status_inscricao: registration.status_inscricao,
+    status_pagamento: registration.status_pagamento
   })) || [];
 
-  console.log('Transformed registrations data:', transformedData);
-  return transformedData;
+  // Group registrations by athlete
+  const groupedData = transformedData.reduce((acc, curr) => {
+    const existingAthlete = acc.find(a => a.id === curr.id);
+    if (existingAthlete) {
+      existingAthlete.modalidades.push(...curr.modalidades);
+    } else {
+      acc.push(curr);
+    }
+    return acc;
+  }, [] as AthleteRegistration[]);
+
+  console.log('Transformed registrations data:', groupedData);
+  return groupedData;
 };
 
-export const updateRegistrationStatus = async (
-  id: string, 
-  status: 'Pendente' | 'Confirmada' | 'Cancelada' | 'Recusada'
+export const updateModalityStatus = async (
+  modalityId: string,
+  status: string,
+  justification: string
 ): Promise<void> => {
-  console.log('Updating registration status:', { id, status });
+  console.log('Updating modality status:', { modalityId, status, justification });
   const { error } = await supabase
-    .from('registros_atletas')
-    .update({ status_inscricao: status })
-    .eq('id', id);
+    .rpc('atualizar_status_inscricao', {
+      inscricao_id: parseInt(modalityId),
+      novo_status: status,
+      justificativa: justification
+    });
 
   if (error) {
-    console.error('Error updating registration status:', error);
+    console.error('Error updating modality status:', error);
     throw error;
   }
+
+  return Promise.resolve();
 };
 
-export const updatePaymentStatus = async (
-  id: string, 
-  status: 'pendente' | 'confirmado' | 'cancelado'
-): Promise<void> => {
-  console.log('Updating payment status:', { id, status });
-  const { error } = await supabase
-    .from('registros_atletas')
-    .update({ status_pagamento: status })
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error updating payment status:', error);
-    throw error;
-  }
-};
-
-export const fetchBranches = async (): Promise<Branch[]> => {
+export const fetchBranches = async () => {
   console.log('Fetching branches...');
   const { data, error } = await supabase
     .from('filiais')
@@ -142,27 +126,4 @@ export const fetchBranches = async (): Promise<Branch[]> => {
   }
 
   return data || [];
-};
-
-export const updateModalityStatus = async (
-  modalityId: string,
-  status: string,
-  justification: string
-): Promise<void> => {
-  console.log('Updating modality status:', { modalityId, status, justification });
-  const { error } = await supabase
-    .from('inscricoes_modalidades')
-    .update({ 
-      status: status,
-      justificativa_status: justification 
-    })
-    .eq('id', modalityId);
-
-  if (error) {
-    console.error('Error updating modality status:', error);
-    throw error;
-  }
-
-  // Return a Promise that resolves when the update is complete
-  return Promise.resolve();
 };

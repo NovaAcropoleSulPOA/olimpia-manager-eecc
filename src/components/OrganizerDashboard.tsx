@@ -13,19 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
-import { AthleteManagementCard } from './AthleteManagementCard';
+import { AthleteRegistrationCard } from './AthleteRegistrationCard';
 
 const COLORS = [
   "#009B40",
@@ -35,10 +23,6 @@ const COLORS = [
   "#9C27B0",
   "#FF5722",
 ];
-
-interface ModalidadePopular {
-  [key: string]: number;
-}
 
 const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
   const totalAthletes = branchAnalytics?.reduce((acc, branch) => acc + branch.total_inscritos, 0) || 0;
@@ -302,11 +286,11 @@ const RegistrationsManagement = () => {
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredRegistrations?.map((registration) => (
-            <AthleteManagementCard
+            <AthleteRegistrationCard
               key={registration.id}
-              athlete={registration}
+              registration={registration}
               onStatusChange={(modalityId, status, justification) =>
-                updateModalityStatusMutation.mutate({ modalityId, status, justification })
+                updateModalityStatusMutation.mutateAsync({ modalityId, status, justification })
               }
             />
           ))}
