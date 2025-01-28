@@ -13,7 +13,7 @@ import {
   SidebarGroupLabel,
   SidebarTrigger
 } from './ui/sidebar';
-import { User, Medal, Users, Award, BarChart3, LogOut, Menu, ClipboardList } from 'lucide-react';
+import { User, BarChart3, LogOut, Menu, ClipboardList } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -75,14 +75,6 @@ export function MainNavigation() {
     item.roles.some(role => userRoles.includes(role))
   );
   console.log('Filtered menu items:', filteredMenuItems);
-
-  const currentMenuItem = menuItems.find(item => item.path === location.pathname);
-  if (currentMenuItem && !currentMenuItem.roles.some(role => userRoles.includes(role))) {
-    console.log('Unauthorized access attempt, redirecting to home');
-    toast.error('Você não tem permissão para acessar esta área');
-    navigate('/');
-    return null;
-  }
 
   return (
     <SidebarProvider defaultOpen={true}>

@@ -39,22 +39,16 @@ const Footer = () => {
 
   const navigationItems = [
     {
-      icon: Home,
-      label: "Início",
-      path: "/athlete-dashboard",
-      roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"],
+      icon: User,
+      label: "Perfil",
+      path: "/athlete-profile",
+      roles: ["Atleta"],
     },
     {
       icon: Users,
       label: "Inscrições",
-      path: "/registrations",
-      roles: ["Organizador"],
-    },
-    {
-      icon: User,
-      label: "Perfil",
-      path: "/profile",
-      roles: ["Atleta", "Juiz", "Organizador", "Rep. de Delegação"],
+      path: "/athlete-registrations",
+      roles: ["Atleta"],
     },
     {
       icon: Settings,
@@ -87,7 +81,7 @@ const Footer = () => {
       {/* Mobile Navigation Menu */}
       {user && (
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t md:hidden">
-          <div className="grid grid-cols-5 gap-1 px-2 py-2">
+          <div className="grid grid-cols-4 gap-1 px-2 py-2">
             {filteredNavItems.map((item) => (
               <button
                 key={item.path}
@@ -114,8 +108,8 @@ const Footer = () => {
         </nav>
       )}
 
-      {/* Original Footer Content */}
-      <footer className="relative z-50 w-full bg-white/80 backdrop-blur-sm border-t py-2 px-4 mt-auto">
+      {/* Original Footer Content - Hidden on Mobile */}
+      <footer className="relative z-50 w-full bg-white/80 backdrop-blur-sm border-t py-2 px-4 mt-auto hidden md:block">
         <div className="container mx-auto flex justify-end items-center gap-4">
           <span className="text-xs text-gray-500">
             Desenvolvido por: Olimar Teixeira Borges
