@@ -31,7 +31,7 @@ export default function AthleteProfilePage() {
       const { data, error } = await supabase
         .from('view_perfil_atleta')
         .select('*')
-        .eq('atleta_id', user.id)
+        .eq('atleta_id', user.id)  // Changed from 'id' to 'atleta_id'
         .maybeSingle();
 
       if (error) {
