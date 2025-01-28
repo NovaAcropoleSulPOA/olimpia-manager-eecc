@@ -177,18 +177,16 @@ const Login = () => {
         return;
       }
 
-      // Reset form after successful registration
-      registerForm.reset({
-        nome: '',
-        email: '',
-        telefone: '',
-        password: '',
-        confirmPassword: '',
-        branchId: '',
-        tipo_documento: 'CPF',
-        numero_documento: '',
-        genero: 'Prefiro não informar',
-      });
+      // Complete form reset
+      registerForm.reset();
+      
+      // Explicitly reset select fields to their default values
+      registerForm.setValue('tipo_documento', 'CPF');
+      registerForm.setValue('genero', 'Prefiro não informar');
+      registerForm.setValue('branchId', '');
+
+      // Clear any form errors
+      registerForm.clearErrors();
 
       // Switch to login tab after successful registration
       const tabsList = document.querySelector('[role="tablist"]');

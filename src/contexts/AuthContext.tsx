@@ -312,12 +312,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .insert([{
           id: userId,
           nome_completo: userData.nome,
-          telefone: userData.telefone.replace(/\D/g, ''),
+          telefone: userData.telefone,
           email: userData.email,
           filial_id: userData.branchId,
           confirmado: false,
           tipo_documento: userData.tipo_documento,
-          numero_documento: userData.numero_documento.replace(/\D/g, ''),
+          numero_documento: userData.numero_documento,
           genero: userData.genero
         }]);
 
@@ -325,6 +325,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Profile creation error:', profileError);
         toast.error('Erro ao salvar dados do usuário.');
         return { user: null, error: profileError };
+      }
+
+      // Assign athlete role
+      const { error: rolesError } = await supabase
+        .from('papeis_usuarios')
+        .insert([{
+          usuario_id: userId,
+          perfil_id: 1 // ID for "Atleta" role
+        }]);
+
+      if (rolesError) {
+        console.error('Role assignment error:', rolesError);
+        toast.error('Erro ao atribuir papel de atleta ao usuário.');
+        return { user: null, error: rolesError };
+      }
+
+      // Create payment record
+      const { error: paymentError } = await supabase
+        .from('pagamentos')
+        .insert([{
+          atleta_id: userId,
+          valor: 180.00,
+          status: 'pendente',
+          comprovante_url: null,
+          validado_sem_comprovante: false,
+          data_validacao: null,
+          data_criacao: new Date().toISOString()
+        }]);
+
+      if (paymentError) {
+        console.error('Payment record creation error:', paymentError);
+        toast.error('Erro ao criar registro de pagamento.');
+        return { user: null, error: paymentError };
       }
 
       console.log('User profile created successfully');
