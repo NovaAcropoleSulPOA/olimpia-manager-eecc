@@ -22,36 +22,28 @@ export function MainNavigation() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  console.log('Current user roles:', user?.papeis);
+  console.log('Current location:', location.pathname);
+
+  // Updated menu items to match current screens
   const menuItems = [
     {
-      title: "Perfil",
+      title: "Perfil do Atleta",
       icon: User,
       path: "/athlete-profile",
       roles: ["Atleta"]
     },
     {
-      title: "Inscrições",
+      title: "Minhas Inscrições",
       icon: ClipboardList,
       path: "/athlete-registrations",
       roles: ["Atleta"]
     },
     {
-      title: "Área do Organizador",
+      title: "Dashboard do Organizador",
       icon: BarChart3,
       path: "/organizer-dashboard",
       roles: ["Organizador"]
-    },
-    {
-      title: "Área do Juiz",
-      icon: Medal,
-      path: "/judge-dashboard",
-      roles: ["Juiz"]
-    },
-    {
-      title: "Área da Delegação",
-      icon: Users,
-      path: "/delegation-dashboard",
-      roles: ["Rep. de Delegação"]
     }
   ];
 
