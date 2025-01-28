@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // Fetch user profile
               const { data: userProfile, error: profileError } = await supabase
                 .from('usuarios')
-                .select('nome_completo, telefone, filial_id, confirmado')
+                .select('*')
                 .eq('id', session.user.id)
                 .single();
 
@@ -110,9 +110,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
               // Only redirect on initial sign in
               if (event === 'SIGNED_IN') {
-                const redirectPath = getDefaultRoute(papeis);
-                console.log('Redirecting to:', redirectPath);
-                navigate(redirectPath);
+                if (papeis.length > 1) {
+                  console.log('Multiple roles found, redirecting to role selection');
+                  navigate('/role-selection', { state: { roles: papeis } });
+                } else {
+                  const redirectPath = getDefaultRoute(papeis);
+                  console.log('Single role, redirecting to:', redirectPath);
+                  navigate(redirectPath);
+                }
               }
             } catch (error) {
               console.error('Error setting up user session:', error);
@@ -156,6 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [navigate, location]);
 
   const getDefaultRoute = (roles: string[]) => {
+    console.log('Getting default route for roles:', roles);
     if (!roles.length) return '/login';
     if (roles.includes('Atleta')) {
       return '/athlete-profile';
@@ -247,15 +253,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
   
       // Direct redirect for single role
-      let redirectPath = '/dashboard';
-      if (roles.includes('Atleta')) {
-        redirectPath = '/athlete-profile';
-      } else if (roles.includes('Juiz')) {
-        redirectPath = '/judge-dashboard';
-      } else if (roles.includes('Organizador')) {
-        redirectPath = '/organizer-dashboard';
-      }
-  
+      const redirectPath = getDefaultRoute(roles);
       console.log('Redirecting to:', redirectPath);
       navigate(redirectPath);
       toast.success("Login realizado com sucesso!");

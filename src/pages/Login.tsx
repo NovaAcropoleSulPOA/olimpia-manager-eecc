@@ -60,7 +60,6 @@ const registerSchema = z.object({
 
 const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -102,37 +101,16 @@ const Login = () => {
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
       setIsSubmitting(true);
-      const { error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
-      });
-  
-      if (error) {
-        console.error('Sign in error:', error);
-  
-        if (error.code === "invalid_credentials") {
-          toast.error("E-mail não cadastrado. Verifique os dados ou realize o cadastro.");
-          return;
-        }
-  
-        if (error.code === "email_not_confirmed") {
-          toast.error("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de ativação antes de tentar fazer login.");
-          return;
-        }
-  
-        toast.error("Erro ao fazer login. Verifique suas credenciais.");
-        return;
-      }
-  
-      toast.success("Login realizado com sucesso!");
+      console.log('Attempting login with:', values.email);
+      await signIn(values.email, values.password);
     } catch (error) {
-      console.error("Unexpected Login Error:", error);
-      toast.error("Ocorreu um erro inesperado. Tente novamente.");
+      console.error("Login error:", error);
+      toast.error("Erro ao fazer login. Tente novamente.");
     } finally {
       setIsSubmitting(false);
     }
-  };  
-  
+  };
+
   const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
       console.log('Starting registration process with values:', values);
