@@ -140,8 +140,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
             <TableBody>
               {registration.modalidades.map((modalidade, index) => (
                 <TableRow key={index}>
-                  <TableCell>{modalidade}</TableCell>
-                  <TableCell>{registration.status_inscricao}</TableCell>
+                  <TableCell>{modalidade.modalidade}</TableCell>
+                  <TableCell>{modalidade.status}</TableCell>
                   <TableCell>
                     {new Date().toLocaleDateString('pt-BR')}
                   </TableCell>

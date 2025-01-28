@@ -231,7 +231,7 @@ const RegistrationsManagement = () => {
 
   const updateModalityStatusMutation = useMutation({
     mutationFn: async ({ modalityId, status, justification }: { modalityId: string; status: string; justification: string }) => {
-      await updateModalityStatus(modalityId, status, justification);
+      return updateModalityStatus(modalityId, status, justification);
     },
     onSuccess: () => {
       refetch();
