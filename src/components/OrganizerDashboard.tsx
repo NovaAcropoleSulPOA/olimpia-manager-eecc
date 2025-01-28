@@ -1,10 +1,16 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { fetchBranchAnalytics, fetchAthleteRegistrations, updateRegistrationStatus, updatePaymentStatus } from "@/lib/api";
+import { 
+  fetchBranchAnalytics, 
+  fetchAthleteRegistrations, 
+  updateRegistrationStatus, 
+  updatePaymentStatus,
+  type AthleteRegistration,
+  type BranchAnalytics 
+} from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
@@ -215,7 +221,7 @@ const DashboardOverview = ({ branchAnalytics }: { branchAnalytics: any[] }) => {
 };
 
 const RegistrationsManagement = () => {
-  const { data: registrations, isLoading, refetch } = useQuery({
+  const { data: registrations, isLoading, refetch } = useQuery<AthleteRegistration[]>({
     queryKey: ['athlete-registrations'],
     queryFn: fetchAthleteRegistrations,
   });
@@ -327,7 +333,7 @@ const RegistrationsManagement = () => {
 };
 
 export default function OrganizerDashboard() {
-  const { data: branchAnalytics, isLoading } = useQuery({
+  const { data: branchAnalytics, isLoading } = useQuery<BranchAnalytics[]>({
     queryKey: ['branch-analytics'],
     queryFn: fetchBranchAnalytics,
   });
