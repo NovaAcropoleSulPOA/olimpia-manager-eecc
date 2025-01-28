@@ -40,7 +40,7 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   const isInteractive = athlete.status_pagamento === "confirmado";
   
   // Only show modalities if they exist AND payment is confirmed
-  const hasValidModalities = athlete.modalidades?.length > 0 && athlete.status_pagamento === "confirmado";
+  const hasValidModalities = athlete.modalidades?.length > 0 && isInteractive;
 
   const handleWhatsAppClick = (e: React.MouseEvent, phone: string) => {
     e.stopPropagation();
