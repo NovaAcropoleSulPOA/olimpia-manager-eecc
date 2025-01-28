@@ -147,43 +147,48 @@ export const updatePaymentStatus = async (
 ): Promise<void> => {
   console.log('Updating payment status:', { athleteId, status });
   
-  // Get the registration data from the view using atleta_id
-  const { data: registrations, error: fetchError } = await supabase
-    .from('vw_inscricoes_atletas')
-    .select('*')
-    .eq('atleta_id', athleteId);
-
-  if (fetchError) {
-    console.error('Error fetching registrations:', fetchError);
-    throw fetchError;
-  }
-
-  if (!registrations?.length) {
-    console.error('No registrations found for athlete:', athleteId);
-    throw new Error('No registrations found for athlete');
-  }
-
-  console.log('Found registrations:', registrations);
-
-  // Update status for each modality registration
-  for (const registration of registrations) {
-    const modalityId = registration.inscricao_id;
-    console.log('Updating status for modality:', modalityId);
-
-    const { error } = await supabase
-      .rpc('atualizar_status_inscricao', {
-        inscricao_id: modalityId,
-        novo_status: status,
-        justificativa: `Payment status updated to ${status}`
+  try {
+    // First, call the RPC function to update payment status
+    const { data: updateResult, error: updateError } = await supabase
+      .rpc('atualizar_status_pagamento', {
+        atleta_id: athleteId,
+        novo_status: status
       });
 
-    if (error) {
-      console.error('Error updating payment status:', error);
-      throw error;
-    }
-  }
+    console.log('Payment status update result:', updateResult);
 
-  return Promise.resolve();
+    if (updateError) {
+      console.error('Error updating payment status:', updateError);
+      throw updateError;
+    }
+
+    // Verify the update by fetching the latest data
+    const { data: verifyData, error: verifyError } = await supabase
+      .from('vw_inscricoes_atletas')
+      .select('*')
+      .eq('atleta_id', athleteId)
+      .single();
+
+    console.log('Verification data after update:', verifyData);
+
+    if (verifyError) {
+      console.error('Error verifying update:', verifyError);
+      throw verifyError;
+    }
+
+    if (verifyData?.status_pagamento !== status) {
+      console.error('Status not updated correctly:', {
+        expected: status,
+        actual: verifyData?.status_pagamento
+      });
+      throw new Error('Payment status not updated correctly');
+    }
+
+    return Promise.resolve();
+  } catch (error) {
+    console.error('Error in updatePaymentStatus:', error);
+    throw error;
+  }
 };
 
 export const updateModalityStatus = async (
