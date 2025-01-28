@@ -229,19 +229,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // First clear local state
       setUser(null);
       
+      // Get current session before attempting logout
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log('AuthContext - No active session found, proceeding with local cleanup');
+        navigate('/login');
+        toast.success('Logout realizado com sucesso!');
+        return;
+      }
+      
       // Attempt to sign out from Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error('AuthContext - Error during signOut:', error);
         
-        // If the error is due to session not found, we can ignore it
-        // since we've already cleared the local state
         if (error.message?.includes('session_not_found')) {
           console.log('AuthContext - Session already expired, continuing with local cleanup');
-        } else {
-          throw error;
+          navigate('/login');
+          toast.success('Logout realizado com sucesso!');
+          return;
         }
+        
+        // For other types of errors, we still want to ensure the user is logged out locally
+        console.warn('AuthContext - Non-session error during logout:', error);
       }
 
       console.log('AuthContext - Logout successful, navigating to login page');
