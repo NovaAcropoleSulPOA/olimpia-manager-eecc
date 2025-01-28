@@ -25,7 +25,6 @@ interface AthleteManagementCardProps {
     filial: string;
     status_pagamento: string;
     modalidades: AthleteModality[];
-    confirmado?: boolean;
   };
   onStatusChange: (modalityId: string, status: string, justification: string) => Promise<void>;
 }
@@ -35,6 +34,7 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   onStatusChange,
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   
   // Only allow interaction if payment is confirmed
   const isInteractive = athlete.status_pagamento === "confirmado";
@@ -138,9 +138,11 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   }
 
   return (
-    <Dialog>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
-        <div>{cardContent}</div>
+        <div onClick={() => isInteractive && setIsDialogOpen(true)}>
+          {cardContent}
+        </div>
       </DialogTrigger>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
