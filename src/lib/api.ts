@@ -44,6 +44,26 @@ export interface BranchAnalytics {
   }>;
 }
 
+export interface Branch {
+  id: string;
+  nome: string;
+  cidade: string;
+  estado: string;
+}
+
+export const fetchBranches = async (): Promise<Branch[]> => {
+  const { data, error } = await supabase
+    .from('filiais')
+    .select('*');
+
+  if (error) {
+    console.error('Error fetching branches:', error);
+    throw error;
+  }
+
+  return data || [];
+};
+
 export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
   console.log('Fetching branch analytics from view...');
   try {
@@ -86,16 +106,15 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       return [];
     }
 
-    // Transform the data to match the expected format
     const transformedData = data.map(registration => ({
-      id: registration.atleta_id || registration.id,
+      id: registration.atleta_id?.toString() || registration.id?.toString(),
       nome_atleta: registration.atleta_nome || registration.nome_atleta,
       email: registration.atleta_email || registration.email || '',
       confirmado: registration.status_confirmacao || false,
       telefone: registration.telefone || '',
       filial: registration.filial_nome || registration.filial,
       modalidades: [{
-        id: (registration.inscricao_id || registration.id).toString(),
+        id: registration.inscricao_id?.toString() || registration.id?.toString(),
         modalidade: registration.modalidade_nome || registration.modalidade,
         status: registration.status_inscricao || 'pendente',
         justificativa_status: registration.justificativa_status || ''
@@ -104,7 +123,6 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       status_pagamento: registration.status_pagamento || 'pendente'
     }));
 
-    // Group registrations by athlete
     const groupedData = transformedData.reduce((acc, curr) => {
       const existingAthlete = acc.find(a => a.id === curr.id);
       if (existingAthlete) {

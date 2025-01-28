@@ -28,17 +28,17 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
   }));
 
   // Transform and aggregate modalities data
-  const modalitiesData = data.reduce((acc, branch) => {
-    Object.entries(branch.modalidades_populares || {}).forEach(([modalidade, count]) => {
-      const existing = acc.find(item => item.name === modalidade);
-      if (existing) {
-        existing.value += count;
-      } else {
-        acc.push({ name: modalidade, value: count });
-      }
+  const modalitiesMap = new Map<string, number>();
+  
+  data.forEach(branch => {
+    branch.modalidades_populares.forEach(modalidade => {
+      const currentCount = modalitiesMap.get(modalidade.modalidade) || 0;
+      modalitiesMap.set(modalidade.modalidade, currentCount + modalidade.total_inscritos);
     });
-    return acc;
-  }, [] as { name: string; value: number }[])
+  });
+
+  const modalitiesData = Array.from(modalitiesMap.entries())
+    .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 5);
 
