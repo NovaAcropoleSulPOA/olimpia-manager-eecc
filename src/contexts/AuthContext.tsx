@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
+import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 interface AuthUser extends User {
@@ -39,21 +39,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Initialize Supabase auth with session persistence
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      console.log('Fetching user profile for ID:', userId);
+      
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('papeis_usuarios')
+        .select('perfis (id, nome)')
+        .eq('usuario_id', userId);
+
+      if (rolesError) throw rolesError;
+
+      const { data: userProfile, error: profileError } = await supabase
+        .from('usuarios')
+        .select('nome_completo, telefone, filial_id, confirmado')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
+      
+      return {
+        ...userProfile,
+        papeis,
+      };
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
-    console.log('Initializing Supabase auth with session persistence');
+    console.log('Initializing auth state...');
     let mounted = true;
     
     const setupAuth = async () => {
       try {
-        // Check for existing session first
         const { data: { session } } = await supabase.auth.getSession();
         console.log('Initial session check:', session?.user?.id);
         
         if (!session) {
           console.log('No active session found');
           if (!PUBLIC_ROUTES.includes(location.pathname)) {
-            console.log('Redirecting to login from protected route:', location.pathname);
             navigate('/login');
           }
           if (mounted) {
@@ -63,7 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // Setup auth state change listener
         const {
           data: { subscription },
         } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -71,29 +98,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           if (session?.user) {
             try {
-              // Fetch user roles
-              const { data: userRoles, error: rolesError } = await supabase
-                .from('papeis_usuarios')
-                .select('perfis (id, nome)')
-                .eq('usuario_id', session.user.id);
-
-              if (rolesError) throw rolesError;
-
-              // Fetch user profile
-              const { data: userProfile, error: profileError } = await supabase
-                .from('usuarios')
-                .select('nome_completo, telefone, filial_id, confirmado')
-                .eq('id', session.user.id)
-                .single();
-
-              if (profileError) throw profileError;
-
-              const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
+              const userProfile = await fetchUserProfile(session.user.id);
               
               const updatedUser = {
                 ...session.user,
                 ...userProfile,
-                papeis,
               };
 
               console.log('Setting authenticated user:', updatedUser);
@@ -101,30 +110,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setUser(updatedUser);
               }
 
-              // Handle navigation based on user state
-              if (!userProfile?.confirmado) {
-                console.log('User not confirmed, redirecting to pending approval');
+              if (!userProfile.confirmado) {
                 navigate('/pending-approval');
                 return;
               }
 
-              // Only redirect on initial sign in
               if (event === 'SIGNED_IN') {
-                const redirectPath = getDefaultRoute(papeis);
-                console.log('Redirecting to:', redirectPath);
+                const redirectPath = getDefaultRoute(userProfile.papeis);
                 navigate(redirectPath);
               }
             } catch (error) {
               console.error('Error setting up user session:', error);
-              toast.error('Erro ao carregar dados do usuário');
+              toast.error(handleSupabaseError(error));
+              if (mounted) {
+                setUser(null);
+                navigate('/login');
+              }
             }
           } else {
-            console.log('No active session, clearing user state');
             if (mounted) {
               setUser(null);
             }
             if (!PUBLIC_ROUTES.includes(location.pathname)) {
-              console.log('Redirecting to login from:', location.pathname);
               navigate('/login');
             }
           }
@@ -135,8 +142,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         });
 
+        if (session.user) {
+          try {
+            const userProfile = await fetchUserProfile(session.user.id);
+            const updatedUser = {
+              ...session.user,
+              ...userProfile,
+            };
+            if (mounted) {
+              setUser(updatedUser);
+            }
+          } catch (error) {
+            console.error('Error fetching initial user profile:', error);
+            toast.error(handleSupabaseError(error));
+          }
+        }
+
         return () => {
-          mounted = false;
           subscription.unsubscribe();
         };
       } catch (error) {
@@ -398,7 +420,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   if (!initialLoadComplete) {
-    console.log('Initial auth setup in progress...');
     return (
       <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
