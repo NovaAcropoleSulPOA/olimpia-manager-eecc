@@ -326,7 +326,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       const userId = data.user.id;
   
-      // Create user profile in usuarios table
+      // Create user profile in usuarios table with all required fields
       const { error: profileError } = await supabase
         .from('usuarios')
         .insert([{
@@ -336,6 +336,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: userData.email,
           filial_id: userData.branchId,
           confirmado: false,
+          tipo_documento: userData.tipo_documento,
+          numero_documento: userData.numero_documento.replace(/\D/g, ''),
+          genero: userData.genero
         }]);
   
       if (profileError) {
@@ -348,8 +351,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       // Registration successful, instruct user to check email
       toast.success('Cadastro realizado com sucesso! Verifique seu email para ativação.');
-      navigate('/login');
-  
+      
       return { user: data.user, error: null };
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -357,7 +359,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { user: null, error };
     }
   };
-  
 
   const resendVerificationEmail = async (email: string) => {
     try {
