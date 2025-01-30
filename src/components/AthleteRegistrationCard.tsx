@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Building2, Award } from "lucide-react";
+import { Phone, Mail, Building2, Award, MessageCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +10,7 @@ import { AthleteRegistration } from '@/lib/api';
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface AthleteRegistrationCardProps {
   registration: AthleteRegistration;
@@ -113,19 +114,28 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               </span>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <Button
-                variant="link"
-                className="p-0 h-auto font-normal"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleWhatsAppClick(registration.telefone);
-                }}
-              >
-                {registration.telefone}
-              </Button>
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto font-normal flex items-center gap-1 text-olimpics-orange-primary hover:text-olimpics-orange-secondary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWhatsAppClick(registration.telefone);
+                      }}
+                    >
+                      {registration.telefone}
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Clique para abrir WhatsApp</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
             <div className="flex items-center gap-2">
               <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -170,9 +180,31 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
       </DialogTrigger>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Gerenciar Modalidades - {registration.nome_atleta}</DialogTitle>
-          <DialogDescription>
-            Gerencie as modalidades e status do atleta
+          <DialogTitle className="text-2xl">Gerenciar Modalidades</DialogTitle>
+          <DialogDescription className="space-y-4">
+            <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+              <h4 className="font-semibold text-lg">{registration.nome_atleta}</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  <span>{registration.email}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto font-normal text-olimpics-orange-primary hover:text-olimpics-orange-secondary"
+                    onClick={() => handleWhatsAppClick(registration.telefone)}
+                  >
+                    {registration.telefone}
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  <span>{registration.filial}</span>
+                </div>
+              </div>
+            </div>
           </DialogDescription>
         </DialogHeader>
 

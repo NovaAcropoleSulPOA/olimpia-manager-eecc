@@ -696,6 +696,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      atualizar_status_pagamento: {
+        Args: {
+          p_atleta_id: string
+          p_novo_status: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
