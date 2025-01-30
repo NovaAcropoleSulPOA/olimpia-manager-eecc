@@ -76,7 +76,7 @@ export function MainNavigation() {
     ] : []),
     ...(isDelegationRep ? [
       {
-        title: "Dashboard do Representante",
+        title: "Dashboard da Delegação",
         icon: BarChart3,
         path: "/delegation-dashboard"
       }
