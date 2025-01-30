@@ -24,6 +24,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   onStatusChange,
   onPaymentStatusChange,
 }) => {
+  console.log('AthleteRegistrationCard - Registration data:', registration);
+  
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
   const isPaymentPending = registration.status_pagamento === "pendente";
   const hasModalities = registration.modalidades && registration.modalidades.length > 0;

@@ -96,8 +96,26 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
   console.log('Fetching athlete registrations...');
   try {
     const { data, error } = await supabase
-      .from('vw_inscricoes_atletas')
-      .select('*');
+      .from('view_perfil_atleta')
+      .select(`
+        atleta_id,
+        nome_completo,
+        email,
+        telefone,
+        filial_nome,
+        numero_documento,
+        tipo_documento,
+        numero_identificador,
+        genero,
+        status_confirmacao,
+        pagamento_status,
+        inscricoes:inscricoes_modalidades(
+          id,
+          modalidade:modalidades(nome),
+          status,
+          justificativa_status
+        )
+      `);
 
     if (error) {
       console.error('Error fetching registrations:', error);
@@ -109,39 +127,31 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       return [];
     }
 
+    console.log('Raw data from view_perfil_atleta:', data);
+
     const transformedData = data.map(registration => ({
-      id: registration.atleta_id?.toString() || registration.id?.toString(),
-      nome_atleta: registration.atleta_nome || registration.nome_atleta,
-      email: registration.atleta_email || registration.email || '',
+      id: registration.atleta_id?.toString(),
+      nome_atleta: registration.nome_completo,
+      email: registration.email || '',
       confirmado: registration.status_confirmacao || false,
       telefone: registration.telefone || '',
-      filial: registration.filial_nome || registration.filial,
-      modalidades: [{
-        id: registration.inscricao_id?.toString() || registration.id?.toString(),
-        modalidade: registration.modalidade_nome || registration.modalidade,
-        status: registration.status_inscricao || 'pendente',
-        justificativa_status: registration.justificativa_status || ''
-      }],
-      status_inscricao: registration.status_inscricao || 'pendente',
-      status_pagamento: registration.status_pagamento || 'pendente',
+      filial: registration.filial_nome,
+      modalidades: registration.inscricoes?.map(inscricao => ({
+        id: inscricao.id?.toString(),
+        modalidade: inscricao.modalidade?.nome || '',
+        status: inscricao.status || 'pendente',
+        justificativa_status: inscricao.justificativa_status || ''
+      })) || [],
+      status_inscricao: 'pendente',
+      status_pagamento: registration.pagamento_status || 'pendente',
       numero_documento: registration.numero_documento || '',
       tipo_documento: registration.tipo_documento || '',
       numero_identificador: registration.numero_identificador || '',
       genero: registration.genero || 'Prefiro não informar'
     }));
 
-    const groupedData = transformedData.reduce((acc, curr) => {
-      const existingAthlete = acc.find(a => a.id === curr.id);
-      if (existingAthlete) {
-        existingAthlete.modalidades.push(...curr.modalidades);
-      } else {
-        acc.push(curr);
-      }
-      return acc;
-    }, [] as AthleteRegistration[]);
-
-    console.log('Transformed registrations data:', groupedData);
-    return groupedData;
+    console.log('Transformed registrations data:', transformedData);
+    return transformedData;
   } catch (error) {
     console.error('Error in fetchAthleteRegistrations:', error);
     throw error;
