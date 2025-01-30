@@ -68,12 +68,12 @@ export default function DelegationDashboard() {
       
       // Filter athletes from the same branch as the logged-in user
       const branchAthletes = data.filter(reg => {
-        const isSameBranch = reg.filial_id === user.filial_id;
+        const isSameBranch = reg.filial === user.filial_id;
         
         console.log('Checking athlete:', {
           athleteId: reg.id,
           athleteName: reg.nome_atleta,
-          athleteBranch: reg.filial_id,
+          athleteBranch: reg.filial,
           userBranchId: user.filial_id,
           isSameBranch
         });
