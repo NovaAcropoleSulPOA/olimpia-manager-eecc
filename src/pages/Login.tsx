@@ -97,64 +97,46 @@ const Login = () => {
     }
   });
 
-  console.log('Current branches state:', { branches, isLoadingBranches, branchesError });
-
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
       setIsSubmitting(true);
-      const { error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
-      });
-  
-      if (error) {
-        console.error('Sign in error:', error);
-  
-        if (error.code === "invalid_credentials") {
-          toast.error("E-mail não cadastrado. Verifique os dados ou realize o cadastro.");
-          return;
-        }
-  
-        if (error.code === "email_not_confirmed") {
-          toast.error("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de ativação antes de tentar fazer login.");
-          return;
-        }
-  
-        toast.error("Erro ao fazer login. Verifique suas credenciais.");
-        return;
-      }
-  
+      await signIn(values.email, values.password);
       toast.success("Login realizado com sucesso!");
     } catch (error) {
-      console.error("Unexpected Login Error:", error);
-      toast.error("Ocorreu um erro inesperado. Tente novamente.");
+      console.error("Login Error:", error);
+      toast.error("Erro ao fazer login. Verifique suas credenciais.");
     } finally {
       setIsSubmitting(false);
     }
-  };  
-  
+  };
+
   const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
-  
+
+      if (!values.branchId) {
+        toast.error('Por favor, selecione uma filial.');
+        return;
+      }
+
       const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
         .select('id')
         .eq('email', values.email)
         .maybeSingle();
-  
+
       if (checkError) {
         console.error('Error checking existing user:', checkError);
         toast.error('Erro ao verificar cadastro existente.');
         return;
       }
-  
+
       if (existingUser) {
         toast.error("Este e-mail já está cadastrado. Por favor, faça login.");
         return;
       }
-  
+
       const signUpResult = await signUp({
         ...values,
         telefone: values.telefone.replace(/\D/g, ''),
@@ -162,36 +144,36 @@ const Login = () => {
         numero_documento: values.numero_documento.replace(/\D/g, ''),
         genero: values.genero,
       });
-  
+
       if (signUpResult.error || !signUpResult.user) {
         console.error('Registration error:', signUpResult.error);
         toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
         return;
       }
-  
+
       const userId = signUpResult.user.id;
       console.log(`User registered successfully with ID: ${userId}`);
-  
+
       if (!userId) {
         toast.error("Erro ao obter ID do usuário.");
         return;
       }
-  
+
       const { error: rolesError } = await supabase
         .from('papeis_usuarios')
         .insert([{
           usuario_id: userId,
           perfil_id: 1 // ID for "Atleta" role
         }]);
-  
+
       if (rolesError) {
         console.error('Role assignment error:', rolesError);
         toast.error('Erro ao atribuir papel de atleta ao usuário.');
         return;
       }
-  
+
       console.log('Athlete role assigned successfully');
-  
+
       const { error: paymentError } = await supabase
         .from('pagamentos')
         .insert([{
@@ -203,13 +185,13 @@ const Login = () => {
           data_validacao: null,
           data_criacao: new Date().toISOString()
         }]);
-  
+
       if (paymentError) {
         console.error('Payment record creation error:', paymentError);
         toast.error('Erro ao criar registro de pagamento.');
         return;
       }
-  
+
       // Reset form after successful registration
       registerForm.reset({
         nome: '',
@@ -222,49 +204,13 @@ const Login = () => {
         numero_documento: '',
         genero: 'Prefiro não informar',
       });
-      
+
       toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
-      navigate('/');
-  
+      navigate('/login');
+
     } catch (error) {
       console.error('Registration process error:', error);
       toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };  
-  
-  const onForgotPasswordSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
-    try {
-      setIsSubmitting(true);
-      
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('id, email_confirmed_at')
-        .eq('email', values.email)
-        .single();
-      
-      if (userError || !userData) {
-        toast.error('Email não encontrado. Valide o seu e-mail ou realize o cadastro.');
-        return;
-      }
-
-      if (!userData.email_confirmed_at) {
-        toast.error('Seu e-mail ainda não foi validado. Verifique seu e-mail e conclua a ativação antes de solicitar a recuperação de senha.');
-        return;
-      }
-
-      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) throw error;
-
-      toast.success('Email de recuperação de senha enviado com sucesso!');
-      setShowForgotPassword(false);
-    } catch (error) {
-      console.error('Password reset error:', error);
-      toast.error('Erro ao enviar email de recuperação de senha.');
     } finally {
       setIsSubmitting(false);
     }
@@ -294,6 +240,7 @@ const Login = () => {
               <CardContent className="pt-6">
                 <Form {...registerForm}>
                   <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                    {/* Personal Information Fields */}
                     <FormField
                       control={registerForm.control}
                       name="nome"
@@ -354,6 +301,34 @@ const Login = () => {
                               )}
                             </InputMask>
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={registerForm.control}
+                      name="branchId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Filial</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione sua filial" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {branches.map((branch) => (
+                                <SelectItem key={branch.id} value={branch.id}>
+                                  {branch.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -467,6 +442,7 @@ const Login = () => {
                             <SelectContent>
                               <SelectItem value="Masculino">Masculino</SelectItem>
                               <SelectItem value="Feminino">Feminino</SelectItem>
+                              <SelectItem value="Prefiro não informar">Prefiro não informar</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -475,8 +451,11 @@ const Login = () => {
                     />
 
                     <PaymentInfo />
+
                     <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
-                    Após concluir seu cadastro, se ainda não tiver enviado o comprovante de pagamento, você poderá fazê-lo na tela de perfil do atleta. A validação do pagamento será realizada pelos organizadores.
+                      Após concluir seu cadastro, se ainda não tiver enviado o comprovante de pagamento, 
+                      você poderá fazê-lo na tela de perfil do atleta. A validação do pagamento será 
+                      realizada pelos organizadores.
                     </div>
 
                     <Button
