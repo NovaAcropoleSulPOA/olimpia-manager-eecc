@@ -53,9 +53,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('AuthContext - Initial redirect to organizer dashboard');
         navigate('/organizer-dashboard');
       } else {
-        console.error('AuthContext - No valid role found for navigation');
-        toast.error('Erro ao determinar perfil de acesso');
-        navigate('/login');
+        console.log('AuthContext - No specific role redirect needed');
+        navigate('/');
       }
     }
   };
@@ -192,7 +191,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.log('Login error:', error);
         
-        // Handle specific error cases
         if (error.message.includes('Invalid login credentials')) {
           toast.error('Credenciais inválidas. Verifique seu e-mail e senha e tente novamente.');
           return;
@@ -203,7 +201,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         
-        // For any other errors, show a generic message
         toast.error('Erro ao fazer login. Por favor, tente novamente.');
         return;
       }
@@ -239,35 +236,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       console.log('AuthContext - Starting logout process...');
-      
-      // First clear local state
       setUser(null);
-      
-      // Get current session before attempting logout
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        console.log('AuthContext - No active session found, proceeding with local cleanup');
-        navigate('/login');
-        toast.success('Logout realizado com sucesso!');
-        return;
-      }
-      
-      // Attempt to sign out from Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error('AuthContext - Error during signOut:', error);
-        
         if (error.message?.includes('session_not_found')) {
           console.log('AuthContext - Session already expired, continuing with local cleanup');
-          navigate('/login');
-          toast.success('Logout realizado com sucesso!');
-          return;
+        } else {
+          console.warn('AuthContext - Non-session error during logout:', error);
         }
-        
-        // For other types of errors, we still want to ensure the user is logged out locally
-        console.warn('AuthContext - Non-session error during logout:', error);
       }
 
       console.log('AuthContext - Logout successful, navigating to login page');
@@ -276,7 +254,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
     } catch (error: any) {
       console.error('AuthContext - Unexpected error during signOut:', error);
-      // Even if there's an error, we want to ensure the user is logged out locally
       setUser(null);
       navigate('/login');
       toast.error('Erro ao fazer logout, mas sua sessão foi encerrada localmente.');
@@ -314,8 +291,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
   
       console.log('User registered successfully!');
-      toast.success('Cadastro realizado com sucesso!');
-      navigate('/login');
+      toast.success('Cadastro realizado com sucesso! Faça login para acessar o sistema.');
+      navigate('/');
   
       return { user: data.user, error: null };
     } catch (error: any) {
