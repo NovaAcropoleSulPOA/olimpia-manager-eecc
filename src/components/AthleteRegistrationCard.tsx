@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Building2, Award, MessageCircle } from "lucide-react";
+import { Phone, Mail, Building2, Award, MessageCircle, FileText, User } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -31,6 +31,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   
   const isPaymentPending = registration.status_pagamento === "pendente";
   const hasModalities = registration.modalidades.length > 0;
+  const isSingleInscription = !!registration.inscricao_id;
 
   // Initialize modality statuses on mount
   React.useEffect(() => {
@@ -165,7 +166,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               <span>{registration.filial}</span>
             </div>
 
-            {hasModalities && (
+            {hasModalities && !isSingleInscription && (
               <div className="flex items-center gap-2">
                 <Award className="h-4 w-4 text-muted-foreground" />
                 <span>{registration.modalidades.length} modalidades</span>
@@ -203,7 +204,9 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Gerenciar Modalidades</DialogTitle>
+          <DialogTitle className="text-2xl">
+            {isSingleInscription ? 'Detalhes do Atleta' : 'Gerenciar Modalidades'}
+          </DialogTitle>
           <DialogDescription className="space-y-4">
             <div className="bg-muted/50 p-4 rounded-lg space-y-2">
               <h4 className="font-semibold text-lg">{registration.nome_atleta}</h4>
@@ -226,65 +229,75 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                   <Building2 className="h-4 w-4" />
                   <span>{registration.filial}</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  <span>{registration.tipo_documento}: {registration.numero_documento}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  <span>Gênero: {registration.genero}</span>
+                </div>
               </div>
             </div>
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="h-[50vh] w-full rounded-md border p-4">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Modalidade</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Justificativa</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {registration.modalidades.map((modalidade) => (
-                <TableRow key={modalidade.id}>
-                  <TableCell>{modalidade.modalidade}</TableCell>
-                  <TableCell>
-                    <Badge className={cn("capitalize", getStatusTextColor(modalityStatuses[modalidade.id] || modalidade.status))}>
-                      {modalityStatuses[modalidade.id] || modalidade.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      placeholder="Justificativa para alteração"
-                      value={justifications[modalidade.id] || ''}
-                      onChange={(e) => setJustifications(prev => ({
-                        ...prev,
-                        [modalidade.id]: e.target.value
-                      }))}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={modalityStatuses[modalidade.id] || modalidade.status}
-                      onValueChange={(value) => handleStatusChange(modalidade.id, value)}
-                      disabled={!justifications[modalidade.id] || isUpdating[modalidade.id]}
-                    >
-                      <SelectTrigger className={cn(
-                        "w-[180px]",
-                        (!justifications[modalidade.id] || isUpdating[modalidade.id]) && "opacity-50 cursor-not-allowed"
-                      )}>
-                        <SelectValue placeholder="Selecione o status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pendente">pendente</SelectItem>
-                        <SelectItem value="confirmado">confirmado</SelectItem>
-                        <SelectItem value="rejeitado">rejeitado</SelectItem>
-                        <SelectItem value="cancelado">cancelado</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
+        {!isSingleInscription && (
+          <ScrollArea className="h-[50vh] w-full rounded-md border p-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Modalidade</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Justificativa</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ScrollArea>
+              </TableHeader>
+              <TableBody>
+                {registration.modalidades.map((modalidade) => (
+                  <TableRow key={modalidade.id}>
+                    <TableCell>{modalidade.modalidade}</TableCell>
+                    <TableCell>
+                      <Badge className={cn("capitalize", getStatusTextColor(modalityStatuses[modalidade.id] || modalidade.status))}>
+                        {modalityStatuses[modalidade.id] || modalidade.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        placeholder="Justificativa para alteração"
+                        value={justifications[modalidade.id] || ''}
+                        onChange={(e) => setJustifications(prev => ({
+                          ...prev,
+                          [modalidade.id]: e.target.value
+                        }))}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={modalityStatuses[modalidade.id] || modalidade.status}
+                        onValueChange={(value) => handleStatusChange(modalidade.id, value)}
+                        disabled={!justifications[modalidade.id] || isUpdating[modalidade.id]}
+                      >
+                        <SelectTrigger className={cn(
+                          "w-[180px]",
+                          (!justifications[modalidade.id] || isUpdating[modalidade.id]) && "opacity-50 cursor-not-allowed"
+                        )}>
+                          <SelectValue placeholder="Selecione o status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pendente">pendente</SelectItem>
+                          <SelectItem value="confirmado">confirmado</SelectItem>
+                          <SelectItem value="rejeitado">rejeitado</SelectItem>
+                          <SelectItem value="cancelado">cancelado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        )}
       </DialogContent>
     </Dialog>
   );

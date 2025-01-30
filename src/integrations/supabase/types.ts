@@ -644,13 +644,17 @@ export type Database = {
           atleta_nome: string | null
           filial_id: string | null
           filial_nome: string | null
+          genero: string | null
           inscricao_id: number | null
           modalidade_id: number | null
           modalidade_nome: string | null
+          numero_documento: string | null
+          numero_identificador: string | null
           status_confirmacao: boolean | null
           status_inscricao: string | null
           status_pagamento: string | null
           telefone: string | null
+          tipo_documento: string | null
         }
         Relationships: [
           {
