@@ -21,8 +21,6 @@ interface ModalityCount {
   total_inscritos: number;
 }
 
-type ModalityRecord = Record<string, number>;
-
 export function DashboardTable({ data }: DashboardTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<{
@@ -60,24 +58,24 @@ export function DashboardTable({ data }: DashboardTableProps) {
     }));
   };
 
-  const formatModalityRecord = (modalityRecord: ModalityRecord | null): string => {
-    if (!modalityRecord || Object.keys(modalityRecord).length === 0) return "";
+  const formatModalityList = (modalities: ModalityCount[] | null): string => {
+    if (!modalities || modalities.length === 0) return "";
     
-    return Object.entries(modalityRecord)
-      .map(([modalidade, total_inscritos]) => `${modalidade} (${total_inscritos})`)
+    return modalities
+      .map(m => `${m.modalidade} (${m.total_inscritos})`)
       .join(", ");
   };
 
   const formatTopModalities = (branch: BranchAnalytics) => {
     const categories = {
-      Masculino: branch.top_modalidades_masculino,
-      Feminino: branch.top_modalidades_feminino,
-      Misto: branch.top_modalidades_misto
+      Masculino: branch.top_modalidades_masculino as ModalityCount[] | null,
+      Feminino: branch.top_modalidades_feminino as ModalityCount[] | null,
+      Misto: branch.top_modalidades_misto as ModalityCount[] | null
     };
 
     const formattedCategories = Object.entries(categories)
       .map(([category, modalities]) => {
-        const modalityList = formatModalityRecord(modalities as ModalityRecord);
+        const modalityList = formatModalityList(modalities);
         return modalityList ? `${category}: ${modalityList}` : null;
       })
       .filter(Boolean);
