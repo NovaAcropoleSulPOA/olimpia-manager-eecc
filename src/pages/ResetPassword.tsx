@@ -33,7 +33,7 @@ export default function ResetPassword() {
     defaultValues: {
       password: '',
     },
-  });  
+  });
 
   const requestForm = useForm<z.infer<typeof requestResetSchema>>({
     resolver: zodResolver(requestResetSchema),
