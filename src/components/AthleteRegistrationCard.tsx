@@ -50,6 +50,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   };
 
   const handleStatusChange = async (modalityId: string, newStatus: string) => {
+    console.log('Attempting to update status:', { modalityId, newStatus });
+    
     const justification = justifications[modalityId];
     if (!justification) {
       toast.error('É necessário fornecer uma justificativa para alterar o status.');
@@ -60,11 +62,19 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     
     try {
       await onStatusChange(modalityId, newStatus, justification);
+      console.log('Status update successful');
+      
+      // Only update UI state after successful database update
       setModalityStatuses(prev => ({ ...prev, [modalityId]: newStatus }));
       setJustifications(prev => ({ ...prev, [modalityId]: '' }));
       toast.success('Status atualizado com sucesso!');
     } catch (error) {
       console.error('Error updating status:', error);
+      // Revert UI state if update fails
+      setModalityStatuses(prev => ({
+        ...prev,
+        [modalityId]: registration.modalidades.find(m => m.id === modalityId)?.status || prev[modalityId]
+      }));
       toast.error('Erro ao atualizar status. Por favor, tente novamente.');
     } finally {
       setIsUpdating(prev => ({ ...prev, [modalityId]: false }));
