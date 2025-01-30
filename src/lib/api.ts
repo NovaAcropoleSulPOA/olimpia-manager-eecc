@@ -21,9 +21,18 @@ export interface AthleteRegistration {
   confirmado: boolean;
   telefone: string;
   filial: string;
-  modalidades: AthleteModality[];
+  modalidades: Array<{
+    id: string;
+    modalidade: string;
+    status: string;
+    justificativa_status: string;
+  }>;
   status_inscricao: 'pendente' | 'confirmado' | 'rejeitado' | 'cancelado';
-  status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
+  status_pagamento: string;
+  numero_documento: string;
+  tipo_documento: string;
+  numero_identificador: string;
+  genero: string;
 }
 
 export interface BranchAnalytics {
