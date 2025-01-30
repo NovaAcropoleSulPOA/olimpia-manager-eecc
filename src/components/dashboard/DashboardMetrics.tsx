@@ -14,26 +14,31 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
   const totalRevenuePaid = data.reduce((acc, branch) => acc + (branch.valor_total_pago || 0), 0);
   const totalRevenuePending = data.reduce((acc, branch) => {
     // Only count pending payments if there are actually pending athletes
-    const pendingCount = branch.inscritos_por_status_pagamento?.find(
-      status => status.status_pagamento === 'pendente'
-    )?.quantidade || 0;
-    return pendingCount > 0 ? acc + (branch.valor_total_pendente || 0) : acc;
+    const pendingStatus = branch.inscritos_por_status_pagamento ? 
+      JSON.parse(branch.inscritos_por_status_pagamento as string).find(
+        (status: { status_pagamento: string; quantidade: number }) => 
+          status.status_pagamento === 'pendente'
+      ) : null;
+    
+    return pendingStatus ? acc + (branch.valor_total_pendente || 0) : acc;
   }, 0);
   
   // Calculate pending payments count - ensure we only count actual pending payments
   const totalAthletesPendingPayment = data.reduce((acc, branch) => {
-    const pendingCount = branch.inscritos_por_status_pagamento?.find(
-      status => status.status_pagamento === 'pendente'
-    )?.quantidade || 0;
+    const pendingStatus = branch.inscritos_por_status_pagamento ? 
+      JSON.parse(branch.inscritos_por_status_pagamento as string).find(
+        (status: { status_pagamento: string; quantidade: number }) => 
+          status.status_pagamento === 'pendente'
+      ) : null;
     
     console.log('Branch pending payments:', {
       branchId: branch.filial_id,
       branchName: branch.filial,
-      pendingCount,
+      pendingCount: pendingStatus?.quantidade || 0,
       rawData: branch.inscritos_por_status_pagamento
     });
     
-    return acc + pendingCount;
+    return acc + (pendingStatus?.quantidade || 0);
   }, 0);
 
   console.log('Dashboard metrics calculated:', {
