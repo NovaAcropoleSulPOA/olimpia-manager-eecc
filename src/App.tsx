@@ -15,9 +15,10 @@ import OrganizerDashboard from './components/OrganizerDashboard';
 import AthleteProfilePage from './components/AthleteProfilePage';
 import AthleteRegistrations from './components/AthleteRegistrations';
 import { useState } from 'react';
+import React from 'react';
 
 function App() {
-  // Move queryClient inside the component to ensure React context is available
+  // Initialize queryClient with useState to ensure stable reference
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -30,30 +31,32 @@ function App() {
   }));
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthProvider>
-          <div className="flex flex-col min-h-screen">
-            <GlobalHeader />
-            <div className="flex-1">
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/pending-approval" element={<PendingApproval />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route element={<MainNavigation />}>
-                  <Route path="/athlete-profile" element={<AthleteProfilePage />} />
-                  <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
-                  <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
-                </Route>
-              </Routes>
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <AuthProvider>
+            <div className="flex flex-col min-h-screen">
+              <GlobalHeader />
+              <div className="flex-1">
+                <Routes>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/pending-approval" element={<PendingApproval />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route element={<MainNavigation />}>
+                    <Route path="/athlete-profile" element={<AthleteProfilePage />} />
+                    <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
+                    <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
+                  </Route>
+                </Routes>
+              </div>
+              <Footer />
+              <Toaster />
             </div>
-            <Footer />
-            <Toaster />
-          </div>
-        </AuthProvider>
-      </Router>
-    </QueryClientProvider>
+          </AuthProvider>
+        </Router>
+      </QueryClientProvider>
+    </React.StrictMode>
   );
 }
 
