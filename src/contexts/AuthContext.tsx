@@ -179,61 +179,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Attempting login with:', email);
       setLoading(true);
-
-      // First check if the user exists and is confirmed
-      const { data: userProfile, error: userError } = await supabase
-        .from('usuarios')
-        .select('confirmado, email')
-        .eq('email', email)
-        .single();
-
-      if (userError) {
-        if (userError.code === 'PGRST116') {
-          console.error('User not found:', email);
-          toast.error('Email não cadastrado. Por favor, faça seu cadastro primeiro.');
-          return;
-        }
-        throw userError;
-      }
-
-      if (!userProfile.confirmado) {
-        console.log('User not confirmed:', email);
-        toast.error('Seu cadastro ainda não foi confirmado. Por favor, aguarde a aprovação.');
-        navigate('/pending-approval');
-        return;
-      }
-
-      // Attempt login
+  
       const { data, error } = await supabase.auth.signInWithPassword({ 
         email, 
         password 
       });
-
+  
       if (error) {
         console.error('Login error:', error);
-        if (error.message.includes('Invalid login credentials')) {
-          toast.error('Senha incorreta. Por favor, tente novamente.');
+        if (error.message.includes('Email not confirmed')) {
+          toast.error('Email não confirmado. Por favor, verifique sua caixa de entrada.');
+        } else if (error.message.includes('Invalid login credentials')) {
+          toast.error('Email ou senha incorretos.');
         } else {
           toast.error(handleSupabaseError(error));
         }
         return;
       }
-
+  
       if (!data.user) {
         console.error('No user data returned');
         toast.error("Erro ao fazer login. Tente novamente.");
         return;
       }
-
+  
       console.log('Login successful, fetching user roles...');
       
       const userProfile = await fetchUserProfile(data.user.id);
       console.log('User profile fetched:', userProfile);
 
+      if (!userProfile.confirmado) {
+        console.log('User not confirmed, redirecting to pending approval page');
+        toast.warning('Seu cadastro está pendente de aprovação.');
+        navigate('/pending-approval');
+        return;
+      }
+  
       setUser({ ...data.user, ...userProfile });
       handleAuthRedirect(userProfile);
       toast.success("Login realizado com sucesso!");
-
+  
     } catch (error) {
       console.error("Unexpected login error:", error);
       toast.error('Erro ao fazer login. Por favor, tente novamente.');
