@@ -58,18 +58,27 @@ export default function DelegationDashboard() {
     queryKey: ['athlete-registrations', user?.filial_id],
     queryFn: fetchAthleteRegistrations,
     select: (data) => {
-      if (!user?.filial_id) return [];
+      if (!user?.filial_id) {
+        console.log('No user filial_id found');
+        return [];
+      }
       
       // Filter to show all athletes from the same branch, including the logged-in user
       const branchAthletes = data.filter(reg => {
-        const isSameBranch = reg.filial === user.filial_id;
+        // Convert filial_id to string for comparison since it might come as UUID
+        const athleteBranchId = reg.filial_id?.toString();
+        const userBranchId = user.filial_id?.toString();
+        
+        const isSameBranch = athleteBranchId === userBranchId;
+        
         console.log('Checking athlete:', {
           athleteId: reg.id,
           athleteName: reg.nome_atleta,
-          athleteBranch: reg.filial,
-          userBranch: user.filial_id,
+          athleteBranchId,
+          userBranchId,
           isSameBranch
         });
+        
         return isSameBranch;
       });
       
