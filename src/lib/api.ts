@@ -185,3 +185,19 @@ export const updateModalityStatus = async (
 
   return Promise.resolve();
 };
+
+export const activateUser = async (userId: string): Promise<void> => {
+  console.log('Activating user:', userId);
+  
+  const { error } = await supabase
+    .from('usuarios')
+    .update({ confirmado: true })
+    .eq('id', userId);
+
+  if (error) {
+    console.error('Error activating user:', error);
+    throw new Error('Failed to activate user');
+  }
+
+  console.log('User activated successfully');
+};
