@@ -37,7 +37,7 @@ export default function DelegationDashboard() {
     error: analyticsError, 
     refetch: refetchAnalytics 
   } = useQuery({
-    queryKey: ['branch-analytics', user?.filial_id],
+    queryKey: ['branch-analytics'],
     queryFn: fetchBranchAnalytics,
     select: (data) => {
       if (!user?.filial_id) {
@@ -58,7 +58,7 @@ export default function DelegationDashboard() {
     error: registrationsError,
     refetch: refetchRegistrations
   } = useQuery({
-    queryKey: ['athlete-registrations', user?.filial_id],
+    queryKey: ['athlete-registrations'],
     queryFn: fetchAthleteRegistrations,
     select: (data) => {
       if (!user?.filial_id) {
@@ -68,12 +68,12 @@ export default function DelegationDashboard() {
       
       // Filter athletes from the same branch as the logged-in user
       const branchAthletes = data.filter(reg => {
-        const isSameBranch = reg.filial === user.filial_id;
+        const isSameBranch = reg.filial_id === user.filial_id;
         
         console.log('Checking athlete:', {
           athleteId: reg.id,
           athleteName: reg.nome_atleta,
-          athleteBranch: reg.filial,
+          athleteBranch: reg.filial_id,
           userBranchId: user.filial_id,
           isSameBranch
         });
