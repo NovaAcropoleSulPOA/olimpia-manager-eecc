@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('usuarios')
         .select('nome_completo, telefone, filial_id, confirmado')
         .eq('id', userId)
-        .maybeSingle();  // Changed from .single() to .maybeSingle()
+        .maybeSingle();
 
       if (profileError) throw profileError;
 
@@ -131,7 +131,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (mounted) {
                   setUser({ ...session.user, ...userProfile });
                 }
-                // Only redirect on sign in, public route, and initial auth
                 if (event === 'SIGNED_IN' && PUBLIC_ROUTES.includes(location.pathname) && !initialAuthCheckDone) {
                   handleAuthRedirect(userProfile, true);
                   setInitialAuthCheckDone(true);
@@ -286,33 +285,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (userData: any) => {
     try {
-      console.log('Checking if email already exists:', userData.email);
-      
-      const { data: existingUser, error: checkError } = await supabase
-        .from('usuarios')
-        .select('id')
-        .eq('email', userData.email)
-        .maybeSingle();
-  
-      if (checkError) {
-        console.error('Error checking existing user:', checkError);
-        toast.error('Erro ao verificar cadastro existente.');
-        return { user: null, error: checkError };
-      }
-  
-      if (existingUser) {
-        toast.error("Este e-mail já está cadastrado. Por favor, faça login com sua conta existente.");
-        return { user: null, error: new Error('Email already exists') };
-      }
-  
       console.log('Starting new user registration.');
-  
+      
       const { data, error: authError } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/verify-email`,
-        },
+          data: {
+            nome_completo: userData.nome,
+            telefone: userData.telefone.replace(/\D/g, ''),
+            filial_id: userData.branchId,
+            tipo_documento: userData.tipo_documento,
+            numero_documento: userData.numero_documento.replace(/\D/g, ''),
+            genero: userData.genero
+          }
+        }
       });
   
       if (authError) {
@@ -326,28 +313,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { user: null, error: new Error('User creation failed') };
       }
   
-      const userId = data.user.id;
-  
-      const { error: profileError } = await supabase
-        .from('usuarios')
-        .insert([{
-          id: userId,
-          nome_completo: userData.nome,
-          telefone: userData.telefone.replace(/\D/g, ''),
-          email: userData.email,
-          filial_id: userData.branchId,
-          confirmado: false,
-        }]);
-  
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        toast.error('Erro ao salvar dados do usuário.');
-        return { user: null, error: profileError };
-      }
-  
-      console.log('User profile created in usuarios table.');
-  
-      toast.success('Cadastro realizado com sucesso! Verifique seu email para ativação.');
+      console.log('User registered successfully!');
+      toast.success('Cadastro realizado com sucesso!');
       navigate('/login');
   
       return { user: data.user, error: null };
@@ -357,7 +324,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { user: null, error };
     }
   };
-  
 
   const resendVerificationEmail = async (email: string) => {
     try {
