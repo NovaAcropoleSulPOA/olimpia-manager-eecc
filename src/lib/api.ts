@@ -24,33 +24,11 @@ export interface AthleteRegistration {
   modalidades: AthleteModality[];
   status_inscricao: 'pendente' | 'confirmado' | 'rejeitado' | 'cancelado';
   status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
-  inscricao_id?: number;  // Added this field
-  tipo_documento: string; // Added this field
-  numero_documento: string; // Added this field
-  genero: string; // Added this field
-}
-
-export interface BranchAnalytics {
-  filial_id: string;
-  filial: string;
-  total_inscritos: number;
-  valor_total_arrecadado: number;
-  modalidades_populares: Array<{
-    modalidade: string;
-    total_inscritos: number;
-  }>;
-  inscritos_por_status: Array<{
-    status_inscricao: string;
-    quantidade: number;
-  }>;
-  inscritos_por_status_pagamento: Array<{
-    status_pagamento: string;
-    quantidade: number;
-  }>;
-  atletas_por_categoria: Array<{
-    categoria: string;
-    quantidade: number;
-  }>;
+  inscricao_id?: number;
+  tipo_documento: string;
+  numero_documento: string;
+  genero: string;
+  numero_identificador?: string; // Added this field
 }
 
 export const fetchBranches = async (): Promise<Branch[]> => {
@@ -127,7 +105,8 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       inscricao_id: registration.inscricao_id || undefined,
       tipo_documento: registration.tipo_documento || '',
       numero_documento: registration.numero_documento || '',
-      genero: registration.genero || ''
+      genero: registration.genero || '',
+      numero_identificador: registration.numero_identificador || undefined
     }));
 
     const groupedData = transformedData.reduce((acc, curr) => {
