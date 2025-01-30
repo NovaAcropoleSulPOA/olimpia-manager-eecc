@@ -52,9 +52,15 @@ const Footer = () => {
     },
     {
       icon: Settings,
-      label: "Painel",
+      label: "Organizador(a)",
       path: "/organizer-dashboard",
       roles: ["Organizador"],
+    },
+    {
+      icon: Settings,
+      label: "Delegação",
+      path: "/delegation-dashboard",
+      roles: ["Representante de Delegação"],
     },
   ];
 

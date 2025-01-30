@@ -82,7 +82,7 @@ export default function Login() {
       branchId: '',
       tipo_documento: 'CPF',
       numero_documento: '',
-      genero: 'Masculino', // Set a valid default value
+      genero: '', // Set a valid default value
     },
   });
 
@@ -521,6 +521,14 @@ export default function Login() {
                         'Entrar'
                       )}
                     </Button>
+                    <div className="text-center">
+                      <Link
+                        href="/reset-password"
+                        className="text-olimpics-green-primary hover:text-olimpics-green-secondary text-sm"
+                      >
+                        Esqueci minha senha
+                      </Link>
+                    </div>
                   </form>
                 </Form>
               </CardContent>

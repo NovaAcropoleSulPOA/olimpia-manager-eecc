@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,8 +26,8 @@ const requestResetSchema = z.object({
 });
 
 export default function ResetPassword() {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
 
@@ -94,12 +94,15 @@ export default function ResetPassword() {
       }
 
       console.log('Password reset successful');
-      toast.success('Senha redefinida com sucesso!');
+      toast.success('Senha redefinida com sucesso! Você será redirecionado para a página de login.');
+      
+      // Clear any auth session to ensure user needs to log in again
+      await supabase.auth.signOut();
       
       // Redirect to login after successful password reset
       setTimeout(() => {
-        navigate('/login');
-      }, 1500);
+        router.push('/login');
+      }, 2000);
 
     } catch (error) {
       console.error('Error in password reset:', error);
@@ -178,7 +181,7 @@ export default function ResetPassword() {
                   type="button"
                   variant="ghost"
                   className="w-full"
-                  onClick={() => navigate('/login')}
+                  onClick={() => router.push('/login')}
                 >
                   Voltar para Login
                 </Button>
@@ -240,7 +243,7 @@ export default function ResetPassword() {
                 type="button"
                 variant="ghost"
                 className="w-full"
-                onClick={() => navigate('/login')}
+                onClick={() => router.push('/login')}
               >
                 Voltar para Login
               </Button>
