@@ -87,8 +87,6 @@ export default function AthleteRegistrations() {
           return category === 'masculino' || category === 'misto';
         case 'feminino':
           return category === 'feminino' || category === 'misto';
-        case 'prefiro não informar':
-          return category === 'misto';
         default:
           return true;
       }

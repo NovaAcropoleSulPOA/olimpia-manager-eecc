@@ -50,7 +50,7 @@ const registerSchema = z.object({
       if (clean.length !== 11) return true;
       return validateCPF(clean);
     }, 'CPF inválido'),
-  genero: z.enum(['Masculino', 'Feminino', 'Prefiro não informar'], {
+  genero: z.enum(['Masculino', 'Feminino'], {
     required_error: "Selecione o gênero",
   }),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -83,7 +83,7 @@ const Login = () => {
       branchId: '',
       tipo_documento: 'CPF',
       numero_documento: '',
-      genero: 'Prefiro não informar',
+      genero: '',
     },
   });
 
@@ -202,7 +202,7 @@ const Login = () => {
         branchId: '',
         tipo_documento: 'CPF',
         numero_documento: '',
-        genero: 'Prefiro não informar',
+        genero: '',
       });
 
       toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
@@ -442,7 +442,6 @@ const Login = () => {
                             <SelectContent>
                               <SelectItem value="Masculino">Masculino</SelectItem>
                               <SelectItem value="Feminino">Feminino</SelectItem>
-                              <SelectItem value="Prefiro não informar">Prefiro não informar</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
