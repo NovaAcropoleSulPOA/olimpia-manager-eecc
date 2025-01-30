@@ -15,6 +15,7 @@ import {
   ComposedChart,
   Line
 } from "recharts";
+import { ModalitiesTable } from "./ModalitiesTable";
 
 interface DashboardChartsProps {
   data: BranchAnalytics[];
@@ -46,48 +47,6 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
     });
     return acc;
   }, [] as { name: string; value: number }[]);
-
-  // Transform data for modalities by category
-  const modalitiesData = data.reduce((acc, branch) => {
-    console.log("Processing branch modalidades_populares:", branch.modalidades_populares);
-    
-    if (!branch.modalidades_populares) return acc;
-
-    Object.entries(branch.modalidades_populares as Record<string, {
-      Masculino?: number;
-      Feminino?: number;
-      Misto?: number;
-    }>).forEach(([modalidade, categorias]) => {
-      const existingModalidade = acc.find(item => item.name === modalidade);
-      if (existingModalidade) {
-        existingModalidade.Masculino += categorias.Masculino || 0;
-        existingModalidade.Feminino += categorias.Feminino || 0;
-        existingModalidade.Misto += categorias.Misto || 0;
-        existingModalidade.total = (
-          (existingModalidade.Masculino || 0) + 
-          (existingModalidade.Feminino || 0) + 
-          (existingModalidade.Misto || 0)
-        );
-      } else {
-        acc.push({
-          name: modalidade,
-          Masculino: categorias.Masculino || 0,
-          Feminino: categorias.Feminino || 0,
-          Misto: categorias.Misto || 0,
-          total: (
-            (categorias.Masculino || 0) + 
-            (categorias.Feminino || 0) + 
-            (categorias.Misto || 0)
-          )
-        });
-      }
-    });
-    return acc;
-  }, [] as any[])
-  .sort((a, b) => b.total - a.total)
-  .slice(0, 10);
-
-  console.log("Processed modalities data:", modalitiesData);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -159,35 +118,6 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
         </Card>
       )}
 
-      {modalitiesData.length > 0 && (
-        <Card className="col-span-2">
-          <CardHeader>
-            <CardTitle className="text-olimpics-text">Top 10 Modalidades por Categoria</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={modalitiesData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="name"
-                  tick={{ fontSize: 12 }}
-                  interval={0}
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                <Bar dataKey="Masculino" fill="#2196F3" stackId="a" name="Masculino" />
-                <Bar dataKey="Feminino" fill="#E91E63" stackId="a" name="Feminino" />
-                <Bar dataKey="Misto" fill="#4CAF50" stackId="a" name="Misto" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
-
       {paymentStatusData.length > 0 && (
         <Card className="col-span-2 md:col-span-1">
           <CardHeader>
@@ -217,6 +147,10 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
           </CardContent>
         </Card>
       )}
+
+      <Card className="col-span-2">
+        <ModalitiesTable data={data} />
+      </Card>
     </div>
   );
 }
