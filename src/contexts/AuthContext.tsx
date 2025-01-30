@@ -186,41 +186,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
   
       if (error) {
-        console.error('Login error:', error);
+        console.log('Login error:', error);
+        
+        // Handle specific error cases
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error('Credenciais inválidas. Verifique seu e-mail e senha e tente novamente.');
+          return;
+        }
+        
         if (error.message.includes('Email not confirmed')) {
           toast.error('Email não confirmado. Por favor, verifique sua caixa de entrada.');
-        } else if (error.message.includes('Invalid login credentials')) {
-          toast.error('Email ou senha incorretos.');
-        } else {
-          toast.error(handleSupabaseError(error));
+          return;
         }
+        
+        // For any other errors, show a generic message
+        toast.error('Erro ao fazer login. Por favor, tente novamente.');
         return;
       }
   
       if (!data.user) {
-        console.error('No user data returned');
-        toast.error("Erro ao fazer login. Tente novamente.");
+        console.log('No user data returned');
+        toast.error('Erro ao fazer login. Tente novamente.');
         return;
       }
   
-      console.log('Login successful, fetching user roles...');
+      console.log('Login successful, fetching user profile...');
+      const profile = await fetchUserProfile(data.user.id);
       
-      const userProfile = await fetchUserProfile(data.user.id);
-      console.log('User profile fetched:', userProfile);
-
-      if (!userProfile.confirmado) {
+      if (!profile.confirmado) {
         console.log('User not confirmed, redirecting to pending approval page');
         toast.warning('Seu cadastro está pendente de aprovação.');
         navigate('/pending-approval');
         return;
       }
   
-      setUser({ ...data.user, ...userProfile });
-      handleAuthRedirect(userProfile);
-      toast.success("Login realizado com sucesso!");
+      setUser({ ...data.user, ...profile });
+      handleAuthRedirect(profile);
+      toast.success('Login realizado com sucesso!');
   
     } catch (error) {
-      console.error("Unexpected login error:", error);
+      console.error('Unexpected login error:', error);
       toast.error('Erro ao fazer login. Por favor, tente novamente.');
     } finally {
       setLoading(false);
