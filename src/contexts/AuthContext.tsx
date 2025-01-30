@@ -42,16 +42,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Always redirect athletes to their profile page after login
-    if (userProfile.papeis?.includes('Atleta')) {
-      console.log('AuthContext - Redirecting athlete to profile page');
-      navigate('/athlete-profile');
-    } else if (userProfile.papeis?.includes('Organizador')) {
-      console.log('AuthContext - Redirecting organizer to dashboard');
-      navigate('/organizer-dashboard');
-    } else {
-      console.log('AuthContext - No specific role redirect needed');
-      navigate('/');
+    if (isInitialLogin && PUBLIC_ROUTES.includes(location.pathname) && !initialAuthCheckDone) {
+      const roles = userProfile.papeis || [];
+      console.log('AuthContext - User roles for redirect:', roles);
+
+      if (roles.includes('Atleta')) {
+        console.log('AuthContext - Initial redirect to athlete profile');
+        navigate('/athlete-profile');
+      } else if (roles.includes('Organizador')) {
+        console.log('AuthContext - Initial redirect to organizer dashboard');
+        navigate('/organizer-dashboard');
+      } else {
+        console.log('AuthContext - No specific role redirect needed');
+        navigate('/');
+      }
     }
   };
 
@@ -126,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (mounted) {
                   setUser({ ...session.user, ...userProfile });
                 }
-                if (event === 'SIGNED_IN') {
+                if (event === 'SIGNED_IN' && PUBLIC_ROUTES.includes(location.pathname) && !initialAuthCheckDone) {
                   handleAuthRedirect(userProfile, true);
                   setInitialAuthCheckDone(true);
                 }
