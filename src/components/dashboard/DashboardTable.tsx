@@ -93,7 +93,7 @@ export function DashboardTable({ data }: DashboardTableProps) {
             <Tag className="w-3 h-3" />
             <span>{modalidade}</span>
             <span className="ml-1 text-xs opacity-75">
-              ({totalInscritos} {totalInscritos === 1 ? 'inscrito' : 'inscritos'})
+              ({totalInscritos} {totalInscritos === 1 ? 'inscrição(ões)' : 'inscrições nas modalidades'})
             </span>
           </Badge>
         );

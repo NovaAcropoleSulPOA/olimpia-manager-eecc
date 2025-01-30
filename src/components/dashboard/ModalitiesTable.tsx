@@ -189,7 +189,7 @@ export function ModalitiesTable({ data }: ModalitiesTableProps) {
                     <div className="flex items-center space-x-4">
                       <span className="font-medium">{branch.filial}</span>
                       <Badge variant="outline" className="bg-olimpics-green-primary/10">
-                        {branch.totalInscritos} {branch.totalInscritos === 1 ? 'inscrito' : 'inscritos'}
+                        {branch.totalInscritos} {branch.totalInscritos === 1 ? 'inscrição(ões)' : 'inscrições nas modalidades'}
                       </Badge>
                     </div>
                     {expandedBranch === branch.filial ? (
