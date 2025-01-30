@@ -53,11 +53,24 @@ export function DashboardTable({ data }: DashboardTableProps) {
     }));
   };
 
-  const formatModalities = (modalidades: Record<string, number>) => {
-    if (!modalidades || Object.keys(modalidades).length === 0) return "Nenhuma modalidade";
-    return Object.entries(modalidades)
-      .map(([modalidade, count]) => `${modalidade} (${count})`)
-      .join(", ");
+  const formatModalities = (modalidades: any) => {
+    if (!modalidades || typeof modalidades !== 'object') return "Nenhuma modalidade";
+    
+    try {
+      // Handle both array and object formats
+      if (Array.isArray(modalidades)) {
+        return modalidades
+          .map(m => `${m.modalidade} (${m.total_inscritos})`)
+          .join(", ");
+      } else {
+        return Object.entries(modalidades)
+          .map(([modalidade, count]) => `${modalidade} (${count})`)
+          .join(", ");
+      }
+    } catch (error) {
+      console.error('Error formatting modalities:', error);
+      return "Erro ao formatar modalidades";
+    }
   };
 
   return (
