@@ -82,7 +82,7 @@ export default function Login() {
       branchId: '',
       tipo_documento: 'CPF',
       numero_documento: '',
-      genero: '', // Set a valid default value
+      genero: 'Masculino', // Changed from empty string to a valid default value
     },
   });
 
@@ -421,7 +421,7 @@ export default function Login() {
                           <FormLabel>Selecione o Gênero</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value || ""}
+                            defaultValue={field.value || "Masculino"}
                           >
                             <FormControl>
                               <SelectTrigger>
