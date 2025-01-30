@@ -68,7 +68,7 @@ export default function ResetPassword() {
         throw error;
       }
 
-      toast.success('Se este e-mail estiver cadastrado, você receberá um link para redefinir sua senha.');
+      toast.success('Se este e-mail estiver cadastrado, você receberá um link para redefinir sua senha. NÃO ESQUEÇA DE VERIFICAR SUA CAIXA DE SPAM!');
       requestForm.reset();
 
     } catch (error) {
