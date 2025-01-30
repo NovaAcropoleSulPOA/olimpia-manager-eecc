@@ -164,7 +164,7 @@ export default function ResetPassword() {
           <CardContent>
             <Form {...resetForm}>
               <form onSubmit={resetForm.handleSubmit(handlePasswordReset)} className="space-y-4">
-                <FormField
+              <FormField
                   control={resetForm.control}
                   name="password"
                   render={({ field }) => (
@@ -175,7 +175,8 @@ export default function ResetPassword() {
                           type="password"
                           placeholder="••••••"
                           className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                          {...field}
+                          value={field.value || ''}  // Garante que o campo nunca fique undefined
+                          onChange={(e) => field.onChange(e.target.value)} // Passa onChange corretamente
                         />
                       </FormControl>
                       <FormMessage />
