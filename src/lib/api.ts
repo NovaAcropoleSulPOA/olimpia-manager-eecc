@@ -37,14 +37,19 @@ export interface BranchAnalytics {
   total_inscritos: number;
   valor_total_pago: number;
   valor_total_pendente: number;
-  total_atletas_pagamento_confirmado: number;
-  total_atletas_pagamento_pendente: number;
-  inscritos_por_status_pagamento: {
-    [key: string]: number;
-  };
+  total_atletas_pendentes_pagamento: number;
+  inscritos_por_status_pagamento: Record<string, number>;
   modalidades_populares: {
-    [key: string]: number;
+    [key: string]: {
+      Masculino: number;
+      Feminino: number;
+      Misto: number;
+    };
   };
+  media_pontuacao_por_modalidade: Record<string, number>;
+  top_modalidades_masculino: Record<string, number>;
+  top_modalidades_feminino: Record<string, number>;
+  top_modalidades_misto: Record<string, number>;
 }
 
 export const fetchBranches = async (): Promise<Branch[]> => {

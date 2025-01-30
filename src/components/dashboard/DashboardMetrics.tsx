@@ -11,7 +11,8 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
   const totalAthletes = data.reduce((acc, branch) => acc + (branch.total_inscritos || 0), 0);
   const totalRevenuePaid = data.reduce((acc, branch) => acc + (branch.valor_total_pago || 0), 0);
   const totalRevenuePending = data.reduce((acc, branch) => acc + (branch.valor_total_pendente || 0), 0);
-  const totalAthletesPendingPayment = data.reduce((acc, branch) => acc + (branch.total_atletas_pagamento_pendente || 0), 0);
+  const totalAthletesPendingPayment = data.reduce((acc, branch) => 
+    acc + (branch.total_atletas_pendentes_pagamento || 0), 0);
 
   console.log('Dashboard metrics:', {
     totalAthletes,

@@ -623,14 +623,14 @@ export type Database = {
       }
       vw_analytics_inscricoes: {
         Row: {
-          atletas_por_categoria: Json | null
           filial: string | null
           filial_id: string | null
-          inscritos_por_status: Json | null
           inscritos_por_status_pagamento: Json | null
           media_pontuacao_por_modalidade: Json | null
           modalidades_populares: Json | null
-          ranking_filiais: Json | null
+          top_modalidades_feminino: Json | null
+          top_modalidades_masculino: Json | null
+          top_modalidades_misto: Json | null
           total_atletas_pendentes_pagamento: number | null
           total_inscritos: number | null
           valor_total_pago: number | null

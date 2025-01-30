@@ -25,27 +25,31 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
   })).sort((a, b) => b.value - a.value);
 
   // Transform data for top 10 modalities by category
-  const modalitiesData = data.reduce((acc, branch) => {
-    const modalidades = branch.modalidades_populares || {};
-    Object.entries(modalidades).forEach(([modalidade, categorias]) => {
-      const existingModality = acc.find(item => item.name === modalidade);
-      if (existingModality) {
-        existingModality.masculino += (categorias.Masculino || 0);
-        existingModality.feminino += (categorias.Feminino || 0);
-        existingModality.misto += (categorias.Misto || 0);
-        existingModality.total = existingModality.masculino + existingModality.feminino + existingModality.misto;
-      } else {
-        acc.push({
-          name: modalidade,
-          masculino: categorias.Masculino || 0,
-          feminino: categorias.Feminino || 0,
-          misto: categorias.Misto || 0,
-          total: (categorias.Masculino || 0) + (categorias.Feminino || 0) + (categorias.Misto || 0)
-        });
-      }
-    });
-    return acc;
-  }, [] as any[])
+  const modalitiesData = Object.entries(
+    data.reduce((acc, branch) => {
+      const modalidades = branch.modalidades_populares || {};
+      Object.entries(modalidades).forEach(([modalidade, categorias]) => {
+        if (!acc[modalidade]) {
+          acc[modalidade] = {
+            name: modalidade,
+            masculino: 0,
+            feminino: 0,
+            misto: 0,
+            total: 0
+          };
+        }
+        acc[modalidade].masculino += categorias.Masculino || 0;
+        acc[modalidade].feminino += categorias.Feminino || 0;
+        acc[modalidade].misto += categorias.Misto || 0;
+        acc[modalidade].total = 
+          acc[modalidade].masculino + 
+          acc[modalidade].feminino + 
+          acc[modalidade].misto;
+      });
+      return acc;
+    }, {} as Record<string, any>)
+  )
+    .map(([_, value]) => value)
     .sort((a, b) => b.total - a.total)
     .slice(0, 10);
 
