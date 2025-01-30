@@ -68,19 +68,23 @@ export default function ResetPassword() {
     try {
       setIsSubmitting(true);
       console.log('Requesting password reset for:', values.email);
-
-      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+  
+      const { error } = await supabase.auth.signInWithOtp({
+        email: values.email,
+        options: {
+          shouldCreateUser: false, // Garante que um novo usuário não será criado
+          emailRedirectTo: `${window.location.origin}/reset-password`
+        }
       });
-
+  
       if (error) {
         console.error('Error requesting password reset:', error);
         throw error;
       }
-
+  
       toast.success('Se este e-mail estiver cadastrado, você receberá um link para redefinir sua senha. NÃO ESQUEÇA DE VERIFICAR SUA CAIXA DE SPAM!');
       requestForm.reset();
-
+  
     } catch (error) {
       console.error('Error in password reset request:', error);
       toast.error('Erro ao solicitar redefinição de senha. Tente novamente.');
@@ -88,39 +92,41 @@ export default function ResetPassword() {
       setIsSubmitting(false);
     }
   };
+  
 
   const handlePasswordReset = async (values: z.infer<typeof resetPasswordSchema>) => {
     try {
-      setIsSubmitting(true);
-      console.log('Resetting password...');
+        setIsSubmitting(true);
+        console.log('Resetting password...');
 
-      const { error } = await supabase.auth.updateUser({
-        password: values.password
-      });
+        const { error } = await supabase.auth.updateUser({
+            password: values.password
+        });
 
-      if (error) {
-        console.error('Error resetting password:', error);
-        throw error;
-      }
+        if (error) {
+            console.error('Error resetting password:', error);
+            throw error;
+        }
 
-      console.log('Password reset successful');
-      toast.success('Senha redefinida com sucesso! Você será redirecionado para a página de login.');
-      
-      // Clear any auth session to ensure user needs to log in again
-      await supabase.auth.signOut();
-      
-      // Redirect to login after successful password reset
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+        console.log('Password reset successful');
+        toast.success('Senha redefinida com sucesso! Você será redirecionado para a página de login.');
+
+        // Desloga o usuário após redefinir a senha
+        await supabase.auth.signOut();
+
+        // Redireciona para a página de login
+        setTimeout(() => {
+            navigate('/login');
+        }, 2000);
 
     } catch (error) {
-      console.error('Error in password reset:', error);
-      toast.error('Erro ao redefinir senha. Por favor, tente novamente.');
+        console.error('Error in password reset:', error);
+        toast.error('Erro ao redefinir senha. Por favor, tente novamente.');
     } finally {
-      setIsSubmitting(false);
+        setIsSubmitting(false);
     }
-  };
+};
+
 
   if (error) {
     return (
@@ -164,6 +170,8 @@ export default function ResetPassword() {
           <CardContent>
             <Form {...resetForm}>
               <form onSubmit={resetForm.handleSubmit(handlePasswordReset)} className="space-y-4">
+                
+                {/* Campo Nova Senha */}
                 <FormField
                   control={resetForm.control}
                   name="password"
@@ -176,12 +184,16 @@ export default function ResetPassword() {
                           placeholder="••••••"
                           className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
                           {...field}
+                          value={field.value || ''} // Garante que o campo não fique undefined
+                          onChange={(e) => field.onChange(e.target.value)} // Garante atualização correta do estado
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+  
+                {/* Campo Confirmar Nova Senha */}
                 <FormField
                   control={resetForm.control}
                   name="confirmPassword"
@@ -194,12 +206,15 @@ export default function ResetPassword() {
                           placeholder="••••••"
                           className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
                           {...field}
+                          value={field.value || ''} // Mesma correção aplicada para garantir que o campo não fique undefined
+                          onChange={(e) => field.onChange(e.target.value)}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+  
                 <Button
                   type="submit"
                   className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
@@ -228,7 +243,7 @@ export default function ResetPassword() {
         </Card>
       </div>
     );
-  }
+  }  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-olimpics-background">
