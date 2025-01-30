@@ -17,12 +17,14 @@ interface AthleteRegistrationCardProps {
   registration: AthleteRegistration;
   onStatusChange: (modalityId: string, status: string, justification: string) => Promise<void>;
   onPaymentStatusChange?: (athleteId: string, status: string) => Promise<void>;
+  isCurrentUser?: boolean;
 }
 
 export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = ({
   registration,
   onStatusChange,
   onPaymentStatusChange,
+  isCurrentUser = false,
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
   const [isUpdating, setIsUpdating] = React.useState<Record<string, boolean>>({});
@@ -134,12 +136,20 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const cardContent = (
     <Card className={cn(
       getStatusColor(registration.status_pagamento),
-      isPaymentPending ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:shadow-md transition-shadow'
+      isPaymentPending ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:shadow-md transition-shadow',
+      isCurrentUser && 'ring-2 ring-olimpics-orange-primary'
     )}>
       <CardContent className="p-6">
         <div className="space-y-4">
           <div className="flex justify-between items-start">
-            <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
+              {isCurrentUser && (
+                <Badge variant="secondary" className="bg-olimpics-orange-primary text-white">
+                  Meu Cadastro
+                </Badge>
+              )}
+            </div>
             <Badge className={cn("capitalize", getStatusBadgeStyle(registration.status_pagamento))}>
               {registration.status_pagamento}
             </Badge>

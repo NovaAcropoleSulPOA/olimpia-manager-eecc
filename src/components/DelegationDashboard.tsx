@@ -52,7 +52,15 @@ export default function DelegationDashboard() {
   } = useQuery({
     queryKey: ['athlete-registrations', user?.filial_id],
     queryFn: fetchAthleteRegistrations,
-    select: (data) => data.filter(reg => reg.filial === user?.filial_id),
+    select: (data) => {
+      if (!user?.filial_id) return [];
+      
+      // Include both athletes from the representative's filial and the representative themselves
+      return data.filter(reg => 
+        reg.filial === user.filial_id || // Athletes from the same filial
+        reg.id === user.id // The representative's own registration
+      );
+    },
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
   });
@@ -180,6 +188,7 @@ export default function DelegationDashboard() {
               registration={registration}
               onStatusChange={handleStatusChange}
               onPaymentStatusChange={handlePaymentStatusChange}
+              isCurrentUser={registration.id === user?.id}
             />
           ))}
         </div>
