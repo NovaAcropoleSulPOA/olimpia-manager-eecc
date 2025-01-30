@@ -92,6 +92,28 @@ export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
   }
 };
 
+interface ViewPerfilAtletaResponse {
+  atleta_id: string;
+  nome_completo: string;
+  email: string;
+  telefone: string;
+  filial_nome: string;
+  numero_documento: string;
+  tipo_documento: string;
+  numero_identificador: string;
+  genero: string;
+  status_confirmacao: boolean;
+  pagamento_status: 'pendente' | 'confirmado' | 'cancelado';
+  inscricoes: Array<{
+    id: string;
+    modalidade: {
+      nome: string;
+    };
+    status: string;
+    justificativa_status: string;
+  }>;
+}
+
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
   console.log('Fetching athlete registrations...');
   try {
@@ -129,20 +151,20 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     console.log('Raw data from view_perfil_atleta:', data);
 
-    const transformedData = data.map(registration => ({
-      id: registration.atleta_id?.toString(),
+    const transformedData: AthleteRegistration[] = (data as ViewPerfilAtletaResponse[]).map(registration => ({
+      id: registration.atleta_id,
       nome_atleta: registration.nome_completo,
       email: registration.email || '',
       confirmado: registration.status_confirmacao || false,
       telefone: registration.telefone || '',
       filial: registration.filial_nome,
       modalidades: registration.inscricoes?.map(inscricao => ({
-        id: inscricao.id?.toString(),
+        id: inscricao.id,
         modalidade: inscricao.modalidade?.nome || '',
         status: inscricao.status || 'pendente',
         justificativa_status: inscricao.justificativa_status || ''
       })) || [],
-      status_inscricao: 'pendente',
+      status_inscricao: 'pendente' as const,
       status_pagamento: registration.pagamento_status || 'pendente',
       numero_documento: registration.numero_documento || '',
       tipo_documento: registration.tipo_documento || '',
