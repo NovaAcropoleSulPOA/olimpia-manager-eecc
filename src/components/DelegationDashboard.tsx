@@ -63,10 +63,10 @@ export default function DelegationDashboard() {
       
       // Filter athletes from the same filial, including the logged-in user
       const filteredRegistrations = data.filter(reg => {
-        const isFromSameFilial = reg.filial_id === user.filial_id;
+        const isFromSameFilial = reg.filial === user.filial_id;
         console.log(`Registration ${reg.id}:`, {
           isFromSameFilial,
-          regFilialId: reg.filial_id,
+          regFilial: reg.filial,
           userFilialId: user.filial_id,
           isCurrentUser: reg.id === user.id
         });
@@ -81,7 +81,6 @@ export default function DelegationDashboard() {
     refetchOnWindowFocus: true,
   });
 
-  // Set up real-time subscription for athlete registrations
   useEffect(() => {
     if (!user?.filial_id) return;
 
