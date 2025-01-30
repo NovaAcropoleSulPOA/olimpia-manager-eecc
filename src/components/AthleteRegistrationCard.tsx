@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Building2, Award, MessageCircle, FileText, User } from "lucide-react";
+import { Phone, Mail, Building2, Award, MessageCircle, FileText, User, Hash } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -30,7 +30,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const [dialogOpen, setDialogOpen] = React.useState(false);
   
   const isPaymentPending = registration.status_pagamento === "pendente";
-  const hasModalities = registration.modalidades.length > 0;
+  const validModalities = registration.modalidades.filter(m => m.modalidade);
+  const hasModalities = validModalities.length > 0;
   const isSingleInscription = !!registration.inscricao_id;
 
   // Initialize modality statuses on mount
@@ -60,11 +61,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     
     try {
       await onStatusChange(modalityId, newStatus, justification);
-      
-      // Update local state
       setModalityStatuses(prev => ({ ...prev, [modalityId]: newStatus }));
       setJustifications(prev => ({ ...prev, [modalityId]: '' }));
-      
       toast.success('Status atualizado com sucesso!');
     } catch (error) {
       console.error('Error updating status:', error);
@@ -169,7 +167,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
             {hasModalities && !isSingleInscription && (
               <div className="flex items-center gap-2">
                 <Award className="h-4 w-4 text-muted-foreground" />
-                <span>{registration.modalidades.length} modalidades</span>
+                <span>{validModalities.length} modalidades</span>
               </div>
             )}
           </div>
@@ -209,7 +207,15 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           </DialogTitle>
           <DialogDescription className="space-y-4">
             <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-              <h4 className="font-semibold text-lg">{registration.nome_atleta}</h4>
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold text-lg">{registration.nome_atleta}</h4>
+                {registration.numero_identificador && (
+                  <Badge variant="outline" className="font-mono">
+                    <Hash className="h-3 w-3 mr-1" />
+                    {registration.numero_identificador}
+                  </Badge>
+                )}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
@@ -242,7 +248,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           </DialogDescription>
         </DialogHeader>
 
-        {!isSingleInscription && (
+        {!isSingleInscription && hasModalities && (
           <ScrollArea className="h-[50vh] w-full rounded-md border p-4">
             <Table>
               <TableHeader>
@@ -254,7 +260,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {registration.modalidades.map((modalidade) => (
+                {validModalities.map((modalidade) => (
                   <TableRow key={modalidade.id}>
                     <TableCell>{modalidade.modalidade}</TableCell>
                     <TableCell>
