@@ -24,40 +24,41 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
     totalPendente: branch.valor_total_pendente || 0
   })).sort((a, b) => b.value - a.value);
 
-  // Transform data for top 10 modalities by category
-  const modalitiesData = Object.entries(
-    data.reduce((acc, branch) => {
-      const modalidades = branch.modalidades_populares || {};
-      Object.entries(modalidades).forEach(([modalidade, categorias]) => {
-        if (!acc[modalidade]) {
-          acc[modalidade] = {
-            name: modalidade,
-            masculino: 0,
-            feminino: 0,
-            misto: 0,
-            total: 0
-          };
-        }
-        if (categorias) {
-          acc[modalidade].masculino += categorias.Masculino || 0;
-          acc[modalidade].feminino += categorias.Feminino || 0;
-          acc[modalidade].misto += categorias.Misto || 0;
-          acc[modalidade].total = 
-            acc[modalidade].masculino + 
-            acc[modalidade].feminino + 
-            acc[modalidade].misto;
-        }
-      });
-      return acc;
-    }, {} as Record<string, any>)
-  )
-    .map(([_, value]) => value)
+  // Transform data for modalities by category
+  const modalitiesData = data.reduce((acc, branch) => {
+    const modalidades = branch.modalidades_populares || {};
+    Object.entries(modalidades).forEach(([modalidade, categorias]) => {
+      if (!acc[modalidade]) {
+        acc[modalidade] = {
+          name: modalidade,
+          masculino: 0,
+          feminino: 0,
+          misto: 0,
+          total: 0
+        };
+      }
+      
+      if (categorias && typeof categorias === 'object') {
+        const cats = categorias as Record<string, number>;
+        acc[modalidade].masculino += cats['Masculino'] || 0;
+        acc[modalidade].feminino += cats['Feminino'] || 0;
+        acc[modalidade].misto += cats['Misto'] || 0;
+        acc[modalidade].total = 
+          acc[modalidade].masculino + 
+          acc[modalidade].feminino + 
+          acc[modalidade].misto;
+      }
+    });
+    return acc;
+  }, {} as Record<string, any>);
+
+  const topModalitiesData = Object.values(modalitiesData)
     .sort((a, b) => b.total - a.total)
     .slice(0, 10);
 
   console.log('Chart data:', {
     athletesData,
-    modalitiesData
+    topModalitiesData
   });
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -121,7 +122,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
         <CardContent className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={modalitiesData}
+              data={topModalitiesData}
               margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />

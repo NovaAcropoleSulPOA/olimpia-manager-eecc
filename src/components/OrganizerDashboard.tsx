@@ -39,6 +39,7 @@ export default function OrganizerDashboard() {
     queryKey: ['branch-analytics'],
     queryFn: fetchBranchAnalytics,
     staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes
+    refetchOnWindowFocus: true,
   });
 
   const { 
@@ -50,6 +51,7 @@ export default function OrganizerDashboard() {
     queryKey: ['athlete-registrations'],
     queryFn: fetchAthleteRegistrations,
     staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes
+    refetchOnWindowFocus: true,
   });
 
   const handleRefresh = async () => {
@@ -57,6 +59,8 @@ export default function OrganizerDashboard() {
     console.log('Refreshing dashboard data...');
     try {
       await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
+        queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] }),
         refetchAnalytics(),
         refetchRegistrations()
       ]);
