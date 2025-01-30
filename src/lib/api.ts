@@ -17,8 +17,38 @@ export interface AthleteRegistration {
   modalidades: AthleteModality[];
   status_inscricao: 'pendente' | 'confirmado' | 'rejeitado' | 'cancelado';
   status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
-  numero_documento: string;  // Added this field
-  genero: string;           // Added this field
+}
+
+export interface BranchAnalytics {
+  filial_id: string;
+  filial: string;
+  cidade: string;
+  estado: string;
+  total_inscritos: number;
+  valor_total_arrecadado: number;
+  modalidades_populares: Array<{
+    modalidade: string;
+    total_inscritos: number;
+  }>;
+  inscritos_por_status: Array<{
+    status_inscricao: string;
+    quantidade: number;
+  }>;
+  inscritos_por_status_pagamento: Array<{
+    status_pagamento: string;
+    quantidade: number;
+  }>;
+  atletas_por_categoria: Array<{
+    categoria: string;
+    quantidade: number;
+  }>;
+}
+
+export interface Branch {
+  id: string;
+  nome: string;
+  cidade: string;
+  estado: string;
 }
 
 export const fetchBranches = async (): Promise<Branch[]> => {
@@ -83,8 +113,6 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       confirmado: registration.status_confirmacao || false,
       telefone: registration.telefone || '',
       filial: registration.filial_nome || registration.filial,
-      numero_documento: registration.numero_documento || '',  // Added this field
-      genero: registration.genero || 'Prefiro não informar',  // Added this field with default value
       modalidades: [{
         id: registration.inscricao_id?.toString() || registration.id?.toString(),
         modalidade: registration.modalidade_nome || registration.modalidade,
