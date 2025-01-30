@@ -21,26 +21,42 @@ interface DashboardChartsProps {
 }
 
 export function DashboardCharts({ data }: DashboardChartsProps) {
+  console.log('Raw data received in DashboardCharts:', data);
+
   // Transform data for athletes per branch chart
-  const athletesData = data.map(branch => ({
-    name: branch.filial,
-    value: branch.total_inscritos
-  }));
+  const athletesData = data.map(branch => {
+    console.log(`Processing branch ${branch.filial}:`, branch);
+    return {
+      name: branch.filial,
+      value: parseInt(branch.total_inscritos.toString()) || 0
+    };
+  });
+
+  console.log('Transformed athletes data:', athletesData);
 
   // Transform and aggregate modalities data
   const modalitiesMap = new Map<string, number>();
   
   data.forEach(branch => {
-    branch.modalidades_populares.forEach(modalidade => {
-      const currentCount = modalitiesMap.get(modalidade.modalidade) || 0;
-      modalitiesMap.set(modalidade.modalidade, currentCount + modalidade.total_inscritos);
-    });
+    if (Array.isArray(branch.modalidades_populares)) {
+      branch.modalidades_populares.forEach(modalidade => {
+        const currentCount = modalitiesMap.get(modalidade.modalidade) || 0;
+        modalitiesMap.set(
+          modalidade.modalidade, 
+          currentCount + (parseInt(modalidade.total_inscritos.toString()) || 0)
+        );
+      });
+    } else {
+      console.warn('modalidades_populares is not an array:', branch.modalidades_populares);
+    }
   });
 
   const modalitiesData = Array.from(modalitiesMap.entries())
     .map(([name, value]) => ({ name, value }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 5);
+
+  console.log('Transformed modalities data:', modalitiesData);
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -52,10 +68,23 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={athletesData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
+              <XAxis 
+                dataKey="name"
+                tick={{ fontSize: 12 }}
+                interval={0}
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
               <YAxis />
-              <Tooltip />
-              <Bar dataKey="value" fill="#009B40" />
+              <Tooltip 
+                formatter={(value: number) => [value.toLocaleString(), 'Atletas']}
+              />
+              <Bar 
+                dataKey="value" 
+                fill="#009B40"
+                name="Total de Atletas"
+              />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -79,10 +108,15 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                 dataKey="value"
               >
                 {modalitiesData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={COLORS[index % COLORS.length]} 
+                  />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip 
+                formatter={(value: number) => [value.toLocaleString(), 'Atletas']}
+              />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
