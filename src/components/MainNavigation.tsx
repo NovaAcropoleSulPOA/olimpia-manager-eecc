@@ -29,17 +29,18 @@ export function MainNavigation() {
   const isAthlete = userRoles.includes('Atleta');
 
   useEffect(() => {
-    // Redirect to appropriate dashboard based on role
+    // Only redirect to athlete profile on initial login
     if (location.pathname === '/') {
-      if (isDelegationRep) {
+      console.log('MainNavigation - Initial navigation based on roles');
+      if (isAthlete) {
+        navigate('/athlete-profile');
+      } else if (isDelegationRep) {
         navigate('/delegation-dashboard');
       } else if (isOrganizer) {
         navigate('/organizer-dashboard');
-      } else if (isAthlete) {
-        navigate('/athlete-profile');
       }
     }
-  }, [isDelegationRep, isOrganizer, isAthlete, location.pathname, navigate]);
+  }, [isAthlete, isDelegationRep, isOrganizer, location.pathname, navigate]);
 
   const handleLogout = async () => {
     try {

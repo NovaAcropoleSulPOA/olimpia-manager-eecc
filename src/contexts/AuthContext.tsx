@@ -28,12 +28,11 @@ const PUBLIC_ROUTES = ['/', '/login', '/reset-password', '/pending-approval'];
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialAuthCheckDone, setInitialAuthCheckDone] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleAuthRedirect = (userProfile: any, isInitialLogin: boolean = false) => {
-    console.log('AuthContext - Handling auth redirect. Initial login:', isInitialLogin);
+  const handleAuthRedirect = (userProfile: any) => {
+    console.log('AuthContext - Handling auth redirect');
     console.log('AuthContext - Current location:', location.pathname);
     
     if (!userProfile.confirmado) {
@@ -42,19 +41,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (isInitialLogin && PUBLIC_ROUTES.includes(location.pathname) && !initialAuthCheckDone) {
-      const roles = userProfile.papeis || [];
-      console.log('AuthContext - User roles for redirect:', roles);
+    const roles = userProfile.papeis || [];
+    console.log('AuthContext - User roles for redirect:', roles);
 
+    // Only redirect if on a public route
+    if (PUBLIC_ROUTES.includes(location.pathname)) {
       if (roles.includes('Atleta')) {
-        console.log('AuthContext - Initial redirect to athlete profile');
+        console.log('AuthContext - Redirecting to athlete profile');
         navigate('/athlete-profile');
       } else if (roles.includes('Organizador')) {
-        console.log('AuthContext - Initial redirect to organizer dashboard');
+        console.log('AuthContext - Redirecting to organizer dashboard');
         navigate('/organizer-dashboard');
-      } else {
-        console.log('AuthContext - No specific role redirect needed');
-        navigate('/');
+      } else if (roles.includes('Representante de Delegação')) {
+        console.log('AuthContext - Redirecting to delegation dashboard');
+        navigate('/delegation-dashboard');
       }
     }
   };
@@ -113,8 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userProfile = await fetchUserProfile(session.user.id);
           if (mounted) {
             setUser({ ...session.user, ...userProfile });
-            handleAuthRedirect(userProfile, true);
-            setInitialAuthCheckDone(true);
+            handleAuthRedirect(userProfile);
           }
         } else if (!PUBLIC_ROUTES.includes(location.pathname)) {
           navigate('/login');
@@ -130,9 +129,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (mounted) {
                   setUser({ ...session.user, ...userProfile });
                 }
-                if (event === 'SIGNED_IN' && PUBLIC_ROUTES.includes(location.pathname) && !initialAuthCheckDone) {
-                  handleAuthRedirect(userProfile, true);
-                  setInitialAuthCheckDone(true);
+                if (event === 'SIGNED_IN') {
+                  handleAuthRedirect(userProfile);
                 }
               } catch (error) {
                 console.error('AuthContext - Error setting up user session:', error);
@@ -167,7 +165,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } finally {
         if (mounted) {
           setLoading(false);
-          setInitialAuthCheckDone(true);
         }
       }
     };
