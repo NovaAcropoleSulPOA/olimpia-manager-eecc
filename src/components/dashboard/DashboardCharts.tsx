@@ -8,21 +8,40 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend
+  Legend,
+  PieChart,
+  Pie,
+  Cell
 } from "recharts";
 
 interface DashboardChartsProps {
   data: BranchAnalytics[];
 }
 
+const COLORS = ['#009B40', '#EE7E01', '#4CAF50', '#2196F3', '#9C27B0', '#FF5722'];
+
 export function DashboardCharts({ data }: DashboardChartsProps) {
-  // Transform data for athletes per branch chart
+  // Transform data for athletes per branch
   const athletesData = data.map(branch => ({
     name: branch.filial,
-    value: branch.total_inscritos || 0,
-    totalPago: branch.valor_total_pago || 0,
-    totalPendente: branch.valor_total_pendente || 0
-  })).sort((a, b) => b.value - a.value);
+    total: branch.total_inscritos || 0,
+    pagos: branch.valor_total_pago ? Number(branch.valor_total_pago) : 0,
+    pendentes: branch.valor_total_pendente ? Number(branch.valor_total_pendente) : 0
+  })).sort((a, b) => b.total - a.total);
+
+  // Transform data for payment status distribution
+  const paymentStatusData = data.reduce((acc, branch) => {
+    const statusData = branch.inscritos_por_status_pagamento as Record<string, number> || {};
+    Object.entries(statusData).forEach(([status, count]) => {
+      const existingStatus = acc.find(item => item.name === status);
+      if (existingStatus) {
+        existingStatus.value += count;
+      } else {
+        acc.push({ name: status, value: count });
+      }
+    });
+    return acc;
+  }, [] as { name: string; value: number }[]);
 
   // Transform data for modalities by category
   const modalitiesData = data.reduce((acc, branch) => {
@@ -33,8 +52,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
           name: modalidade,
           masculino: 0,
           feminino: 0,
-          misto: 0,
-          total: 0
+          misto: 0
         };
       }
       
@@ -43,21 +61,22 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
         acc[modalidade].masculino += cats['Masculino'] || 0;
         acc[modalidade].feminino += cats['Feminino'] || 0;
         acc[modalidade].misto += cats['Misto'] || 0;
-        acc[modalidade].total = 
-          acc[modalidade].masculino + 
-          acc[modalidade].feminino + 
-          acc[modalidade].misto;
       }
     });
     return acc;
   }, {} as Record<string, any>);
 
   const topModalitiesData = Object.values(modalitiesData)
+    .map(item => ({
+      ...item,
+      total: item.masculino + item.feminino + item.misto
+    }))
     .sort((a, b) => b.total - a.total)
-    .slice(0, 10);
+    .slice(0, 5);
 
   console.log('Chart data:', {
     athletesData,
+    paymentStatusData,
     topModalitiesData
   });
 
@@ -75,9 +94,6 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
               {`${entry.name}: ${entry.value}`}
             </p>
           ))}
-          <p className="text-sm text-olimpics-text mt-2">
-            {`Total: ${payload.reduce((sum: number, entry: any) => sum + entry.value, 0)}`}
-          </p>
         </div>
       );
     }
@@ -105,7 +121,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
               <YAxis tick={{ fontSize: 12, fill: '#4b5563' }} />
               <Tooltip content={<CustomTooltip />} />
               <Bar 
-                dataKey="value" 
+                dataKey="total" 
                 fill="#009B40"
                 name="Total de Atletas"
                 radius={[4, 4, 0, 0]}
@@ -117,7 +133,35 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
 
       <Card className="col-span-1">
         <CardHeader>
-          <CardTitle className="text-olimpics-text">Top 10 Modalidades por Categoria</CardTitle>
+          <CardTitle className="text-olimpics-text">Status de Pagamento</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[400px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={paymentStatusData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                outerRadius={120}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {paymentStatusData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <Card className="col-span-2">
+        <CardHeader>
+          <CardTitle className="text-olimpics-text">Top 5 Modalidades por Categoria</CardTitle>
         </CardHeader>
         <CardContent className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
