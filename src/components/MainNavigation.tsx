@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Sidebar, 
   SidebarProvider, 
@@ -16,36 +16,30 @@ import {
 import { User, BarChart3, LogOut, Menu, ClipboardList } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 export function MainNavigation() {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
-  console.log('MainNavigation - Current user roles:', user?.papeis);
-  console.log('MainNavigation - Current location:', location.pathname);
+  const userRoles = user?.papeis || [];
+  const isDelegationRep = userRoles.includes('Representante de Delegação');
+  const isOrganizer = userRoles.includes('Organizador');
+  const isAthlete = userRoles.includes('Atleta');
 
-  const menuItems = [
-    {
-      title: "Perfil do Atleta",
-      icon: User,
-      path: "/athlete-profile",
-      roles: ["Atleta"]
-    },
-    {
-      title: "Minhas Inscrições",
-      icon: ClipboardList,
-      path: "/athlete-registrations",
-      roles: ["Atleta"]
-    },
-    {
-      title: "Dashboard do Organizador",
-      icon: BarChart3,
-      path: "/organizer-dashboard",
-      roles: ["Organizador"]
+  useEffect(() => {
+    // Redirect to appropriate dashboard based on role
+    if (location.pathname === '/') {
+      if (isDelegationRep) {
+        navigate('/delegation-dashboard');
+      } else if (isOrganizer) {
+        navigate('/organizer-dashboard');
+      } else if (isAthlete) {
+        navigate('/athlete-profile');
+      }
     }
-  ];
+  }, [isDelegationRep, isOrganizer, isAthlete, location.pathname, navigate]);
 
   const handleLogout = async () => {
     try {
@@ -60,6 +54,35 @@ export function MainNavigation() {
     }
   };
 
+  const menuItems = [
+    ...(isAthlete ? [
+      {
+        title: "Perfil do Atleta",
+        icon: User,
+        path: "/athlete-profile"
+      },
+      {
+        title: "Minhas Inscrições",
+        icon: ClipboardList,
+        path: "/athlete-registrations"
+      }
+    ] : []),
+    ...(isOrganizer ? [
+      {
+        title: "Dashboard do Organizador",
+        icon: BarChart3,
+        path: "/organizer-dashboard"
+      }
+    ] : []),
+    ...(isDelegationRep ? [
+      {
+        title: "Dashboard do Representante",
+        icon: BarChart3,
+        path: "/delegation-dashboard"
+      }
+    ] : [])
+  ];
+
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -67,14 +90,6 @@ export function MainNavigation() {
       </div>
     );
   }
-
-  const userRoles = user?.papeis || [];
-  console.log('MainNavigation - User roles:', userRoles);
-  
-  const filteredMenuItems = menuItems.filter(item => 
-    item.roles.some(role => userRoles.includes(role))
-  );
-  console.log('MainNavigation - Filtered menu items:', filteredMenuItems);
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -93,7 +108,7 @@ export function MainNavigation() {
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu className="px-3">
-                  {filteredMenuItems.map((item) => (
+                  {menuItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild

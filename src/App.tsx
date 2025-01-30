@@ -12,11 +12,11 @@ import { MainNavigation } from './components/MainNavigation';
 import LandingPage from './pages/LandingPage';
 import Footer from './components/Footer';
 import OrganizerDashboard from './components/OrganizerDashboard';
+import DelegationDashboard from './components/DelegationDashboard';
 import AthleteProfilePage from './components/AthleteProfilePage';
 import AthleteRegistrations from './components/AthleteRegistrations';
 import React from 'react';
 
-// Create a new QueryClient instance outside of the component
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -45,6 +45,7 @@ function App() {
                   <Route path="/athlete-profile" element={<AthleteProfilePage />} />
                   <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
                   <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
+                  <Route path="/delegation-dashboard" element={<DelegationDashboard />} />
                 </Route>
               </Routes>
             </div>
