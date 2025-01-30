@@ -629,7 +629,8 @@ export type Database = {
           modalidades_populares: Json | null
           ranking_filiais: Json | null
           total_inscritos: number | null
-          valor_total_arrecadado: number | null
+          valor_total_pago: number | null
+          valor_total_pendente: number | null
         }
         Relationships: []
       }

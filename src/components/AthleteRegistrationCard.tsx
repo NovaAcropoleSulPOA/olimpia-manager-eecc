@@ -10,6 +10,7 @@ import { AthleteRegistration } from '@/lib/api';
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface AthleteRegistrationCardProps {
@@ -24,6 +25,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   onPaymentStatusChange,
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
+  const [isUpdating, setIsUpdating] = React.useState<Record<string, boolean>>({});
   const isPaymentPending = registration.status_pagamento === "pendente";
   const hasModalities = registration.modalidades.length > 0;
 
@@ -40,6 +42,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
       return;
     }
     
+    setIsUpdating(prev => ({ ...prev, [modalityId]: true }));
+    
     try {
       await onStatusChange(modalityId, newStatus, justification);
       toast.success('Status atualizado com sucesso!');
@@ -47,6 +51,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error('Erro ao atualizar status');
+    } finally {
+      setIsUpdating(prev => ({ ...prev, [modalityId]: false }));
     }
   };
 
@@ -178,7 +184,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
       <DialogTrigger asChild>
         <div>{cardContent}</div>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="text-2xl">Gerenciar Modalidades</DialogTitle>
           <DialogDescription className="space-y-4">
@@ -208,7 +214,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
+        <ScrollArea className="h-[50vh] w-full rounded-md border p-4">
           <Table>
             <TableHeader>
               <TableRow>
@@ -241,11 +247,11 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                     <Select
                       value={modalidade.status}
                       onValueChange={(value) => handleStatusChange(modalidade.id, value)}
-                      disabled={!justifications[modalidade.id]}
+                      disabled={!justifications[modalidade.id] || isUpdating[modalidade.id]}
                     >
                       <SelectTrigger className={cn(
                         "w-[180px]",
-                        !justifications[modalidade.id] && "opacity-50 cursor-not-allowed"
+                        (!justifications[modalidade.id] || isUpdating[modalidade.id]) && "opacity-50 cursor-not-allowed"
                       )}>
                         <SelectValue placeholder="Selecione o status" />
                       </SelectTrigger>
@@ -261,7 +267,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               ))}
             </TableBody>
           </Table>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
