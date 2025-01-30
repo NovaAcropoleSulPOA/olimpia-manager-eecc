@@ -14,40 +14,34 @@ import {
   Legend
 } from "recharts";
 
-const COLORS = ["#009B40", "#EE7E01", "#4CAF50", "#2196F3", "#9C27B0"];
+const COLORS = [
+  "#009B40", // Primary green
+  "#EE7E01", // Primary orange
+  "#4CAF50", // Additional green
+  "#F27C00", // Additional orange
+  "#009C3F"  // Secondary green
+];
 
 interface DashboardChartsProps {
   data: BranchAnalytics[];
 }
 
 export function DashboardCharts({ data }: DashboardChartsProps) {
-  console.log('Raw data received in DashboardCharts:', data);
-
   // Transform data for athletes per branch chart
-  const athletesData = data.map(branch => {
-    console.log(`Processing branch ${branch.filial}:`, branch);
-    return {
-      name: branch.filial,
-      value: parseInt(branch.total_inscritos.toString()) || 0
-    };
-  });
-
-  console.log('Transformed athletes data:', athletesData);
+  const athletesData = data.map(branch => ({
+    name: branch.filial,
+    value: branch.total_inscritos || 0,
+    totalPago: branch.valor_total_arrecadado || 0
+  })).sort((a, b) => b.value - a.value);
 
   // Transform and aggregate modalities data
   const modalitiesMap = new Map<string, number>();
-  
   data.forEach(branch => {
-    if (Array.isArray(branch.modalidades_populares)) {
-      branch.modalidades_populares.forEach(modalidade => {
-        const currentCount = modalitiesMap.get(modalidade.modalidade) || 0;
-        modalitiesMap.set(
-          modalidade.modalidade, 
-          currentCount + (parseInt(modalidade.total_inscritos.toString()) || 0)
-        );
+    if (branch.modalidades_populares && typeof branch.modalidades_populares === 'object') {
+      Object.entries(branch.modalidades_populares).forEach(([modalidade, count]) => {
+        const currentCount = modalitiesMap.get(modalidade) || 0;
+        modalitiesMap.set(modalidade, currentCount + (typeof count === 'number' ? count : 0));
       });
-    } else {
-      console.warn('modalidades_populares is not an array:', branch.modalidades_populares);
     }
   });
 
@@ -56,34 +50,53 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
     .sort((a, b) => b.value - a.value)
     .slice(0, 5);
 
-  console.log('Transformed modalities data:', modalitiesData);
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-4 shadow-lg rounded-lg border">
+          <p className="font-bold text-olimpics-text">{label}</p>
+          <p className="text-olimpics-green-primary">
+            {`Total de Atletas: ${payload[0].value}`}
+          </p>
+          {payload[0].payload.totalPago && (
+            <p className="text-olimpics-orange-primary">
+              {`Valor Arrecadado: ${new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+              }).format(payload[0].payload.totalPago)}`}
+            </p>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card className="col-span-1">
         <CardHeader>
-          <CardTitle>Atletas por Filial</CardTitle>
+          <CardTitle className="text-olimpics-text">Atletas por Filial</CardTitle>
         </CardHeader>
         <CardContent className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={athletesData}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis 
                 dataKey="name"
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: '#4b5563' }}
                 interval={0}
                 angle={-45}
                 textAnchor="end"
                 height={80}
               />
-              <YAxis />
-              <Tooltip 
-                formatter={(value: number) => [value.toLocaleString(), 'Atletas']}
-              />
+              <YAxis tick={{ fontSize: 12, fill: '#4b5563' }} />
+              <Tooltip content={<CustomTooltip />} />
               <Bar 
                 dataKey="value" 
                 fill="#009B40"
                 name="Total de Atletas"
+                radius={[4, 4, 0, 0]}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -92,7 +105,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
 
       <Card className="col-span-1">
         <CardHeader>
-          <CardTitle>Top 5 Modalidades</CardTitle>
+          <CardTitle className="text-olimpics-text">Top 5 Modalidades</CardTitle>
         </CardHeader>
         <CardContent className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -115,9 +128,19 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                 ))}
               </Pie>
               <Tooltip 
-                formatter={(value: number) => [value.toLocaleString(), 'Atletas']}
+                formatter={(value: number) => [`${value} atletas`, 'Total']}
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.5rem',
+                  padding: '0.5rem'
+                }}
               />
-              <Legend />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36}
+                formatter={(value) => <span className="text-olimpics-text">{value}</span>}
+              />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>

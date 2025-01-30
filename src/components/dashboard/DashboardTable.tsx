@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowUpDown, Search } from "lucide-react";
 
 interface DashboardTableProps {
   data: BranchAnalytics[];
@@ -52,24 +53,27 @@ export function DashboardTable({ data }: DashboardTableProps) {
     }));
   };
 
-  const formatModalities = (modalidades: Array<{ modalidade: string; total_inscritos: number }>) => {
-    if (!modalidades || modalidades.length === 0) return "Nenhuma modalidade";
-    return modalidades
-      .map(({ modalidade, total_inscritos }) => `${modalidade} (${total_inscritos})`)
+  const formatModalities = (modalidades: Record<string, number>) => {
+    if (!modalidades || Object.keys(modalidades).length === 0) return "Nenhuma modalidade";
+    return Object.entries(modalidades)
+      .map(([modalidade, count]) => `${modalidade} (${count})`)
       .join(", ");
   };
 
   return (
-    <Card>
+    <Card className="shadow-lg">
       <CardHeader>
-        <CardTitle>Dados por Filial</CardTitle>
+        <CardTitle className="text-olimpics-text">Dados por Filial</CardTitle>
         <div className="flex items-center py-4">
-          <Input
-            placeholder="Buscar por filial..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
-          />
+          <div className="relative w-full max-w-sm">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por filial..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8"
+            />
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -78,16 +82,22 @@ export function DashboardTable({ data }: DashboardTableProps) {
             <TableHeader>
               <TableRow>
                 <TableHead
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => handleSort('filial')}
                 >
-                  Filial
+                  <div className="flex items-center space-x-1">
+                    <span>Filial</span>
+                    <ArrowUpDown className="h-4 w-4" />
+                  </div>
                 </TableHead>
                 <TableHead
-                  className="cursor-pointer text-right"
+                  className="cursor-pointer hover:bg-muted/50 transition-colors text-right"
                   onClick={() => handleSort('total_inscritos')}
                 >
-                  Total de Atletas
+                  <div className="flex items-center justify-end space-x-1">
+                    <span>Total de Atletas</span>
+                    <ArrowUpDown className="h-4 w-4" />
+                  </div>
                 </TableHead>
                 <TableHead>
                   Modalidades Disponíveis
@@ -96,12 +106,19 @@ export function DashboardTable({ data }: DashboardTableProps) {
             </TableHeader>
             <TableBody>
               {filteredData.map((branch) => (
-                <TableRow key={branch.filial_id}>
+                <TableRow key={branch.filial_id} className="hover:bg-muted/50 transition-colors">
                   <TableCell className="font-medium">{branch.filial}</TableCell>
                   <TableCell className="text-right">{branch.total_inscritos}</TableCell>
                   <TableCell>{formatModalities(branch.modalidades_populares)}</TableCell>
                 </TableRow>
               ))}
+              {filteredData.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center text-muted-foreground">
+                    Nenhum resultado encontrado
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
