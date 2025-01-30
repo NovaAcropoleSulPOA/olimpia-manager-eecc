@@ -47,7 +47,6 @@ export default function ResetPassword() {
   });
 
   useEffect(() => {
-    // Check if we're in password reset mode by looking for the token parameter
     const token = searchParams.get('token');
     if (token) {
       console.log('Reset token found in URL');
