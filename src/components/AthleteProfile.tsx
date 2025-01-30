@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { User, MapPin, Phone, Mail, Building2, FileText, CreditCard } from "lucide-react";
+import { User, MapPin, Phone, Mail, Building2, FileText, CreditCard, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import PaymentInfo from './PaymentInfo';
 
 interface AthleteProfileProps {
@@ -37,6 +38,13 @@ export default function AthleteProfile({ profile }: AthleteProfileProps) {
 
   return (
     <div className="space-y-6">
+      <Alert className="bg-olimpics-orange-primary/10 border-olimpics-orange-primary text-olimpics-text">
+        <Info className="h-5 w-5 text-olimpics-orange-primary" />
+        <AlertDescription className="text-sm font-medium">
+          As inscrições nas modalidades devem ser feitas no menu 'Minhas Inscrições'.
+        </AlertDescription>
+      </Alert>
+
       <Card>
         <CardContent className="p-6">
           <div className="grid md:grid-cols-12 gap-6">
