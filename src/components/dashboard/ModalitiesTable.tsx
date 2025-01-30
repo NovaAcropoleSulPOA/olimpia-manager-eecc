@@ -28,12 +28,14 @@ interface ModalitiesTableProps {
   data: BranchAnalytics[];
 }
 
+interface ModalityCount {
+  nome: string;
+  total: number;
+}
+
 interface GroupedData {
   filial: string;
-  modalidades: {
-    nome: string;
-    total: number;
-  }[];
+  modalidades: ModalityCount[];
   totalInscritos: number;
 }
 
@@ -44,14 +46,24 @@ export function ModalitiesTable({ data }: ModalitiesTableProps) {
   const groupedData: GroupedData[] = data.reduce((acc: GroupedData[], branch) => {
     if (!branch.modalidades_populares) return acc;
 
-    const modalidades = Object.entries(branch.modalidades_populares as Record<string, {
-      Masculino?: number;
-      Feminino?: number;
-      Misto?: number;
-    }>).map(([nome, categorias]) => ({
-      nome,
-      total: (categorias.Masculino || 0) + (categorias.Feminino || 0) + (categorias.Misto || 0)
-    }));
+    console.log('Processing branch data:', branch.filial, branch.modalidades_populares);
+
+    // Parse the modalidades_populares JSON if it's a string
+    const modalidadesPopulares = typeof branch.modalidades_populares === 'string' 
+      ? JSON.parse(branch.modalidades_populares) 
+      : branch.modalidades_populares;
+
+    // Extract and combine modalities from all categories
+    const modalidades: ModalityCount[] = [];
+    Object.entries(modalidadesPopulares).forEach(([modalidade, categorias]) => {
+      if (typeof categorias === 'object' && categorias !== null) {
+        const total = Object.values(categorias as Record<string, number>).reduce((sum, count) => sum + (count || 0), 0);
+        modalidades.push({
+          nome: modalidade,
+          total
+        });
+      }
+    });
 
     const totalInscritos = modalidades.reduce((sum, mod) => sum + mod.total, 0);
 
@@ -64,12 +76,18 @@ export function ModalitiesTable({ data }: ModalitiesTableProps) {
     return acc;
   }, []).sort((a, b) => b.totalInscritos - a.totalInscritos);
 
+  console.log('Grouped data:', groupedData);
+
   // Prepare data for the stacked bar chart
   const chartData = groupedData.map(branch => {
-    const modalityData = branch.modalidades.reduce((acc, mod) => {
-      acc[mod.nome] = mod.total;
-      return acc;
-    }, { filial: branch.filial } as Record<string, any>);
+    const modalityData = {
+      filial: branch.filial,
+      ...branch.modalidades.reduce((acc, mod) => ({
+        ...acc,
+        [mod.nome]: mod.total
+      }), {})
+    };
+    console.log('Chart data for branch:', branch.filial, modalityData);
     return modalityData;
   });
 
@@ -82,7 +100,7 @@ export function ModalitiesTable({ data }: ModalitiesTableProps) {
     )
   );
 
-  // Generate random colors for each modality
+  // Generate colors for each modality
   const COLORS = [
     '#009B40', '#EE7E01', '#4CAF50', '#2196F3', 
     '#9C27B0', '#FF5722', '#795548', '#607D8B'
