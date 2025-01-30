@@ -1,213 +1,268 @@
-import { useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from 'sonner';
-import { activateUser } from '@/lib/api';
-import { useQueryClient } from '@tanstack/react-query';
+import React from 'react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Phone, Mail, Building2, Award, MessageCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { AthleteRegistration } from '@/lib/api';
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface AthleteRegistrationCardProps {
-  registration: {
-    id: string;
-    nome_atleta: string;
-    email: string;
-    confirmado: boolean;
-    telefone: string;
-    filial: string;
-    modalidades: Array<{
-      id: string;
-      modalidade: string;
-      status: string;
-      justificativa_status: string;
-    }>;
-    status_inscricao: 'pendente' | 'confirmado' | 'rejeitado' | 'cancelado';
-    status_pagamento: string;
-    numero_documento: string;
-    tipo_documento: string;
-    numero_identificador: string;
-    genero: string;
-  };
+  registration: AthleteRegistration;
   onStatusChange: (modalityId: string, status: string, justification: string) => Promise<void>;
-  onPaymentStatusChange: (athleteId: string, status: string) => Promise<void>;
+  onPaymentStatusChange?: (athleteId: string, status: string) => Promise<void>;
 }
 
-export function AthleteRegistrationCard({ registration, onStatusChange, onPaymentStatusChange }: AthleteRegistrationCardProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const queryClient = useQueryClient();
+export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = ({
+  registration,
+  onStatusChange,
+  onPaymentStatusChange,
+}) => {
+  const [justifications, setJustifications] = React.useState<Record<string, string>>({});
+  const isPaymentPending = registration.status_pagamento === "pendente";
+  const hasModalities = registration.modalidades.length > 0;
 
-  const handleActivateUser = async () => {
+  const handleWhatsAppClick = (phone: string) => {
+    const formattedPhone = phone.replace(/\D/g, '');
+    const message = encodeURIComponent('Olá! Gostaria de falar sobre sua inscrição nas Olimpíadas.');
+    window.open(`https://wa.me/${formattedPhone}?text=${message}`, '_blank');
+  };
+
+  const handleStatusChange = async (modalityId: string, newStatus: string) => {
+    const justification = justifications[modalityId];
+    if (!justification) {
+      toast.error('É necessário fornecer uma justificativa para alterar o status.');
+      return;
+    }
+    
     try {
-      setIsLoading(true);
-      await activateUser(registration.id);
-      toast.success('Usuário ativado com sucesso!');
-      // Invalidate queries to refresh the data
-      await queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] });
-      await queryClient.invalidateQueries({ queryKey: ['branch-analytics'] });
+      await onStatusChange(modalityId, newStatus, justification);
+      toast.success('Status atualizado com sucesso!');
+      setJustifications(prev => ({ ...prev, [modalityId]: '' }));
     } catch (error) {
-      console.error('Error activating user:', error);
-      toast.error('Erro ao ativar usuário');
-    } finally {
-      setIsLoading(false);
+      console.error('Error updating status:', error);
+      toast.error('Erro ao atualizar status');
+    }
+  };
+
+  const handlePaymentStatusChange = async (newStatus: string) => {
+    if (!onPaymentStatusChange) return;
+    
+    try {
+      await onPaymentStatusChange(registration.id, newStatus);
+      toast.success('Status de pagamento atualizado com sucesso!');
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      toast.error('Erro ao atualizar status de pagamento');
     }
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'confirmado':
-        return 'bg-green-500';
+        return 'border-l-4 border-l-green-500 bg-green-50';
+      case 'pendente':
+        return 'border-l-4 border-l-yellow-500 bg-yellow-50';
       case 'rejeitado':
-        return 'bg-red-500';
+        return 'border-l-4 border-l-red-500 bg-red-50';
       case 'cancelado':
-        return 'bg-gray-500';
+        return 'border-l-4 border-l-gray-500 bg-gray-50';
       default:
-        return 'bg-yellow-500';
+        return 'border-l-4 border-l-gray-500 bg-gray-50';
     }
   };
 
-  return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-lg font-bold">{registration.nome_atleta}</CardTitle>
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="outline">{registration.filial}</Badge>
-          <Badge variant={registration.status_pagamento === 'confirmado' ? 'default' : 'destructive'}>
-            Pagamento {registration.status_pagamento}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        <div className="text-sm">
-          <p><strong>Email:</strong> {registration.email}</p>
-          <p><strong>Telefone:</strong> {registration.telefone}</p>
-          <p><strong>Documento:</strong> {registration.tipo_documento} - {registration.numero_documento}</p>
-          <p><strong>Identificador:</strong> {registration.numero_identificador}</p>
-          <p><strong>Gênero:</strong> {registration.genero}</p>
-        </div>
-        {registration.modalidades.length > 0 && (
-          <div className="mt-4">
-            <h4 className="font-semibold mb-2">Modalidades</h4>
-            <div className="flex flex-wrap gap-2">
-              {registration.modalidades.map((mod) => (
-                <Badge key={mod.id} className={getStatusColor(mod.status)}>
-                  {mod.modalidade}
-                </Badge>
-              ))}
-            </div>
+  const getStatusTextColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'confirmado':
+        return 'text-green-700 bg-green-100';
+      case 'pendente':
+        return 'text-yellow-700 bg-yellow-100';
+      case 'rejeitado':
+        return 'text-red-700 bg-red-100';
+      case 'cancelado':
+        return 'text-gray-700 bg-gray-100';
+      default:
+        return 'text-gray-700 bg-gray-100';
+    }
+  };
+
+  const cardContent = (
+    <Card className={cn(
+      getStatusColor(registration.status_pagamento),
+      isPaymentPending ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:shadow-md transition-shadow'
+    )}>
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          <div className="flex justify-between items-start">
+            <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
+            <Badge className={cn("capitalize", getStatusTextColor(registration.status_pagamento))}>
+              {registration.status_pagamento}
+            </Badge>
           </div>
-        )}
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={() => setIsOpen(true)}>
-          Ver Detalhes
-        </Button>
-        {!registration.confirmado && (
-          <Button 
-            onClick={handleActivateUser} 
-            disabled={isLoading}
-            className="bg-olimpics-green-primary hover:bg-olimpics-green-secondary"
-          >
-            {isLoading ? 'Ativando...' : 'Ativar Usuário'}
-          </Button>
-        )}
-      </CardFooter>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              <span className="truncate">
+                {registration.email?.trim() ? registration.email : "Email não informado"}
+              </span>
+            </div>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto font-normal flex items-center gap-1 text-olimpics-orange-primary hover:text-olimpics-orange-secondary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWhatsAppClick(registration.telefone);
+                      }}
+                    >
+                      {registration.telefone}
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Clique para abrir WhatsApp</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Detalhes do Atleta</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-semibold mb-2">Informações Pessoais</h4>
-                <p><strong>Nome:</strong> {registration.nome_atleta}</p>
-                <p><strong>Email:</strong> {registration.email}</p>
-                <p><strong>Telefone:</strong> {registration.telefone}</p>
-                <p><strong>Documento:</strong> {registration.tipo_documento} - {registration.numero_documento}</p>
-                <p><strong>Identificador:</strong> {registration.numero_identificador}</p>
-                <p><strong>Gênero:</strong> {registration.genero}</p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Informações da Inscrição</h4>
-                <p><strong>Filial:</strong> {registration.filial}</p>
-                <p><strong>Status do Pagamento:</strong> {registration.status_pagamento}</p>
-                <p><strong>Status da Conta:</strong> {registration.confirmado ? 'Ativado' : 'Pendente'}</p>
-              </div>
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <span>{registration.filial}</span>
             </div>
 
-            {registration.modalidades.length > 0 && (
-              <div>
-                <h4 className="font-semibold mb-2">Modalidades Inscritas</h4>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Modalidade</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Justificativa</TableHead>
-                      <TableHead>Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {registration.modalidades.map((mod) => (
-                      <TableRow key={mod.id}>
-                        <TableCell>{mod.modalidade}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(mod.status)}>
-                            {mod.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{mod.justificativa_status || '-'}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => onStatusChange(mod.id, 'confirmado', '')}
-                              disabled={mod.status === 'confirmado'}
-                            >
-                              Aprovar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => onStatusChange(mod.id, 'rejeitado', 'Não atende aos requisitos')}
-                              disabled={mod.status === 'rejeitado'}
-                            >
-                              Rejeitar
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+            {hasModalities && (
+              <div className="flex items-center gap-2">
+                <Award className="h-4 w-4 text-muted-foreground" />
+                <span>{registration.modalidades.length} modalidades</span>
               </div>
             )}
-
-            <div className="mt-4">
-              <h4 className="font-semibold mb-2">Gerenciar Pagamento</h4>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => onPaymentStatusChange(registration.id, 'confirmado')}
-                  disabled={registration.status_pagamento === 'confirmado'}
-                >
-                  Confirmar Pagamento
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => onPaymentStatusChange(registration.id, 'pendente')}
-                  disabled={registration.status_pagamento === 'pendente'}
-                >
-                  Marcar como Pendente
-                </Button>
-              </div>
-            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          {registration.status_pagamento === "pendente" && onPaymentStatusChange && (
+            <div className="mt-4 flex items-center gap-2">
+              <label className="text-sm text-muted-foreground">Status do pagamento:</label>
+              <Select onValueChange={handlePaymentStatusChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Alterar status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="confirmado">Confirmado</SelectItem>
+                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+      </CardContent>
     </Card>
   );
-}
+
+  if (isPaymentPending) {
+    return cardContent;
+  }
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <div>{cardContent}</div>
+      </DialogTrigger>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle className="text-2xl">Gerenciar Modalidades</DialogTitle>
+          <DialogDescription className="space-y-4">
+            <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+              <h4 className="font-semibold text-lg">{registration.nome_atleta}</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  <span>{registration.email}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto font-normal text-olimpics-orange-primary hover:text-olimpics-orange-secondary"
+                    onClick={() => handleWhatsAppClick(registration.telefone)}
+                  >
+                    {registration.telefone}
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  <span>{registration.filial}</span>
+                </div>
+              </div>
+            </div>
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="mt-4">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Modalidade</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Justificativa</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {registration.modalidades.map((modalidade) => (
+                <TableRow key={modalidade.id}>
+                  <TableCell>{modalidade.modalidade}</TableCell>
+                  <TableCell>
+                    <Badge className={cn("capitalize", getStatusTextColor(modalidade.status))}>
+                      {modalidade.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Input
+                      placeholder="Justificativa para alteração"
+                      value={justifications[modalidade.id] || ''}
+                      onChange={(e) => setJustifications(prev => ({
+                        ...prev,
+                        [modalidade.id]: e.target.value
+                      }))}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={modalidade.status}
+                      onValueChange={(value) => handleStatusChange(modalidade.id, value)}
+                      disabled={!justifications[modalidade.id]}
+                    >
+                      <SelectTrigger className={cn(
+                        "w-[180px]",
+                        !justifications[modalidade.id] && "opacity-50 cursor-not-allowed"
+                      )}>
+                        <SelectValue placeholder="Selecione o status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pendente">pendente</SelectItem>
+                        <SelectItem value="confirmado">confirmado</SelectItem>
+                        <SelectItem value="rejeitado">rejeitado</SelectItem>
+                        <SelectItem value="cancelado">cancelado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};

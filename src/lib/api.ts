@@ -21,18 +21,9 @@ export interface AthleteRegistration {
   confirmado: boolean;
   telefone: string;
   filial: string;
-  modalidades: Array<{
-    id: string;
-    modalidade: string;
-    status: string;
-    justificativa_status: string;
-  }>;
+  modalidades: AthleteModality[];
   status_inscricao: 'pendente' | 'confirmado' | 'rejeitado' | 'cancelado';
-  status_pagamento: string;
-  numero_documento: string;
-  tipo_documento: string;
-  numero_identificador: string;
-  genero: string;
+  status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
 }
 
 export interface BranchAnalytics {
@@ -128,11 +119,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
         justificativa_status: registration.justificativa_status || ''
       }],
       status_inscricao: registration.status_inscricao || 'pendente',
-      status_pagamento: registration.status_pagamento || 'pendente',
-      numero_documento: registration.numero_documento || '',
-      tipo_documento: registration.tipo_documento || '',
-      numero_identificador: registration.numero_identificador || '',
-      genero: registration.genero || 'Prefiro não informar'
+      status_pagamento: registration.status_pagamento || 'pendente'
     }));
 
     const groupedData = transformedData.reduce((acc, curr) => {
@@ -197,20 +184,4 @@ export const updateModalityStatus = async (
   }
 
   return Promise.resolve();
-};
-
-export const activateUser = async (userId: string): Promise<void> => {
-  console.log('Activating user:', userId);
-  
-  const { error } = await supabase
-    .from('usuarios')
-    .update({ confirmado: true })
-    .eq('id', userId);
-
-  if (error) {
-    console.error('Error activating user:', error);
-    throw new Error('Failed to activate user');
-  }
-
-  console.log('User activated successfully');
 };
