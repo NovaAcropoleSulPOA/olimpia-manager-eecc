@@ -71,31 +71,43 @@ export default function OrganizerDashboard() {
   };
 
   const handleStatusChange = async (modalityId: string, status: string, justification: string) => {
+    console.log('Attempting to update modality status:', { modalityId, status, justification });
     try {
       await updateModalityStatus(modalityId, status, justification);
+      console.log('Status updated successfully in the database');
       toast.success("Status atualizado com sucesso!");
+      
+      // Invalidate and refetch queries to ensure UI is in sync with database
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
         queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
       ]);
+      console.log('Queries invalidated and refetched');
     } catch (error) {
       console.error('Error updating status:', error);
-      toast.error("Erro ao atualizar status");
+      toast.error("Erro ao atualizar status. Por favor, tente novamente.");
+      throw error; // Re-throw to allow handling in the component
     }
   };
 
   const handlePaymentStatusChange = async (athleteId: string, status: string) => {
+    console.log('Attempting to update payment status:', { athleteId, status });
     try {
       await updatePaymentStatus(athleteId, status);
+      console.log('Payment status updated successfully in the database');
       toast.success("Status de pagamento atualizado com sucesso!");
+      
+      // Invalidate and refetch queries to ensure UI is in sync with database
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
         queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
       ]);
+      console.log('Queries invalidated and refetched after payment status update');
     } catch (error) {
       console.error('Error updating payment status:', error);
       const errorMessage = error instanceof Error ? error.message : "Erro ao atualizar status de pagamento";
       toast.error(errorMessage);
+      throw error; // Re-throw to allow handling in the component
     }
   };
 
@@ -127,6 +139,7 @@ export default function OrganizerDashboard() {
   }
 
   console.log('Branch analytics data:', branchAnalytics);
+  console.log('Registrations data:', registrations);
 
   return (
     <div className="container mx-auto py-6 space-y-6">
