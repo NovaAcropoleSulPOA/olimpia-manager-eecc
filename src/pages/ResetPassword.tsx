@@ -30,6 +30,7 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const resetForm = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
@@ -48,9 +49,18 @@ export default function ResetPassword() {
 
   useEffect(() => {
     const token = searchParams.get('token');
-    if (token) {
-      console.log('Reset token found in URL');
+    const type = searchParams.get('type');
+
+    console.log('Checking reset parameters - Token:', !!token, 'Type:', type);
+
+    if (token && type === 'recovery') {
+      console.log('Valid reset token detected, enabling reset mode');
       setIsResetMode(true);
+      setError(null);
+    } else if (token || type) {
+      console.error('Invalid reset parameters detected');
+      setError('Link de redefinição inválido ou expirado. Por favor, solicite um novo.');
+      setIsResetMode(false);
     }
   }, [searchParams]);
 
@@ -111,6 +121,33 @@ export default function ResetPassword() {
       setIsSubmitting(false);
     }
   };
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-olimpics-background">
+        <Card className="w-[400px] shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-olimpics-green-primary text-center">
+              Erro na Redefinição
+            </CardTitle>
+            <CardDescription className="text-center text-olimpics-text">
+              {error}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => navigate('/')}
+            >
+              Voltar para a Tela Inicial
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isResetMode) {
     return (
