@@ -37,11 +37,11 @@ export default function DelegationDashboard() {
     error: analyticsError, 
     refetch: refetchAnalytics 
   } = useQuery({
-    queryKey: ['branch-analytics', user?.filial_id],
+    queryKey: ['branch-analytics', user?.filial],
     queryFn: fetchBranchAnalytics,
     select: (data) => {
-      if (!user?.filial_id) return [];
-      const filteredData = data.filter(branch => branch.filial_id === user.filial_id);
+      if (!user?.filial) return [];
+      const filteredData = data.filter(branch => branch.filial_id === user.filial);
       console.log('Filtered branch analytics:', filteredData);
       return filteredData;
     },
@@ -55,27 +55,24 @@ export default function DelegationDashboard() {
     error: registrationsError,
     refetch: refetchRegistrations
   } = useQuery({
-    queryKey: ['athlete-registrations', user?.filial_id],
+    queryKey: ['athlete-registrations', user?.filial],
     queryFn: fetchAthleteRegistrations,
     select: (data) => {
-      if (!user?.filial_id) {
-        console.log('No user filial_id found');
+      if (!user?.filial) {
+        console.log('No user filial found');
         return [];
       }
       
       // Filter to show all athletes from the same branch, including the logged-in user
       const branchAthletes = data.filter(reg => {
-        // Convert filial_id to string for comparison since it might come as UUID
-        const athleteBranchId = reg.filial_id?.toString();
-        const userBranchId = user.filial_id?.toString();
-        
-        const isSameBranch = athleteBranchId === userBranchId;
+        // Compare the filial (branch name) directly
+        const isSameBranch = reg.filial === user.filial;
         
         console.log('Checking athlete:', {
           athleteId: reg.id,
           athleteName: reg.nome_atleta,
-          athleteBranchId,
-          userBranchId,
+          athleteBranch: reg.filial,
+          userBranch: user.filial,
           isSameBranch
         });
         
