@@ -24,6 +24,10 @@ export interface AthleteRegistration {
   modalidades: AthleteModality[];
   status_inscricao: 'pendente' | 'confirmado' | 'rejeitado' | 'cancelado';
   status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
+  inscricao_id?: number;  // Added this field
+  tipo_documento: string; // Added this field
+  numero_documento: string; // Added this field
+  genero: string; // Added this field
 }
 
 export interface BranchAnalytics {
@@ -119,7 +123,11 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
         justificativa_status: registration.justificativa_status || ''
       }],
       status_inscricao: registration.status_inscricao || 'pendente',
-      status_pagamento: registration.status_pagamento || 'pendente'
+      status_pagamento: registration.status_pagamento || 'pendente',
+      inscricao_id: registration.inscricao_id || undefined,
+      tipo_documento: registration.tipo_documento || '',
+      numero_documento: registration.numero_documento || '',
+      genero: registration.genero || ''
     }));
 
     const groupedData = transformedData.reduce((acc, curr) => {
