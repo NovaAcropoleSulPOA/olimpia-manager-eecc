@@ -21,13 +21,17 @@ const resetPasswordSchema = z.object({
   path: ["confirmPassword"],
 });
 
+const requestResetSchema = z.object({
+  email: z.string().email('Email inválido'),
+});
+
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [tokenError, setTokenError] = useState(false);
+  const [isResetMode, setIsResetMode] = useState(false);
 
-  const form = useForm<z.infer<typeof resetPasswordSchema>>({
+  const resetForm = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       password: '',
@@ -35,19 +39,50 @@ export default function ResetPassword() {
     },
   });
 
+  const requestForm = useForm<z.infer<typeof requestResetSchema>>({
+    resolver: zodResolver(requestResetSchema),
+    defaultValues: {
+      email: '',
+    },
+  });
+
   useEffect(() => {
     const token = searchParams.get('token');
-    if (!token) {
-      console.error('No reset token found in URL');
-      setTokenError(true);
-      toast.error('Link de redefinição de senha inválido ou expirado.');
+    if (token) {
+      console.log('Reset token found in URL');
+      setIsResetMode(true);
     }
   }, [searchParams]);
 
-  const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
+  const handleRequestReset = async (values: z.infer<typeof requestResetSchema>) => {
     try {
       setIsSubmitting(true);
-      console.log('Attempting to reset password...');
+      console.log('Requesting password reset for:', values.email);
+
+      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        console.error('Error requesting password reset:', error);
+        throw error;
+      }
+
+      toast.success('Se este e-mail estiver cadastrado, você receberá um link para redefinir sua senha.');
+      requestForm.reset();
+
+    } catch (error) {
+      console.error('Error in password reset request:', error);
+      toast.error('Erro ao solicitar redefinição de senha. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handlePasswordReset = async (values: z.infer<typeof resetPasswordSchema>) => {
+    try {
+      setIsSubmitting(true);
+      console.log('Resetting password...');
 
       const { error } = await supabase.auth.updateUser({
         password: values.password
@@ -55,8 +90,7 @@ export default function ResetPassword() {
 
       if (error) {
         console.error('Error resetting password:', error);
-        toast.error('Erro ao redefinir senha. Por favor, tente novamente.');
-        return;
+        throw error;
       }
 
       console.log('Password reset successful');
@@ -68,32 +102,88 @@ export default function ResetPassword() {
       }, 1500);
 
     } catch (error) {
-      console.error('Unexpected error during password reset:', error);
-      toast.error('Ocorreu um erro inesperado. Por favor, tente novamente.');
+      console.error('Error in password reset:', error);
+      toast.error('Erro ao redefinir senha. Por favor, tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (tokenError) {
+  if (isResetMode) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-olimpics-background">
         <Card className="w-[400px] shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-olimpics-green-primary text-center">
-              Link Inválido
+              Redefinir Senha
             </CardTitle>
             <CardDescription className="text-center text-olimpics-text">
-              O link de redefinição de senha é inválido ou expirou.
+              Digite sua nova senha abaixo
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button
-              onClick={() => navigate('/login')}
-              className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary"
-            >
-              Voltar para Login
-            </Button>
+            <Form {...resetForm}>
+              <form onSubmit={resetForm.handleSubmit(handlePasswordReset)} className="space-y-4">
+                <FormField
+                  control={resetForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nova Senha</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="••••••"
+                          className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={resetForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirmar Nova Senha</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="••••••"
+                          className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Redefinindo...
+                    </>
+                  ) : (
+                    'Redefinir Senha'
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => navigate('/login')}
+                >
+                  Voltar para Login
+                </Button>
+              </form>
+            </Form>
           </CardContent>
         </Card>
       </div>
@@ -105,43 +195,25 @@ export default function ResetPassword() {
       <Card className="w-[400px] shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-olimpics-green-primary text-center">
-            Redefinir Senha
+            Recuperar Senha
           </CardTitle>
           <CardDescription className="text-center text-olimpics-text">
-            Digite sua nova senha abaixo
+            Digite seu e-mail para receber o link de recuperação
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <Form {...requestForm}>
+            <form onSubmit={requestForm.handleSubmit(handleRequestReset)} className="space-y-4">
               <FormField
-                control={form.control}
-                name="password"
+                control={requestForm.control}
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nova Senha</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
-                        type="password"
-                        placeholder="••••••"
-                        className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirmar Nova Senha</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="••••••"
+                        type="email"
+                        placeholder="seu@email.com"
                         className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
                         {...field}
                       />
@@ -158,10 +230,10 @@ export default function ResetPassword() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Redefinindo...
+                    Enviando...
                   </>
                 ) : (
-                  'Redefinir Senha'
+                  'Enviar Link de Recuperação'
                 )}
               </Button>
               <Button
