@@ -42,6 +42,9 @@ export interface BranchAnalytics {
   inscritos_por_status_pagamento: {
     [key: string]: number;
   };
+  modalidades_populares: {
+    [key: string]: number;
+  };
 }
 
 export const fetchBranches = async (): Promise<Branch[]> => {
