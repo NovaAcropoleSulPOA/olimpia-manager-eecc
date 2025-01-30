@@ -167,7 +167,7 @@ export default function ResetPassword() {
                       <FormLabel>Nova Senha</FormLabel>
                       <FormControl>
                         <Input
-                          type="password"
+                          type="text"
                           placeholder="••••••"
                           className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
                           {...field}
