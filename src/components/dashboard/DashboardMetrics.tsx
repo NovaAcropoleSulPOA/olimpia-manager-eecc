@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BranchAnalytics } from "@/lib/api";
-import { Users, Medal, Building2, Wallet } from "lucide-react";
+import { Users, Medal, Clock, Wallet } from "lucide-react";
 
 interface DashboardMetricsProps {
   data: BranchAnalytics[];
@@ -9,17 +9,15 @@ interface DashboardMetricsProps {
 export function DashboardMetrics({ data }: DashboardMetricsProps) {
   // Calculate totals from the analytics data
   const totalAthletes = data.reduce((acc, branch) => acc + (branch.total_inscritos || 0), 0);
-  const activeBranches = data.length;
   const totalRevenuePaid = data.reduce((acc, branch) => acc + (branch.valor_total_pago || 0), 0);
   const totalRevenuePending = data.reduce((acc, branch) => acc + (branch.valor_total_pendente || 0), 0);
-  const totalRevenue = totalRevenuePaid + totalRevenuePending;
+  const totalAthletesPendingPayment = data.reduce((acc, branch) => acc + (branch.total_atletas_pagamento_pendente || 0), 0);
 
   console.log('Dashboard metrics:', {
     totalAthletes,
-    activeBranches,
     totalRevenuePaid,
     totalRevenuePending,
-    totalRevenue
+    totalAthletesPendingPayment
   });
 
   return (
@@ -62,14 +60,14 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
       <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-olimpics-text">
-            Filiais Ativas
+            Atletas com Pagamento Pendente
           </CardTitle>
-          <Building2 className="h-4 w-4 text-olimpics-green-secondary" />
+          <Clock className="h-4 w-4 text-olimpics-green-secondary" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-olimpics-text">{activeBranches}</div>
+          <div className="text-2xl font-bold text-olimpics-text">{totalAthletesPendingPayment}</div>
           <p className="text-xs text-muted-foreground mt-1">
-            Filiais com atletas inscritos
+            Atletas aguardando confirmação
           </p>
         </CardContent>
       </Card>
