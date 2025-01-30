@@ -39,24 +39,12 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-olimpics-background to-white">
-      <div 
-        className="relative min-h-screen bg-gradient-to-r from-olimpics-green-primary to-olimpics-green-secondary"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, rgba(0, 155, 64, 0.95), rgba(0, 156, 63, 0.95)),
-            url('/lovable-uploads/EECC_marca_portugues_cores_RGB.png')
-          `,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundBlendMode: 'overlay',
-          backgroundRepeat: 'no-repeat'
-        }}
-      >
-        <div className="absolute inset-0 bg-black/20" />
+      <div className="relative min-h-screen bg-gradient-to-r from-olimpics-green-primary to-olimpics-green-secondary">
+        <div className="absolute inset-0 bg-black/40" />
         <div className="container relative z-10 mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Left side - Event Info */}
-            <div className="text-white backdrop-blur-sm bg-black/10 p-6 rounded-lg">
+            <div className="text-white">
               {/* Header Section */}
               <div className="flex flex-col items-center mb-12">
                 <div className="relative w-32 h-32 mb-4">
