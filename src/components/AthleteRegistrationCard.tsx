@@ -26,7 +26,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
   const isPaymentPending = registration.status_pagamento === "pendente";
-  const hasModalities = registration.modalidades.length > 0;
+  const hasModalities = registration.modalidades && registration.modalidades.length > 0;
 
   const handleWhatsAppClick = (phone: string) => {
     const formattedPhone = phone.replace(/\D/g, '');
@@ -108,6 +108,21 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <span>{registration.tipo_documento}: {registration.numero_documento}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Fingerprint className="h-4 w-4 text-muted-foreground" />
+              <span>ID: {registration.numero_identificador}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <span>Gênero: {registration.genero}</span>
+            </div>
+
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-muted-foreground" />
               <span className="truncate">
