@@ -60,7 +60,6 @@ const registerSchema = z.object({
 
 const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -102,6 +101,7 @@ const Login = () => {
       setIsSubmitting(true);
       await signIn(values.email, values.password);
       toast.success("Login realizado com sucesso!");
+      navigate('/');
     } catch (error) {
       console.error("Login Error:", error);
       toast.error("Erro ao fazer login. Verifique suas credenciais.");
@@ -193,20 +193,10 @@ const Login = () => {
       }
 
       // Reset form after successful registration
-      registerForm.reset({
-        nome: '',
-        email: '',
-        telefone: '',
-        password: '',
-        confirmPassword: '',
-        branchId: '',
-        tipo_documento: 'CPF',
-        numero_documento: '',
-        genero: '',
-      });
-
-      toast.success('Cadastro realizado com sucesso! Verifique seu e-mail para ativação.');
-      navigate('/login');
+      registerForm.reset();
+      
+      toast.success('Cadastro realizado com sucesso!');
+      navigate('/'); // Redirect to main page instead of login
 
     } catch (error) {
       console.error('Registration process error:', error);
