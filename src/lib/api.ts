@@ -123,7 +123,11 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
         justificativa_status: registration.justificativa_status || ''
       }],
       status_inscricao: registration.status_inscricao || 'pendente',
-      status_pagamento: registration.status_pagamento || 'pendente'
+      status_pagamento: registration.status_pagamento || 'pendente',
+      numero_documento: registration.numero_documento || '',
+      tipo_documento: registration.tipo_documento || '',
+      numero_identificador: registration.numero_identificador || '',
+      genero: registration.genero || 'Prefiro não informar'
     }));
 
     const groupedData = transformedData.reduce((acc, curr) => {
