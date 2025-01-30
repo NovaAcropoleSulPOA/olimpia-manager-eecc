@@ -71,10 +71,10 @@ export default function VerifyEmail() {
           )}
           <Button
             variant="outline"
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/')}
             className="w-full"
           >
-            Voltar para Login
+            Voltar para a Tela Inicial
           </Button>
         </CardContent>
       </Card>

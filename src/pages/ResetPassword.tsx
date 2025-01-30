@@ -181,9 +181,9 @@ export default function ResetPassword() {
                   type="button"
                   variant="ghost"
                   className="w-full"
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate('/')}
                 >
-                  Voltar para Login
+                  Voltar para a Tela Inicial
                 </Button>
               </form>
             </Form>
@@ -243,9 +243,9 @@ export default function ResetPassword() {
                 type="button"
                 variant="ghost"
                 className="w-full"
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/')}
               >
-                Voltar para Login
+                Voltar para a Tela Inicial
               </Button>
             </form>
           </Form>

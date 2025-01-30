@@ -31,11 +31,11 @@ export default function RejectedAccess() {
             variant="outline"
             onClick={() => {
               signOut();
-              navigate('/login');
+              navigate('/');
             }}
             className="w-full"
           >
-            Voltar para Login
+            Voltar para a Tela Inicial
           </Button>
         </CardContent>
       </Card>
