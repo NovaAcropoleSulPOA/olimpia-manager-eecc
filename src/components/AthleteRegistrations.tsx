@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { 
   CheckCircle2, XCircle, Clock, AlertCircle,
-  Plus, Loader2
+  Plus, Loader2, Info
 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const getModalityStatusIcon = (status: string) => {
   switch (status) {
@@ -206,7 +207,14 @@ export default function AthleteRegistrations() {
   }
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 space-y-6">
+      <Alert className="bg-olimpics-green-primary/10 border-olimpics-green-primary text-olimpics-text">
+        <Info className="h-5 w-5 text-olimpics-green-primary" />
+        <AlertDescription className="text-sm">
+          As inscrições nas modalidades devem ser realizadas nesta página! Após a confirmação da inscrição em uma modalidade pelo Representante de Delegação, o atleta não poderá cancelar sua participação nesta modalidade diretamente pelo sistema. Caso seja necessário cancelar uma inscrição já aprovada, o atleta deverá entrar em contato com o seu respectivo Representante de Delegação para solicitar qualquer alteração.
+        </AlertDescription>
+      </Alert>
+
       <Card>
         <CardHeader>
           <CardTitle>Minhas Inscrições</CardTitle>
