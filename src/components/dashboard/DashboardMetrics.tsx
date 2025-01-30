@@ -12,17 +12,27 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
   
   // Calculate revenue totals
   const totalRevenuePaid = data.reduce((acc, branch) => acc + (branch.valor_total_pago || 0), 0);
-  const totalRevenuePending = data.reduce((acc, branch) => acc + (branch.valor_total_pendente || 0), 0);
+  const totalRevenuePending = data.reduce((acc, branch) => {
+    // Only count pending payments if there are actually pending athletes
+    const pendingCount = branch.inscritos_por_status_pagamento?.find(
+      status => status.status_pagamento === 'pendente'
+    )?.quantidade || 0;
+    return pendingCount > 0 ? acc + (branch.valor_total_pendente || 0) : acc;
+  }, 0);
   
   // Calculate pending payments count - ensure we only count actual pending payments
   const totalAthletesPendingPayment = data.reduce((acc, branch) => {
-    const pendingCount = branch.inscritos_por_status_pagamento?.pendente || 0;
+    const pendingCount = branch.inscritos_por_status_pagamento?.find(
+      status => status.status_pagamento === 'pendente'
+    )?.quantidade || 0;
+    
     console.log('Branch pending payments:', {
       branchId: branch.filial_id,
       branchName: branch.filial,
       pendingCount,
       rawData: branch.inscritos_por_status_pagamento
     });
+    
     return acc + pendingCount;
   }, 0);
 
