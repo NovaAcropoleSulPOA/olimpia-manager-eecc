@@ -52,7 +52,7 @@ export default function DelegationDashboard() {
   } = useQuery({
     queryKey: ['athlete-registrations', user?.filial_id],
     queryFn: fetchAthleteRegistrations,
-    select: (data) => data.filter(reg => reg.filial_id === user?.filial_id),
+    select: (data) => data.filter(reg => reg.filial === user?.filial_id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
   });
