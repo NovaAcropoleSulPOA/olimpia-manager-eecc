@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Building2, Award, MessageCircle, User, FileText, CreditCard } from "lucide-react";
+import { Phone, Mail, Building2, Award, MessageCircle, User, FileText, CreditCard, Fingerprint, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -199,8 +199,19 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                   </p>
                   <p className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span>{registration.documento || "Documento não informado"}</span>
+                    <span>{registration.tipo_documento}: {registration.numero_documento}</span>
                   </p>
+                  <p className="flex items-center gap-2">
+                    <Fingerprint className="h-4 w-4 text-muted-foreground" />
+                    <span>ID: {registration.numero_identificador}</span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span>Gênero: {registration.genero}</span>
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
                   <p className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span>{registration.email}</span>
@@ -215,9 +226,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                       {registration.telefone}
                     </Button>
                   </p>
-                </div>
-                
-                <div className="space-y-3">
                   <p className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
                     <span>{registration.filial}</span>

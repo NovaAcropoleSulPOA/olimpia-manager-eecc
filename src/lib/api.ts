@@ -24,6 +24,10 @@ export interface AthleteRegistration {
   modalidades: AthleteModality[];
   status_inscricao: 'pendente' | 'confirmado' | 'rejeitado' | 'cancelado';
   status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
+  numero_documento: string;
+  tipo_documento: string;
+  numero_identificador: string;
+  genero: string;
 }
 
 export interface BranchAnalytics {
