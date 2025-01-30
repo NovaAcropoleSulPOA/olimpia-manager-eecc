@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
@@ -15,14 +15,6 @@ const resetPasswordSchema = z.object({
   password: z.string()
     .min(6, 'A senha deve ter no mínimo 6 caracteres')
     .max(50, 'A senha não pode ter mais de 50 caracteres'),
-  confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "As senhas não coincidem",
-  path: ["confirmPassword"],
-});
-
-const requestResetSchema = z.object({
-  email: z.string().email('Email inválido'),
 });
 
 export default function ResetPassword() {
@@ -31,17 +23,19 @@ export default function ResetPassword() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const resetForm = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       password: '',
-      confirmPassword: '',
     },
   });
 
-  const requestForm = useForm<z.infer<typeof requestResetSchema>>({
-    resolver: zodResolver(requestResetSchema),
+  const requestForm = useForm<{ email: string }>({
+    resolver: zodResolver(z.object({
+      email: z.string().email('Email inválido'),
+    })),
     defaultValues: {
       email: '',
     },
@@ -64,7 +58,7 @@ export default function ResetPassword() {
     }
   }, [searchParams]);
 
-  const handleRequestReset = async (values: z.infer<typeof requestResetSchema>) => {
+  const handleRequestReset = async (values: { email: string }) => {
     try {
       setIsSubmitting(true);
       console.log('Requesting password reset for:', values.email);
@@ -170,32 +164,29 @@ export default function ResetPassword() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nova Senha</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="••••••"
-                          className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={resetForm.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirmar Nova Senha</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="••••••"
-                          className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                          {...field}
-                        />
-                      </FormControl>
+                      <div className="relative">
+                        <FormControl>
+                          <Input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="••••••"
+                            className="pr-10 border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
+                            {...field}
+                          />
+                        </FormControl>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4 text-gray-500" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-500" />
+                          )}
+                        </Button>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
