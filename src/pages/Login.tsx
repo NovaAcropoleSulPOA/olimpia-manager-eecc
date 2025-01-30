@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,7 +16,7 @@ import { fetchBranches } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import InputMask from 'react-input-mask';
 import PaymentInfo from '@/components/PaymentInfo';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { validateCPF } from '@/utils/documentValidation';
 
 const loginSchema = z.object({
@@ -523,10 +523,10 @@ export default function Login() {
                     </Button>
                     <div className="text-center">
                       <Link
-                        href="/reset-password"
+                        to="/reset-password"
                         className="text-olimpics-green-primary hover:text-olimpics-green-secondary text-sm"
                       >
-                        Esqueci minha senha
+                        Esqueceu sua senha?
                       </Link>
                     </div>
                   </form>

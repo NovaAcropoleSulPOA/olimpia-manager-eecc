@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,8 +26,8 @@ const requestResetSchema = z.object({
 });
 
 export default function ResetPassword() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
 
@@ -101,7 +101,7 @@ export default function ResetPassword() {
       
       // Redirect to login after successful password reset
       setTimeout(() => {
-        router.push('/login');
+        navigate('/login');
       }, 2000);
 
     } catch (error) {
@@ -181,7 +181,7 @@ export default function ResetPassword() {
                   type="button"
                   variant="ghost"
                   className="w-full"
-                  onClick={() => router.push('/login')}
+                  onClick={() => navigate('/login')}
                 >
                   Voltar para Login
                 </Button>
@@ -243,7 +243,7 @@ export default function ResetPassword() {
                 type="button"
                 variant="ghost"
                 className="w-full"
-                onClick={() => router.push('/login')}
+                onClick={() => navigate('/login')}
               >
                 Voltar para Login
               </Button>
