@@ -14,19 +14,21 @@ import Footer from './components/Footer';
 import OrganizerDashboard from './components/OrganizerDashboard';
 import AthleteProfilePage from './components/AthleteProfilePage';
 import AthleteRegistrations from './components/AthleteRegistrations';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      staleTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+import { useState } from 'react';
 
 function App() {
+  // Move queryClient inside the component to ensure React context is available
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 3,
+        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }));
+
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
