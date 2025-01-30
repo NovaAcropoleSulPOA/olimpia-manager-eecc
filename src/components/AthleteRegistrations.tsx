@@ -68,7 +68,7 @@ export default function AthleteRegistrations() {
 
   const filterModalitiesByGender = (modalities: any[]) => {
     const gender = athleteProfile?.genero?.toLowerCase();
-    if (!gender) return modalities;
+    if (!gender || !Array.isArray(modalities)) return modalities;
 
     return modalities.filter(modality => {
       const category = modality.categoria?.toLowerCase();

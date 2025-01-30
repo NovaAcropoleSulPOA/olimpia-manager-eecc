@@ -39,7 +39,11 @@ export interface BranchAnalytics {
   valor_total_pendente: number;
   total_atletas_pendentes_pagamento: number;
   inscritos_por_status_pagamento: Record<string, number>;
-  modalidades_populares: Record<string, number>;
+  modalidades_populares: Record<string, {
+    Masculino: number;
+    Feminino: number;
+    Misto: number;
+  }>;
   media_pontuacao_por_modalidade: Record<string, number>;
   top_modalidades_masculino: Record<string, number>;
   top_modalidades_feminino: Record<string, number>;

@@ -38,13 +38,15 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
             total: 0
           };
         }
-        acc[modalidade].masculino += categorias.Masculino || 0;
-        acc[modalidade].feminino += categorias.Feminino || 0;
-        acc[modalidade].misto += categorias.Misto || 0;
-        acc[modalidade].total = 
-          acc[modalidade].masculino + 
-          acc[modalidade].feminino + 
-          acc[modalidade].misto;
+        if (categorias) {
+          acc[modalidade].masculino += categorias.Masculino || 0;
+          acc[modalidade].feminino += categorias.Feminino || 0;
+          acc[modalidade].misto += categorias.Misto || 0;
+          acc[modalidade].total = 
+            acc[modalidade].masculino + 
+            acc[modalidade].feminino + 
+            acc[modalidade].misto;
+        }
       });
       return acc;
     }, {} as Record<string, any>)
