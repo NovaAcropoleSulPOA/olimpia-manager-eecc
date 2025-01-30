@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpDown, Search } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface DashboardTableProps {
   data: BranchAnalytics[];
@@ -61,28 +62,43 @@ export function DashboardTable({ data }: DashboardTableProps) {
     }));
   };
 
-  const formatModalidadesPopulares = (modalidadesPopulares: ModalityData | null): string => {
+  const formatModalidadesPopulares = (modalidadesPopulares: ModalityData | null): JSX.Element => {
     console.log("Formatting modalidades populares:", modalidadesPopulares);
     
-    if (!modalidadesPopulares) {
-      return "Nenhuma modalidade popular disponível";
+    if (!modalidadesPopulares || Object.keys(modalidadesPopulares).length === 0) {
+      return (
+        <span className="text-muted-foreground">
+          Nenhuma modalidade popular disponível
+        </span>
+      );
     }
 
-    const formattedCategories = Object.entries(modalidadesPopulares)
-      .map(([modalidade, categorias]) => {
-        const categoryEntries = Object.entries(categorias)
-          .filter(([_, count]) => count > 0)
-          .map(([categoria, count]) => `${categoria}: ${count}`);
+    const getTagVariant = (index: number): "default" | "secondary" | "destructive" => {
+      const variants: ("default" | "secondary" | "destructive")[] = ["default", "secondary", "destructive"];
+      return variants[index % variants.length];
+    };
 
-        if (categoryEntries.length === 0) return null;
+    const modalityTags = Object.entries(modalidadesPopulares).map(([modalidade, categorias], index) => {
+      const totalInscritos = Object.values(categorias).reduce((sum, count) => sum + count, 0);
+      
+      if (totalInscritos === 0) return null;
 
-        return `${modalidade} (${categoryEntries.join(", ")})`;
-      })
-      .filter(Boolean);
+      return (
+        <Badge
+          key={modalidade}
+          variant={getTagVariant(index)}
+          className="mr-2 mb-2 whitespace-nowrap"
+        >
+          {modalidade} ({totalInscritos} {totalInscritos === 1 ? 'inscrito' : 'inscritos'})
+        </Badge>
+      );
+    }).filter(Boolean);
 
-    return formattedCategories.length > 0
-      ? formattedCategories.join(" | ")
-      : "Nenhuma modalidade popular disponível";
+    return (
+      <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto">
+        {modalityTags}
+      </div>
+    );
   };
 
   return (
