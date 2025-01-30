@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { 
   CheckCircle2, XCircle, Clock, AlertCircle,
-  Plus, Loader2, Info
+  Plus, Loader2, Info, ChevronDown
 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -19,6 +19,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const getModalityStatusIcon = (status: string) => {
   switch (status) {
@@ -40,7 +46,6 @@ export default function AthleteRegistrations() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch athlete's profile to get gender
   const { data: athleteProfile } = useQuery({
     queryKey: ['athlete-profile', user?.id],
     queryFn: async () => {
@@ -61,7 +66,6 @@ export default function AthleteRegistrations() {
     enabled: !!user?.id,
   });
 
-  // Filter modalities based on athlete's gender
   const filterModalitiesByGender = (modalities: any[]) => {
     const gender = athleteProfile?.genero?.toLowerCase();
     if (!gender) return modalities;
@@ -102,15 +106,17 @@ export default function AthleteRegistrations() {
 
       const filteredModalities = filterModalitiesByGender(filteredByVacancies);
       
-      // Sort modalities alphabetically by name
-      return filteredModalities.sort((a, b) => 
-        a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' })
-      );
+      // Sort modalities first by grupo, then by name
+      return filteredModalities.sort((a, b) => {
+        if (a.grupo === b.grupo) {
+          return a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
+        }
+        return (a.grupo || '').localeCompare(b.grupo || '', 'pt-BR', { sensitivity: 'base' });
+      });
     },
     enabled: !!athleteProfile,
   });
 
-  // Fetch athlete's modality registrations
   const { data: registeredModalities, isLoading: registrationsLoading } = useQuery({
     queryKey: ['athlete-modalities', user?.id],
     queryFn: async () => {
@@ -133,7 +139,6 @@ export default function AthleteRegistrations() {
     enabled: !!user?.id,
   });
 
-  // Mutation for withdrawing from a modality
   const withdrawMutation = useMutation({
     mutationFn: async (modalityId: number) => {
       if (!user?.id) throw new Error('User not authenticated');
@@ -164,7 +169,6 @@ export default function AthleteRegistrations() {
     },
   });
 
-  // Mutation for registering in a modality
   const registerMutation = useMutation({
     mutationFn: async (modalityId: number) => {
       if (!user?.id) throw new Error('User not authenticated');
@@ -205,6 +209,16 @@ export default function AthleteRegistrations() {
       </div>
     );
   }
+
+  // Group modalities by grupo
+  const groupedModalities = allModalities?.reduce((groups: Record<string, any[]>, modality) => {
+    const grupo = modality.grupo || 'Outras Modalidades';
+    if (!groups[grupo]) {
+      groups[grupo] = [];
+    }
+    groups[grupo].push(modality);
+    return groups;
+  }, {});
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -270,53 +284,80 @@ export default function AthleteRegistrations() {
 
           <div className="mt-8">
             <CardTitle className="mb-4">Modalidades Disponíveis</CardTitle>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Modalidade</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {allModalities?.map((modality) => {
-                  const isRegistered = registeredModalities?.some(
+            <Accordion type="single" collapsible className="space-y-4">
+              {groupedModalities && Object.entries(groupedModalities).map(([grupo, modalities]) => {
+                // Filter out modalities that are already registered
+                const availableModalities = modalities.filter(
+                  modality => !registeredModalities?.some(
                     reg => reg.modalidade_id === modality.id
-                  );
+                  )
+                );
 
-                  if (isRegistered) return null;
+                if (availableModalities.length === 0) return null;
 
-                  return (
-                    <TableRow key={modality.id}>
-                      <TableCell>{modality.nome}</TableCell>
-                      <TableCell className="capitalize">{modality.tipo_modalidade}</TableCell>
-                      <TableCell className="capitalize">{modality.categoria}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          disabled={registerMutation.isPending}
-                          onClick={() => registerMutation.mutate(modality.id)}
-                        >
-                          {registerMutation.isPending ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Processando...
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="h-4 w-4 mr-1" />
-                              Inscrever
-                            </>
-                          )}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                return (
+                  <AccordionItem 
+                    key={grupo} 
+                    value={grupo}
+                    className="border rounded-lg px-4"
+                  >
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold">{grupo}</h3>
+                        <span className="text-sm text-gray-500">
+                          ({availableModalities.length} modalidades)
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Modalidade</TableHead>
+                            <TableHead>Tipo</TableHead>
+                            <TableHead>Categoria</TableHead>
+                            <TableHead>Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {availableModalities.map((modality) => (
+                            <TableRow key={modality.id}>
+                              <TableCell>{modality.nome}</TableCell>
+                              <TableCell className="capitalize">
+                                {modality.tipo_modalidade}
+                              </TableCell>
+                              <TableCell className="capitalize">
+                                {modality.categoria}
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  disabled={registerMutation.isPending}
+                                  onClick={() => registerMutation.mutate(modality.id)}
+                                >
+                                  {registerMutation.isPending ? (
+                                    <>
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                      Processando...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Plus className="h-4 w-4 mr-1" />
+                                      Inscrever
+                                    </>
+                                  )}
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
           </div>
         </CardContent>
       </Card>
