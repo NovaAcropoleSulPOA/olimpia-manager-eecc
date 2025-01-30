@@ -16,6 +16,11 @@ interface DashboardTableProps {
   data: BranchAnalytics[];
 }
 
+interface ModalityCount {
+  modalidade: string;
+  total_inscritos: number;
+}
+
 export function DashboardTable({ data }: DashboardTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<{
@@ -53,25 +58,31 @@ export function DashboardTable({ data }: DashboardTableProps) {
     }));
   };
 
+  const formatModalityList = (modalities: ModalityCount[] | null): string => {
+    if (!modalities || modalities.length === 0) return "";
+    
+    return modalities
+      .map(m => `${m.modalidade} (${m.total_inscritos})`)
+      .join(", ");
+  };
+
   const formatTopModalities = (branch: BranchAnalytics) => {
     const categories = {
-      Masculino: branch.top_modalidades_masculino,
-      Feminino: branch.top_modalidades_feminino,
-      Misto: branch.top_modalidades_misto
+      Masculino: branch.top_modalidades_masculino as ModalityCount[] | null,
+      Feminino: branch.top_modalidades_feminino as ModalityCount[] | null,
+      Misto: branch.top_modalidades_misto as ModalityCount[] | null
     };
 
-    return Object.entries(categories)
+    const formattedCategories = Object.entries(categories)
       .map(([category, modalities]) => {
-        if (!modalities || Object.keys(modalities).length === 0) return null;
-
-        const modalityList = Object.entries(modalities)
-          .map(([modalidade, count]) => `${modalidade} (${count})`)
-          .join(", ");
-
+        const modalityList = formatModalityList(modalities);
         return modalityList ? `${category}: ${modalityList}` : null;
       })
-      .filter(Boolean)
-      .join(" | ");
+      .filter(Boolean);
+
+    return formattedCategories.length > 0 
+      ? formattedCategories.join(" | ")
+      : "Nenhuma modalidade registrada";
   };
 
   return (
@@ -123,9 +134,7 @@ export function DashboardTable({ data }: DashboardTableProps) {
                 <TableRow key={branch.filial_id} className="hover:bg-muted/50 transition-colors">
                   <TableCell className="font-medium">{branch.filial}</TableCell>
                   <TableCell className="text-right">{branch.total_inscritos}</TableCell>
-                  <TableCell>
-                    {formatTopModalities(branch) || "Nenhuma modalidade registrada"}
-                  </TableCell>
+                  <TableCell>{formatTopModalities(branch)}</TableCell>
                 </TableRow>
               ))}
               {filteredData.length === 0 && (
