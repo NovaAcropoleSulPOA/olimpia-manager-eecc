@@ -22,8 +22,6 @@ export interface AthleteRegistration {
 export interface BranchAnalytics {
   filial_id: string;
   filial: string;
-  cidade: string;
-  estado: string;
   total_inscritos: number;
   valor_total_arrecadado: number;
   modalidades_populares: Array<{
@@ -43,26 +41,6 @@ export interface BranchAnalytics {
     quantidade: number;
   }>;
 }
-
-export interface Branch {
-  id: string;
-  nome: string;
-  cidade: string;
-  estado: string;
-}
-
-export const fetchBranches = async (): Promise<Branch[]> => {
-  const { data, error } = await supabase
-    .from('filiais')
-    .select('*');
-
-  if (error) {
-    console.error('Error fetching branches:', error);
-    throw error;
-  }
-
-  return data || [];
-};
 
 export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
   console.log('Fetching branch analytics from view...');
@@ -147,36 +125,23 @@ export const updatePaymentStatus = async (
 ): Promise<void> => {
   console.log('Updating payment status:', { athleteId, status });
   
-  // Get all modality registrations for this athlete
-  const { data: registrations, error: fetchError } = await supabase
-    .from('inscricoes_modalidades')
-    .select('id')
-    .eq('atleta_id', athleteId);
+  try {
+    const { error } = await supabase
+      .rpc('atualizar_status_pagamento', {
+        p_atleta_id: athleteId,
+        p_novo_status: status
+      });
 
-  if (fetchError) {
-    console.error('Error fetching registrations:', fetchError);
-    throw fetchError;
-  }
+    if (error) {
+      console.error('Error updating payment status:', error);
+      throw new Error(error.message);
+    }
 
-  if (!registrations?.length) {
-    console.error('No registrations found for athlete:', athleteId);
-    throw new Error('No registrations found for athlete');
-  }
-
-  // Update the status for all registrations
-  const { error } = await supabase
-    .rpc('atualizar_status_inscricao', {
-      inscricao_id: registrations[0].id,
-      novo_status: status,
-      justificativa: `Payment status updated to ${status}`
-    });
-
-  if (error) {
-    console.error('Error updating payment status:', error);
+    return Promise.resolve();
+  } catch (error) {
+    console.error('Error in updatePaymentStatus:', error);
     throw error;
   }
-
-  return Promise.resolve();
 };
 
 export const updateModalityStatus = async (

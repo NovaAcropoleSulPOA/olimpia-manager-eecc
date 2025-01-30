@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchBranchAnalytics, fetchAthleteRegistrations, updateModalityStatus } from "@/lib/api";
+import { fetchBranchAnalytics, fetchAthleteRegistrations, updateModalityStatus, updatePaymentStatus } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { DashboardMetrics } from "./dashboard/DashboardMetrics";
 import { DashboardCharts } from "./dashboard/DashboardCharts";
 import { DashboardTable } from "./dashboard/DashboardTable";
 import { AthleteRegistrationCard } from "./AthleteRegistrationCard";
 import { toast } from "sonner";
-import { updatePaymentStatus } from "@/lib/api";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-96 text-center">
@@ -48,9 +47,6 @@ export default function OrganizerDashboard() {
     queryFn: fetchAthleteRegistrations,
   });
 
-  console.log('Branch analytics data:', branchAnalytics);
-  console.log('Registrations data:', registrations);
-
   const handleStatusChange = async (modalityId: string, status: string, justification: string) => {
     try {
       await updateModalityStatus(modalityId, status, justification);
@@ -83,7 +79,8 @@ export default function OrganizerDashboard() {
       console.log('Data refreshed after payment status update');
     } catch (error) {
       console.error('Error updating payment status:', error);
-      toast.error("Erro ao atualizar status de pagamento");
+      const errorMessage = error instanceof Error ? error.message : "Erro ao atualizar status de pagamento";
+      toast.error(errorMessage);
     }
   };
 
