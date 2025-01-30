@@ -1,5 +1,12 @@
 import { supabase } from './supabase';
 
+export interface Branch {
+  id: string;
+  nome: string;
+  cidade: string;
+  estado: string;
+}
+
 export interface AthleteModality {
   id: string;
   modalidade: string;
@@ -41,6 +48,20 @@ export interface BranchAnalytics {
     quantidade: number;
   }>;
 }
+
+export const fetchBranches = async (): Promise<Branch[]> => {
+  console.log('Fetching branches...');
+  const { data, error } = await supabase
+    .from('filiais')
+    .select('*');
+
+  if (error) {
+    console.error('Error fetching branches:', error);
+    throw error;
+  }
+
+  return data || [];
+};
 
 export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
   console.log('Fetching branch analytics from view...');
