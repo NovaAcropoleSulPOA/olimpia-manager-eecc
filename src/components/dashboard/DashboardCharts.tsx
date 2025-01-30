@@ -8,19 +8,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
   Legend
 } from "recharts";
-
-const COLORS = [
-  "#009B40", // Primary green
-  "#EE7E01", // Primary orange
-  "#4CAF50", // Additional green
-  "#F27C00", // Additional orange
-  "#009C3F"  // Secondary green
-];
 
 interface DashboardChartsProps {
   data: BranchAnalytics[];
@@ -35,23 +24,34 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
     totalPendente: branch.valor_total_pendente || 0
   })).sort((a, b) => b.value - a.value);
 
-  // Transform payment status data for pie chart
-  const paymentStatusData = data.reduce((acc, branch) => {
-    const statusData = branch.inscritos_por_status_pagamento || {};
-    Object.entries(statusData).forEach(([status, count]) => {
-      const existingStatus = acc.find(item => item.name === status);
-      if (existingStatus) {
-        existingStatus.value += count;
+  // Transform data for top 10 modalities by category
+  const modalitiesData = data.reduce((acc, branch) => {
+    const modalidades = branch.modalidades_populares || {};
+    Object.entries(modalidades).forEach(([modalidade, categorias]) => {
+      const existingModality = acc.find(item => item.name === modalidade);
+      if (existingModality) {
+        existingModality.masculino += (categorias.Masculino || 0);
+        existingModality.feminino += (categorias.Feminino || 0);
+        existingModality.misto += (categorias.Misto || 0);
+        existingModality.total = existingModality.masculino + existingModality.feminino + existingModality.misto;
       } else {
-        acc.push({ name: status, value: count });
+        acc.push({
+          name: modalidade,
+          masculino: categorias.Masculino || 0,
+          feminino: categorias.Feminino || 0,
+          misto: categorias.Misto || 0,
+          total: (categorias.Masculino || 0) + (categorias.Feminino || 0) + (categorias.Misto || 0)
+        });
       }
     });
     return acc;
-  }, [] as { name: string; value: number }[]);
+  }, [] as any[])
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10);
 
   console.log('Chart data:', {
     athletesData,
-    paymentStatusData
+    modalitiesData
   });
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -59,20 +59,17 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
       return (
         <div className="bg-white p-4 shadow-lg rounded-lg border">
           <p className="font-bold text-olimpics-text">{label}</p>
-          <p className="text-olimpics-green-primary">
-            {`Total de Atletas: ${payload[0].value}`}
-          </p>
-          <p className="text-olimpics-orange-primary">
-            {`Valor Pago: ${new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(payload[0].payload.totalPago)}`}
-          </p>
-          <p className="text-red-500">
-            {`Valor Pendente: ${new Intl.NumberFormat('pt-BR', {
-              style: 'currency',
-              currency: 'BRL'
-            }).format(payload[0].payload.totalPendente)}`}
+          {payload.map((entry: any, index: number) => (
+            <p
+              key={index}
+              style={{ color: entry.color }}
+              className="text-sm"
+            >
+              {`${entry.name}: ${entry.value}`}
+            </p>
+          ))}
+          <p className="text-sm text-olimpics-text mt-2">
+            {`Total: ${payload.reduce((sum: number, entry: any) => sum + entry.value, 0)}`}
           </p>
         </div>
       );
@@ -113,43 +110,48 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
 
       <Card className="col-span-1">
         <CardHeader>
-          <CardTitle className="text-olimpics-text">Status de Pagamentos</CardTitle>
+          <CardTitle className="text-olimpics-text">Top 10 Modalidades por Categoria</CardTitle>
         </CardHeader>
         <CardContent className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={paymentStatusData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                outerRadius={150}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {paymentStatusData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={COLORS[index % COLORS.length]} 
-                  />
-                ))}
-              </Pie>
-              <Tooltip 
-                formatter={(value: number) => [`${value} atletas`, 'Total']}
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  padding: '0.5rem'
-                }}
+            <BarChart
+              data={modalitiesData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 12, fill: '#4b5563' }}
+                interval={0}
+                angle={-45}
+                textAnchor="end"
+                height={80}
               />
-              <Legend 
-                verticalAlign="bottom" 
-                height={36}
-                formatter={(value) => <span className="text-olimpics-text">{value}</span>}
+              <YAxis tick={{ fontSize: 12, fill: '#4b5563' }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Bar
+                dataKey="masculino"
+                stackId="a"
+                fill="#009B40"
+                name="Masculino"
+                radius={[4, 4, 0, 0]}
               />
-            </PieChart>
+              <Bar
+                dataKey="feminino"
+                stackId="a"
+                fill="#EE7E01"
+                name="Feminino"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar
+                dataKey="misto"
+                stackId="a"
+                fill="#4CAF50"
+                name="Misto"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
