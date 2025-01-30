@@ -4,7 +4,6 @@ import { fetchBranchAnalytics, fetchAthleteRegistrations, updateModalityStatus, 
 import { Button } from "@/components/ui/button";
 import { DashboardMetrics } from "./dashboard/DashboardMetrics";
 import { DashboardCharts } from "./dashboard/DashboardCharts";
-import { DashboardTable } from "./dashboard/DashboardTable";
 import { AthleteRegistrationCard } from "./AthleteRegistrationCard";
 import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
@@ -171,7 +170,6 @@ export default function OrganizerDashboard() {
       <div className="grid gap-6">
         <DashboardMetrics data={branchAnalytics} />
         <DashboardCharts data={branchAnalytics} />
-        <DashboardTable data={branchAnalytics} />
       </div>
 
       <div className="mt-8">

@@ -11,7 +11,9 @@ import {
   Legend,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  ComposedChart,
+  Line
 } from "recharts";
 
 interface DashboardChartsProps {
@@ -21,12 +23,12 @@ interface DashboardChartsProps {
 const COLORS = ['#009B40', '#EE7E01', '#4CAF50', '#2196F3', '#9C27B0', '#FF5722'];
 
 export function DashboardCharts({ data }: DashboardChartsProps) {
-  // Transform data for athletes per branch
-  const athletesData = data.map(branch => ({
+  // Transform data for branch registrations and payments
+  const branchData = data.map(branch => ({
     name: branch.filial,
     total: branch.total_inscritos || 0,
-    pagos: branch.valor_total_pago ? Number(branch.valor_total_pago) : 0,
-    pendentes: branch.valor_total_pendente ? Number(branch.valor_total_pendente) : 0
+    pago: branch.valor_total_pago ? Number(branch.valor_total_pago) : 0,
+    pendente: branch.valor_total_pendente ? Number(branch.valor_total_pendente) : 0
   })).sort((a, b) => b.total - a.total);
 
   // Transform data for payment status distribution
@@ -44,6 +46,33 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
     });
     return acc;
   }, [] as { name: string; value: number }[]);
+
+  // Transform data for modalities by category
+  const modalitiesData = data.reduce((acc, branch) => {
+    const modalidades = branch.modalidades_populares as Record<string, {
+      Masculino: number;
+      Feminino: number;
+      Misto: number;
+    }> || {};
+
+    Object.entries(modalidades).forEach(([modalidade, categorias]) => {
+      const existingModalidade = acc.find(item => item.name === modalidade);
+      if (existingModalidade) {
+        existingModalidade.Masculino += categorias.Masculino || 0;
+        existingModalidade.Feminino += categorias.Feminino || 0;
+        existingModalidade.Misto += categorias.Misto || 0;
+      } else {
+        acc.push({
+          name: modalidade,
+          Masculino: categorias.Masculino || 0,
+          Feminino: categorias.Feminino || 0,
+          Misto: categorias.Misto || 0,
+          total: (categorias.Masculino || 0) + (categorias.Feminino || 0) + (categorias.Misto || 0)
+        });
+      }
+    });
+    return acc;
+  }, [] as any[]).sort((a, b) => b.total - a.total).slice(0, 10);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -67,14 +96,14 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {athletesData.some(item => item.total > 0) && (
-        <Card className="col-span-1">
+      {branchData.length > 0 && (
+        <Card className="col-span-2">
           <CardHeader>
-            <CardTitle className="text-olimpics-text">Atletas por Filial</CardTitle>
+            <CardTitle className="text-olimpics-text">Inscrições por Filial</CardTitle>
           </CardHeader>
           <CardContent className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={athletesData}>
+              <ComposedChart data={branchData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis 
                   dataKey="name"
@@ -84,14 +113,60 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                   textAnchor="end"
                   height={80}
                 />
-                <YAxis tick={{ fontSize: 12, fill: '#4b5563' }} />
+                <YAxis yAxisId="left" tick={{ fontSize: 12, fill: '#4b5563' }} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12, fill: '#4b5563' }} />
                 <Tooltip content={<CustomTooltip />} />
+                <Legend />
                 <Bar 
+                  yAxisId="left"
                   dataKey="total" 
                   fill="#009B40"
                   name="Total de Atletas"
                   radius={[4, 4, 0, 0]}
                 />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="pago"
+                  stroke="#2196F3"
+                  name="Valor Pago (R$)"
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="pendente"
+                  stroke="#FF5722"
+                  name="Valor Pendente (R$)"
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
+
+      {modalitiesData.length > 0 && (
+        <Card className="col-span-2">
+          <CardHeader>
+            <CardTitle className="text-olimpics-text">Top 10 Modalidades por Categoria</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={modalitiesData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="name"
+                  tick={{ fontSize: 12 }}
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+                <Bar dataKey="Masculino" fill="#2196F3" stackId="a" />
+                <Bar dataKey="Feminino" fill="#E91E63" stackId="a" />
+                <Bar dataKey="Misto" fill="#4CAF50" stackId="a" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -99,7 +174,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
       )}
 
       {paymentStatusData.length > 0 && (
-        <Card className="col-span-1">
+        <Card className="col-span-2 md:col-span-1">
           <CardHeader>
             <CardTitle className="text-olimpics-text">Status de Pagamento</CardTitle>
           </CardHeader>
