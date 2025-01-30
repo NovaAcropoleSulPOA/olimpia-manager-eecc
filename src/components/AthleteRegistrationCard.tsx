@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Building2, Award, CheckCircle2, XCircle } from "lucide-react";
+import { Phone, Mail, Building2, Award } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,6 +23,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   onPaymentStatusChange,
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
+  const isPaymentPending = registration.status_pagamento === "pendente";
+  const hasModalities = registration.modalidades.length > 0;
 
   const handleWhatsAppClick = (phone: string) => {
     const formattedPhone = phone.replace(/\D/g, '');
@@ -89,86 +91,83 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     }
   };
 
+  const cardContent = (
+    <Card className={cn(
+      getStatusColor(registration.status_pagamento),
+      isPaymentPending ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:shadow-md transition-shadow'
+    )}>
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          <div className="flex justify-between items-start">
+            <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
+            <Badge className={cn("capitalize", getStatusTextColor(registration.status_pagamento))}>
+              {registration.status_pagamento}
+            </Badge>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              <span className="truncate">
+                {registration.email?.trim() ? registration.email : "Email não informado"}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-muted-foreground" />
+              <Button
+                variant="link"
+                className="p-0 h-auto font-normal"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleWhatsAppClick(registration.telefone);
+                }}
+              >
+                {registration.telefone}
+              </Button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+              <span>{registration.filial}</span>
+            </div>
+
+            {hasModalities && (
+              <div className="flex items-center gap-2">
+                <Award className="h-4 w-4 text-muted-foreground" />
+                <span>{registration.modalidades.length} modalidades</span>
+              </div>
+            )}
+          </div>
+
+          {registration.status_pagamento === "pendente" && onPaymentStatusChange && (
+            <div className="mt-4 flex items-center gap-2">
+              <label className="text-sm text-muted-foreground">Status do pagamento:</label>
+              <Select onValueChange={handlePaymentStatusChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Alterar status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="confirmado">Confirmado</SelectItem>
+                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  if (isPaymentPending) {
+    return cardContent;
+  }
+
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Card className={`cursor-pointer hover:shadow-md transition-shadow ${getStatusColor(registration.status_pagamento)}`}>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-start">
-                <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
-                <div className="flex gap-2">
-                  <Badge variant={registration.confirmado ? "default" : "destructive"}>
-                    {registration.confirmado ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 mr-1" />
-                        Validado
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="w-4 h-4 mr-1" />
-                        Não Validado
-                      </>
-                    )}
-                  </Badge>
-                  <Badge className={cn("capitalize", getStatusTextColor(registration.status_pagamento))}>
-                    {registration.status_pagamento}
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span className="truncate">
-                    {registration.email?.trim() ? registration.email : "Email não informado"}
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <Button
-                    variant="link"
-                    className="p-0 h-auto font-normal"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleWhatsAppClick(registration.telefone);
-                    }}
-                  >
-                    {registration.telefone}
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span>{registration.filial}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-muted-foreground" />
-                  <span>{registration.modalidades.length} modalidades</span>
-                </div>
-              </div>
-
-              {registration.status_pagamento === "pendente" && onPaymentStatusChange && (
-                <div className="mt-4 flex items-center gap-2">
-                  <label className="text-sm text-muted-foreground">Status do pagamento:</label>
-                  <Select onValueChange={handlePaymentStatusChange}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Alterar status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="confirmado">Confirmado</SelectItem>
-                      <SelectItem value="cancelado">Cancelado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <div>{cardContent}</div>
       </DialogTrigger>
-
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Gerenciar Modalidades - {registration.nome_atleta}</DialogTitle>
