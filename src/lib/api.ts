@@ -28,7 +28,30 @@ export interface AthleteRegistration {
   tipo_documento: string;
   numero_documento: string;
   genero: string;
-  numero_identificador?: string; // Added this field
+  numero_identificador?: string;
+}
+
+export interface BranchAnalytics {
+  filial_id: string;
+  filial: string;
+  total_inscritos: number;
+  valor_total_arrecadado: number;
+  modalidades_populares: Array<{
+    modalidade: string;
+    total_inscritos: number;
+  }>;
+  inscritos_por_status: Array<{
+    status_inscricao: string;
+    quantidade: number;
+  }>;
+  inscritos_por_status_pagamento: Array<{
+    status_pagamento: string;
+    quantidade: number;
+  }>;
+  atletas_por_categoria: Array<{
+    categoria: string;
+    quantidade: number;
+  }>;
 }
 
 export const fetchBranches = async (): Promise<Branch[]> => {
