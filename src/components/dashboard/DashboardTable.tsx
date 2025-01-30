@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpDown, Search } from "lucide-react";
+import { ArrowUpDown, Search, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface DashboardTableProps {
@@ -78,24 +78,30 @@ export function DashboardTable({ data }: DashboardTableProps) {
       return variants[index % variants.length];
     };
 
-    const modalityTags = Object.entries(modalidadesPopulares).map(([modalidade, categorias], index) => {
-      const totalInscritos = Object.values(categorias).reduce((sum, count) => sum + count, 0);
-      
-      if (totalInscritos === 0) return null;
+    const modalityTags = Object.entries(modalidadesPopulares)
+      .map(([modalidade, categorias]) => {
+        const totalInscritos = Object.values(categorias).reduce((sum, count) => sum + count, 0);
+        
+        if (totalInscritos === 0) return null;
 
-      return (
-        <Badge
-          key={modalidade}
-          variant={getTagVariant(index)}
-          className="mr-2 mb-2 whitespace-nowrap"
-        >
-          {modalidade} ({totalInscritos} {totalInscritos === 1 ? 'inscrito' : 'inscritos'})
-        </Badge>
-      );
-    }).filter(Boolean);
+        return (
+          <Badge
+            key={modalidade}
+            variant={getTagVariant(Math.floor(Math.random() * 3))}
+            className="inline-flex items-center gap-1 mr-2 mb-2"
+          >
+            <Tag className="w-3 h-3" />
+            <span>{modalidade}</span>
+            <span className="ml-1 text-xs opacity-75">
+              ({totalInscritos} {totalInscritos === 1 ? 'inscrito' : 'inscritos'})
+            </span>
+          </Badge>
+        );
+      })
+      .filter(Boolean);
 
     return (
-      <div className="flex flex-wrap gap-2 max-h-[100px] overflow-y-auto">
+      <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto pr-2">
         {modalityTags}
       </div>
     );
