@@ -49,21 +49,28 @@ export function ModalitiesTable({ data }: ModalitiesTableProps) {
     console.log('Processing branch data:', branch.filial, branch.modalidades_populares);
 
     // Parse the modalidades_populares JSON if it's a string
-    const modalidadesPopulares = typeof branch.modalidades_populares === 'string' 
-      ? JSON.parse(branch.modalidades_populares) 
-      : branch.modalidades_populares;
-
-    // Extract and combine modalities from all categories
-    const modalidades: ModalityCount[] = [];
-    Object.entries(modalidadesPopulares).forEach(([modalidade, categorias]) => {
-      if (typeof categorias === 'object' && categorias !== null) {
-        const total = Object.values(categorias as Record<string, number>).reduce((sum, count) => sum + (count || 0), 0);
-        modalidades.push({
-          nome: modalidade,
-          total
-        });
+    let modalidadesPopulares = branch.modalidades_populares;
+    if (typeof modalidadesPopulares === 'string') {
+      try {
+        modalidadesPopulares = JSON.parse(modalidadesPopulares);
+      } catch (e) {
+        console.error('Error parsing modalidades_populares:', e);
+        return acc;
       }
-    });
+    }
+
+    // Extract modalities and their totals
+    const modalidades: ModalityCount[] = [];
+    if (Array.isArray(modalidadesPopulares)) {
+      modalidadesPopulares.forEach(item => {
+        if (item.modalidade && typeof item.total_inscritos === 'number') {
+          modalidades.push({
+            nome: item.modalidade,
+            total: item.total_inscritos
+          });
+        }
+      });
+    }
 
     const totalInscritos = modalidades.reduce((sum, mod) => sum + mod.total, 0);
 
@@ -118,7 +125,7 @@ export function ModalitiesTable({ data }: ModalitiesTableProps) {
                 style={{ color: entry.color }}
                 className="text-sm"
               >
-                {`${entry.name}: ${entry.value} inscritos`}
+                {`${entry.name}: ${entry.value} ${entry.value === 1 ? 'inscrito' : 'inscritos'}`}
               </p>
             )
           ))}
@@ -182,7 +189,7 @@ export function ModalitiesTable({ data }: ModalitiesTableProps) {
                     <div className="flex items-center space-x-4">
                       <span className="font-medium">{branch.filial}</span>
                       <Badge variant="outline" className="bg-olimpics-green-primary/10">
-                        {branch.totalInscritos} inscritos
+                        {branch.totalInscritos} {branch.totalInscritos === 1 ? 'inscrito' : 'inscritos'}
                       </Badge>
                     </div>
                     {expandedBranch === branch.filial ? (
@@ -197,11 +204,13 @@ export function ModalitiesTable({ data }: ModalitiesTableProps) {
                     {branch.modalidades.map((modalidade) => (
                       <div
                         key={modalidade.nome}
-                        className="flex justify-between items-center py-2"
+                        className="flex justify-between items-center py-2 px-4 bg-white rounded-lg shadow-sm"
                       >
-                        <span>{modalidade.nome}</span>
-                        <Badge>
-                          {modalidade.total} inscritos
+                        <span className="text-olimpics-text">
+                          🏅 {modalidade.nome}
+                        </span>
+                        <Badge variant="secondary">
+                          {modalidade.total} {modalidade.total === 1 ? 'inscrito' : 'inscritos'}
                         </Badge>
                       </div>
                     ))}
