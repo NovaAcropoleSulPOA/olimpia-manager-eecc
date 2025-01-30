@@ -12,11 +12,11 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
 const resetPasswordSchema = z.object({
-  password: z.string()
+  newPassword: z.string()
     .min(6, 'A senha deve ter no mínimo 6 caracteres')
     .max(50, 'A senha não pode ter mais de 50 caracteres'),
   confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
+}).refine((data) => data.newPassword === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
 });
@@ -35,10 +35,10 @@ export default function ResetPassword() {
   const resetForm = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      password: '',
+      newPassword: '',
       confirmPassword: '',
     },
-  });
+  });  
 
   const requestForm = useForm<z.infer<typeof requestResetSchema>>({
     resolver: zodResolver(requestResetSchema),
@@ -166,7 +166,7 @@ export default function ResetPassword() {
               <form onSubmit={resetForm.handleSubmit(handlePasswordReset)} className="space-y-4">
               <FormField
                   control={resetForm.control}
-                  name="password"
+                  name="newPassword" // Alterado de "password" para "newPassword"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nova Senha</FormLabel>
@@ -175,8 +175,8 @@ export default function ResetPassword() {
                           type="password"
                           placeholder="••••••"
                           className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                          value={field.value || ''}  // Garante que o campo nunca fique undefined
-                          onChange={(e) => field.onChange(e.target.value)} // Passa onChange corretamente
+                          value={field.value || ''} // Garante que o campo não seja undefined
+                          onChange={(e) => field.onChange(e.target.value)} // Passa onChange explicitamente
                         />
                       </FormControl>
                       <FormMessage />
