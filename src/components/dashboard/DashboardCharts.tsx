@@ -49,30 +49,45 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
 
   // Transform data for modalities by category
   const modalitiesData = data.reduce((acc, branch) => {
-    const modalidades = branch.modalidades_populares as Record<string, {
-      Masculino: number;
-      Feminino: number;
-      Misto: number;
-    }> || {};
+    console.log("Processing branch modalidades_populares:", branch.modalidades_populares);
+    
+    if (!branch.modalidades_populares) return acc;
 
-    Object.entries(modalidades).forEach(([modalidade, categorias]) => {
+    Object.entries(branch.modalidades_populares as Record<string, {
+      Masculino?: number;
+      Feminino?: number;
+      Misto?: number;
+    }>).forEach(([modalidade, categorias]) => {
       const existingModalidade = acc.find(item => item.name === modalidade);
       if (existingModalidade) {
         existingModalidade.Masculino += categorias.Masculino || 0;
         existingModalidade.Feminino += categorias.Feminino || 0;
         existingModalidade.Misto += categorias.Misto || 0;
+        existingModalidade.total = (
+          (existingModalidade.Masculino || 0) + 
+          (existingModalidade.Feminino || 0) + 
+          (existingModalidade.Misto || 0)
+        );
       } else {
         acc.push({
           name: modalidade,
           Masculino: categorias.Masculino || 0,
           Feminino: categorias.Feminino || 0,
           Misto: categorias.Misto || 0,
-          total: (categorias.Masculino || 0) + (categorias.Feminino || 0) + (categorias.Misto || 0)
+          total: (
+            (categorias.Masculino || 0) + 
+            (categorias.Feminino || 0) + 
+            (categorias.Misto || 0)
+          )
         });
       }
     });
     return acc;
-  }, [] as any[]).sort((a, b) => b.total - a.total).slice(0, 10);
+  }, [] as any[])
+  .sort((a, b) => b.total - a.total)
+  .slice(0, 10);
+
+  console.log("Processed modalities data:", modalitiesData);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -164,9 +179,9 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                 <YAxis />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Bar dataKey="Masculino" fill="#2196F3" stackId="a" />
-                <Bar dataKey="Feminino" fill="#E91E63" stackId="a" />
-                <Bar dataKey="Misto" fill="#4CAF50" stackId="a" />
+                <Bar dataKey="Masculino" fill="#2196F3" stackId="a" name="Masculino" />
+                <Bar dataKey="Feminino" fill="#E91E63" stackId="a" name="Feminino" />
+                <Bar dataKey="Misto" fill="#4CAF50" stackId="a" name="Misto" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
