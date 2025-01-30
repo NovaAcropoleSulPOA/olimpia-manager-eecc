@@ -9,16 +9,29 @@ interface DashboardMetricsProps {
 export function DashboardMetrics({ data }: DashboardMetricsProps) {
   // Calculate totals from the analytics data
   const totalAthletes = data.reduce((acc, branch) => acc + (branch.total_inscritos || 0), 0);
+  
+  // Calculate revenue totals
   const totalRevenuePaid = data.reduce((acc, branch) => acc + (branch.valor_total_pago || 0), 0);
   const totalRevenuePending = data.reduce((acc, branch) => acc + (branch.valor_total_pendente || 0), 0);
-  const totalAthletesPendingPayment = data.reduce((acc, branch) => 
-    acc + (branch.total_atletas_pendentes_pagamento || 0), 0);
+  
+  // Calculate pending payments count - ensure we only count actual pending payments
+  const totalAthletesPendingPayment = data.reduce((acc, branch) => {
+    const pendingCount = branch.inscritos_por_status_pagamento?.pendente || 0;
+    console.log('Branch pending payments:', {
+      branchId: branch.filial_id,
+      branchName: branch.filial,
+      pendingCount,
+      rawData: branch.inscritos_por_status_pagamento
+    });
+    return acc + pendingCount;
+  }, 0);
 
-  console.log('Dashboard metrics:', {
+  console.log('Dashboard metrics calculated:', {
     totalAthletes,
     totalRevenuePaid,
     totalRevenuePending,
-    totalAthletesPendingPayment
+    totalAthletesPendingPayment,
+    rawData: data
   });
 
   return (

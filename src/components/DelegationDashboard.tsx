@@ -39,8 +39,13 @@ export default function DelegationDashboard() {
   } = useQuery({
     queryKey: ['branch-analytics', user?.filial_id],
     queryFn: fetchBranchAnalytics,
-    select: (data) => data.filter(branch => branch.filial_id === user?.filial_id),
-    staleTime: 1000 * 60 * 5,
+    select: (data) => {
+      if (!user?.filial_id) return [];
+      const filteredData = data.filter(branch => branch.filial_id === user.filial_id);
+      console.log('Filtered branch analytics:', filteredData);
+      return filteredData;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: true,
   });
 
