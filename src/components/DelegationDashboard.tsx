@@ -39,7 +39,7 @@ export default function DelegationDashboard() {
   } = useQuery({
     queryKey: ['branch-analytics', user?.filial_id],
     queryFn: fetchBranchAnalytics,
-    select: (data) => data.filter(branch => branch.filial === user?.filial),
+    select: (data) => data.filter(branch => branch.filial_id === user?.filial_id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
   });
@@ -52,7 +52,7 @@ export default function DelegationDashboard() {
   } = useQuery({
     queryKey: ['athlete-registrations', user?.filial_id],
     queryFn: fetchAthleteRegistrations,
-    select: (data) => data.filter(reg => reg.filial === user?.filial),
+    select: (data) => data.filter(reg => reg.filial_id === user?.filial_id),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
   });
