@@ -60,7 +60,7 @@ const LandingPage = () => {
               </div>
 
               <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center lg:text-left">
-                Olimpíadas Estaduais da Escola do Esporte com Coração - EECC - Edição Porto Alegre/RS
+                <span>Olimpíadas Estaduais da Escola do Esporte com Coração (EECC) </span> <br /> <span>Edição</span> <br /> <span>Porto Alegre/RS</span>
               </h1>
               <p className="text-xl md:text-2xl italic mb-12 text-center lg:text-left">
                 "Mais rápidos, mais altos, mais fortes, estamos unidos!"
