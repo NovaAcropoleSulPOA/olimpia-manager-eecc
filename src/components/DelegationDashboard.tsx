@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBranchAnalytics, fetchAthleteRegistrations, updateModalityStatus, updatePaymentStatus } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,6 @@ import { AthleteRegistrationCard } from "./AthleteRegistrationCard";
 import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-96 text-center">
@@ -61,45 +60,15 @@ export default function DelegationDashboard() {
     select: (data) => {
       if (!user?.filial_id) return [];
       
-      // Filter athletes from the same filial, including the logged-in user
-      const filteredRegistrations = data.filter(reg => reg.filial_id === user.filial_id);
-      console.log('Filtered registrations:', filteredRegistrations);
-      return filteredRegistrations;
+      // Include both athletes from the representative's filial and the representative themselves
+      return data.filter(reg => 
+        reg.filial === user.filial_id || // Athletes from the same filial
+        reg.id === user.id // The representative's own registration
+      );
     },
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
   });
-
-  // Set up real-time subscription for athlete registrations
-  useEffect(() => {
-    if (!user?.filial_id) return;
-
-    console.log('Setting up real-time subscription for filial:', user.filial_id);
-    
-    const channel = supabase
-      .channel('athlete-registrations')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'vw_inscricoes_atletas',
-          filter: `filial_id=eq.${user.filial_id}`
-        },
-        (payload) => {
-          console.log('Real-time update received:', payload);
-          // Invalidate and refetch queries
-          queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] });
-          queryClient.invalidateQueries({ queryKey: ['branch-analytics'] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      console.log('Cleaning up real-time subscription');
-      supabase.removeChannel(channel);
-    };
-  }, [user?.filial_id, queryClient]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
