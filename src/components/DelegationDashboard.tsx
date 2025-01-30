@@ -45,7 +45,7 @@ export default function DelegationDashboard() {
       console.log('Filtered branch analytics:', filteredData);
       return filteredData;
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: true,
   });
 
@@ -60,21 +60,11 @@ export default function DelegationDashboard() {
     select: (data) => {
       if (!user?.filial_id) return [];
       
-      // Get all athletes from the same filial, including the logged-in user
-      const filialAthletes = data.filter(reg => {
-        const isFromSameFilial = reg.filial === user.filial_id;
-        console.log('Checking athlete:', {
-          athleteId: reg.id,
-          athleteName: reg.nome_atleta,
-          filial: reg.filial,
-          userFilial: user.filial_id,
-          isFromSameFilial
-        });
-        return isFromSameFilial;
-      });
-
-      console.log('Filtered athletes from filial:', filialAthletes);
-      return filialAthletes;
+      // Include both athletes from the representative's filial and the representative themselves
+      return data.filter(reg => 
+        reg.filial === user.filial_id || // Athletes from the same filial
+        reg.id === user.id // The representative's own registration
+      );
     },
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
