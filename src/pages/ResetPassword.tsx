@@ -12,13 +12,9 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
 const resetPasswordSchema = z.object({
-  newPassword: z.string()
+  password: z.string()
     .min(6, 'A senha deve ter no mínimo 6 caracteres')
     .max(50, 'A senha não pode ter mais de 50 caracteres'),
-  confirmPassword: z.string()
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "As senhas não coincidem",
-  path: ["confirmPassword"],
 });
 
 const requestResetSchema = z.object({
@@ -35,8 +31,7 @@ export default function ResetPassword() {
   const resetForm = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      newPassword: '',
-      confirmPassword: '',
+      password: '',
     },
   });  
 
@@ -164,31 +159,12 @@ export default function ResetPassword() {
           <CardContent>
             <Form {...resetForm}>
               <form onSubmit={resetForm.handleSubmit(handlePasswordReset)} className="space-y-4">
-              <FormField
+                <FormField
                   control={resetForm.control}
-                  name="newPassword" // Alterado de "password" para "newPassword"
+                  name="password"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nova Senha</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="••••••"
-                          className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                          value={field.value || ''} // Garante que o campo não seja undefined
-                          onChange={(e) => field.onChange(e.target.value)} // Passa onChange explicitamente
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={resetForm.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirmar Nova Senha</FormLabel>
                       <FormControl>
                         <Input
                           type="password"
