@@ -62,7 +62,18 @@ export default function DelegationDashboard() {
       if (!user?.filial_id) return [];
       
       // Filter athletes from the same filial, including the logged-in user
-      const filteredRegistrations = data.filter(reg => reg.filial_id === user.filial_id);
+      const filteredRegistrations = data.filter(reg => {
+        const isFromSameFilial = reg.filial_id === user.filial_id;
+        console.log(`Registration ${reg.id}:`, {
+          isFromSameFilial,
+          regFilialId: reg.filial_id,
+          userFilialId: user.filial_id,
+          isCurrentUser: reg.id === user.id
+        });
+        return isFromSameFilial;
+      });
+      
+      console.log('All registrations:', data);
       console.log('Filtered registrations:', filteredRegistrations);
       return filteredRegistrations;
     },
