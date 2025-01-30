@@ -60,8 +60,20 @@ export default function DelegationDashboard() {
     select: (data) => {
       if (!user?.filial_id) return [];
       
-      // Filter to show all athletes from the same branch
-      const branchAthletes = data.filter(reg => reg.filial === user.filial_id);
+      // Filter to show all athletes from the same branch, including the logged-in user
+      const branchAthletes = data.filter(reg => {
+        const isSameBranch = reg.filial === user.filial_id;
+        console.log('Checking athlete:', {
+          athleteId: reg.id,
+          athleteName: reg.nome_atleta,
+          athleteBranch: reg.filial,
+          userBranch: user.filial_id,
+          isSameBranch
+        });
+        return isSameBranch;
+      });
+      
+      console.log('Total athletes from branch:', branchAthletes.length);
       console.log('Athletes from the same branch:', branchAthletes);
       return branchAthletes;
     },
