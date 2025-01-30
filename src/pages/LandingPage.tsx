@@ -56,7 +56,7 @@ const LandingPage = () => {
               </div>
 
               <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center lg:text-left">
-                Olimpíadas Estaduais da Nova Acrópole 2025 - Porto Alegre
+                Olimpíadas Estaduais da Escola do Esporte com Coração - EECC - Edição Porto Alegre/RS
               </h1>
               <p className="text-xl md:text-2xl italic mb-12 text-center lg:text-left">
                 "Mais rápidos, mais altos, mais fortes, estamos unidos!"

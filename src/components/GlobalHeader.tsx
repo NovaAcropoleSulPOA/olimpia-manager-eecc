@@ -15,7 +15,7 @@ export function GlobalHeader() {
             onClick={() => navigate('/')}
             className="text-olimpics-green-primary hover:text-olimpics-green-secondary"
           >
-            Olimpíadas Estaduais da Nova Acrópole
+            Olimpíadas Estaduais - Escola do Esporte com Coração - EECC
           </Button>
         </div>
       </div>

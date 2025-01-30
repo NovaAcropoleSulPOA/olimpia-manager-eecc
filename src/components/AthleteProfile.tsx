@@ -20,11 +20,11 @@ interface AthleteProfileProps {
 const getProfileImage = (gender: string | undefined) => {
   switch (gender?.toLowerCase()) {
     case 'masculino':
-      return "/lovable-uploads/71dd91ef-fe30-4b2b-9292-5c7ecebb1b69.png";
+      return "/lovable-uploads/EECC_marca_portugues_cores_RGB.png";
     case 'feminino':
-      return "/lovable-uploads/781f97ba-e496-4392-92b0-8ea401f0aa3e.png";
+      return "/lovable-uploads/EECC_marca_portugues_cores_RGB.png";
     default:
-      return "/lovable-uploads/7f5d4c54-bc15-4310-ac7a-ecd055bda99b.png";
+      return "/lovable-uploads/EECC_marca_portugues_cores_RGB.png";
   }
 };
 
