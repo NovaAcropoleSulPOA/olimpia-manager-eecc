@@ -26,6 +26,16 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+interface Modality {
+  id: number;
+  nome: string;
+  categoria?: string;
+  tipo_modalidade: string;
+  vagas_ocupadas: number;
+  limite_vagas: number;
+  grupo?: string;
+}
+
 const getModalityStatusIcon = (status: string) => {
   switch (status) {
     case 'confirmado':
@@ -66,9 +76,9 @@ export default function AthleteRegistrations() {
     enabled: !!user?.id,
   });
 
-  const filterModalitiesByGender = (modalities: any[]) => {
+  const filterModalitiesByGender = (modalities: Modality[] | null | undefined) => {
     const gender = athleteProfile?.genero?.toLowerCase();
-    if (!gender || !Array.isArray(modalities)) return modalities;
+    if (!gender || !Array.isArray(modalities)) return [];
 
     return modalities.filter(modality => {
       const category = modality.categoria?.toLowerCase();
