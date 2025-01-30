@@ -58,7 +58,7 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
-const Login = () => {
+export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
@@ -82,11 +82,10 @@ const Login = () => {
       branchId: '',
       tipo_documento: 'CPF',
       numero_documento: '',
-      genero: '',
+      genero: 'Masculino', // Set a valid default value
     },
   });
 
-  // Fetch and sort branches
   const { data: branches = [], isLoading: isLoadingBranches, error: branchesError } = useQuery({
     queryKey: ['branches'],
     queryFn: fetchBranches,
@@ -595,6 +594,4 @@ const Login = () => {
       </div>
     </div>
   );
-};
-
-export default Login;
+}
