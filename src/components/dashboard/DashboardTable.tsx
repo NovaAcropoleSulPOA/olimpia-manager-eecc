@@ -53,31 +53,21 @@ export function DashboardTable({ data }: DashboardTableProps) {
     }));
   };
 
-  const formatModalities = (modalidades: Record<string, number> | null) => {
-    if (!modalidades) return "Nenhuma modalidade";
-    
-    try {
-      return Object.entries(modalidades)
-        .map(([modalidade, count]) => `${modalidade} (${count})`)
-        .join(", ");
-    } catch (error) {
-      console.error('Error formatting modalities:', error);
-      return "Erro ao formatar modalidades";
-    }
-  };
-
   const formatTopModalities = (branch: BranchAnalytics) => {
     const categories = {
-      Masculino: branch.top_modalidades_masculino || {},
-      Feminino: branch.top_modalidades_feminino || {},
-      Misto: branch.top_modalidades_misto || {}
+      Masculino: branch.top_modalidades_masculino,
+      Feminino: branch.top_modalidades_feminino,
+      Misto: branch.top_modalidades_misto
     };
 
     return Object.entries(categories)
       .map(([category, modalities]) => {
+        if (!modalities || Object.keys(modalities).length === 0) return null;
+
         const modalityList = Object.entries(modalities)
           .map(([modalidade, count]) => `${modalidade} (${count})`)
           .join(", ");
+
         return modalityList ? `${category}: ${modalityList}` : null;
       })
       .filter(Boolean)
@@ -133,7 +123,9 @@ export function DashboardTable({ data }: DashboardTableProps) {
                 <TableRow key={branch.filial_id} className="hover:bg-muted/50 transition-colors">
                   <TableCell className="font-medium">{branch.filial}</TableCell>
                   <TableCell className="text-right">{branch.total_inscritos}</TableCell>
-                  <TableCell>{formatTopModalities(branch) || "Nenhuma modalidade registrada"}</TableCell>
+                  <TableCell>
+                    {formatTopModalities(branch) || "Nenhuma modalidade registrada"}
+                  </TableCell>
                 </TableRow>
               ))}
               {filteredData.length === 0 && (
