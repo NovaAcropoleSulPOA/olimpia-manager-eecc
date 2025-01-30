@@ -75,7 +75,7 @@ const LandingPage = () => {
                     <div>
                       <h3 className="text-xl font-bold text-olimpics-green-primary mb-2">Local</h3>
                       <p className="text-olimpics-text text-lg mb-2">
-                        Parque Esportivo PUC-RS
+                        Parque Esportivo PUCRS
                       </p>
                       <p className="text-sm text-gray-600 italic">
                         Clique para ver no mapa

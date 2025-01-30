@@ -454,10 +454,10 @@ const Login = () => {
                       name="genero"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Gênero</FormLabel>
+                          <FormLabel>Selecione o Gênero</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            defaultValue={field.value || ""}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -467,7 +467,6 @@ const Login = () => {
                             <SelectContent>
                               <SelectItem value="Masculino">Masculino</SelectItem>
                               <SelectItem value="Feminino">Feminino</SelectItem>
-                              <SelectItem value="Prefiro não informar">Prefiro não informar</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
