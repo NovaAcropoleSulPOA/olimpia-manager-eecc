@@ -61,20 +61,28 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     setIsUpdating(prev => ({ ...prev, [modalityId]: true }));
     
     try {
+      // Keep the current status to revert if needed
+      const currentStatus = modalityStatuses[modalityId];
+      
+      // Optimistically update UI
+      setModalityStatuses(prev => ({ ...prev, [modalityId]: newStatus }));
+      
+      // Attempt database update
       await onStatusChange(modalityId, newStatus, justification);
       console.log('Status update successful');
       
-      // Only update UI state after successful database update
-      setModalityStatuses(prev => ({ ...prev, [modalityId]: newStatus }));
+      // Clear justification after successful update
       setJustifications(prev => ({ ...prev, [modalityId]: '' }));
       toast.success('Status atualizado com sucesso!');
     } catch (error) {
       console.error('Error updating status:', error);
+      
       // Revert UI state if update fails
       setModalityStatuses(prev => ({
         ...prev,
         [modalityId]: registration.modalidades.find(m => m.id === modalityId)?.status || prev[modalityId]
       }));
+      
       toast.error('Erro ao atualizar status. Por favor, tente novamente.');
     } finally {
       setIsUpdating(prev => ({ ...prev, [modalityId]: false }));
