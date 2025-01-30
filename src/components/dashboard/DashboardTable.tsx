@@ -66,6 +66,24 @@ export function DashboardTable({ data }: DashboardTableProps) {
     }
   };
 
+  const formatTopModalities = (branch: BranchAnalytics) => {
+    const categories = {
+      Masculino: branch.top_modalidades_masculino || {},
+      Feminino: branch.top_modalidades_feminino || {},
+      Misto: branch.top_modalidades_misto || {}
+    };
+
+    return Object.entries(categories)
+      .map(([category, modalities]) => {
+        const modalityList = Object.entries(modalities)
+          .map(([modalidade, count]) => `${modalidade} (${count})`)
+          .join(", ");
+        return modalityList ? `${category}: ${modalityList}` : null;
+      })
+      .filter(Boolean)
+      .join(" | ");
+  };
+
   return (
     <Card className="shadow-lg">
       <CardHeader>
@@ -106,7 +124,7 @@ export function DashboardTable({ data }: DashboardTableProps) {
                   </div>
                 </TableHead>
                 <TableHead>
-                  Modalidades Disponíveis
+                  Modalidades por Categoria
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -115,7 +133,7 @@ export function DashboardTable({ data }: DashboardTableProps) {
                 <TableRow key={branch.filial_id} className="hover:bg-muted/50 transition-colors">
                   <TableCell className="font-medium">{branch.filial}</TableCell>
                   <TableCell className="text-right">{branch.total_inscritos}</TableCell>
-                  <TableCell>{formatModalities(branch.modalidades_populares)}</TableCell>
+                  <TableCell>{formatTopModalities(branch) || "Nenhuma modalidade registrada"}</TableCell>
                 </TableRow>
               ))}
               {filteredData.length === 0 && (
