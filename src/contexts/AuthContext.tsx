@@ -42,10 +42,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Only redirect if:
-    // 1. It's the initial login AND
-    // 2. We're on a public route AND
-    // 3. Initial auth check is not done
     if (isInitialLogin && PUBLIC_ROUTES.includes(location.pathname) && !initialAuthCheckDone) {
       const roles = userProfile.papeis || [];
       console.log('AuthContext - User roles for redirect:', roles);
@@ -79,9 +75,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('usuarios')
         .select('nome_completo, telefone, filial_id, confirmado')
         .eq('id', userId)
-        .single();
+        .maybeSingle();  // Changed from .single() to .maybeSingle()
 
       if (profileError) throw profileError;
+
+      // If no profile exists, return minimal profile
+      if (!userProfile) {
+        console.log('No user profile found, returning minimal profile');
+        return {
+          confirmado: false,
+          papeis: [],
+        };
+      }
 
       const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
       console.log('User roles fetched:', papeis);
