@@ -40,7 +40,10 @@ export default function DelegationDashboard() {
     queryKey: ['branch-analytics', user?.filial_id],
     queryFn: fetchBranchAnalytics,
     select: (data) => {
-      if (!user?.filial_id) return [];
+      if (!user?.filial_id) {
+        console.log('No user filial_id found');
+        return [];
+      }
       const filteredData = data.filter(branch => branch.filial_id === user.filial_id);
       console.log('Filtered branch analytics:', filteredData);
       return filteredData;
@@ -63,6 +66,7 @@ export default function DelegationDashboard() {
         return [];
       }
       
+      // Filter athletes from the same branch as the logged-in user
       const branchAthletes = data.filter(reg => {
         const isSameBranch = reg.filial === user.filial_id;
         
