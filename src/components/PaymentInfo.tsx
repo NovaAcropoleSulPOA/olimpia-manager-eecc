@@ -16,7 +16,7 @@ const PaymentInfo = () => {
       </h3>
       <div className="grid gap-2 text-olimpics-text text-left">
         <p className="flex items-center gap-2">
-          <span className="text-lg">💰</span> Valor: R$ 180,00
+          <span className="text-lg">💰</span> Valor: R$ XXX,XX
         </p>
         <p className="flex items-center gap-2">
           <span className="text-lg">📱</span> PIX: escoladoesporte.napoa@gmail.com

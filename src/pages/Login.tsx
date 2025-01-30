@@ -476,8 +476,7 @@ const Login = () => {
 
                     <PaymentInfo />
                     <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
-                      Após completar seu cadastro, você receberá um email com instruções para enviar seu comprovante de pagamento. 
-                      Por favor, siga as instruções no email para completar seu cadastro.
+                    Após concluir seu cadastro, se ainda não tiver enviado o comprovante de pagamento, você poderá fazê-lo na tela de perfil do atleta. A validação do pagamento será realizada pelos organizadores.
                     </div>
 
                     <Button
@@ -563,8 +562,7 @@ const Login = () => {
             <div className="mt-8 space-y-6">
               <Card>
                 <CardContent className="p-6 space-y-6">
-                  <h3 className="text-xl font-semibold mb-4 text-olimpics-text text-center">Citações Filosóficas</h3>
-                  
+                 
                   <div className="space-y-6">
                     <div className="quote-item">
                       <h4 className="font-semibold text-olimpics-green-primary">Platão (428–348 a.C.)</h4>

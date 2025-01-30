@@ -69,14 +69,14 @@ export function MainNavigation() {
     ] : []),
     ...(isOrganizer ? [
       {
-        title: "Dashboard do Organizador",
+        title: "Organizador(a)",
         icon: BarChart3,
         path: "/organizer-dashboard"
       }
     ] : []),
     ...(isDelegationRep ? [
       {
-        title: "Dashboard da Delegação",
+        title: "Rep. Delegação",
         icon: BarChart3,
         path: "/delegation-dashboard"
       }
