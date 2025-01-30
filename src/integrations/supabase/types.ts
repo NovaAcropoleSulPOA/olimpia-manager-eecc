@@ -122,6 +122,7 @@ export type Database = {
       modalidades: {
         Row: {
           categoria: string
+          grupo: string | null
           id: number
           limite_vagas: number
           nome: string
@@ -132,6 +133,7 @@ export type Database = {
         }
         Insert: {
           categoria: string
+          grupo?: string | null
           id: number
           limite_vagas?: number
           nome: string
@@ -142,6 +144,7 @@ export type Database = {
         }
         Update: {
           categoria?: string
+          grupo?: string | null
           id?: number
           limite_vagas?: number
           nome?: string

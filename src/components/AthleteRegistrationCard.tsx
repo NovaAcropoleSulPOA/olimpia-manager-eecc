@@ -26,8 +26,20 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
   const [isUpdating, setIsUpdating] = React.useState<Record<string, boolean>>({});
+  const [modalityStatuses, setModalityStatuses] = React.useState<Record<string, string>>({});
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  
   const isPaymentPending = registration.status_pagamento === "pendente";
   const hasModalities = registration.modalidades.length > 0;
+
+  // Initialize modality statuses on mount
+  React.useEffect(() => {
+    const initialStatuses = registration.modalidades.reduce((acc, modality) => ({
+      ...acc,
+      [modality.id]: modality.status
+    }), {});
+    setModalityStatuses(initialStatuses);
+  }, [registration.modalidades]);
 
   const handleWhatsAppClick = (phone: string) => {
     const formattedPhone = phone.replace(/\D/g, '');
@@ -36,6 +48,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   };
 
   const handleStatusChange = async (modalityId: string, newStatus: string) => {
+    console.log('Attempting to update status:', { modalityId, newStatus });
     const justification = justifications[modalityId];
     if (!justification) {
       toast.error('É necessário fornecer uma justificativa para alterar o status.');
@@ -46,11 +59,15 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     
     try {
       await onStatusChange(modalityId, newStatus, justification);
-      toast.success('Status atualizado com sucesso!');
+      
+      // Update local state
+      setModalityStatuses(prev => ({ ...prev, [modalityId]: newStatus }));
       setJustifications(prev => ({ ...prev, [modalityId]: '' }));
+      
+      toast.success('Status atualizado com sucesso!');
     } catch (error) {
       console.error('Error updating status:', error);
-      toast.error('Erro ao atualizar status');
+      toast.error('Erro ao atualizar status. Por favor, tente novamente.');
     } finally {
       setIsUpdating(prev => ({ ...prev, [modalityId]: false }));
     }
@@ -180,7 +197,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   }
 
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <div>{cardContent}</div>
       </DialogTrigger>
@@ -229,8 +246,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                 <TableRow key={modalidade.id}>
                   <TableCell>{modalidade.modalidade}</TableCell>
                   <TableCell>
-                    <Badge className={cn("capitalize", getStatusTextColor(modalidade.status))}>
-                      {modalidade.status}
+                    <Badge className={cn("capitalize", getStatusTextColor(modalityStatuses[modalidade.id] || modalidade.status))}>
+                      {modalityStatuses[modalidade.id] || modalidade.status}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -245,7 +262,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                   </TableCell>
                   <TableCell>
                     <Select
-                      value={modalidade.status}
+                      value={modalityStatuses[modalidade.id] || modalidade.status}
                       onValueChange={(value) => handleStatusChange(modalidade.id, value)}
                       disabled={!justifications[modalidade.id] || isUpdating[modalidade.id]}
                     >
