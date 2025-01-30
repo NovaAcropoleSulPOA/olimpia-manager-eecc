@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Building2, Award, MessageCircle, FileText, User, Hash } from "lucide-react";
+import { Phone, Mail, Building2, MessageCircle, FileText, User, Hash } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -32,7 +32,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const isPaymentPending = registration.status_pagamento === "pendente";
   const validModalities = registration.modalidades.filter(m => m.modalidade);
   const hasModalities = validModalities.length > 0;
-  const isSingleInscription = !!registration.inscricao_id;
+  const isSingleEmptyModality = registration.inscricao_id && (!registration.modalidades[0]?.modalidade || registration.modalidades.length === 0);
 
   // Initialize modality statuses on mount
   React.useEffect(() => {
@@ -50,7 +50,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   };
 
   const handleStatusChange = async (modalityId: string, newStatus: string) => {
-    console.log('Attempting to update status:', { modalityId, newStatus });
     const justification = justifications[modalityId];
     if (!justification) {
       toast.error('É necessário fornecer uma justificativa para alterar o status.');
@@ -99,18 +98,17 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     }
   };
 
-  const getStatusTextColor = (status: string) => {
+  const getStatusBadgeStyle = (status: string) => {
     switch (status.toLowerCase()) {
       case 'confirmado':
-        return 'text-green-700 bg-green-100';
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
       case 'pendente':
-        return 'text-yellow-700 bg-yellow-100';
+        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
       case 'rejeitado':
-        return 'text-red-700 bg-red-100';
       case 'cancelado':
-        return 'text-gray-700 bg-gray-100';
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
       default:
-        return 'text-gray-700 bg-gray-100';
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
   };
 
@@ -123,7 +121,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
         <div className="space-y-4">
           <div className="flex justify-between items-start">
             <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
-            <Badge className={cn("capitalize", getStatusTextColor(registration.status_pagamento))}>
+            <Badge className={cn("capitalize", getStatusBadgeStyle(registration.status_pagamento))}>
               {registration.status_pagamento}
             </Badge>
           </div>
@@ -164,10 +162,17 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               <span>{registration.filial}</span>
             </div>
 
-            {hasModalities && !isSingleInscription && (
-              <div className="flex items-center gap-2">
-                <Award className="h-4 w-4 text-muted-foreground" />
-                <span>{validModalities.length} modalidades</span>
+            {hasModalities && !isSingleEmptyModality && (
+              <div className="col-span-2 flex flex-wrap gap-2 mt-2">
+                {validModalities.map((modality, index) => (
+                  <Badge 
+                    key={index}
+                    variant="secondary"
+                    className={cn(getStatusBadgeStyle(modality.status))}
+                  >
+                    {modality.modalidade}
+                  </Badge>
+                ))}
               </div>
             )}
           </div>
@@ -202,20 +207,20 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle className="text-2xl">
-            {isSingleInscription ? 'Detalhes do Atleta' : 'Gerenciar Modalidades'}
+          <DialogTitle className="text-2xl flex items-center gap-2">
+            {registration.nome_atleta}
+            {registration.numero_identificador && (
+              <Badge 
+                variant="outline" 
+                className="ml-2 text-lg font-mono bg-olimpics-orange-primary text-white hover:bg-olimpics-orange-secondary"
+              >
+                <Hash className="h-4 w-4 mr-1" />
+                {registration.numero_identificador}
+              </Badge>
+            )}
           </DialogTitle>
           <DialogDescription className="space-y-4">
             <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold text-lg">{registration.nome_atleta}</h4>
-                {registration.numero_identificador && (
-                  <Badge variant="outline" className="font-mono">
-                    <Hash className="h-3 w-3 mr-1" />
-                    {registration.numero_identificador}
-                  </Badge>
-                )}
-              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
@@ -248,7 +253,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           </DialogDescription>
         </DialogHeader>
 
-        {!isSingleInscription && hasModalities && (
+        {!isSingleEmptyModality && hasModalities && (
           <ScrollArea className="h-[50vh] w-full rounded-md border p-4">
             <Table>
               <TableHeader>
@@ -264,7 +269,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                   <TableRow key={modalidade.id}>
                     <TableCell>{modalidade.modalidade}</TableCell>
                     <TableCell>
-                      <Badge className={cn("capitalize", getStatusTextColor(modalityStatuses[modalidade.id] || modalidade.status))}>
+                      <Badge className={cn("capitalize", getStatusBadgeStyle(modalityStatuses[modalidade.id] || modalidade.status))}>
                         {modalityStatuses[modalidade.id] || modalidade.status}
                       </Badge>
                     </TableCell>
