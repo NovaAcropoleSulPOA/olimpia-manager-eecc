@@ -6,6 +6,11 @@ interface DashboardMetricsProps {
   data: BranchAnalytics[];
 }
 
+interface PaymentStatus {
+  status_pagamento: string;
+  quantidade: number;
+}
+
 export function DashboardMetrics({ data }: DashboardMetricsProps) {
   // Calculate totals from the analytics data
   const totalAthletes = data.reduce((acc, branch) => acc + (branch.total_inscritos || 0), 0);
@@ -14,22 +19,44 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
   const totalRevenuePaid = data.reduce((acc, branch) => acc + (branch.valor_total_pago || 0), 0);
   const totalRevenuePending = data.reduce((acc, branch) => {
     // Only count pending payments if there are actually pending athletes
-    const pendingStatus = branch.inscritos_por_status_pagamento ? 
-      JSON.parse(branch.inscritos_por_status_pagamento as string).find(
-        (status: { status_pagamento: string; quantidade: number }) => 
-          status.status_pagamento === 'pendente'
-      ) : null;
+    let pendingStatus: PaymentStatus | undefined;
+    
+    try {
+      if (typeof branch.inscritos_por_status_pagamento === 'string') {
+        const parsed = JSON.parse(branch.inscritos_por_status_pagamento);
+        pendingStatus = parsed.find(
+          (status: PaymentStatus) => status.status_pagamento === 'pendente'
+        );
+      } else if (Array.isArray(branch.inscritos_por_status_pagamento)) {
+        pendingStatus = branch.inscritos_por_status_pagamento.find(
+          (status: PaymentStatus) => status.status_pagamento === 'pendente'
+        );
+      }
+    } catch (error) {
+      console.error('Error parsing payment status:', error);
+    }
     
     return pendingStatus ? acc + (branch.valor_total_pendente || 0) : acc;
   }, 0);
   
   // Calculate pending payments count - ensure we only count actual pending payments
   const totalAthletesPendingPayment = data.reduce((acc, branch) => {
-    const pendingStatus = branch.inscritos_por_status_pagamento ? 
-      JSON.parse(branch.inscritos_por_status_pagamento as string).find(
-        (status: { status_pagamento: string; quantidade: number }) => 
-          status.status_pagamento === 'pendente'
-      ) : null;
+    let pendingStatus: PaymentStatus | undefined;
+    
+    try {
+      if (typeof branch.inscritos_por_status_pagamento === 'string') {
+        const parsed = JSON.parse(branch.inscritos_por_status_pagamento);
+        pendingStatus = parsed.find(
+          (status: PaymentStatus) => status.status_pagamento === 'pendente'
+        );
+      } else if (Array.isArray(branch.inscritos_por_status_pagamento)) {
+        pendingStatus = branch.inscritos_por_status_pagamento.find(
+          (status: PaymentStatus) => status.status_pagamento === 'pendente'
+        );
+      }
+    } catch (error) {
+      console.error('Error parsing payment status:', error);
+    }
     
     console.log('Branch pending payments:', {
       branchId: branch.filial_id,
