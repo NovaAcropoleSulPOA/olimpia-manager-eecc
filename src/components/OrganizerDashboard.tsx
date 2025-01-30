@@ -54,11 +54,13 @@ export default function OrganizerDashboard() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
+    console.log('Refreshing dashboard data...');
     try {
       await Promise.all([
         refetchAnalytics(),
         refetchRegistrations()
       ]);
+      console.log('Dashboard data refreshed successfully');
       toast.success("Dados atualizados com sucesso!");
     } catch (error) {
       console.error('Error refreshing data:', error);
@@ -123,6 +125,8 @@ export default function OrganizerDashboard() {
   if (!branchAnalytics || branchAnalytics.length === 0) {
     return <EmptyState />;
   }
+
+  console.log('Branch analytics data:', branchAnalytics);
 
   return (
     <div className="container mx-auto py-6 space-y-6">

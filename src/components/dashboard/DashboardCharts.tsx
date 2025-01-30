@@ -31,24 +31,28 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
   const athletesData = data.map(branch => ({
     name: branch.filial,
     value: branch.total_inscritos || 0,
-    totalPago: branch.valor_total_arrecadado || 0
+    totalPago: branch.valor_total_pago || 0,
+    totalPendente: branch.valor_total_pendente || 0
   })).sort((a, b) => b.value - a.value);
 
-  // Transform and aggregate modalities data
-  const modalitiesMap = new Map<string, number>();
-  data.forEach(branch => {
-    if (branch.modalidades_populares && typeof branch.modalidades_populares === 'object') {
-      Object.entries(branch.modalidades_populares).forEach(([modalidade, count]) => {
-        const currentCount = modalitiesMap.get(modalidade) || 0;
-        modalitiesMap.set(modalidade, currentCount + (typeof count === 'number' ? count : 0));
-      });
-    }
-  });
+  // Transform payment status data for pie chart
+  const paymentStatusData = data.reduce((acc, branch) => {
+    const statusData = branch.inscritos_por_status_pagamento || {};
+    Object.entries(statusData).forEach(([status, count]) => {
+      const existingStatus = acc.find(item => item.name === status);
+      if (existingStatus) {
+        existingStatus.value += count;
+      } else {
+        acc.push({ name: status, value: count });
+      }
+    });
+    return acc;
+  }, [] as { name: string; value: number }[]);
 
-  const modalitiesData = Array.from(modalitiesMap.entries())
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 5);
+  console.log('Chart data:', {
+    athletesData,
+    paymentStatusData
+  });
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -58,14 +62,18 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
           <p className="text-olimpics-green-primary">
             {`Total de Atletas: ${payload[0].value}`}
           </p>
-          {payload[0].payload.totalPago && (
-            <p className="text-olimpics-orange-primary">
-              {`Valor Arrecadado: ${new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-              }).format(payload[0].payload.totalPago)}`}
-            </p>
-          )}
+          <p className="text-olimpics-orange-primary">
+            {`Valor Pago: ${new Intl.NumberFormat('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(payload[0].payload.totalPago)}`}
+          </p>
+          <p className="text-red-500">
+            {`Valor Pendente: ${new Intl.NumberFormat('pt-BR', {
+              style: 'currency',
+              currency: 'BRL'
+            }).format(payload[0].payload.totalPendente)}`}
+          </p>
         </div>
       );
     }
@@ -105,13 +113,13 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
 
       <Card className="col-span-1">
         <CardHeader>
-          <CardTitle className="text-olimpics-text">Top 5 Modalidades</CardTitle>
+          <CardTitle className="text-olimpics-text">Status de Pagamentos</CardTitle>
         </CardHeader>
         <CardContent className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={modalitiesData}
+                data={paymentStatusData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -120,7 +128,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {modalitiesData.map((entry, index) => (
+                {paymentStatusData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
                     fill={COLORS[index % COLORS.length]} 

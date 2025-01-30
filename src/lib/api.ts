@@ -35,23 +35,13 @@ export interface BranchAnalytics {
   filial_id: string;
   filial: string;
   total_inscritos: number;
-  valor_total_arrecadado: number;
-  modalidades_populares: Array<{
-    modalidade: string;
-    total_inscritos: number;
-  }>;
-  inscritos_por_status: Array<{
-    status_inscricao: string;
-    quantidade: number;
-  }>;
-  inscritos_por_status_pagamento: Array<{
-    status_pagamento: string;
-    quantidade: number;
-  }>;
-  atletas_por_categoria: Array<{
-    categoria: string;
-    quantidade: number;
-  }>;
+  valor_total_pago: number;
+  valor_total_pendente: number;
+  total_atletas_pagamento_confirmado: number;
+  total_atletas_pagamento_pendente: number;
+  inscritos_por_status_pagamento: {
+    [key: string]: number;
+  };
 }
 
 export const fetchBranches = async (): Promise<Branch[]> => {
