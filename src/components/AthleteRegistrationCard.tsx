@@ -50,7 +50,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   };
 
   const handleStatusChange = async (modalityId: string, newStatus: string) => {
-    console.log('Attempting to update status:', { modalityId, newStatus });
+    console.log('Attempting to update modality status:', { modalityId, newStatus });
     
     const justification = justifications[modalityId];
     if (!justification) {
@@ -69,13 +69,13 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
       
       // Attempt database update
       await onStatusChange(modalityId, newStatus, justification);
-      console.log('Status update successful');
+      console.log('Modality status update successful');
       
       // Clear justification after successful update
       setJustifications(prev => ({ ...prev, [modalityId]: '' }));
-      toast.success('Status atualizado com sucesso!');
+      toast.success('Status da modalidade atualizado com sucesso!');
     } catch (error) {
-      console.error('Error updating status:', error);
+      console.error('Error updating modality status:', error);
       
       // Revert UI state if update fails
       setModalityStatuses(prev => ({
@@ -83,7 +83,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
         [modalityId]: registration.modalidades.find(m => m.id === modalityId)?.status || prev[modalityId]
       }));
       
-      toast.error('Erro ao atualizar status. Por favor, tente novamente.');
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar status da modalidade';
+      toast.error(errorMessage);
     } finally {
       setIsUpdating(prev => ({ ...prev, [modalityId]: false }));
     }
@@ -314,10 +315,10 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                           <SelectValue placeholder="Selecione o status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pendente">pendente</SelectItem>
-                          <SelectItem value="confirmado">confirmado</SelectItem>
-                          <SelectItem value="rejeitado">rejeitado</SelectItem>
-                          <SelectItem value="cancelado">cancelado</SelectItem>
+                          <SelectItem value="pendente">Pendente</SelectItem>
+                          <SelectItem value="confirmado">Confirmado</SelectItem>
+                          <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                          <SelectItem value="cancelado">Cancelado</SelectItem>
                         </SelectContent>
                       </Select>
                     </TableCell>
