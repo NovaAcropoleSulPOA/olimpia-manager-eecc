@@ -16,9 +16,12 @@ interface DashboardTableProps {
   data: BranchAnalytics[];
 }
 
-interface ModalityCount {
-  modalidade: string;
-  total_inscritos: number;
+interface ModalityData {
+  [key: string]: {
+    Masculino: number;
+    Feminino: number;
+    Misto: number;
+  };
 }
 
 export function DashboardTable({ data }: DashboardTableProps) {
@@ -58,31 +61,28 @@ export function DashboardTable({ data }: DashboardTableProps) {
     }));
   };
 
-  const formatModalityList = (modalities: ModalityCount[] | null): string => {
-    if (!modalities || modalities.length === 0) return "";
+  const formatModalidadesPopulares = (modalidadesPopulares: ModalityData | null): string => {
+    console.log("Formatting modalidades populares:", modalidadesPopulares);
     
-    return modalities
-      .map(m => `${m.modalidade} (${m.total_inscritos})`)
-      .join(", ");
-  };
+    if (!modalidadesPopulares) {
+      return "Nenhuma modalidade popular disponível";
+    }
 
-  const formatTopModalities = (branch: BranchAnalytics) => {
-    const categories = {
-      Masculino: branch.top_modalidades_masculino as ModalityCount[] | null,
-      Feminino: branch.top_modalidades_feminino as ModalityCount[] | null,
-      Misto: branch.top_modalidades_misto as ModalityCount[] | null
-    };
+    const formattedCategories = Object.entries(modalidadesPopulares)
+      .map(([modalidade, categorias]) => {
+        const categoryEntries = Object.entries(categorias)
+          .filter(([_, count]) => count > 0)
+          .map(([categoria, count]) => `${categoria}: ${count}`);
 
-    const formattedCategories = Object.entries(categories)
-      .map(([category, modalities]) => {
-        const modalityList = formatModalityList(modalities);
-        return modalityList ? `${category}: ${modalityList}` : null;
+        if (categoryEntries.length === 0) return null;
+
+        return `${modalidade} (${categoryEntries.join(", ")})`;
       })
       .filter(Boolean);
 
-    return formattedCategories.length > 0 
+    return formattedCategories.length > 0
       ? formattedCategories.join(" | ")
-      : "Nenhuma modalidade registrada";
+      : "Nenhuma modalidade popular disponível";
   };
 
   return (
@@ -134,7 +134,7 @@ export function DashboardTable({ data }: DashboardTableProps) {
                 <TableRow key={branch.filial_id} className="hover:bg-muted/50 transition-colors">
                   <TableCell className="font-medium">{branch.filial}</TableCell>
                   <TableCell className="text-right">{branch.total_inscritos}</TableCell>
-                  <TableCell>{formatTopModalities(branch)}</TableCell>
+                  <TableCell>{formatModalidadesPopulares(branch.modalidades_populares as ModalityData)}</TableCell>
                 </TableRow>
               ))}
               {filteredData.length === 0 && (
