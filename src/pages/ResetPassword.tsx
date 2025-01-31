@@ -26,21 +26,24 @@ export default function ResetPassword() {
   const location = useLocation();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  // Extract access_token from URL
+  // Extract token and type from URL
   const searchParams = new URLSearchParams(location.search);
-  const accessToken = searchParams.get('access_token');
+  const token = searchParams.get('token');
+  const type = searchParams.get('type');
 
   React.useEffect(() => {
-    console.log('Checking access token on ResetPassword page');
+    console.log('Checking recovery parameters on ResetPassword page');
     console.log('Current URL:', window.location.href);
-    console.log('Access token present:', !!accessToken);
+    console.log('Token present:', !!token);
+    console.log('Type:', type);
     
-    if (!accessToken) {
-      console.error('No access token found in URL');
+    if (!token || type !== 'recovery') {
+      console.error('Invalid recovery parameters');
       toast.error('Link de redefinição de senha inválido ou expirado');
       navigate('/forgot-password');
+      return;
     }
-  }, [accessToken, navigate]);
+  }, [token, type, navigate]);
 
   const form = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
@@ -53,16 +56,16 @@ export default function ResetPassword() {
   const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
     try {
       setIsSubmitting(true);
-      console.log('Attempting to update password');
+      console.log('Attempting to update password with recovery token');
 
-      if (!accessToken) {
-        console.error('No access token available');
+      if (!token || type !== 'recovery') {
+        console.error('Invalid recovery parameters during submission');
         toast.error('Link de redefinição de senha inválido ou expirado');
         navigate('/forgot-password');
         return;
       }
 
-      // Update the user's password using the access token
+      // Update the user's password using the recovery token
       const { error } = await supabase.auth.updateUser({
         password: values.password
       });
