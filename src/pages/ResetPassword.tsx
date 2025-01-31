@@ -31,6 +31,10 @@ export default function ResetPassword() {
   const accessToken = searchParams.get('access_token');
 
   React.useEffect(() => {
+    console.log('Checking access token on ResetPassword page');
+    console.log('Current URL:', window.location.href);
+    console.log('Access token present:', !!accessToken);
+    
     if (!accessToken) {
       console.error('No access token found in URL');
       toast.error('Link de redefinição de senha inválido ou expirado');
