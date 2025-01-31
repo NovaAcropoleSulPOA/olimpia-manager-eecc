@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchBranchAnalytics, fetchAthleteRegistrations, updateModalityStatus, updatePaymentStatus } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { DashboardMetrics } from "./dashboard/DashboardMetrics";
 import { DashboardCharts } from "./dashboard/DashboardCharts";
@@ -78,14 +77,62 @@ export default function DelegationDashboard() {
   } = useQuery({
     queryKey: ['athlete-registrations', userProfile?.filial_id],
     queryFn: async () => {
-      console.log('Fetching registrations for filial:', userProfile?.filial_id);
+      console.log('Fetching registrations from view for filial:', userProfile?.filial_id);
       const { data, error } = await supabase
         .from('vw_inscricoes_atletas')
         .select('*')
         .eq('filial_id', userProfile?.filial_id);
       
-      if (error) throw error;
-      return data || [];
+      if (error) {
+        console.error('Error fetching registrations:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.log('No registrations data returned');
+        return [];
+      }
+
+      // Group registrations by athlete
+      const groupedRegistrations = data.reduce((acc, curr) => {
+        const existingAthlete = acc.find(a => a.atleta_id === curr.atleta_id);
+        if (existingAthlete) {
+          if (curr.modalidade_nome) {
+            existingAthlete.modalidades.push({
+              id: curr.inscricao_id?.toString() || '',
+              modalidade: curr.modalidade_nome,
+              status: curr.status_inscricao || 'pendente',
+              justificativa_status: ''
+            });
+          }
+        } else {
+          acc.push({
+            id: curr.atleta_id,
+            nome_atleta: curr.atleta_nome,
+            email: curr.atleta_email,
+            confirmado: curr.status_confirmacao,
+            telefone: curr.telefone,
+            filial: curr.filial_nome,
+            modalidades: curr.modalidade_nome ? [{
+              id: curr.inscricao_id?.toString() || '',
+              modalidade: curr.modalidade_nome,
+              status: curr.status_inscricao || 'pendente',
+              justificativa_status: ''
+            }] : [],
+            status_inscricao: curr.status_inscricao || 'pendente',
+            status_pagamento: curr.status_pagamento || 'pendente',
+            inscricao_id: curr.inscricao_id,
+            tipo_documento: curr.tipo_documento || '',
+            numero_documento: curr.numero_documento || '',
+            genero: curr.genero || '',
+            numero_identificador: curr.numero_identificador
+          });
+        }
+        return acc;
+      }, []);
+
+      console.log('Transformed registrations data:', groupedRegistrations);
+      return groupedRegistrations;
     },
     enabled: !!userProfile?.filial_id,
   });
@@ -107,45 +154,6 @@ export default function DelegationDashboard() {
       toast.error("Erro ao atualizar dados");
     } finally {
       setIsRefreshing(false);
-    }
-  };
-
-  const handleStatusChange = async (modalityId: string, status: string, justification: string) => {
-    console.log('Attempting to update modality status:', { modalityId, status, justification });
-    try {
-      await updateModalityStatus(modalityId, status, justification);
-      console.log('Status updated successfully in the database');
-      toast.success("Status atualizado com sucesso!");
-      
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
-        queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
-      ]);
-      console.log('Queries invalidated and refetched');
-    } catch (error) {
-      console.error('Error updating status:', error);
-      toast.error("Erro ao atualizar status. Por favor, tente novamente.");
-      throw error;
-    }
-  };
-
-  const handlePaymentStatusChange = async (athleteId: string, status: string) => {
-    console.log('Attempting to update payment status:', { athleteId, status });
-    try {
-      await updatePaymentStatus(athleteId, status);
-      console.log('Payment status updated successfully in the database');
-      toast.success("Status de pagamento atualizado com sucesso!");
-      
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
-        queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
-      ]);
-      console.log('Queries invalidated and refetched after payment status update');
-    } catch (error) {
-      console.error('Error updating payment status:', error);
-      const errorMessage = error instanceof Error ? error.message : "Erro ao atualizar status de pagamento";
-      toast.error(errorMessage);
-      throw error;
     }
   };
 
@@ -175,10 +183,6 @@ export default function DelegationDashboard() {
   if (!branchAnalytics || branchAnalytics.length === 0) {
     return <EmptyState />;
   }
-
-  console.log('Branch analytics data:', branchAnalytics);
-  console.log('Registrations data:', registrations);
-  console.log('Current user ID:', user?.id);
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -215,8 +219,54 @@ export default function DelegationDashboard() {
             <AthleteRegistrationCard
               key={registration.id}
               registration={registration}
-              onStatusChange={handleStatusChange}
-              onPaymentStatusChange={handlePaymentStatusChange}
+              onStatusChange={async (modalityId, status, justification) => {
+                console.log('Updating modality status:', { modalityId, status, justification });
+                try {
+                  const { error } = await supabase
+                    .rpc('atualizar_status_inscricao', {
+                      inscricao_id: parseInt(modalityId),
+                      novo_status: status,
+                      justificativa: justification
+                    });
+
+                  if (error) throw error;
+                  
+                  await Promise.all([
+                    queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
+                    queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
+                  ]);
+                  
+                  toast.success("Status atualizado com sucesso!");
+                } catch (error) {
+                  console.error('Error updating status:', error);
+                  toast.error("Erro ao atualizar status");
+                  throw error;
+                }
+              }}
+              onPaymentStatusChange={async (athleteId, status) => {
+                console.log('Updating payment status:', { athleteId, status });
+                try {
+                  const { error } = await supabase
+                    .rpc('atualizar_status_pagamento', {
+                      p_atleta_id: athleteId,
+                      p_novo_status: status
+                    });
+
+                  if (error) throw error;
+                  
+                  await Promise.all([
+                    queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
+                    queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
+                  ]);
+                  
+                  toast.success("Status de pagamento atualizado com sucesso!");
+                } catch (error) {
+                  console.error('Error updating payment status:', error);
+                  const errorMessage = error instanceof Error ? error.message : "Erro ao atualizar status de pagamento";
+                  toast.error(errorMessage);
+                  throw error;
+                }
+              }}
               isCurrentUser={user?.id === registration.id}
             />
           ))}
