@@ -342,4 +342,3 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     </Dialog>
   );
 };
-});
