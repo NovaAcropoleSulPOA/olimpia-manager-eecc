@@ -75,9 +75,12 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
           <CardHeader>
             <CardTitle className="text-olimpics-text">Inscrições por Filial</CardTitle>
           </CardHeader>
-          <CardContent className="h-[400px]">
+          <CardContent className="h-[500px]"> {/* Increased height for better spacing */}
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={branchData}>
+              <ComposedChart 
+                data={branchData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 100 }} // Increased bottom margin
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis 
                   dataKey="name"
@@ -85,12 +88,38 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                   interval={0}
                   angle={-45}
                   textAnchor="end"
-                  height={80}
+                  height={100} // Increased height for labels
+                  tickMargin={30} // Added margin between ticks and axis
                 />
-                <YAxis yAxisId="left" tick={{ fontSize: 12, fill: '#4b5563' }} />
-                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12, fill: '#4b5563' }} />
+                <YAxis 
+                  yAxisId="left" 
+                  tick={{ fontSize: 12, fill: '#4b5563' }}
+                  tickFormatter={(value) => `${value}`}
+                  label={{ 
+                    value: 'Total de Atletas',
+                    angle: -90,
+                    position: 'insideLeft',
+                    style: { textAnchor: 'middle' }
+                  }}
+                />
+                <YAxis 
+                  yAxisId="right" 
+                  orientation="right" 
+                  tick={{ fontSize: 12, fill: '#4b5563' }}
+                  tickFormatter={(value) => `R$ ${value}`}
+                  label={{ 
+                    value: 'Valor (R$)',
+                    angle: 90,
+                    position: 'insideRight',
+                    style: { textAnchor: 'middle' }
+                  }}
+                />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend />
+                <Legend 
+                  verticalAlign="top" 
+                  height={36}
+                  wrapperStyle={{ paddingBottom: '20px' }}
+                />
                 <Bar 
                   yAxisId="left"
                   dataKey="total" 
@@ -141,7 +170,11 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
-                <Legend />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36}
+                  wrapperStyle={{ paddingTop: '20px' }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
