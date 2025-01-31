@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { AthleteRegistration } from "@/lib/api";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-96 text-center">
@@ -94,45 +95,42 @@ export default function DelegationDashboard() {
       }
 
       // Group registrations by athlete
-      const groupedRegistrations = data.reduce((acc, curr) => {
-        const existingAthlete = acc.find(a => a.atleta_id === curr.atleta_id);
-        if (existingAthlete) {
-          if (curr.modalidade_nome) {
-            existingAthlete.modalidades.push({
-              id: curr.inscricao_id?.toString() || '',
-              modalidade: curr.modalidade_nome,
-              status: curr.status_inscricao || 'pendente',
-              justificativa_status: ''
-            });
-          }
-        } else {
-          acc.push({
-            id: curr.atleta_id,
-            nome_atleta: curr.atleta_nome,
-            email: curr.atleta_email,
-            confirmado: curr.status_confirmacao,
-            telefone: curr.telefone,
-            filial: curr.filial_nome,
-            modalidades: curr.modalidade_nome ? [{
-              id: curr.inscricao_id?.toString() || '',
-              modalidade: curr.modalidade_nome,
-              status: curr.status_inscricao || 'pendente',
-              justificativa_status: ''
-            }] : [],
-            status_inscricao: curr.status_inscricao || 'pendente',
-            status_pagamento: curr.status_pagamento || 'pendente',
-            inscricao_id: curr.inscricao_id,
-            tipo_documento: curr.tipo_documento || '',
-            numero_documento: curr.numero_documento || '',
-            genero: curr.genero || '',
-            numero_identificador: curr.numero_identificador
+      const athletesMap = new Map();
+
+      data.forEach(registration => {
+        if (!athletesMap.has(registration.atleta_id)) {
+          athletesMap.set(registration.atleta_id, {
+            id: registration.atleta_id,
+            nome_atleta: registration.atleta_nome,
+            email: registration.atleta_email,
+            confirmado: registration.status_confirmacao,
+            telefone: registration.telefone,
+            filial: registration.filial_nome,
+            modalidades: [],
+            status_pagamento: registration.status_pagamento || 'pendente',
+            tipo_documento: registration.tipo_documento,
+            numero_documento: registration.numero_documento,
+            genero: registration.genero,
+            numero_identificador: registration.numero_identificador
           });
         }
-        return acc;
-      }, []);
 
-      console.log('Transformed registrations data:', groupedRegistrations);
-      return groupedRegistrations;
+        // Only add modality if it exists
+        if (registration.modalidade_nome) {
+          const athlete = athletesMap.get(registration.atleta_id);
+          athlete.modalidades.push({
+            id: registration.inscricao_id?.toString() || '',
+            modalidade: registration.modalidade_nome,
+            status: registration.status_inscricao || 'pendente',
+            justificativa_status: ''
+          });
+        }
+      });
+
+      // Convert Map to array
+      const groupedAthletes = Array.from(athletesMap.values());
+      console.log('Grouped athletes data:', groupedAthletes);
+      return groupedAthletes;
     },
     enabled: !!userProfile?.filial_id,
   });
