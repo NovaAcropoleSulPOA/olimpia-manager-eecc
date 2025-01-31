@@ -156,7 +156,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
