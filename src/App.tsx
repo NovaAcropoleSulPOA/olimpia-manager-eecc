@@ -14,6 +14,8 @@ import OrganizerDashboard from './components/OrganizerDashboard';
 import DelegationDashboard from './components/DelegationDashboard';
 import AthleteProfilePage from './components/AthleteProfilePage';
 import AthleteRegistrations from './components/AthleteRegistrations';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import React from 'react';
 
 const queryClient = new QueryClient({
@@ -38,6 +40,8 @@ function App() {
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/pending-approval" element={<PendingApproval />} />
                 <Route element={<MainNavigation />}>
                   <Route path="/athlete-profile" element={<AthleteProfilePage />} />
