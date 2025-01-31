@@ -7,7 +7,6 @@ import './App.css';
 import { Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import PendingApproval from './pages/PendingApproval';
-import ResetPassword from './pages/ResetPassword';
 import { MainNavigation } from './components/MainNavigation';
 import LandingPage from './pages/LandingPage';
 import Footer from './components/Footer';
@@ -40,7 +39,6 @@ function App() {
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/pending-approval" element={<PendingApproval />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route element={<MainNavigation />}>
                   <Route path="/athlete-profile" element={<AthleteProfilePage />} />
                   <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
