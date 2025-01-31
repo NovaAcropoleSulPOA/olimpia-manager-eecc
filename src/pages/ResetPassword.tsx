@@ -65,19 +65,28 @@ export default function ResetPassword() {
         return;
       }
 
-      // Update password using the recovery token
+      // Exchange recovery token for session
+      const { error: sessionError } = await supabase.auth.exchangeCodeForSession(token);
+      
+      if (sessionError) {
+        console.error('Session creation error:', sessionError);
+        if (sessionError.message.includes('expired')) {
+          toast.error('Link expirado. Solicite um novo.');
+        } else {
+          toast.error('Link inválido');
+        }
+        navigate('/forgot-password');
+        return;
+      }
+
+      // Update password using the new session
       const { error } = await supabase.auth.updateUser({
         password: values.password
       });
 
       if (error) {
-        console.error('Password reset error:', error);
-        if (error.message.includes('Token expired')) {
-          toast.error('O link de redefinição de senha expirou. Por favor, solicite um novo link.');
-          navigate('/forgot-password');
-        } else {
-          toast.error('Erro ao atualizar senha. Por favor, tente novamente.');
-        }
+        console.error('Password update error:', error);
+        toast.error('Erro ao atualizar senha. Tente novamente.');
         return;
       }
 
@@ -85,7 +94,7 @@ export default function ResetPassword() {
       navigate('/login');
     } catch (error) {
       console.error('Unexpected error:', error);
-      toast.error('Erro ao processar solicitação. Tente novamente.');
+      toast.error('Erro inesperado. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
