@@ -65,13 +65,15 @@ export default function ResetPassword() {
         return;
       }
 
-      // Update the user's password using the recovery token
-      const { error } = await supabase.auth.updateUser({
-        password: values.password
+      // Use the recovery token to verify and update the password
+      const { error } = await supabase.auth.verifyOtp({
+        token,
+        type: 'recovery',
+        newPassword: values.password,
       });
 
       if (error) {
-        console.error('Password update error:', error);
+        console.error('Password reset error:', error);
         if (error.message.includes('Token expired')) {
           toast.error('O link de redefinição de senha expirou. Por favor, solicite um novo link.');
           navigate('/forgot-password');
