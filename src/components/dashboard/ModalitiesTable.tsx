@@ -145,20 +145,45 @@ export function ModalitiesTable({ data }: ModalitiesTableProps) {
       <CardContent>
         <div className="space-y-6">
           {/* Stacked Bar Chart */}
-          <div className="h-[400px] w-full">
+          <div className="h-[500px] w-full"> {/* Increased height */}
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
+              <BarChart 
+                data={chartData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 120 }} // Increased bottom margin
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="filial" 
                   angle={-45}
                   textAnchor="end"
-                  height={80}
+                  height={100} // Increased height for labels
                   interval={0}
+                  tick={{ 
+                    fontSize: 11,
+                    fill: '#4b5563',
+                    dy: 10 // Move labels down
+                  }}
+                  tickMargin={35} // Added margin between ticks and axis
                 />
-                <YAxis />
+                <YAxis 
+                  tick={{ fontSize: 11, fill: '#4b5563' }}
+                  tickFormatter={(value) => `${value}`}
+                  label={{
+                    value: 'Número de Inscritos',
+                    angle: -90,
+                    position: 'insideLeft',
+                    style: { textAnchor: 'middle', fontSize: 12 }
+                  }}
+                />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend />
+                <Legend 
+                  verticalAlign="top"
+                  height={36}
+                  wrapperStyle={{ 
+                    paddingBottom: '20px',
+                    fontSize: '12px'
+                  }}
+                />
                 {modalityNames.map((modality, index) => (
                   <Bar
                     key={modality}
