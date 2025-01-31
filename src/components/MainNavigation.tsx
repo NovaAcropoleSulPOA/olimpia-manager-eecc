@@ -13,7 +13,7 @@ import {
   SidebarGroupLabel,
   SidebarTrigger
 } from './ui/sidebar';
-import { User, BarChart3, LogOut, Menu, ClipboardList } from 'lucide-react';
+import { User, BarChart3, LogOut, Menu, ClipboardList, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
@@ -26,18 +26,20 @@ export function MainNavigation() {
   const userRoles = user?.papeis || [];
   const isOrganizer = userRoles.includes('Organizador');
   const isAthlete = userRoles.includes('Atleta');
+  const isDelegationRep = userRoles.includes('Representante de Delegação');
 
   useEffect(() => {
-    // Only redirect to athlete profile on initial login
     if (location.pathname === '/') {
       console.log('MainNavigation - Initial navigation based on roles');
       if (isAthlete) {
         navigate('/athlete-profile');
       } else if (isOrganizer) {
         navigate('/organizer-dashboard');
+      } else if (isDelegationRep) {
+        navigate('/delegation-dashboard');
       }
     }
-  }, [isAthlete, isOrganizer, location.pathname, navigate]);
+  }, [isAthlete, isOrganizer, isDelegationRep, location.pathname, navigate]);
 
   const handleLogout = async () => {
     try {
@@ -70,6 +72,13 @@ export function MainNavigation() {
         title: "Organizador(a)",
         icon: BarChart3,
         path: "/organizer-dashboard"
+      }
+    ] : []),
+    ...(isDelegationRep ? [
+      {
+        title: "Dashboard da Delegação",
+        icon: Users,
+        path: "/delegation-dashboard"
       }
     ] : [])
   ];
