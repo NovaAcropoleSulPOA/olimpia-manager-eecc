@@ -54,7 +54,7 @@ export default function ForgotPassword() {
       }
 
       toast.success('Email de recuperação enviado com sucesso!');
-      navigate('/login');
+      navigate('/');
     } catch (error) {
       console.error('Unexpected error:', error);
       toast.error('Erro ao processar solicitação. Tente novamente.');
@@ -116,9 +116,9 @@ export default function ForgotPassword() {
                 type="button"
                 variant="outline"
                 className="w-full"
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/')}
               >
-                Voltar para Login
+                Voltar para a Tela Inicial
               </Button>
             </form>
           </Form>
