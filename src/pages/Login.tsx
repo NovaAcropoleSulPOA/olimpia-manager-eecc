@@ -523,7 +523,7 @@ export default function Login() {
                     </Button>
                     <div className="text-center">
                       <Link
-                        to="/reset-password"
+                        to="/forgot-password"
                         className="text-olimpics-green-primary hover:text-olimpics-green-secondary text-sm"
                       >
                         Esqueceu sua senha?
