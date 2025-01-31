@@ -1,4 +1,4 @@
-import { Github, Instagram, Linkedin, Mail, MessageCircle, Home, Users, User, Settings, LogOut } from "lucide-react";
+import { Github, Instagram, Linkedin, Mail, MessageCircle, User, Settings, LogOut, ClipboardList } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -45,7 +45,7 @@ const Footer = () => {
       roles: ["Atleta"],
     },
     {
-      icon: Users,
+      icon: ClipboardList,
       label: "Inscrições",
       path: "/athlete-registrations",
       roles: ["Atleta"],
@@ -55,13 +55,7 @@ const Footer = () => {
       label: "Organizador(a)",
       path: "/organizer-dashboard",
       roles: ["Organizador"],
-    },
-    {
-      icon: Settings,
-      label: "Delegação",
-      path: "/delegation-dashboard",
-      roles: ["Representante de Delegação"],
-    },
+    }
   ];
 
   const handleLogout = async () => {

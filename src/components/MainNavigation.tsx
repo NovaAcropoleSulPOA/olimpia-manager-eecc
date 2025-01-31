@@ -24,7 +24,6 @@ export function MainNavigation() {
   const navigate = useNavigate();
 
   const userRoles = user?.papeis || [];
-  const isDelegationRep = userRoles.includes('Representante de Delegação');
   const isOrganizer = userRoles.includes('Organizador');
   const isAthlete = userRoles.includes('Atleta');
 
@@ -34,13 +33,11 @@ export function MainNavigation() {
       console.log('MainNavigation - Initial navigation based on roles');
       if (isAthlete) {
         navigate('/athlete-profile');
-      } else if (isDelegationRep) {
-        navigate('/delegation-dashboard');
       } else if (isOrganizer) {
         navigate('/organizer-dashboard');
       }
     }
-  }, [isAthlete, isDelegationRep, isOrganizer, location.pathname, navigate]);
+  }, [isAthlete, isOrganizer, location.pathname, navigate]);
 
   const handleLogout = async () => {
     try {
@@ -73,13 +70,6 @@ export function MainNavigation() {
         title: "Organizador(a)",
         icon: BarChart3,
         path: "/organizer-dashboard"
-      }
-    ] : []),
-    ...(isDelegationRep ? [
-      {
-        title: "Rep. Delegação",
-        icon: BarChart3,
-        path: "/delegation-dashboard"
       }
     ] : [])
   ];
