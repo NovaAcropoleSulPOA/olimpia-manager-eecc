@@ -1,4 +1,4 @@
-import { Github, Instagram, Linkedin, Mail, MessageCircle, User, Settings, LogOut, ClipboardList } from "lucide-react";
+import { Github, Instagram, Linkedin, Mail, MessageCircle, User, Settings, LogOut, ClipboardList, Users } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -55,6 +55,12 @@ const Footer = () => {
       label: "Organizador(a)",
       path: "/organizer-dashboard",
       roles: ["Organizador"],
+    },
+    {
+      icon: Users,
+      label: "Delegação",
+      path: "/delegation-dashboard",
+      roles: ["Representante de Delegação"],
     }
   ];
 
@@ -109,24 +115,35 @@ const Footer = () => {
       )}
 
       {/* Original Footer Content - Hidden on Mobile */}
-      <footer className="relative z-50 w-full bg-white/80 backdrop-blur-sm border-t py-2 px-4 mt-auto hidden md:block">
-        <div className="container mx-auto flex justify-end items-center gap-4">
+      <footer className="relative z-50 w-full bg-white/80 backdrop-blur-sm border-t py-4 px-4 mt-auto hidden md:block">
+        <div className="container mx-auto flex justify-between items-center">
           <span className="text-xs text-gray-500">
             Desenvolvido por: Olimar Teixeira Borges
           </span>
-          <div className="flex gap-2">
-            {socialLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-olimpics-green-primary transition-colors"
-                title={link.label}
+          <div className="flex items-center gap-4">
+            <div className="flex gap-2">
+              {socialLinks.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-500 hover:text-olimpics-green-primary transition-colors"
+                  title={link.label}
+                >
+                  {link.icon}
+                </a>
+              ))}
+            </div>
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-500 rounded-lg hover:bg-red-50 transition-colors"
               >
-                {link.icon}
-              </a>
-            ))}
+                <LogOut className="w-5 h-5" />
+                <span>Sair</span>
+              </button>
+            )}
           </div>
         </div>
       </footer>
