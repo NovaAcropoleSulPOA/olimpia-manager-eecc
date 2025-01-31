@@ -66,8 +66,10 @@ export default function ResetPassword() {
       }
 
       // Use the recovery token to reset the password
-      const { error } = await supabase.auth.resetPasswordForEmail(values.password, {
-        token: token
+      const { error } = await supabase.auth.verifyOtp({
+        token,
+        type: 'recovery',
+        newPassword: values.password
       });
 
       if (error) {
