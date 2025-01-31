@@ -139,13 +139,13 @@ export function MainNavigation() {
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={handleLogout}
-                  className="w-full rounded-lg p-3 flex items-center gap-3 
+                  className="w-full rounded-lg p-4 flex items-center gap-3 
                     text-red-300 hover:text-red-100 hover:bg-red-500/20 
-                    transition-all duration-200"
+                    transition-all duration-200 text-lg font-medium"
                   tooltip="Sair"
                 >
-                  <LogOut className="h-5 w-5" />
-                  <span className="font-medium">Sair</span>
+                  <LogOut className="h-6 w-6" />
+                  <span>Sair</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

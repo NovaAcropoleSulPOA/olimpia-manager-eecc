@@ -120,30 +120,19 @@ const Footer = () => {
           <span className="text-xs text-gray-500">
             Desenvolvido por: Olimar Teixeira Borges
           </span>
-          <div className="flex items-center gap-4">
-            <div className="flex gap-2">
-              {socialLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-500 hover:text-olimpics-green-primary transition-colors"
-                  title={link.label}
-                >
-                  {link.icon}
-                </a>
-              ))}
-            </div>
-            {user && (
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+          <div className="flex gap-2">
+            {socialLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-olimpics-green-primary transition-colors"
+                title={link.label}
               >
-                <LogOut className="w-5 h-5" />
-                <span>Sair</span>
-              </button>
-            )}
+                {link.icon}
+              </a>
+            ))}
           </div>
         </div>
       </footer>
