@@ -7,6 +7,7 @@ import { DashboardCharts } from "./dashboard/DashboardCharts";
 import { AthleteRegistrationCard } from "./AthleteRegistrationCard";
 import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-96 text-center">
@@ -28,6 +29,7 @@ const EmptyState = () => (
 export default function OrganizerDashboard() {
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { user } = useAuth();
 
   const { 
     data: branchAnalytics, 
@@ -80,7 +82,6 @@ export default function OrganizerDashboard() {
       console.log('Status updated successfully in the database');
       toast.success("Status atualizado com sucesso!");
       
-      // Invalidate and refetch queries to ensure UI is in sync with database
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
         queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
@@ -89,7 +90,7 @@ export default function OrganizerDashboard() {
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error("Erro ao atualizar status. Por favor, tente novamente.");
-      throw error; // Re-throw to allow handling in the component
+      throw error;
     }
   };
 
@@ -100,7 +101,6 @@ export default function OrganizerDashboard() {
       console.log('Payment status updated successfully in the database');
       toast.success("Status de pagamento atualizado com sucesso!");
       
-      // Invalidate and refetch queries to ensure UI is in sync with database
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
         queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
@@ -110,7 +110,7 @@ export default function OrganizerDashboard() {
       console.error('Error updating payment status:', error);
       const errorMessage = error instanceof Error ? error.message : "Erro ao atualizar status de pagamento";
       toast.error(errorMessage);
-      throw error; // Re-throw to allow handling in the component
+      throw error;
     }
   };
 
@@ -143,6 +143,7 @@ export default function OrganizerDashboard() {
 
   console.log('Branch analytics data:', branchAnalytics);
   console.log('Registrations data:', registrations);
+  console.log('Current user ID:', user?.id);
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -181,6 +182,7 @@ export default function OrganizerDashboard() {
               registration={registration}
               onStatusChange={handleStatusChange}
               onPaymentStatusChange={handlePaymentStatusChange}
+              isCurrentUser={user?.id === registration.id}
             />
           ))}
         </div>
