@@ -31,19 +31,22 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const [modalityStatuses, setModalityStatuses] = React.useState<Record<string, string>>({});
   const [dialogOpen, setDialogOpen] = React.useState(false);
   
-  const isPaymentPending = registration.status_pagamento === "pendente";
-  const validModalities = registration.modalidades.filter(m => m.modalidade);
+  // Add null checks and default values
+  const isPaymentPending = registration?.status_pagamento === "pendente";
+  const validModalities = registration?.modalidades?.filter(m => m.modalidade) || [];
   const hasModalities = validModalities.length > 0;
-  const isSingleEmptyModality = registration.inscricao_id && (!registration.modalidades[0]?.modalidade || registration.modalidades.length === 0);
+  const isSingleEmptyModality = registration?.inscricao_id && (!registration?.modalidades?.[0]?.modalidade || registration?.modalidades?.length === 0);
 
   // Initialize modality statuses on mount
   React.useEffect(() => {
-    const initialStatuses = registration.modalidades.reduce((acc, modality) => ({
-      ...acc,
-      [modality.id]: modality.status
-    }), {});
-    setModalityStatuses(initialStatuses);
-  }, [registration.modalidades]);
+    if (registration?.modalidades) {
+      const initialStatuses = registration.modalidades.reduce((acc, modality) => ({
+        ...acc,
+        [modality.id]: modality.status
+      }), {});
+      setModalityStatuses(initialStatuses);
+    }
+  }, [registration?.modalidades]);
 
   const handleWhatsAppClick = (phone: string) => {
     const formattedPhone = phone.replace(/\D/g, '');
@@ -93,7 +96,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   };
 
   const handlePaymentStatusChange = async (newStatus: string) => {
-    if (!onPaymentStatusChange) return;
+    if (!onPaymentStatusChange || !registration?.id) return;
     
     try {
       await onPaymentStatusChange(registration.id, newStatus);
@@ -132,6 +135,10 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
         return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
   };
+
+  if (!registration) {
+    return null;
+  }
 
   const cardContent = (
     <Card className={cn(
@@ -335,3 +342,4 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     </Dialog>
   );
 };
+});
