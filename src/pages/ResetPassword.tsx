@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -23,7 +23,20 @@ const resetPasswordSchema = z.object({
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  // Extract access_token from URL
+  const searchParams = new URLSearchParams(location.search);
+  const accessToken = searchParams.get('access_token');
+
+  React.useEffect(() => {
+    if (!accessToken) {
+      console.error('No access token found in URL');
+      toast.error('Link de redefinição de senha inválido ou expirado');
+      navigate('/forgot-password');
+    }
+  }, [accessToken, navigate]);
 
   const form = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
@@ -38,13 +51,26 @@ export default function ResetPassword() {
       setIsSubmitting(true);
       console.log('Attempting to update password');
 
+      if (!accessToken) {
+        console.error('No access token available');
+        toast.error('Link de redefinição de senha inválido ou expirado');
+        navigate('/forgot-password');
+        return;
+      }
+
+      // Update the user's password using the access token
       const { error } = await supabase.auth.updateUser({
         password: values.password
       });
 
       if (error) {
         console.error('Password update error:', error);
-        toast.error('Erro ao atualizar senha. Tente novamente.');
+        if (error.message.includes('Token expired')) {
+          toast.error('O link de redefinição de senha expirou. Por favor, solicite um novo link.');
+          navigate('/forgot-password');
+        } else {
+          toast.error('Erro ao atualizar senha. Por favor, tente novamente.');
+        }
         return;
       }
 
