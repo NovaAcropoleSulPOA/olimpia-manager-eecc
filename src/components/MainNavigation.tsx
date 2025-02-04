@@ -154,7 +154,7 @@ export function MainNavigation() {
           </div>
         </Sidebar>
         <main className="flex-1 ml-64 p-6 bg-olimpics-background">
-          <div className="container mx-auto">
+          <div className="container mx-auto max-w-7xl">
             <Outlet />
           </div>
         </main>

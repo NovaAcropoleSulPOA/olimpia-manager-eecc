@@ -36,7 +36,7 @@ function App() {
         <AuthProvider>
           <div className="min-h-screen flex flex-col">
             <GlobalHeader />
-            <div className="flex-1 pt-16 pb-16 md:pb-0"> {/* Added padding to account for fixed header and mobile footer */}
+            <div className="flex-1 pt-16 pb-16"> 
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />
