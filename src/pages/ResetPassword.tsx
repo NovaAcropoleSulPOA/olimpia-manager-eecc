@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { supabase } from '@/lib/supabase';
 import { Loader2, Lock, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const resetPasswordSchema = z.object({
   password: z.string()
@@ -39,11 +39,36 @@ export default function ResetPassword() {
     console.log('Token present:', !!token);
     console.log('Type:', type);
     
-    if (!token || type !== 'recovery') {
-      console.error('Invalid recovery parameters');
-      setError('Link de redefinição de senha inválido ou expirado');
-      return;
-    }
+    const validateToken = async () => {
+      if (!token || type !== 'recovery') {
+        console.error('Invalid recovery parameters');
+        setError('Link de redefinição de senha inválido ou expirado');
+        return;
+      }
+
+      try {
+        // Attempt to exchange the recovery token for a session
+        const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(token);
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          if (sessionError.message.includes('expired')) {
+            setError('O link de recuperação expirou. Por favor, solicite um novo.');
+          } else {
+            setError('Link inválido. Por favor, solicite um novo link de recuperação.');
+          }
+          return;
+        }
+
+        console.log('Token validated successfully:', !!data);
+        setError(null);
+      } catch (error) {
+        console.error('Unexpected error during token validation:', error);
+        setError('Erro ao validar o link de recuperação. Por favor, tente novamente.');
+      }
+    };
+
+    validateToken();
   }, [token, type]);
 
   const form = useForm<z.infer<typeof resetPasswordSchema>>({
@@ -58,24 +83,11 @@ export default function ResetPassword() {
     try {
       setIsSubmitting(true);
       setError(null);
-      console.log('Attempting to reset password with recovery token');
+      console.log('Attempting to reset password');
 
       if (!token || type !== 'recovery') {
         console.error('Invalid recovery parameters during submission');
         setError('Link de redefinição de senha inválido ou expirado');
-        return;
-      }
-
-      // First, verify the recovery token
-      const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(token);
-      
-      if (sessionError) {
-        console.error('Session error:', sessionError);
-        if (sessionError.message.includes('expired')) {
-          setError('O link de recuperação expirou. Por favor, solicite um novo.');
-        } else {
-          setError('Link inválido. Por favor, solicite um novo link de recuperação.');
-        }
         return;
       }
 
