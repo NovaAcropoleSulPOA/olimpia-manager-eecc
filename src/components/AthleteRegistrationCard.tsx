@@ -29,12 +29,14 @@ interface AthleteRegistrationCardProps {
   };
   onStatusChange: (modalityId: string, status: string, justification: string) => Promise<void>;
   onPaymentStatusChange?: (athleteId: string, status: string) => Promise<void>;
+  isCurrentUser?: boolean; // Added this prop
 }
 
 export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = ({
   registration,
   onStatusChange,
   onPaymentStatusChange,
+  isCurrentUser = false, // Added with default value
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
   
