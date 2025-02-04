@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from '@/lib/supabase';
-import { Loader2, Lock } from 'lucide-react';
+import { Loader2, Lock, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const resetPasswordSchema = z.object({
   password: z.string()
@@ -25,8 +26,9 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  // Extrai token e type da URL
+  // Extract token and type from URL
   const searchParams = new URLSearchParams(location.search);
   const token = searchParams.get('token');
   const type = searchParams.get('type');
@@ -39,11 +41,10 @@ export default function ResetPassword() {
     
     if (!token || type !== 'recovery') {
       console.error('Invalid recovery parameters');
-      toast.error('Link de redefinição de senha inválido ou expirado');
-      navigate('/forgot-password');
+      setError('Link de redefinição de senha inválido ou expirado');
       return;
     }
-  }, [token, type, navigate]);
+  }, [token, type]);
 
   const form = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
@@ -56,34 +57,47 @@ export default function ResetPassword() {
   const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
     try {
       setIsSubmitting(true);
+      setError(null);
       console.log('Attempting to reset password with recovery token');
 
       if (!token || type !== 'recovery') {
         console.error('Invalid recovery parameters during submission');
-        toast.error('Link de redefinição de senha inválido ou expirado');
-        navigate('/forgot-password');
+        setError('Link de redefinição de senha inválido ou expirado');
         return;
       }
 
-      // Atualiza a senha usando o token de recuperação (método disponível no supabase-js v1)
-      const { error } = await supabase.auth.api.updateUser(token, { password: values.password });
+      // First, verify the recovery token
+      const { data: sessionData, error: sessionError } = await supabase.auth.exchangeCodeForSession(token);
       
-      if (error) {
-        console.error('Password update error:', error);
-        if (error.message.includes('expired')) {
-          toast.error('Link expirado. Solicite um novo.');
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        if (sessionError.message.includes('expired')) {
+          setError('O link de recuperação expirou. Por favor, solicite um novo.');
         } else {
-          toast.error('Erro ao atualizar senha. Tente novamente.');
+          setError('Link inválido. Por favor, solicite um novo link de recuperação.');
         }
-        navigate('/forgot-password');
         return;
       }
+
+      // Update the password
+      const { error: updateError } = await supabase.auth.updateUser({ 
+        password: values.password 
+      });
+
+      if (updateError) {
+        console.error('Password update error:', updateError);
+        setError('Erro ao atualizar senha. Por favor, tente novamente.');
+        return;
+      }
+
+      // Sign out to ensure a fresh login
+      await supabase.auth.signOut();
 
       toast.success('Senha atualizada com sucesso!');
       navigate('/login');
     } catch (error) {
       console.error('Unexpected error:', error);
-      toast.error('Erro inesperado. Tente novamente.');
+      setError('Erro inesperado. Por favor, tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -104,6 +118,14 @@ export default function ResetPassword() {
           <div className="flex justify-center">
             <Lock className="h-12 w-12 text-olimpics-green-primary" />
           </div>
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -145,7 +167,7 @@ export default function ResetPassword() {
               <Button
                 type="submit"
                 className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !!error}
               >
                 {isSubmitting ? (
                   <>
@@ -155,6 +177,14 @@ export default function ResetPassword() {
                 ) : (
                   'Atualizar Senha'
                 )}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate('/forgot-password')}
+              >
+                Solicitar Novo Link
               </Button>
             </form>
           </Form>
