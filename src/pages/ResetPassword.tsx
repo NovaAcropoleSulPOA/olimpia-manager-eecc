@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { supabase } from '@/lib/supabase';
-import { Loader2, Lock, AlertCircle } from 'lucide-react';
+import { Loader2, Lock, AlertCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const resetPasswordSchema = z.object({
@@ -50,6 +50,10 @@ export default function ResetPassword() {
     },
   });
 
+  const handleBackToProfile = () => {
+    navigate('/athlete-profile');
+  };
+
   const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
     try {
       setIsSubmitting(true);
@@ -72,22 +76,17 @@ export default function ResetPassword() {
 
       if (updateError) {
         console.error('Password update error:', updateError);
-        if (updateError.message.includes('auth')) {
-          setError('Erro ao atualizar senha. Por favor, tente novamente.');
-        } else {
-          setError('Erro ao atualizar senha. Por favor, tente novamente mais tarde.');
-        }
+        setError('Erro ao atualizar senha. Por favor, tente novamente.');
         return;
       }
 
       console.log('Password updated successfully');
       toast.success('Senha atualizada com sucesso!');
       
-      if (fromProfile) {
+      // Short delay before redirect to ensure the toast is visible
+      setTimeout(() => {
         navigate('/athlete-profile');
-      } else {
-        navigate('/login');
-      }
+      }, 1500);
     } catch (error) {
       console.error('Unexpected error:', error);
       setError('Erro inesperado. Por favor, tente novamente.');
@@ -157,20 +156,31 @@ export default function ResetPassword() {
                   </FormItem>
                 )}
               />
-              <Button
-                type="submit"
-                className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary"
-                disabled={isSubmitting || !!error}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Atualizando...
-                  </>
-                ) : (
-                  'Atualizar Senha'
-                )}
-              </Button>
+              <div className="space-y-2">
+                <Button
+                  type="submit"
+                  className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary"
+                  disabled={isSubmitting || !!error}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Atualizando...
+                    </>
+                  ) : (
+                    'Atualizar Senha'
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleBackToProfile}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Voltar para o Perfil
+                </Button>
+              </div>
             </form>
           </Form>
         </CardContent>
