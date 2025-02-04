@@ -81,12 +81,11 @@ export default function ResetPassword() {
       }
 
       console.log('Password updated successfully');
-      toast.success('Senha atualizada com sucesso!');
       
-      // Short delay before redirect to ensure the toast is visible
-      setTimeout(() => {
-        navigate('/athlete-profile');
-      }, 1500);
+      // Navigate first, then show the success message
+      navigate('/athlete-profile');
+      toast.success('Senha alterada com sucesso!');
+      
     } catch (error) {
       console.error('Unexpected error:', error);
       setError('Erro inesperado. Por favor, tente novamente.');
