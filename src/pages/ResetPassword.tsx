@@ -83,15 +83,11 @@ export default function ResetPassword() {
       console.log('Password updated successfully');
       toast.success('Senha atualizada com sucesso!');
       
-      // Add a small delay before redirecting to ensure the toast is visible
-      setTimeout(() => {
-        if (fromProfile) {
-          navigate('/athlete-profile');
-        } else {
-          navigate('/login');
-        }
-      }, 1500); // 1.5 second delay
-
+      if (fromProfile) {
+        navigate('/athlete-profile');
+      } else {
+        navigate('/login');
+      }
     } catch (error) {
       console.error('Unexpected error:', error);
       setError('Erro inesperado. Por favor, tente novamente.');
