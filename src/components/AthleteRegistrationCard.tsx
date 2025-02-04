@@ -31,6 +31,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const [modalityStatuses, setModalityStatuses] = React.useState<Record<string, string>>({});
   const [dialogOpen, setDialogOpen] = React.useState(false);
   
+  // Add null checks and default values
+  const isPaymentPending = registration?.status_pagamento === "pendente";
   const validModalities = registration?.modalidades?.filter(m => m.modalidade) || [];
   const hasModalities = validModalities.length > 0;
   const isSingleEmptyModality = registration?.inscricao_id && (!registration?.modalidades?.[0]?.modalidade || registration?.modalidades?.length === 0);
@@ -141,7 +143,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const cardContent = (
     <Card className={cn(
       getStatusColor(registration.status_pagamento),
-      'cursor-pointer hover:shadow-md transition-shadow',
+      isPaymentPending ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:shadow-md transition-shadow',
       isCurrentUser && 'ring-2 ring-olimpics-orange-primary'
     )}>
       <CardContent className="p-6">
@@ -204,7 +206,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
             )}
           </div>
 
-          {onPaymentStatusChange && (
+          {registration.status_pagamento === "pendente" && onPaymentStatusChange && (
             <div className="mt-4 flex items-center gap-2">
               <label className="text-sm text-muted-foreground">Status do pagamento:</label>
               <Select onValueChange={handlePaymentStatusChange}>
@@ -213,7 +215,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="confirmado">Confirmado</SelectItem>
-                  <SelectItem value="pendente">Pendente</SelectItem>
                   <SelectItem value="cancelado">Cancelado</SelectItem>
                 </SelectContent>
               </Select>
@@ -223,6 +224,10 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
       </CardContent>
     </Card>
   );
+
+  if (isPaymentPending) {
+    return cardContent;
+  }
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
