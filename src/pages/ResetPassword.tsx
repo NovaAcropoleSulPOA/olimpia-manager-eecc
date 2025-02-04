@@ -6,7 +6,6 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { supabase } from '@/lib/supabase';
@@ -30,16 +29,6 @@ export default function ResetPassword() {
   const [error, setError] = React.useState<string | null>(null);
 
   const fromProfile = location.state?.fromProfile;
-  console.log('Reset password page - from profile:', fromProfile);
-  console.log('Reset password page - user:', user?.id);
-
-  React.useEffect(() => {
-    if (!fromProfile && !user) {
-      console.log('Invalid access to reset password page');
-      setError('Acesso inválido à página de redefinição de senha');
-      navigate('/login');
-    }
-  }, [fromProfile, user, navigate]);
 
   const form = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
@@ -49,62 +38,81 @@ export default function ResetPassword() {
     },
   });
 
-  const handleBackToProfile = () => {
-    navigate('/athlete-profile');
+  React.useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session && !fromProfile) {
+        console.log('No session found, redirecting to login');
+        navigate('/login');
+      }
+    };
+
+    checkSession();
+  }, [navigate, fromProfile]);
+
+  const handleBack = () => {
+    if (fromProfile) {
+      navigate('/athlete-profile');
+    } else {
+      navigate('/login');
+    }
   };
 
   const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
-    // First verify the user is authenticated
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session?.access_token) {
-      console.error('No valid session found');
-      setError('Sessão expirada. Por favor, faça login novamente.');
-      navigate('/login');
-      return;
-    }
-
-    // Immediately redirect to profile page
-    navigate('/athlete-profile');
-    
-    // Update password in background
-    supabase.auth.updateUser({
-      password: values.password
-    }).then(({ error }) => {
-      if (error) {
-        console.error('Password update error:', error);
-        toast.error('Erro ao atualizar senha. Por favor, tente novamente.');
+    try {
+      // First verify the user is authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        console.error('No valid session found');
+        setError('Sessão expirada. Por favor, faça login novamente.');
+        navigate('/login');
         return;
       }
-      console.log('Password updated successfully');
+
+      // Update password first, then redirect
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: values.password
+      });
+
+      if (updateError) {
+        console.error('Password update error:', updateError);
+        setError('Erro ao atualizar senha. Por favor, tente novamente.');
+        return;
+      }
+
+      // If successful, redirect and show success message
+      navigate('/athlete-profile');
       toast.success('Senha alterada com sucesso!');
-    });
+      
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      setError('Erro inesperado. Por favor, tente novamente.');
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-olimpics-background">
-      <Card className="w-[400px] shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-olimpics-green-primary text-center">
+    <div className="container mx-auto flex flex-col items-center justify-center min-h-screen p-4">
+      <div className="w-full max-w-md space-y-8">
+        <div className="flex flex-col items-center space-y-2 text-center">
+          <Lock className="h-8 w-8 text-olimpics-green-primary" />
+          <h1 className="text-2xl font-bold">
             {fromProfile ? 'Alterar Senha' : 'Redefinir Senha'}
-          </CardTitle>
-          <CardDescription className="text-center text-olimpics-text">
-            Digite sua nova senha
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex justify-center">
-            <Lock className="h-12 w-12 text-olimpics-green-primary" />
-          </div>
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Digite sua nova senha abaixo
+          </p>
+        </div>
 
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="password"
@@ -115,7 +123,6 @@ export default function ResetPassword() {
                       <Input
                         type="password"
                         placeholder="••••••"
-                        className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
                         {...field}
                       />
                     </FormControl>
@@ -123,6 +130,7 @@ export default function ResetPassword() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="confirmPassword"
@@ -133,7 +141,6 @@ export default function ResetPassword() {
                       <Input
                         type="password"
                         placeholder="••••••"
-                        className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
                         {...field}
                       />
                     </FormControl>
@@ -141,7 +148,9 @@ export default function ResetPassword() {
                   </FormItem>
                 )}
               />
-              <div className="space-y-2">
+            </div>
+
+            <div className="flex flex-col space-y-4">
                 <Button
                   type="submit"
                   className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary"
@@ -151,17 +160,16 @@ export default function ResetPassword() {
                 <Button
                   type="button"
                   variant="outline"
+                  onClick={handleBack}
                   className="w-full"
-                  onClick={handleBackToProfile}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Voltar para o Perfil
+                  Voltar
                 </Button>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            </div>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 }
