@@ -26,7 +26,7 @@ export default function ResetPassword() {
   const location = useLocation();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  // Extract token and type from URL
+  // Extrai o token e o tipo da URL
   const searchParams = new URLSearchParams(location.search);
   const token = searchParams.get('token');
   const type = searchParams.get('type');
@@ -65,28 +65,22 @@ export default function ResetPassword() {
         return;
       }
 
-      // Exchange recovery token for session
-      const { error: sessionError } = await supabase.auth.exchangeCodeForSession(token);
+      // Utiliza verifyOTP para redefinir a senha usando o token de recuperação
+      const { error } = await supabase.auth.verifyOTP({
+        token,
+        type: 'recovery',
+        password: values.password,
+      });
       
-      if (sessionError) {
-        console.error('Session creation error:', sessionError);
-        if (sessionError.message.includes('expired')) {
+      if (error) {
+        console.error('Password reset error:', error);
+        // Caso a mensagem do erro indique expiração, exibe mensagem apropriada
+        if (error.message.includes('expired')) {
           toast.error('Link expirado. Solicite um novo.');
         } else {
-          toast.error('Link inválido');
+          toast.error('Erro ao atualizar senha. Tente novamente.');
         }
         navigate('/forgot-password');
-        return;
-      }
-
-      // Update password using the new session
-      const { error } = await supabase.auth.updateUser({
-        password: values.password
-      });
-
-      if (error) {
-        console.error('Password update error:', error);
-        toast.error('Erro ao atualizar senha. Tente novamente.');
         return;
       }
 
