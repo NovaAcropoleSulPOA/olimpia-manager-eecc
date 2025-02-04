@@ -11,7 +11,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { supabase } from '@/lib/supabase';
 import { Loader2, Lock, AlertCircle } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
 
 const resetPasswordSchema = z.object({
   password: z.string()
@@ -28,7 +27,6 @@ export default function ResetPassword() {
   const location = useLocation();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const { user } = useAuth();
 
   const searchParams = new URLSearchParams(location.search);
   const token = searchParams.get('token');
@@ -39,14 +37,12 @@ export default function ResetPassword() {
     console.log('Current URL:', window.location.href);
     console.log('Token present:', !!token);
     console.log('Type:', type);
-    console.log('User authenticated:', !!user);
     
-    if (!token && !user) {
-      console.error('No token or authenticated user found');
-      setError('Acesso não autorizado');
-      navigate('/login');
+    if (!token || type !== 'recovery') {
+      console.error('Invalid recovery parameters');
+      setError('Link de redefinição de senha inválido ou expirado');
     }
-  }, [token, type, user, navigate]);
+  }, [token, type]);
 
   const form = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
@@ -62,6 +58,13 @@ export default function ResetPassword() {
       setError(null);
       console.log('Attempting to reset password');
 
+      if (!token || type !== 'recovery') {
+        console.error('Invalid recovery parameters during submission');
+        setError('Link de redefinição de senha inválido ou expirado');
+        return;
+      }
+
+      // Update user's password using the recovery token
       const { error: updateError } = await supabase.auth.updateUser({
         password: values.password
       });
@@ -71,7 +74,7 @@ export default function ResetPassword() {
         if (updateError.message.includes('expired')) {
           setError('O link de recuperação expirou. Por favor, solicite um novo.');
         } else {
-          setError('Erro ao atualizar senha. Por favor, tente novamente.');
+          setError('Link inválido. Por favor, solicite um novo link de recuperação.');
         }
         return;
       }

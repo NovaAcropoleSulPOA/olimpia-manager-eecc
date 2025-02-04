@@ -1,12 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { User, MapPin, Phone, Mail, Building2, FileText, CreditCard, Info, Lock } from "lucide-react";
+import { User, MapPin, Phone, Mail, Building2, FileText, CreditCard, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import PaymentInfo from './PaymentInfo';
-import { Button } from "@/components/ui/button";
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
 
 interface AthleteProfileProps {
   profile: {
@@ -37,50 +33,9 @@ const getProfileImage = (gender: string | undefined) => {
 };
 
 export default function AthleteProfile({ profile }: AthleteProfileProps) {
-  const navigate = useNavigate();
-  const [isRequestingReset, setIsRequestingReset] = useState(false);
-
   if (!profile) {
     return null;
   }
-
-  const handlePasswordChange = async () => {
-    if (isRequestingReset) {
-      toast.error('Por favor, aguarde alguns segundos antes de tentar novamente.');
-      return;
-    }
-
-    console.log('Initiating password change flow');
-    setIsRequestingReset(true);
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(profile.email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) {
-        console.error('Error initiating password change:', error);
-        
-        if (error.message.includes('rate_limit')) {
-          toast.error('Por favor, aguarde alguns segundos antes de tentar novamente.');
-        } else {
-          toast.error('Erro ao iniciar alteração de senha. Tente novamente mais tarde.');
-        }
-        return;
-      }
-
-      toast.success('Email de redefinição de senha enviado com sucesso!');
-      navigate('/reset-password');
-    } catch (error) {
-      console.error('Failed to initiate password change:', error);
-      toast.error('Erro ao iniciar alteração de senha. Tente novamente mais tarde.');
-    } finally {
-      // Set a timeout to prevent rapid successive requests
-      setTimeout(() => {
-        setIsRequestingReset(false);
-      }, 60000); // 60 seconds cooldown
-    }
-  };
 
   const formatCurrency = (value?: number) => {
     if (!value) return 'Valor não pago';
@@ -162,15 +117,6 @@ export default function AthleteProfile({ profile }: AthleteProfileProps) {
                       </span>
                     </span>
                   </p>
-                  <Button
-                    onClick={handlePasswordChange}
-                    variant="outline"
-                    className="w-full mt-4 border-olimpics-green-primary text-olimpics-green-primary hover:bg-olimpics-green-primary hover:text-white"
-                    disabled={isRequestingReset}
-                  >
-                    <Lock className="h-4 w-4 mr-2" />
-                    {isRequestingReset ? 'Aguarde...' : 'Alterar Senha'}
-                  </Button>
                 </div>
               </div>
 
