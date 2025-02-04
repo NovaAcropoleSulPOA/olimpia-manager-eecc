@@ -17,6 +17,7 @@ interface AthleteProfileProps {
     filial_cidade: string;
     filial_estado: string;
     pagamento_status?: string;
+    pagamento_valor?: number;
   };
 }
 
@@ -35,6 +36,14 @@ export default function AthleteProfile({ profile }: AthleteProfileProps) {
   if (!profile) {
     return null;
   }
+
+  const formatCurrency = (value?: number) => {
+    if (!value) return 'Valor não pago';
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
 
   return (
     <div className="space-y-6">
@@ -96,6 +105,15 @@ export default function AthleteProfile({ profile }: AthleteProfileProps) {
                       Status do Pagamento: {' '}
                       <span className={`font-medium ${profile.pagamento_status === 'confirmado' ? 'text-green-600' : 'text-orange-500'}`}>
                         {profile.pagamento_status === 'confirmado' ? 'Confirmado' : 'Pendente'}
+                      </span>
+                    </span>
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">
+                      Valor do Pagamento: {' '}
+                      <span className={`font-medium ${profile.pagamento_status === 'confirmado' ? 'text-green-600' : 'text-orange-500'}`}>
+                        {formatCurrency(profile.pagamento_valor)}
                       </span>
                     </span>
                   </p>
