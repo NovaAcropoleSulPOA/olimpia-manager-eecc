@@ -115,7 +115,7 @@ const Footer = () => {
       )}
 
       {/* Desktop Footer */}
-      <footer className="hidden md:block relative z-10 w-full bg-white/80 backdrop-blur-sm border-t py-4 px-4">
+      <footer className="hidden md:block w-full bg-white/80 backdrop-blur-sm border-t py-4 px-4 mt-auto">
         <div className="container mx-auto flex justify-between items-center">
           <span className="text-xs text-gray-500">
             Desenvolvido por: Olimar Teixeira Borges

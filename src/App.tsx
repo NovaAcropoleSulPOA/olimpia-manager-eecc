@@ -36,7 +36,7 @@ function App() {
         <AuthProvider>
           <div className="min-h-screen flex flex-col">
             <GlobalHeader />
-            <div className="flex-1 flex flex-col pt-16"> {/* Added flex-col and adjusted padding for header */}
+            <div className="flex-1 flex flex-col mt-16"> {/* Changed pt-16 to mt-16 for better spacing */}
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />

@@ -93,8 +93,8 @@ export function MainNavigation() {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex min-h-[calc(100vh-4rem)] w-full"> {/* Adjusted height for header */}
-        <Sidebar className="bg-olimpics-green-primary text-white">
+      <div className="flex flex-1 w-full"> {/* Removed fixed height calculation */}
+        <Sidebar className="bg-olimpics-green-primary text-white sticky top-16 h-[calc(100vh-4rem)]"> {/* Added sticky positioning */}
           <SidebarHeader className="relative p-6 border-b border-olimpics-green-secondary">
             <h2 className="text-xl font-bold text-center">Menu</h2>
             <SidebarTrigger className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden text-white hover:text-olimpics-green-secondary">
@@ -151,7 +151,7 @@ export function MainNavigation() {
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
-        <main className="flex-1 p-6 bg-olimpics-background overflow-y-auto">
+        <main className="flex-1 p-6 bg-olimpics-background min-h-[calc(100vh-4rem-4rem)]"> {/* Adjusted min-height */}
           <Outlet />
         </main>
       </div>
