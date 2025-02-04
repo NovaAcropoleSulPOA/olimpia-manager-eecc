@@ -142,10 +142,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     }
   };
 
-  if (!registration) {
-    return null;
-  }
-
   const PaymentStatusSelector = () => (
     <div className="mt-4 flex items-center gap-2">
       <label className="text-sm text-muted-foreground">Status do pagamento:</label>
@@ -249,10 +245,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               </div>
             )}
           </div>
-
-          {registration.status_pagamento === "pendente" && onPaymentStatusChange && (
-            <PaymentStatusSelector />
-          )}
         </div>
       </CardContent>
     </Card>
