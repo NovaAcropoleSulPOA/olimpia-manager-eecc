@@ -143,7 +143,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const cardContent = (
     <Card className={cn(
       getStatusColor(registration.status_pagamento),
-      'cursor-pointer hover:shadow-md transition-shadow',
+      isPaymentPending ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:shadow-md transition-shadow',
       isCurrentUser && 'ring-2 ring-olimpics-orange-primary'
     )}>
       <CardContent className="p-6">
@@ -224,6 +224,10 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
       </CardContent>
     </Card>
   );
+
+  if (isPaymentPending) {
+    return cardContent;
+  }
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
