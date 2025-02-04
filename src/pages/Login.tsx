@@ -99,15 +99,16 @@ export default function Login() {
     try {
       setIsSubmitting(true);
       await signIn(values.email, values.password);
-      toast.success("Login realizado com sucesso!");
-      navigate('/');
+      // Não é necessário exibir toast.success ou chamar navigate('/')
+      // pois isso já é feito dentro do AuthContext.signIn
     } catch (error) {
       console.error("Login Error:", error);
+      // Caso ocorra um erro inesperado (apesar do tratamento no AuthContext)
       toast.error("Erro ao fazer login. Verifique suas credenciais.");
     } finally {
       setIsSubmitting(false);
     }
-  };
+  };  
 
   const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {

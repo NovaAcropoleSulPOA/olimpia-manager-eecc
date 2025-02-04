@@ -182,43 +182,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Attempting login with:', email);
       setLoading(true);
   
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password 
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
   
       if (error) {
         console.log('Login error:', error);
-        
-        if (error.message.includes('Invalid login credentials')) {
-          toast.error('Verifique suas credenciais. Usuário ou senha incorretos.');
+        let errorCode = "";
+  
+        // Se o erro possuir a propriedade "body", tente extrair o código de erro dela
+        if (error.body) {
+          try {
+            const parsed = JSON.parse(error.body);
+            errorCode = parsed.code || "";
+          } catch (e) {
+            console.error("Error parsing error.body:", e);
+          }
+        }
+  
+        if (
+          errorCode === "invalid_credentials" ||
+          error.message.toLowerCase().includes("invalid login credentials")
+        ) {
+          toast.error("Verifique suas credenciais. Usuário ou senha incorretos.");
           return;
         }
-        
-        if (error.message.includes('Email not confirmed')) {
-          toast.error('Email não confirmado. Por favor, verifique sua caixa de entrada.');
+  
+        if (error.message.includes("Email not confirmed")) {
+          toast.error("Email não confirmado. Por favor, verifique sua caixa de entrada.");
           return;
         }
-        
-        toast.error('Erro ao fazer login. Por favor, tente novamente.');
+  
+        toast.error("Erro ao fazer login. Por favor, tente novamente.");
         return;
       }
   
       if (!data.user) {
-        console.log('No user data returned');
-        toast.error('Erro ao fazer login. Tente novamente.');
+        console.log("No user data returned");
+        toast.error("Erro ao fazer login. Tente novamente.");
         return;
       }
   
-      console.log('Login successful, fetching user profile...');
+      console.log("Login successful, fetching user profile...");
       const profile = await fetchUserProfile(data.user.id);
       setUser({ ...data.user, ...profile });
       handleAuthRedirect(profile);
-      toast.success('Login realizado com sucesso!');
-  
+      toast.success("Login realizado com sucesso!");
     } catch (error) {
-      console.error('Unexpected login error:', error);
-      toast.error('Erro ao fazer login. Por favor, tente novamente.');
+      console.error("Unexpected login error:", error);
+      toast.error("Erro ao fazer login. Por favor, tente novamente.");
     } finally {
       setLoading(false);
     }
