@@ -35,8 +35,8 @@ export default function OrganizerDashboard() {
   
   // Filter states
   const [nameFilter, setNameFilter] = useState("");
-  const [branchFilter, setBranchFilter] = useState("");
-  const [paymentStatusFilter, setPaymentStatusFilter] = useState("");
+  const [branchFilter, setBranchFilter] = useState("all");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("all");
 
   const { data: branches } = useQuery({
     queryKey: ['branches'],
@@ -164,8 +164,8 @@ export default function OrganizerDashboard() {
   // Filter registrations based on user input
   const filteredRegistrations = registrations?.filter(registration => {
     const nameMatch = registration.nome_atleta.toLowerCase().includes(nameFilter.toLowerCase());
-    const branchMatch = !branchFilter || registration.filial_id === branchFilter;
-    const statusMatch = !paymentStatusFilter || registration.status_pagamento === paymentStatusFilter;
+    const branchMatch = branchFilter === "all" || registration.filial_id === branchFilter;
+    const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
     return nameMatch && branchMatch && statusMatch;
   });
 

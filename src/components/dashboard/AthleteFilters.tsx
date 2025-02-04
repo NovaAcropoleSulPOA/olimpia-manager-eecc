@@ -54,7 +54,7 @@ export function AthleteFilters({
               <SelectValue placeholder="Todas as filiais" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as filiais</SelectItem>
+              <SelectItem value="all">Todas as filiais</SelectItem>
               {branches.map((branch) => (
                 <SelectItem key={branch.id} value={branch.id}>
                   {branch.nome}
@@ -74,7 +74,7 @@ export function AthleteFilters({
               <SelectValue placeholder="Todos os status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os status</SelectItem>
+              <SelectItem value="all">Todos os status</SelectItem>
               <SelectItem value="confirmado">Confirmado</SelectItem>
               <SelectItem value="pendente">Pendente</SelectItem>
               <SelectItem value="cancelado">Cancelado</SelectItem>
