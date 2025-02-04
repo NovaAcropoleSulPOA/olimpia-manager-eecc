@@ -190,19 +190,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.log('Login error:', error);
         
-        // Check for specific error types in the error response
-        const errorBody = error.message && error.message.includes('{') 
-          ? JSON.parse(error.message.substring(error.message.indexOf('{')))
-          : null;
-        
-        if (errorBody?.code === 'invalid_credentials' || error.message.includes('Invalid login credentials')) {
-          toast.error('Usuário ou senha incorretos. Tente novamente.');
-          return;
-        }
-        
-        if (error.message.includes('Email not confirmed')) {
-          toast.error('Email não confirmado. Por favor, verifique sua caixa de entrada.');
-          return;
+        try {
+          // Try to parse the error message if it contains JSON
+          const errorBody = error.message?.includes('{') 
+            ? JSON.parse(error.message.substring(error.message.indexOf('{')))
+            : null;
+          
+          // Check for specific error codes
+          if (errorBody?.code === 'invalid_credentials' || 
+              error.message?.includes('Invalid login credentials')) {
+            toast.error('Usuário ou senha incorretos. Tente novamente.');
+            return;
+          }
+          
+          if (error.message?.includes('Email not confirmed')) {
+            toast.error('Email não confirmado. Por favor, verifique sua caixa de entrada.');
+            return;
+          }
+        } catch (parseError) {
+          console.error('Error parsing error message:', parseError);
         }
         
         // For any other errors, show a generic message
