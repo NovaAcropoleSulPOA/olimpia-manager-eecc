@@ -1,8 +1,11 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { User, MapPin, Phone, Mail, Building2, FileText, CreditCard, Info } from "lucide-react";
+import { User, MapPin, Phone, Mail, Building2, FileText, CreditCard, Info, Lock } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import PaymentInfo from './PaymentInfo';
+import { Button } from "@/components/ui/button";
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 
 interface AthleteProfileProps {
   profile: {
@@ -33,9 +36,29 @@ const getProfileImage = (gender: string | undefined) => {
 };
 
 export default function AthleteProfile({ profile }: AthleteProfileProps) {
+  const navigate = useNavigate();
+
   if (!profile) {
     return null;
   }
+
+  const handlePasswordChange = async () => {
+    console.log('Initiating password change flow');
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(profile.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        console.error('Error initiating password change:', error);
+        throw error;
+      }
+
+      navigate('/reset-password');
+    } catch (error) {
+      console.error('Failed to initiate password change:', error);
+    }
+  };
 
   const formatCurrency = (value?: number) => {
     if (!value) return 'Valor não pago';
@@ -117,6 +140,14 @@ export default function AthleteProfile({ profile }: AthleteProfileProps) {
                       </span>
                     </span>
                   </p>
+                  <Button
+                    onClick={handlePasswordChange}
+                    variant="outline"
+                    className="w-full mt-4 border-olimpics-green-primary text-olimpics-green-primary hover:bg-olimpics-green-primary hover:text-white"
+                  >
+                    <Lock className="h-4 w-4 mr-2" />
+                    Alterar Senha
+                  </Button>
                 </div>
               </div>
 
