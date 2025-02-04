@@ -32,7 +32,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const [dialogOpen, setDialogOpen] = React.useState(false);
   
   // Add null checks and default values
-  const isPaymentPending = registration?.status_pagamento === "pendente";
   const validModalities = registration?.modalidades?.filter(m => m.modalidade) || [];
   const hasModalities = validModalities.length > 0;
   const isSingleEmptyModality = registration?.inscricao_id && (!registration?.modalidades?.[0]?.modalidade || registration?.modalidades?.length === 0);
@@ -143,7 +142,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const cardContent = (
     <Card className={cn(
       getStatusColor(registration.status_pagamento),
-      isPaymentPending ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:shadow-md transition-shadow',
       isCurrentUser && 'ring-2 ring-olimpics-orange-primary'
     )}>
       <CardContent className="p-6">
@@ -224,10 +222,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
       </CardContent>
     </Card>
   );
-
-  if (isPaymentPending) {
-    return cardContent;
-  }
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

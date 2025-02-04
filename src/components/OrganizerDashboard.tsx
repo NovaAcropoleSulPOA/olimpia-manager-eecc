@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { DashboardMetrics } from "./dashboard/DashboardMetrics";
 import { DashboardCharts } from "./dashboard/DashboardCharts";
 import { AthleteRegistrationCard } from "./AthleteRegistrationCard";
+import { AthleteFilters } from "./dashboard/AthleteFilters";
 import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-96 text-center">
@@ -30,6 +32,24 @@ export default function OrganizerDashboard() {
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { user } = useAuth();
+  
+  // Filter states
+  const [nameFilter, setNameFilter] = useState("");
+  const [branchFilter, setBranchFilter] = useState("");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("");
+
+  const { data: branches } = useQuery({
+    queryKey: ['branches'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('filiais')
+        .select('id, nome')
+        .order('nome');
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
   const { 
     data: branchAnalytics, 
@@ -39,7 +59,7 @@ export default function OrganizerDashboard() {
   } = useQuery({
     queryKey: ['branch-analytics'],
     queryFn: fetchBranchAnalytics,
-    staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
   });
 
@@ -51,7 +71,7 @@ export default function OrganizerDashboard() {
   } = useQuery({
     queryKey: ['athlete-registrations'],
     queryFn: fetchAthleteRegistrations,
-    staleTime: 1000 * 60 * 5, // Consider data stale after 5 minutes
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
   });
 
@@ -141,9 +161,13 @@ export default function OrganizerDashboard() {
     return <EmptyState />;
   }
 
-  console.log('Branch analytics data:', branchAnalytics);
-  console.log('Registrations data:', registrations);
-  console.log('Current user ID:', user?.id);
+  // Filter registrations based on user input
+  const filteredRegistrations = registrations?.filter(registration => {
+    const nameMatch = registration.nome_atleta.toLowerCase().includes(nameFilter.toLowerCase());
+    const branchMatch = !branchFilter || registration.filial_id === branchFilter;
+    const statusMatch = !paymentStatusFilter || registration.status_pagamento === paymentStatusFilter;
+    return nameMatch && branchMatch && statusMatch;
+  });
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -175,8 +199,19 @@ export default function OrganizerDashboard() {
 
       <div className="mt-8">
         <h2 className="text-2xl font-bold mb-4 text-olimpics-text">Gerenciamento de Atletas</h2>
+        
+        <AthleteFilters
+          nameFilter={nameFilter}
+          onNameFilterChange={setNameFilter}
+          branchFilter={branchFilter}
+          onBranchFilterChange={setBranchFilter}
+          paymentStatusFilter={paymentStatusFilter}
+          onPaymentStatusFilterChange={setPaymentStatusFilter}
+          branches={branches || []}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {registrations?.map((registration) => (
+          {filteredRegistrations?.map((registration) => (
             <AthleteRegistrationCard
               key={registration.id}
               registration={registration}
@@ -185,6 +220,12 @@ export default function OrganizerDashboard() {
               isCurrentUser={user?.id === registration.id}
             />
           ))}
+          
+          {filteredRegistrations?.length === 0 && (
+            <div className="col-span-full text-center py-8 text-muted-foreground">
+              Nenhum atleta encontrado com os filtros selecionados.
+            </div>
+          )}
         </div>
       </div>
     </div>
