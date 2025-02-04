@@ -26,7 +26,7 @@ export default function ResetPassword() {
   const location = useLocation();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  // Extrai o token e o tipo da URL
+  // Extrai token e type da URL
   const searchParams = new URLSearchParams(location.search);
   const token = searchParams.get('token');
   const type = searchParams.get('type');
@@ -65,16 +65,11 @@ export default function ResetPassword() {
         return;
       }
 
-      // Utiliza verifyOTP para redefinir a senha usando o token de recuperação
-      const { error } = await supabase.auth.verifyOTP({
-        token,
-        type: 'recovery',
-        password: values.password,
-      });
+      // Atualiza a senha usando o token de recuperação (método disponível no supabase-js v1)
+      const { error } = await supabase.auth.api.updateUser(token, { password: values.password });
       
       if (error) {
-        console.error('Password reset error:', error);
-        // Caso a mensagem do erro indique expiração, exibe mensagem apropriada
+        console.error('Password update error:', error);
         if (error.message.includes('expired')) {
           toast.error('Link expirado. Solicite um novo.');
         } else {
