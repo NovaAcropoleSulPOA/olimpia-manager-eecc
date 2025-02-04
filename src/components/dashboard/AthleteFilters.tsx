@@ -12,6 +12,7 @@ interface AthleteFiltersProps {
   paymentStatusFilter: string;
   onPaymentStatusFilterChange: (value: string) => void;
   branches: { id: string; nome: string; }[];
+  hideFilial?: boolean;
 }
 
 export function AthleteFilters({
@@ -21,7 +22,8 @@ export function AthleteFilters({
   onBranchFilterChange,
   paymentStatusFilter,
   onPaymentStatusFilterChange,
-  branches
+  branches,
+  hideFilial = false
 }: AthleteFiltersProps) {
   return (
     <div className="space-y-4 mb-6 bg-white p-4 rounded-lg shadow">
@@ -29,7 +31,7 @@ export function AthleteFilters({
         <Filter className="h-5 w-5" />
         Filtros
       </h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className={`grid grid-cols-1 ${hideFilial ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-4`}>
         <div className="space-y-2">
           <Label htmlFor="name-filter">Nome do Atleta</Label>
           <div className="relative">
@@ -44,25 +46,27 @@ export function AthleteFilters({
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label>Filial</Label>
-          <Select
-            value={branchFilter}
-            onValueChange={onBranchFilterChange}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Todas as filiais" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as filiais</SelectItem>
-              {branches.map((branch) => (
-                <SelectItem key={branch.id} value={branch.id}>
-                  {branch.nome}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!hideFilial && (
+          <div className="space-y-2">
+            <Label>Filial</Label>
+            <Select
+              value={branchFilter}
+              onValueChange={onBranchFilterChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Todas as filiais" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as filiais</SelectItem>
+                {branches.map((branch) => (
+                  <SelectItem key={branch.id} value={branch.id}>
+                    {branch.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label>Status de Pagamento</Label>

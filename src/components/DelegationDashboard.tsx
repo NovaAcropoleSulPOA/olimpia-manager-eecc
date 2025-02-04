@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { DashboardMetrics } from "./dashboard/DashboardMetrics";
 import { DashboardCharts } from "./dashboard/DashboardCharts";
 import { AthleteRegistrationCard } from "./AthleteRegistrationCard";
+import { AthleteFilters } from "./dashboard/AthleteFilters";
 import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { AthleteRegistration } from "@/lib/api";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-96 text-center">
@@ -31,6 +31,10 @@ export default function DelegationDashboard() {
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { user } = useAuth();
+  
+  // Filter states
+  const [nameFilter, setNameFilter] = useState("");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("all");
 
   // First, fetch the user's filial_id
   const { data: userProfile } = useQuery({
@@ -182,6 +186,14 @@ export default function DelegationDashboard() {
     return <EmptyState />;
   }
 
+  // Filter registrations based on user input
+  const filteredRegistrations = registrations?.filter(registration => {
+    const nameMatch = registration.nome_atleta.toLowerCase().includes(nameFilter.toLowerCase());
+    const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
+    // No need to filter by branch since the query already filters by the user's branch
+    return nameMatch && statusMatch;
+  });
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center mb-8">
@@ -212,8 +224,20 @@ export default function DelegationDashboard() {
 
       <div className="mt-8">
         <h2 className="text-2xl font-bold mb-4 text-olimpics-text">Gerenciamento de Atletas</h2>
+        
+        <AthleteFilters
+          nameFilter={nameFilter}
+          onNameFilterChange={setNameFilter}
+          branchFilter="all"
+          onBranchFilterChange={() => {}} // No-op since we don't need branch filter
+          paymentStatusFilter={paymentStatusFilter}
+          onPaymentStatusFilterChange={setPaymentStatusFilter}
+          branches={[]} // Empty array since we don't need branch selection
+          hideFilial={true} // New prop to hide the branch filter
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {registrations?.map((registration) => (
+          {filteredRegistrations?.map((registration) => (
             <AthleteRegistrationCard
               key={registration.id}
               registration={registration}
@@ -268,6 +292,12 @@ export default function DelegationDashboard() {
               isCurrentUser={user?.id === registration.id}
             />
           ))}
+          
+          {filteredRegistrations?.length === 0 && (
+            <div className="col-span-full text-center py-8 text-muted-foreground">
+              Nenhum atleta encontrado com os filtros selecionados.
+            </div>
+          )}
         </div>
       </div>
     </div>
