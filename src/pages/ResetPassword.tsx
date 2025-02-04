@@ -64,14 +64,14 @@ export default function ResetPassword() {
         return;
       }
 
-      // Use resetPasswordForEmail with the recovery token
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(values.password, {
-        token,
+      // Update user's password using the recovery token
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: values.password
       });
 
-      if (resetError) {
-        console.error('Password reset error:', resetError);
-        if (resetError.message.includes('expired')) {
+      if (updateError) {
+        console.error('Password update error:', updateError);
+        if (updateError.message.includes('expired')) {
           setError('O link de recuperação expirou. Por favor, solicite um novo.');
         } else {
           setError('Link inválido. Por favor, solicite um novo link de recuperação.');
