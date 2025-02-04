@@ -1,7 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
-import { User, MapPin, Phone, Mail, Building2, FileText, CreditCard, Info } from "lucide-react";
+import { User, MapPin, Phone, Mail, Building2, FileText, CreditCard, Info, Lock } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import PaymentInfo from './PaymentInfo';
 
 interface AthleteProfileProps {
@@ -33,6 +35,8 @@ const getProfileImage = (gender: string | undefined) => {
 };
 
 export default function AthleteProfile({ profile }: AthleteProfileProps) {
+  const navigate = useNavigate();
+  
   if (!profile) {
     return null;
   }
@@ -43,6 +47,10 @@ export default function AthleteProfile({ profile }: AthleteProfileProps) {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  const handlePasswordChange = () => {
+    navigate('/reset-password', { state: { fromProfile: true } });
   };
 
   return (
@@ -117,6 +125,14 @@ export default function AthleteProfile({ profile }: AthleteProfileProps) {
                       </span>
                     </span>
                   </p>
+                  <Button
+                    onClick={handlePasswordChange}
+                    variant="outline"
+                    className="w-full flex items-center gap-2 mt-2"
+                  >
+                    <Lock className="h-4 w-4" />
+                    Alterar Senha
+                  </Button>
                 </div>
               </div>
 

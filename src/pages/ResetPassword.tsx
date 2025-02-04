@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { supabase } from '@/lib/supabase';
 import { Loader2, Lock, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const resetPasswordSchema = z.object({
   password: z.string()
@@ -25,24 +26,28 @@ const resetPasswordSchema = z.object({
 export default function ResetPassword() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const searchParams = new URLSearchParams(location.search);
   const token = searchParams.get('token');
   const type = searchParams.get('type');
+  const fromProfile = location.state?.fromProfile;
 
   React.useEffect(() => {
-    console.log('Checking recovery parameters on ResetPassword page');
+    console.log('Checking reset password parameters');
     console.log('Current URL:', window.location.href);
     console.log('Token present:', !!token);
     console.log('Type:', type);
+    console.log('From profile:', fromProfile);
     
-    if (!token || type !== 'recovery') {
-      console.error('Invalid recovery parameters');
-      setError('Link de redefinição de senha inválido ou expirado');
+    if (!token && !fromProfile) {
+      console.error('Invalid access to reset password page');
+      setError('Acesso inválido à página de redefinição de senha');
+      navigate('/login');
     }
-  }, [token, type]);
+  }, [token, type, fromProfile, navigate]);
 
   const form = useForm<z.infer<typeof resetPasswordSchema>>({
     resolver: zodResolver(resetPasswordSchema),
@@ -56,34 +61,44 @@ export default function ResetPassword() {
     try {
       setIsSubmitting(true);
       setError(null);
-      console.log('Attempting to reset password');
+      console.log('Attempting to update password');
 
-      if (!token || type !== 'recovery') {
-        console.error('Invalid recovery parameters during submission');
-        setError('Link de redefinição de senha inválido ou expirado');
-        return;
-      }
+      if (fromProfile && user) {
+        // Update password for logged-in user
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: values.password
+        });
 
-      // Update user's password using the recovery token
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: values.password
-      });
-
-      if (updateError) {
-        console.error('Password update error:', updateError);
-        if (updateError.message.includes('expired')) {
-          setError('O link de recuperação expirou. Por favor, solicite um novo.');
-        } else {
-          setError('Link inválido. Por favor, solicite um novo link de recuperação.');
+        if (updateError) {
+          console.error('Password update error:', updateError);
+          setError('Erro ao atualizar senha. Por favor, tente novamente.');
+          return;
         }
-        return;
+
+        toast.success('Senha atualizada com sucesso!');
+        navigate('/athlete-profile');
+      } else if (token && type === 'recovery') {
+        // Update password using recovery token
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: values.password
+        });
+
+        if (updateError) {
+          console.error('Password update error:', updateError);
+          if (updateError.message.includes('expired')) {
+            setError('O link de recuperação expirou. Por favor, solicite um novo.');
+          } else {
+            setError('Link inválido. Por favor, solicite um novo link de recuperação.');
+          }
+          return;
+        }
+
+        await supabase.auth.signOut();
+        toast.success('Senha atualizada com sucesso!');
+        navigate('/login');
+      } else {
+        setError('Método de redefinição de senha inválido');
       }
-
-      // Opcional: realizar signOut para garantir um novo login
-      await supabase.auth.signOut();
-
-      toast.success('Senha atualizada com sucesso!');
-      navigate('/login');
     } catch (error) {
       console.error('Unexpected error:', error);
       setError('Erro inesperado. Por favor, tente novamente.');
@@ -97,7 +112,7 @@ export default function ResetPassword() {
       <Card className="w-[400px] shadow-lg">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-olimpics-green-primary text-center">
-            Redefinir Senha
+            {fromProfile ? 'Alterar Senha' : 'Redefinir Senha'}
           </CardTitle>
           <CardDescription className="text-center text-olimpics-text">
             Digite sua nova senha
@@ -167,14 +182,16 @@ export default function ResetPassword() {
                   'Atualizar Senha'
                 )}
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={() => navigate('/forgot-password')}
-              >
-                Solicitar Novo Link
-              </Button>
+              {!fromProfile && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate('/forgot-password')}
+                >
+                  Solicitar Novo Link
+                </Button>
+              )}
             </form>
           </Form>
         </CardContent>
