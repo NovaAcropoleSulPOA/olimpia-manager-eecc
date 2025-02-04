@@ -23,7 +23,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const PUBLIC_ROUTES = ['/', '/login', '/forgot-password', '/reset-password'];
+const PUBLIC_ROUTES = ['/', '/login', '/forgot-password'];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -34,6 +34,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const handleAuthRedirect = (userProfile: any) => {
     console.log('AuthContext - Handling auth redirect');
     console.log('AuthContext - Current location:', location.pathname);
+    console.log('AuthContext - Location state:', location.state);
+    
+    // Don't redirect if we're on the reset-password page and came from profile
+    if (location.pathname === '/reset-password' && location.state?.fromProfile) {
+      console.log('AuthContext - Skipping redirect for password reset from profile');
+      return;
+    }
     
     // Only redirect if on a public route
     if (PUBLIC_ROUTES.includes(location.pathname)) {
@@ -109,7 +116,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser({ ...session.user, ...userProfile });
             handleAuthRedirect(userProfile);
           }
-        } else if (!PUBLIC_ROUTES.includes(location.pathname)) {
+        } else if (!PUBLIC_ROUTES.includes(location.pathname) && 
+                  !(location.pathname === '/reset-password' && location.state?.fromProfile)) {
           navigate('/login');
         }
 

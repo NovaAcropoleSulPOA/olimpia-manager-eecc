@@ -50,7 +50,13 @@ export default function AthleteProfile({ profile }: AthleteProfileProps) {
   };
 
   const handlePasswordChange = () => {
-    navigate('/reset-password', { state: { fromProfile: true } });
+    console.log('Navigating to reset password from profile');
+    navigate('/reset-password', { 
+      state: { 
+        fromProfile: true 
+      },
+      replace: false // Use push instead of replace to maintain history
+    });
   };
 
   return (
