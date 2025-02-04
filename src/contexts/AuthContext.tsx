@@ -190,8 +190,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         console.log('Login error:', error);
         
-        if (error.message.includes('Invalid login credentials')) {
-          toast.error('Credenciais inválidas. Verifique seu e-mail e senha e tente novamente.');
+        // Check for specific error types in the error response
+        const errorBody = error.message && error.message.includes('{') 
+          ? JSON.parse(error.message.substring(error.message.indexOf('{')))
+          : null;
+        
+        if (errorBody?.code === 'invalid_credentials' || error.message.includes('Invalid login credentials')) {
+          toast.error('Usuário ou senha incorretos. Tente novamente.');
           return;
         }
         
@@ -200,6 +205,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         
+        // For any other errors, show a generic message
         toast.error('Erro ao fazer login. Por favor, tente novamente.');
         return;
       }
