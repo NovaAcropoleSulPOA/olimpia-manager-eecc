@@ -51,6 +51,30 @@ export interface BranchAnalytics {
   top_modalidades_misto: Record<string, number>;
 }
 
+export const updatePaymentAmount = async (
+  athleteId: string,
+  amount: number
+): Promise<void> => {
+  console.log('Updating payment amount:', { athleteId, amount });
+  
+  try {
+    const { error } = await supabase
+      .from('pagamentos')
+      .update({ valor: amount })
+      .eq('atleta_id', athleteId);
+
+    if (error) {
+      console.error('Error updating payment amount:', error);
+      throw new Error(error.message);
+    }
+
+    return Promise.resolve();
+  } catch (error) {
+    console.error('Error in updatePaymentAmount:', error);
+    throw error;
+  }
+};
+
 export const fetchBranches = async (): Promise<Branch[]> => {
   console.log('Fetching branches...');
   const { data, error } = await supabase

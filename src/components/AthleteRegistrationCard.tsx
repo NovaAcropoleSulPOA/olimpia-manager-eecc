@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { updatePaymentAmount } from '@/lib/api';
 
 interface AthleteRegistrationCardProps {
   registration: AthleteRegistration;
@@ -30,6 +31,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const [isUpdating, setIsUpdating] = React.useState<Record<string, boolean>>({});
   const [modalityStatuses, setModalityStatuses] = React.useState<Record<string, string>>({});
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [paymentAmount, setPaymentAmount] = React.useState<number>(180);
+  const [isUpdatingAmount, setIsUpdatingAmount] = React.useState(false);
   
   const validModalities = registration?.modalidades?.filter(m => m.modalidade) || [];
   const hasModalities = validModalities.length > 0;
@@ -94,6 +97,22 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     }
   };
 
+  const handlePaymentAmountChange = async (newAmount: number) => {
+    if (!registration?.id) return;
+    
+    setIsUpdatingAmount(true);
+    try {
+      await updatePaymentAmount(registration.id, newAmount);
+      setPaymentAmount(newAmount);
+      toast.success('Valor do pagamento atualizado com sucesso!');
+    } catch (error) {
+      console.error('Error updating payment amount:', error);
+      toast.error('Erro ao atualizar valor do pagamento');
+    } finally {
+      setIsUpdatingAmount(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'confirmado':
@@ -140,6 +159,29 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           <SelectItem value="cancelado">Cancelado</SelectItem>
         </SelectContent>
       </Select>
+    </div>
+  );
+
+  const PaymentAmountField = () => (
+    <div className="mt-4 flex items-center gap-2">
+      <label className="text-sm text-muted-foreground">Valor do pagamento:</label>
+      <Input
+        type="number"
+        value={paymentAmount}
+        onChange={(e) => setPaymentAmount(Number(e.target.value))}
+        className="w-[180px]"
+        disabled={registration.status_pagamento !== "pendente" || isUpdatingAmount}
+      />
+      {registration.status_pagamento === "pendente" && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handlePaymentAmountChange(paymentAmount)}
+          disabled={isUpdatingAmount}
+        >
+          Salvar
+        </Button>
+      )}
     </div>
   );
 
@@ -266,7 +308,10 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                 </div>
               </div>
               {onPaymentStatusChange && (
-                <PaymentStatusSelector />
+                <>
+                  <PaymentStatusSelector />
+                  <PaymentAmountField />
+                </>
               )}
             </div>
           </DialogDescription>
