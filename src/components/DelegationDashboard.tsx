@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { DashboardMetrics } from "./dashboard/DashboardMetrics";
 import { DashboardCharts } from "./dashboard/DashboardCharts";
 import { AthleteRegistrationCard } from "./AthleteRegistrationCard";
+import { AthleteFilters } from "./dashboard/AthleteFilters";
 import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { AthleteRegistration } from "@/lib/api";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-96 text-center">
@@ -31,6 +31,11 @@ export default function DelegationDashboard() {
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { user } = useAuth();
+  
+  // Filter states
+  const [nameFilter, setNameFilter] = useState("");
+  const [branchFilter, setBranchFilter] = useState("");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("");
 
   // First, fetch the user's filial_id
   const { data: userProfile } = useQuery({
@@ -47,6 +52,19 @@ export default function DelegationDashboard() {
       return data;
     },
     enabled: !!user?.id
+  });
+
+  // Fetch branches for filter
+  const { data: branches } = useQuery({
+    queryKey: ['branches'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('filiais')
+        .select('id, nome');
+      
+      if (error) throw error;
+      return data || [];
+    }
   });
 
   const { 
@@ -155,6 +173,14 @@ export default function DelegationDashboard() {
     }
   };
 
+  // Filter registrations based on current filters
+  const filteredRegistrations = registrations?.filter(registration => {
+    const matchesName = registration.nome_atleta.toLowerCase().includes(nameFilter.toLowerCase());
+    const matchesBranch = !branchFilter || registration.id === branchFilter;
+    const matchesStatus = !paymentStatusFilter || registration.status_pagamento === paymentStatusFilter;
+    return matchesName && matchesBranch && matchesStatus;
+  });
+
   if (isLoadingAnalytics || isLoadingRegistrations) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -212,8 +238,19 @@ export default function DelegationDashboard() {
 
       <div className="mt-8">
         <h2 className="text-2xl font-bold mb-4 text-olimpics-text">Gerenciamento de Atletas</h2>
+        
+        <AthleteFilters
+          nameFilter={nameFilter}
+          onNameFilterChange={setNameFilter}
+          branchFilter={branchFilter}
+          onBranchFilterChange={setBranchFilter}
+          paymentStatusFilter={paymentStatusFilter}
+          onPaymentStatusFilterChange={setPaymentStatusFilter}
+          branches={branches || []}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {registrations?.map((registration) => (
+          {filteredRegistrations?.map((registration) => (
             <AthleteRegistrationCard
               key={registration.id}
               registration={registration}
