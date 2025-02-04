@@ -28,7 +28,7 @@ export default function ResetPassword() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Extract token and type from URL
+  // Extrai token e type da URL
   const searchParams = new URLSearchParams(location.search);
   const token = searchParams.get('token');
   const type = searchParams.get('type');
@@ -39,36 +39,11 @@ export default function ResetPassword() {
     console.log('Token present:', !!token);
     console.log('Type:', type);
     
-    const validateToken = async () => {
-      if (!token || type !== 'recovery') {
-        console.error('Invalid recovery parameters');
-        setError('Link de redefinição de senha inválido ou expirado');
-        return;
-      }
-
-      try {
-        // Attempt to exchange the recovery token for a session
-        const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(token);
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          if (sessionError.message.includes('expired')) {
-            setError('O link de recuperação expirou. Por favor, solicite um novo.');
-          } else {
-            setError('Link inválido. Por favor, solicite um novo link de recuperação.');
-          }
-          return;
-        }
-
-        console.log('Token validated successfully:', !!data);
-        setError(null);
-      } catch (error) {
-        console.error('Unexpected error during token validation:', error);
-        setError('Erro ao validar o link de recuperação. Por favor, tente novamente.');
-      }
-    };
-
-    validateToken();
+    // Apenas valida a existência do token e do type correto
+    if (!token || type !== 'recovery') {
+      console.error('Invalid recovery parameters');
+      setError('Link de redefinição de senha inválido ou expirado');
+    }
   }, [token, type]);
 
   const form = useForm<z.infer<typeof resetPasswordSchema>>({
@@ -91,18 +66,24 @@ export default function ResetPassword() {
         return;
       }
 
-      // Update the password
-      const { error: updateError } = await supabase.auth.updateUser({ 
-        password: values.password 
+      // Utiliza verifyOTP para redefinir a senha usando o token de recuperação
+      const { error: otpError } = await supabase.auth.verifyOTP({
+        token,
+        type: 'recovery',
+        password: values.password,
       });
 
-      if (updateError) {
-        console.error('Password update error:', updateError);
-        setError('Erro ao atualizar senha. Por favor, tente novamente.');
+      if (otpError) {
+        console.error('OTP verification error:', otpError);
+        if (otpError.message.includes('expired')) {
+          setError('O link de recuperação expirou. Por favor, solicite um novo.');
+        } else {
+          setError('Link inválido. Por favor, solicite um novo link de recuperação.');
+        }
         return;
       }
 
-      // Sign out to ensure a fresh login
+      // Opcional: realizar signOut para garantir um novo login
       await supabase.auth.signOut();
 
       toast.success('Senha atualizada com sucesso!');
