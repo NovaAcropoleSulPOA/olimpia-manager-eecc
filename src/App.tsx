@@ -34,9 +34,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
-          <div className="flex flex-col min-h-screen">
+          <div className="min-h-screen flex flex-col">
             <GlobalHeader />
-            <div className="flex-1">
+            <div className="flex-1 pt-16 pb-16 md:pb-0"> {/* Added padding to account for fixed header and mobile footer */}
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />

@@ -93,7 +93,7 @@ export function MainNavigation() {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex min-h-screen w-full">
+      <div className="flex min-h-[calc(100vh-4rem)] w-full"> {/* Adjusted height to account for header */}
         <Sidebar className="bg-olimpics-green-primary text-white transition-all duration-300">
           <SidebarHeader className="relative p-6 border-b border-olimpics-green-secondary">
             <h2 className="text-xl font-bold text-center">Menu</h2>

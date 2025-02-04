@@ -114,8 +114,8 @@ const Footer = () => {
         </nav>
       )}
 
-      {/* Original Footer Content - Hidden on Mobile */}
-      <footer className="relative z-50 w-full bg-white/80 backdrop-blur-sm border-t py-4 px-4 mt-auto hidden md:block">
+      {/* Desktop Footer - Hidden on Mobile */}
+      <footer className="hidden md:block relative z-50 w-full bg-white/80 backdrop-blur-sm border-t py-4 px-4">
         <div className="container mx-auto flex justify-between items-center">
           <span className="text-xs text-gray-500">
             Desenvolvido por: Olimar Teixeira Borges
