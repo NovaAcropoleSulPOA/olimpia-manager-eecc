@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { supabase } from '@/lib/supabase';
-import { Loader2, Lock, AlertCircle, ArrowLeft } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const resetPasswordSchema = z.object({
@@ -27,7 +27,6 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const fromProfile = location.state?.fromProfile;
@@ -55,43 +54,30 @@ export default function ResetPassword() {
   };
 
   const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
-    try {
-      setIsSubmitting(true);
-      setError(null);
-      console.log('Starting password update for user:', user?.id);
-
-      // First verify the user is authenticated
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session?.access_token) {
-        console.error('No valid session found');
-        setError('Sessão expirada. Por favor, faça login novamente.');
-        navigate('/login');
-        return;
-      }
-
-      // Update the password
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: values.password
-      });
-
-      if (updateError) {
-        console.error('Password update error:', updateError);
-        setError('Erro ao atualizar senha. Por favor, tente novamente.');
-        return;
-      }
-
-      console.log('Password updated successfully');
-      
-      // Navigate first, then show the success message
-      navigate('/athlete-profile');
-      toast.success('Senha alterada com sucesso!');
-      
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      setError('Erro inesperado. Por favor, tente novamente.');
-    } finally {
-      setIsSubmitting(false);
+    // First verify the user is authenticated
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.access_token) {
+      console.error('No valid session found');
+      setError('Sessão expirada. Por favor, faça login novamente.');
+      navigate('/login');
+      return;
     }
+
+    // Immediately redirect to profile page
+    navigate('/athlete-profile');
+    
+    // Update password in background
+    supabase.auth.updateUser({
+      password: values.password
+    }).then(({ error }) => {
+      if (error) {
+        console.error('Password update error:', error);
+        toast.error('Erro ao atualizar senha. Por favor, tente novamente.');
+        return;
+      }
+      console.log('Password updated successfully');
+      toast.success('Senha alterada com sucesso!');
+    });
   };
 
   return (
@@ -159,16 +145,8 @@ export default function ResetPassword() {
                 <Button
                   type="submit"
                   className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary"
-                  disabled={isSubmitting}
                 >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Atualizando...
-                    </>
-                  ) : (
-                    'Atualizar Senha'
-                  )}
+                  Atualizar Senha
                 </Button>
                 <Button
                   type="button"
