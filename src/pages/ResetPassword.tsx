@@ -58,7 +58,7 @@ export default function ResetPassword() {
     try {
       setIsSubmitting(true);
       setError(null);
-      console.log('Attempting to update password for user:', user?.id);
+      console.log('Starting password update for user:', user?.id);
 
       // First verify the user is authenticated
       const { data: session } = await supabase.auth.getSession();
@@ -159,7 +159,7 @@ export default function ResetPassword() {
                 <Button
                   type="submit"
                   className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary"
-                  disabled={isSubmitting || !!error}
+                  disabled={isSubmitting}
                 >
                   {isSubmitting ? (
                     <>
