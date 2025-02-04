@@ -31,12 +31,10 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const [modalityStatuses, setModalityStatuses] = React.useState<Record<string, string>>({});
   const [dialogOpen, setDialogOpen] = React.useState(false);
   
-  // Add null checks and default values
   const validModalities = registration?.modalidades?.filter(m => m.modalidade) || [];
   const hasModalities = validModalities.length > 0;
   const isSingleEmptyModality = registration?.inscricao_id && (!registration?.modalidades?.[0]?.modalidade || registration?.modalidades?.length === 0);
 
-  // Initialize modality statuses on mount
   React.useEffect(() => {
     if (registration?.modalidades) {
       const initialStatuses = registration.modalidades.reduce((acc, modality) => ({
@@ -65,28 +63,18 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     setIsUpdating(prev => ({ ...prev, [modalityId]: true }));
     
     try {
-      // Keep the current status to revert if needed
       const currentStatus = modalityStatuses[modalityId];
-      
-      // Optimistically update UI
       setModalityStatuses(prev => ({ ...prev, [modalityId]: newStatus }));
-      
-      // Attempt database update
       await onStatusChange(modalityId, newStatus, justification);
       console.log('Modality status update successful');
-      
-      // Clear justification after successful update
       setJustifications(prev => ({ ...prev, [modalityId]: '' }));
       toast.success('Status da modalidade atualizado com sucesso!');
     } catch (error) {
       console.error('Error updating modality status:', error);
-      
-      // Revert UI state if update fails
       setModalityStatuses(prev => ({
         ...prev,
         [modalityId]: registration.modalidades.find(m => m.id === modalityId)?.status || prev[modalityId]
       }));
-      
       const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar status da modalidade';
       toast.error(errorMessage);
     } finally {
@@ -138,6 +126,22 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   if (!registration) {
     return null;
   }
+
+  const PaymentStatusSelector = () => (
+    <div className="mt-4 flex items-center gap-2">
+      <label className="text-sm text-muted-foreground">Status do pagamento:</label>
+      <Select onValueChange={handlePaymentStatusChange}>
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Alterar status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="pendente">Pendente</SelectItem>
+          <SelectItem value="confirmado">Confirmado</SelectItem>
+          <SelectItem value="cancelado">Cancelado</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
 
   const cardContent = (
     <Card className={cn(
@@ -205,18 +209,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           </div>
 
           {registration.status_pagamento === "pendente" && onPaymentStatusChange && (
-            <div className="mt-4 flex items-center gap-2">
-              <label className="text-sm text-muted-foreground">Status do pagamento:</label>
-              <Select onValueChange={handlePaymentStatusChange}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Alterar status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="confirmado">Confirmado</SelectItem>
-                  <SelectItem value="cancelado">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <PaymentStatusSelector />
           )}
         </div>
       </CardContent>
@@ -272,11 +265,14 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                   <span>Gênero: {registration.genero}</span>
                 </div>
               </div>
+              {onPaymentStatusChange && (
+                <PaymentStatusSelector />
+              )}
             </div>
           </DialogDescription>
         </DialogHeader>
 
-        {!isSingleEmptyModality && hasModalities && (
+        {hasModalities && !isSingleEmptyModality && (
           <ScrollArea className="h-[50vh] w-full rounded-md border p-4">
             <Table>
               <TableHeader>
