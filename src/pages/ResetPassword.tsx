@@ -54,8 +54,18 @@ export default function ResetPassword() {
     try {
       setIsSubmitting(true);
       setError(null);
-      console.log('Attempting to update password');
+      console.log('Attempting to update password for user:', user?.id);
 
+      // First verify the user is authenticated
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.access_token) {
+        console.error('No valid session found');
+        setError('Sessão expirada. Por favor, faça login novamente.');
+        navigate('/login');
+        return;
+      }
+
+      // Update the password
       const { error: updateError } = await supabase.auth.updateUser({
         password: values.password
       });
@@ -70,6 +80,7 @@ export default function ResetPassword() {
         return;
       }
 
+      console.log('Password updated successfully');
       toast.success('Senha atualizada com sucesso!');
       
       if (fromProfile) {
