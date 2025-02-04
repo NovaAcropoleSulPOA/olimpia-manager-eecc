@@ -66,8 +66,8 @@ export default function ResetPassword() {
         return;
       }
 
-      // Utiliza verifyOTP para redefinir a senha usando o token de recuperação
-      const { error: otpError } = await supabase.auth.verifyOTP({
+      // Updated method name from verifyOTP to verifyOtp
+      const { error: otpError } = await supabase.auth.verifyOtp({
         token,
         type: 'recovery',
         password: values.password,
