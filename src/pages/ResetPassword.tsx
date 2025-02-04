@@ -28,7 +28,6 @@ export default function ResetPassword() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Extrai token e type da URL
   const searchParams = new URLSearchParams(location.search);
   const token = searchParams.get('token');
   const type = searchParams.get('type');
@@ -65,14 +64,14 @@ export default function ResetPassword() {
         return;
       }
 
-      // First, update the user's password using updateUser
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: values.password
+      // Use resetPasswordForEmail with the recovery token
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(values.password, {
+        token,
       });
 
-      if (updateError) {
-        console.error('Password update error:', updateError);
-        if (updateError.message.includes('expired')) {
+      if (resetError) {
+        console.error('Password reset error:', resetError);
+        if (resetError.message.includes('expired')) {
           setError('O link de recuperação expirou. Por favor, solicite um novo.');
         } else {
           setError('Link inválido. Por favor, solicite um novo link de recuperação.');
