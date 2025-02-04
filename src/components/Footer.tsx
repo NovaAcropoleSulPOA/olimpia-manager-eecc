@@ -30,7 +30,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="hidden md:block relative z-30 w-full bg-white/80 backdrop-blur-sm border-t py-4 px-4">
+    <footer className="hidden md:block fixed bottom-0 left-0 right-0 z-30 bg-white/80 backdrop-blur-sm border-t py-4 px-4">
       <div className="container mx-auto flex justify-between items-center">
         <span className="text-xs text-gray-500">
           Desenvolvido por: Olimar Teixeira Borges

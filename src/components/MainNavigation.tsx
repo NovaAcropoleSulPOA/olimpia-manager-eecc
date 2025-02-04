@@ -94,7 +94,7 @@ export function MainNavigation() {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-[calc(100vh-4rem)] w-full">
-        <Sidebar className="fixed left-0 top-16 bottom-0 z-40 bg-olimpics-green-primary text-white transition-all duration-300">
+        <Sidebar className="fixed left-0 top-16 bottom-16 z-40 w-64 bg-olimpics-green-primary text-white transition-all duration-300">
           <div className="flex flex-col h-full">
             <SidebarHeader className="sticky top-0 p-6 border-b border-olimpics-green-secondary bg-olimpics-green-primary">
               <h2 className="text-xl font-bold text-center">Menu</h2>
