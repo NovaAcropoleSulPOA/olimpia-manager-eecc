@@ -1,73 +1,102 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Building2, Award, MessageSquare } from "lucide-react";
+import { Phone, Mail, Building2, MessageCircle, FileText, User, Hash } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { AthleteRegistration } from '@/lib/api';
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-
-interface AthleteModality {
-  id: string;
-  modalidade: string;
-  status: string;
-  justificativa_status: string;
-}
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface AthleteRegistrationCardProps {
-  registration: {
-    id: string;
-    nome_atleta: string;
-    email: string;
-    telefone: string;
-    filial: string;
-    status_pagamento: string;
-    modalidades: AthleteModality[];
-    confirmado?: boolean;
-  };
+  registration: AthleteRegistration;
   onStatusChange: (modalityId: string, status: string, justification: string) => Promise<void>;
   onPaymentStatusChange?: (athleteId: string, status: string) => Promise<void>;
-  isCurrentUser?: boolean; // Added this prop
+  isCurrentUser?: boolean;
 }
 
 export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = ({
   registration,
   onStatusChange,
   onPaymentStatusChange,
-  isCurrentUser = false, // Added with default value
+  isCurrentUser = false,
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
+  const [isUpdating, setIsUpdating] = React.useState<Record<string, boolean>>({});
+  const [modalityStatuses, setModalityStatuses] = React.useState<Record<string, string>>({});
+  const [dialogOpen, setDialogOpen] = React.useState(false);
   
-  const hasValidModalities = registration.modalidades?.length > 0;
+  // Add null checks and default values
+  const isPaymentPending = registration?.status_pagamento === "pendente";
+  const validModalities = registration?.modalidades?.filter(m => m.modalidade) || [];
+  const hasModalities = validModalities.length > 0;
+  const isSingleEmptyModality = registration?.inscricao_id && (!registration?.modalidades?.[0]?.modalidade || registration?.modalidades?.length === 0);
 
-  const handleWhatsAppClick = (e: React.MouseEvent, phone: string) => {
-    e.stopPropagation();
+  // Initialize modality statuses on mount
+  React.useEffect(() => {
+    if (registration?.modalidades) {
+      const initialStatuses = registration.modalidades.reduce((acc, modality) => ({
+        ...acc,
+        [modality.id]: modality.status
+      }), {});
+      setModalityStatuses(initialStatuses);
+    }
+  }, [registration?.modalidades]);
+
+  const handleWhatsAppClick = (phone: string) => {
     const formattedPhone = phone.replace(/\D/g, '');
     const message = encodeURIComponent('Olá! Gostaria de falar sobre sua inscrição nas Olimpíadas.');
     window.open(`https://wa.me/${formattedPhone}?text=${message}`, '_blank');
   };
 
   const handleStatusChange = async (modalityId: string, newStatus: string) => {
+    console.log('Attempting to update modality status:', { modalityId, newStatus });
+    
     const justification = justifications[modalityId];
     if (!justification) {
       toast.error('É necessário fornecer uma justificativa para alterar o status.');
       return;
     }
     
+    setIsUpdating(prev => ({ ...prev, [modalityId]: true }));
+    
     try {
+      // Keep the current status to revert if needed
+      const currentStatus = modalityStatuses[modalityId];
+      
+      // Optimistically update UI
+      setModalityStatuses(prev => ({ ...prev, [modalityId]: newStatus }));
+      
+      // Attempt database update
       await onStatusChange(modalityId, newStatus, justification);
-      toast.success('Status atualizado com sucesso!');
+      console.log('Modality status update successful');
+      
+      // Clear justification after successful update
       setJustifications(prev => ({ ...prev, [modalityId]: '' }));
+      toast.success('Status da modalidade atualizado com sucesso!');
     } catch (error) {
-      console.error('Error updating status:', error);
-      toast.error('Erro ao atualizar status');
+      console.error('Error updating modality status:', error);
+      
+      // Revert UI state if update fails
+      setModalityStatuses(prev => ({
+        ...prev,
+        [modalityId]: registration.modalidades.find(m => m.id === modalityId)?.status || prev[modalityId]
+      }));
+      
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar status da modalidade';
+      toast.error(errorMessage);
+    } finally {
+      setIsUpdating(prev => ({ ...prev, [modalityId]: false }));
     }
   };
 
   const handlePaymentStatusChange = async (newStatus: string) => {
-    if (!onPaymentStatusChange) return;
+    if (!onPaymentStatusChange || !registration?.id) return;
     
     try {
       await onPaymentStatusChange(registration.id, newStatus);
@@ -79,65 +108,105 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'confirmado':
         return 'border-l-4 border-l-green-500 bg-green-50';
       case 'pendente':
         return 'border-l-4 border-l-yellow-500 bg-yellow-50';
-      case 'cancelado':
+      case 'rejeitado':
         return 'border-l-4 border-l-red-500 bg-red-50';
+      case 'cancelado':
+        return 'border-l-4 border-l-gray-500 bg-gray-50';
       default:
         return 'border-l-4 border-l-gray-500 bg-gray-50';
     }
   };
 
+  const getStatusBadgeStyle = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'confirmado':
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
+      case 'pendente':
+        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
+      case 'rejeitado':
+      case 'cancelado':
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+    }
+  };
+
+  if (!registration) {
+    return null;
+  }
+
   const cardContent = (
-    <Card className={`${getStatusColor(registration.status_pagamento)} cursor-pointer hover:shadow-md transition-shadow`}>
+    <Card className={cn(
+      getStatusColor(registration.status_pagamento),
+      isPaymentPending ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:shadow-md transition-shadow',
+      isCurrentUser && 'ring-2 ring-olimpics-orange-primary'
+    )}>
       <CardContent className="p-6">
         <div className="space-y-4">
           <div className="flex justify-between items-start">
-            <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
-            <Badge variant="outline" className={
-              registration.status_pagamento === "confirmado" ? "bg-green-100 text-green-800" :
-              registration.status_pagamento === "pendente" ? "bg-yellow-100 text-yellow-800" :
-              "bg-red-100 text-red-800"
-            }>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold">{registration.nome_atleta}</h3>
+              {isCurrentUser && (
+                <Badge variant="secondary" className="bg-olimpics-orange-primary text-white">
+                  Meu Cadastro
+                </Badge>
+              )}
+            </div>
+            <Badge className={cn("capitalize", getStatusBadgeStyle(registration.status_pagamento))}>
               {registration.status_pagamento}
             </Badge>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span className="truncate">{registration.email}</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <Button
-                variant="link"
-                className="p-0 h-auto font-normal flex items-center gap-1"
-                onClick={(e) => handleWhatsAppClick(e, registration.telefone)}
-              >
-                {registration.telefone}
-                <MessageSquare className="h-4 w-4 text-olimpics-green-primary" />
-              </Button>
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto font-normal flex items-center gap-1 text-olimpics-orange-primary hover:text-olimpics-orange-secondary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWhatsAppClick(registration.telefone);
+                      }}
+                    >
+                      {registration.telefone}
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Clique para abrir WhatsApp</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
             <div className="flex items-center gap-2">
               <Building2 className="h-4 w-4 text-muted-foreground" />
               <span>{registration.filial}</span>
             </div>
 
-            {hasValidModalities && (
-              <div className="flex items-center gap-2">
-                <Award className="h-4 w-4 text-muted-foreground" />
-                <span>{registration.modalidades.length} modalidades</span>
+            {hasModalities && !isSingleEmptyModality && (
+              <div className="col-span-2 flex flex-wrap gap-2 mt-2">
+                {validModalities.map((modality, index) => (
+                  <Badge 
+                    key={index}
+                    variant="secondary"
+                    className={cn(getStatusBadgeStyle(modality.status))}
+                  >
+                    {modality.modalidade}
+                  </Badge>
+                ))}
               </div>
             )}
           </div>
 
-          {onPaymentStatusChange && (
+          {registration.status_pagamento === "pendente" && onPaymentStatusChange && (
             <div className="mt-4 flex items-center gap-2">
               <label className="text-sm text-muted-foreground">Status do pagamento:</label>
               <Select onValueChange={handlePaymentStatusChange}>
@@ -146,7 +215,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="confirmado">Confirmado</SelectItem>
-                  <SelectItem value="pendente">Pendente</SelectItem>
                   <SelectItem value="cancelado">Cancelado</SelectItem>
                 </SelectContent>
               </Select>
@@ -157,72 +225,119 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     </Card>
   );
 
+  if (isPaymentPending) {
+    return cardContent;
+  }
+
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <div>{cardContent}</div>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle>Gerenciar Modalidades - {registration.nome_atleta}</DialogTitle>
-          <DialogDescription>
-            Gerencie as modalidades e status do atleta
+          <DialogTitle className="text-2xl flex items-center gap-2">
+            {registration.nome_atleta}
+            {registration.numero_identificador && (
+              <Badge 
+                variant="outline" 
+                className="ml-2 text-lg font-mono bg-olimpics-orange-primary text-white hover:bg-olimpics-orange-secondary"
+              >
+                <Hash className="h-4 w-4 mr-1" />
+                {registration.numero_identificador}
+              </Badge>
+            )}
+          </DialogTitle>
+          <DialogDescription className="space-y-4">
+            <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  <span>{registration.email}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto font-normal text-olimpics-orange-primary hover:text-olimpics-orange-secondary"
+                    onClick={() => handleWhatsAppClick(registration.telefone)}
+                  >
+                    {registration.telefone}
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  <span>{registration.filial}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  <span>{registration.tipo_documento}: {registration.numero_documento}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  <span>Gênero: {registration.genero}</span>
+                </div>
+              </div>
+            </div>
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Modalidade</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Justificativa</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {registration.modalidades?.map((modalidade) => (
-                <TableRow key={modalidade.id}>
-                  <TableCell>{modalidade.modalidade}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={
-                      modalidade.status === "confirmado" ? "bg-green-100 text-green-800" :
-                      modalidade.status === "pendente" ? "bg-yellow-100 text-yellow-800" :
-                      "bg-red-100 text-red-800"
-                    }>
-                      {modalidade.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      placeholder="Justificativa para alteração"
-                      value={justifications[modalidade.id] || ''}
-                      onChange={(e) => setJustifications(prev => ({
-                        ...prev,
-                        [modalidade.id]: e.target.value
-                      }))}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      onValueChange={(value) => handleStatusChange(modalidade.id, value)}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Selecione o status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pendente">Pendente</SelectItem>
-                        <SelectItem value="confirmado">Confirmada</SelectItem>
-                        <SelectItem value="cancelado">Cancelada</SelectItem>
-                        <SelectItem value="recusado">Recusada</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
+        {!isSingleEmptyModality && hasModalities && (
+          <ScrollArea className="h-[50vh] w-full rounded-md border p-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Modalidade</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Justificativa</TableHead>
+                  <TableHead>Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {validModalities.map((modalidade) => (
+                  <TableRow key={modalidade.id}>
+                    <TableCell>{modalidade.modalidade}</TableCell>
+                    <TableCell>
+                      <Badge className={cn("capitalize", getStatusBadgeStyle(modalityStatuses[modalidade.id] || modalidade.status))}>
+                        {modalityStatuses[modalidade.id] || modalidade.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        placeholder="Justificativa para alteração"
+                        value={justifications[modalidade.id] || ''}
+                        onChange={(e) => setJustifications(prev => ({
+                          ...prev,
+                          [modalidade.id]: e.target.value
+                        }))}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={modalityStatuses[modalidade.id] || modalidade.status}
+                        onValueChange={(value) => handleStatusChange(modalidade.id, value)}
+                        disabled={!justifications[modalidade.id] || isUpdating[modalidade.id]}
+                      >
+                        <SelectTrigger className={cn(
+                          "w-[180px]",
+                          (!justifications[modalidade.id] || isUpdating[modalidade.id]) && "opacity-50 cursor-not-allowed"
+                        )}>
+                          <SelectValue placeholder="Selecione o status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pendente">Pendente</SelectItem>
+                          <SelectItem value="confirmado">Confirmado</SelectItem>
+                          <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                          <SelectItem value="cancelado">Cancelado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        )}
       </DialogContent>
     </Dialog>
   );
