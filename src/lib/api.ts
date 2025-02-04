@@ -21,6 +21,7 @@ export interface AthleteRegistration {
   confirmado: boolean;
   telefone: string;
   filial: string;
+  filial_id: string;  // Added this field
   modalidades: AthleteModality[];
   status_inscricao: 'pendente' | 'confirmado' | 'rejeitado' | 'cancelado';
   status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
@@ -113,6 +114,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       confirmado: registration.status_confirmacao || false,
       telefone: registration.telefone || '',
       filial: registration.filial_nome || registration.filial,
+      filial_id: registration.filial_id || '',  // Added this field
       modalidades: [{
         id: registration.inscricao_id?.toString() || registration.id?.toString(),
         modalidade: registration.modalidade_nome || registration.modalidade,
