@@ -31,13 +31,11 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const [modalityStatuses, setModalityStatuses] = React.useState<Record<string, string>>({});
   const [dialogOpen, setDialogOpen] = React.useState(false);
   
-  // Add null checks and default values
   const isPaymentPending = registration?.status_pagamento === "pendente";
   const validModalities = registration?.modalidades?.filter(m => m.modalidade) || [];
   const hasModalities = validModalities.length > 0;
   const isSingleEmptyModality = registration?.inscricao_id && (!registration?.modalidades?.[0]?.modalidade || registration?.modalidades?.length === 0);
 
-  // Initialize modality statuses on mount
   React.useEffect(() => {
     if (registration?.modalidades) {
       const initialStatuses = registration.modalidades.reduce((acc, modality) => ({
@@ -66,28 +64,17 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     setIsUpdating(prev => ({ ...prev, [modalityId]: true }));
     
     try {
-      // Keep the current status to revert if needed
-      const currentStatus = modalityStatuses[modalityId];
-      
-      // Optimistically update UI
       setModalityStatuses(prev => ({ ...prev, [modalityId]: newStatus }));
-      
-      // Attempt database update
       await onStatusChange(modalityId, newStatus, justification);
       console.log('Modality status update successful');
-      
-      // Clear justification after successful update
       setJustifications(prev => ({ ...prev, [modalityId]: '' }));
       toast.success('Status da modalidade atualizado com sucesso!');
     } catch (error) {
       console.error('Error updating modality status:', error);
-      
-      // Revert UI state if update fails
       setModalityStatuses(prev => ({
         ...prev,
         [modalityId]: registration.modalidades.find(m => m.id === modalityId)?.status || prev[modalityId]
       }));
-      
       const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar status da modalidade';
       toast.error(errorMessage);
     } finally {
@@ -143,7 +130,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const cardContent = (
     <Card className={cn(
       getStatusColor(registration.status_pagamento),
-      isPaymentPending ? 'opacity-75 cursor-not-allowed' : 'cursor-pointer hover:shadow-md transition-shadow',
+      isPaymentPending ? 'opacity-75' : '',
       isCurrentUser && 'ring-2 ring-olimpics-orange-primary'
     )}>
       <CardContent className="p-6">
@@ -225,14 +212,15 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     </Card>
   );
 
-  if (isPaymentPending) {
-    return cardContent;
-  }
-
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
-        <div>{cardContent}</div>
+        <div className={cn(
+          'cursor-pointer hover:shadow-md transition-shadow',
+          isPaymentPending && 'pointer-events-none'
+        )}>
+          {cardContent}
+        </div>
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[80vh]">
         <DialogHeader>
