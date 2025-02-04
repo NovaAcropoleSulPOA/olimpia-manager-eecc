@@ -204,7 +204,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
             )}
           </div>
 
-          {registration.status_pagamento === "pendente" && onPaymentStatusChange && (
+          {onPaymentStatusChange && (
             <div className="mt-4 flex items-center gap-2">
               <label className="text-sm text-muted-foreground">Status do pagamento:</label>
               <Select onValueChange={handlePaymentStatusChange}>
@@ -213,6 +213,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="confirmado">Confirmado</SelectItem>
+                  <SelectItem value="pendente">Pendente</SelectItem>
                   <SelectItem value="cancelado">Cancelado</SelectItem>
                 </SelectContent>
               </Select>
