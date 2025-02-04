@@ -39,7 +39,6 @@ export default function ResetPassword() {
     console.log('Token present:', !!token);
     console.log('Type:', type);
     
-    // Apenas valida a existência do token e do type correto
     if (!token || type !== 'recovery') {
       console.error('Invalid recovery parameters');
       setError('Link de redefinição de senha inválido ou expirado');
@@ -66,16 +65,14 @@ export default function ResetPassword() {
         return;
       }
 
-      // Updated method name from verifyOTP to verifyOtp
-      const { error: otpError } = await supabase.auth.verifyOtp({
-        token,
-        type: 'recovery',
-        password: values.password,
+      // First, update the user's password using updateUser
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: values.password
       });
 
-      if (otpError) {
-        console.error('OTP verification error:', otpError);
-        if (otpError.message.includes('expired')) {
+      if (updateError) {
+        console.error('Password update error:', updateError);
+        if (updateError.message.includes('expired')) {
           setError('O link de recuperação expirou. Por favor, solicite um novo.');
         } else {
           setError('Link inválido. Por favor, solicite um novo link de recuperação.');
