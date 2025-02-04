@@ -93,65 +93,67 @@ export function MainNavigation() {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex min-h-[calc(100vh-4rem)] w-full"> {/* Adjusted height to account for header */}
-        <Sidebar className="bg-olimpics-green-primary text-white transition-all duration-300">
-          <SidebarHeader className="relative p-6 border-b border-olimpics-green-secondary">
-            <h2 className="text-xl font-bold text-center">Menu</h2>
-            <SidebarTrigger className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden text-white hover:text-olimpics-green-secondary">
-              <Menu className="h-6 w-6" />
-            </SidebarTrigger>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-center px-4 py-2 text-sm font-medium uppercase tracking-wider text-white/70">
-                Navegação
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu className="px-3">
-                  {menuItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={location.pathname === item.path}
-                        tooltip={item.title}
-                        className={`
-                          w-full rounded-lg transition-all duration-200
-                          hover:bg-olimpics-green-secondary
-                          ${location.pathname === item.path 
-                            ? 'bg-olimpics-green-secondary shadow-lg' 
-                            : 'hover:shadow-md'
-                          }
-                        `}
-                      >
-                        <Link to={item.path} className="flex items-center gap-3 p-3">
-                          <item.icon className="h-5 w-5" />
-                          <span className="font-medium">{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-          <SidebarFooter className="mt-auto border-t border-olimpics-green-secondary p-4">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={handleLogout}
-                  className="w-full rounded-lg p-4 flex items-center gap-3 
-                    text-red-300 hover:text-red-100 hover:bg-red-500/20 
-                    transition-all duration-200 text-lg font-medium"
-                  tooltip="Sair"
-                >
-                  <LogOut className="h-6 w-6" />
-                  <span>Sair</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarFooter>
+      <div className="flex min-h-[calc(100vh-4rem)] w-full pt-16"> {/* Added pt-16 to account for header height */}
+        <Sidebar className="fixed left-0 top-16 bottom-0 bg-olimpics-green-primary text-white transition-all duration-300 overflow-y-auto"> {/* Positioned sidebar relative to header */}
+          <div className="flex flex-col h-full pb-16 md:pb-0"> {/* Added padding bottom for mobile footer */}
+            <SidebarHeader className="sticky top-0 p-6 border-b border-olimpics-green-secondary bg-olimpics-green-primary z-10">
+              <h2 className="text-xl font-bold text-center">Menu</h2>
+              <SidebarTrigger className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden text-white hover:text-olimpics-green-secondary">
+                <Menu className="h-6 w-6" />
+              </SidebarTrigger>
+            </SidebarHeader>
+            <SidebarContent className="flex-1">
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-center px-4 py-2 text-sm font-medium uppercase tracking-wider text-white/70">
+                  Navegação
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu className="px-3">
+                    {menuItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={location.pathname === item.path}
+                          tooltip={item.title}
+                          className={`
+                            w-full rounded-lg transition-all duration-200
+                            hover:bg-olimpics-green-secondary
+                            ${location.pathname === item.path 
+                              ? 'bg-olimpics-green-secondary shadow-lg' 
+                              : 'hover:shadow-md'
+                            }
+                          `}
+                        >
+                          <Link to={item.path} className="flex items-center gap-3 p-3">
+                            <item.icon className="h-5 w-5" />
+                            <span className="font-medium">{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </SidebarContent>
+            <SidebarFooter className="sticky bottom-0 border-t border-olimpics-green-secondary p-4 bg-olimpics-green-primary">
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={handleLogout}
+                    className="w-full rounded-lg p-4 flex items-center gap-3 
+                      text-red-300 hover:text-red-100 hover:bg-red-500/20 
+                      transition-all duration-200 text-lg font-medium"
+                    tooltip="Sair"
+                  >
+                    <LogOut className="h-6 w-6" />
+                    <span>Sair</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarFooter>
+          </div>
         </Sidebar>
-        <main className="flex-1 p-6 bg-olimpics-background">
+        <main className="flex-1 ml-64 p-6 bg-olimpics-background"> {/* Added margin to account for fixed sidebar width */}
           <Outlet />
         </main>
       </div>
