@@ -29,35 +29,26 @@ export default function ForgotPassword() {
   const onSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
     try {
       setIsSubmitting(true);
-      console.log('Attempting password recovery for:', values.email);
+      console.log('Requesting password reset for:', values.email);
 
-      const { data: userExists } = await supabase
-        .from('usuarios')
-        .select('email')
-        .eq('email', values.email)
-        .maybeSingle();
-
-      if (!userExists) {
-        console.log('Email not found in database');
-        toast.error('Email não encontrado. Verifique o endereço informado.');
-        return;
-      }
-
-      const { error } = await supabase.auth.resetPasswordForEmail(values.email, {
+      await supabase.auth.resetPasswordForEmail(values.email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
-      if (error) {
-        console.error('Password reset error:', error);
-        toast.error('Erro ao enviar email de recuperação. Tente novamente.');
-        return;
-      }
-
-      toast.success('Email de recuperação enviado com sucesso!');
+      // Always show the same success message regardless of email existence
+      toast.success(
+        'Se este e-mail estiver cadastrado, você receberá um link para redefinir sua senha. Não esqueça de verificar sua caixa de spam!'
+      );
+      
+      form.reset();
       navigate('/');
+      
     } catch (error) {
-      console.error('Unexpected error:', error);
-      toast.error('Erro ao processar solicitação. Tente novamente.');
+      console.error('Error in password reset request:', error);
+      // Show the same message even on error to maintain consistency
+      toast.success(
+        'Se este e-mail estiver cadastrado, você receberá um link para redefinir sua senha. Não esqueça de verificar sua caixa de spam!'
+      );
     } finally {
       setIsSubmitting(false);
     }
