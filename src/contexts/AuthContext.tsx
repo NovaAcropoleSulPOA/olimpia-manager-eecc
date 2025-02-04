@@ -23,7 +23,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const PUBLIC_ROUTES = ['/', '/login', '/forgot-password', '/reset-password', '/pending-approval'];
+const PUBLIC_ROUTES = ['/', '/login', '/forgot-password', '/reset-password'];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -35,17 +35,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('AuthContext - Handling auth redirect');
     console.log('AuthContext - Current location:', location.pathname);
     
-    if (!userProfile.confirmado) {
-      console.log('AuthContext - User not confirmed, redirecting to pending approval');
-      navigate('/pending-approval');
-      return;
-    }
-
-    const roles = userProfile.papeis || [];
-    console.log('AuthContext - User roles for redirect:', roles);
-
     // Only redirect if on a public route
     if (PUBLIC_ROUTES.includes(location.pathname)) {
+      const roles = userProfile.papeis || [];
+      console.log('AuthContext - User roles for redirect:', roles);
+
       if (roles.includes('Atleta')) {
         console.log('AuthContext - Redirecting to athlete profile');
         navigate('/athlete-profile');
@@ -210,14 +204,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       console.log('Login successful, fetching user profile...');
       const profile = await fetchUserProfile(data.user.id);
-      
-      if (!profile.confirmado) {
-        console.log('User not confirmed, redirecting to pending approval page');
-        toast.warning('Seu cadastro está pendente de aprovação.');
-        navigate('/pending-approval');
-        return;
-      }
-  
       setUser({ ...data.user, ...profile });
       handleAuthRedirect(profile);
       toast.success('Login realizado com sucesso!');

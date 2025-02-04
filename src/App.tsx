@@ -6,7 +6,6 @@ import { GlobalHeader } from './components/GlobalHeader';
 import './App.css';
 import { Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
-import PendingApproval from './pages/PendingApproval';
 import { MainNavigation } from './components/MainNavigation';
 import LandingPage from './pages/LandingPage';
 import Footer from './components/Footer';
@@ -36,13 +35,12 @@ function App() {
         <AuthProvider>
           <div className="min-h-screen flex flex-col">
             <GlobalHeader />
-            <div className="flex-1 flex flex-col mt-16"> {/* Changed pt-16 to mt-16 for better spacing */}
+            <div className="flex-1 flex flex-col mt-16">
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/pending-approval" element={<PendingApproval />} />
                 <Route element={<MainNavigation />}>
                   <Route path="/athlete-profile" element={<AthleteProfilePage />} />
                   <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
