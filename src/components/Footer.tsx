@@ -3,11 +3,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Footer = () => {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   const socialLinks = [
     {
@@ -82,10 +84,16 @@ const Footer = () => {
     item.roles.some(role => userRoles.includes(role))
   );
 
+  // Only show mobile navigation menu if user is logged in
+  const showMobileNav = user && (!isMobile || (isMobile && location.pathname !== '/'));
+
+  // Show footer on desktop or on mobile homepage only
+  const showFooter = !isMobile || (isMobile && location.pathname === '/');
+
   return (
     <>
       {/* Mobile Navigation Menu */}
-      {user && (
+      {showMobileNav && (
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t md:hidden">
           <div className="grid grid-cols-4 gap-1 px-2 py-2">
             {filteredNavItems.map((item) => (
@@ -115,27 +123,29 @@ const Footer = () => {
       )}
 
       {/* Desktop Footer */}
-      <footer className="hidden md:block w-full bg-white/80 backdrop-blur-sm border-t py-4 px-4 mt-auto">
-        <div className="container mx-auto flex justify-between items-center">
-          <span className="text-xs text-gray-500">
-            Desenvolvido por: Olimar Teixeira Borges
-          </span>
-          <div className="flex gap-2">
-            {socialLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-olimpics-green-primary transition-colors"
-                title={link.label}
-              >
-                {link.icon}
-              </a>
-            ))}
+      {showFooter && (
+        <footer className="hidden md:block w-full bg-white/80 backdrop-blur-sm border-t py-4 px-4 mt-auto">
+          <div className="container mx-auto flex justify-between items-center">
+            <span className="text-xs text-gray-500">
+              Desenvolvido por: Olimar Teixeira Borges
+            </span>
+            <div className="flex gap-2">
+              {socialLinks.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-500 hover:text-olimpics-green-primary transition-colors"
+                  title={link.label}
+                >
+                  {link.icon}
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </>
   );
 };
