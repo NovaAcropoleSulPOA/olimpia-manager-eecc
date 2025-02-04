@@ -37,13 +37,12 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   onPaymentStatusChange,
 }) => {
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
-  const [dialogOpen, setDialogOpen] = React.useState(false);
   
   // Only allow interaction if payment is confirmed
-  const isClickable = athlete.status_pagamento === "confirmado";
+  const isInteractive = athlete.status_pagamento === "confirmado";
   
-  // Only show modalities if they exist
-  const hasValidModalities = athlete.modalidades?.length > 0;
+  // Only show modalities if they exist AND payment is confirmed
+  const hasValidModalities = athlete.modalidades?.length > 0 && isInteractive;
 
   const handleWhatsAppClick = (e: React.MouseEvent, phone: string) => {
     e.stopPropagation();
@@ -97,7 +96,7 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
   const cardContent = (
     <Card 
       className={`${getStatusColor(athlete.status_pagamento)} ${
-        isClickable ? 'cursor-pointer hover:shadow-md transition-shadow' : 'cursor-not-allowed opacity-75'
+        isInteractive ? 'cursor-pointer hover:shadow-md transition-shadow' : 'cursor-not-allowed opacity-75'
       }`}
     >
       <CardContent className="p-6">
@@ -158,73 +157,17 @@ export const AthleteManagementCard: React.FC<AthleteManagementCardProps> = ({
               </Select>
             </div>
           )}
-
-          {hasValidModalities && (
-            <div className="mt-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Modalidade</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Justificativa</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {athlete.modalidades.map((modalidade) => (
-                    <TableRow key={modalidade.id}>
-                      <TableCell>{modalidade.modalidade}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={
-                          modalidade.status === "confirmado" ? "bg-green-100 text-green-800" :
-                          modalidade.status === "pendente" ? "bg-yellow-100 text-yellow-800" :
-                          "bg-red-100 text-red-800"
-                        }>
-                          {modalidade.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          placeholder="Justificativa para alteração"
-                          value={justifications[modalidade.id] || ''}
-                          onChange={(e) => setJustifications(prev => ({
-                            ...prev,
-                            [modalidade.id]: e.target.value
-                          }))}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          onValueChange={(value) => handleStatusChange(modalidade.id, value)}
-                        >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Selecione o status" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pendente">Pendente</SelectItem>
-                            <SelectItem value="confirmado">Confirmada</SelectItem>
-                            <SelectItem value="cancelado">Cancelada</SelectItem>
-                            <SelectItem value="recusado">Recusada</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
   );
 
-  if (!isClickable) {
+  if (!isInteractive) {
     return cardContent;
   }
 
   return (
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+    <Dialog>
       <DialogTrigger asChild>
         <div>{cardContent}</div>
       </DialogTrigger>
