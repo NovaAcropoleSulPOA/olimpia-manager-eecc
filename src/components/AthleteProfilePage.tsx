@@ -89,12 +89,14 @@ export default function AthleteProfilePage() {
 
   // Log payment status for debugging
   console.log('Current payment status:', paymentStatus?.status);
+  const isPendingPayment = paymentStatus?.status?.toLowerCase() === 'pendente';
+  console.log('Is payment pending? (case-insensitive check):', isPendingPayment);
 
   return (
     <div className="container mx-auto py-6 space-y-8">
       <AthleteProfile profile={profile} />
-      {/* Show PaymentInfo ONLY when status is 'pendente' */}
-      {paymentStatus?.status === 'pendente' && <PaymentInfo />}
+      {/* Show PaymentInfo when status is 'pendente' (case-insensitive) */}
+      {isPendingPayment && <PaymentInfo />}
       {user?.id && <AthleteScoresSection athleteId={user.id} />}
     </div>
   );
