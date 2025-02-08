@@ -33,7 +33,7 @@ const registerSchema = z.object({
   telefone: z.string().min(14, 'Telefone inválido').max(15),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
-  branchId: z.string().uuid('Filial inválida').min(1, 'Selecione uma filial'),
+  branchId: z.string().uuid('Sede inválida').min(1, 'Selecione uma Sede'),
   tipo_documento: z.enum(['CPF', 'RG'], {
     required_error: "Selecione o tipo de documento",
   }),
@@ -115,7 +115,7 @@ export default function Login() {
       setIsSubmitting(true);
 
       if (!values.branchId) {
-        toast.error('Por favor, selecione uma filial.');
+        toast.error('Por favor, selecione uma Sede.');
         return;
       }
 
@@ -300,14 +300,14 @@ export default function Login() {
                       name="branchId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Filial</FormLabel>
+                          <FormLabel>Sede</FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione sua filial" />
+                                <SelectValue placeholder="Selecione sua Sede" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
