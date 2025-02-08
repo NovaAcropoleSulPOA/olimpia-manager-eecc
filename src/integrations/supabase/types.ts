@@ -337,13 +337,6 @@ export type Database = {
             referencedColumns: ["atleta_id"]
           },
           {
-            foreignKeyName: "pagamentos_atleta_id_fkey"
-            columns: ["atleta_id"]
-            isOneToOne: false
-            referencedRelation: "vw_taxas_inscricao_usuarios"
-            referencedColumns: ["usuario_id"]
-          },
-          {
             foreignKeyName: "pagamentos_taxa_inscricao_fk"
             columns: ["taxa_inscricao_id"]
             isOneToOne: false
@@ -403,13 +396,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_pontuacoes_gerais_atletas"
             referencedColumns: ["atleta_id"]
-          },
-          {
-            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "vw_taxas_inscricao_usuarios"
-            referencedColumns: ["usuario_id"]
           },
         ]
       }
@@ -498,13 +484,6 @@ export type Database = {
             referencedColumns: ["atleta_id"]
           },
           {
-            foreignKeyName: "pontuacoes_atleta_id_fkey"
-            columns: ["atleta_id"]
-            isOneToOne: false
-            referencedRelation: "vw_taxas_inscricao_usuarios"
-            referencedColumns: ["usuario_id"]
-          },
-          {
             foreignKeyName: "pontuacoes_criterio_id_fkey"
             columns: ["criterio_id"]
             isOneToOne: false
@@ -538,13 +517,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_pontuacoes_gerais_atletas"
             referencedColumns: ["atleta_id"]
-          },
-          {
-            foreignKeyName: "pontuacoes_juiz_id_fkey"
-            columns: ["juiz_id"]
-            isOneToOne: false
-            referencedRelation: "vw_taxas_inscricao_usuarios"
-            referencedColumns: ["usuario_id"]
           },
           {
             foreignKeyName: "pontuacoes_modalidade_id_fkey"
@@ -622,13 +594,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_pontuacoes_gerais_atletas"
             referencedColumns: ["atleta_id"]
-          },
-          {
-            foreignKeyName: "premiacoes_atleta_id_fkey"
-            columns: ["atleta_id"]
-            isOneToOne: false
-            referencedRelation: "vw_taxas_inscricao_usuarios"
-            referencedColumns: ["usuario_id"]
           },
           {
             foreignKeyName: "premiacoes_modalidade_id_fkey"
@@ -917,7 +882,36 @@ export type Database = {
           usuario_id: string | null
           valor: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "view_perfil_atleta"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_inscricoes_atletas"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_pontuacoes_gerais_atletas"
+            referencedColumns: ["atleta_id"]
+          },
+        ]
       }
     }
     Functions: {

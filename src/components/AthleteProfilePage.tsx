@@ -66,6 +66,7 @@ export default function AthleteProfilePage() {
         console.error('Error fetching payment status:', error);
         throw error;
       }
+      console.log('Payment status data:', data);
       return data as PaymentStatus;
     },
     enabled: !!user?.id,
@@ -88,7 +89,7 @@ export default function AthleteProfilePage() {
   }
 
   // Log payment status for debugging
-  console.log('Current payment status:', paymentStatus?.status);
+  console.log('Raw payment status:', paymentStatus?.status);
   const isPendingPayment = paymentStatus?.status?.toLowerCase() === 'pendente';
   console.log('Is payment pending? (case-insensitive check):', isPendingPayment);
 
