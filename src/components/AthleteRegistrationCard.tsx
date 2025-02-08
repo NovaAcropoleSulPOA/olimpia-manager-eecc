@@ -31,7 +31,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const [isUpdating, setIsUpdating] = React.useState<Record<string, boolean>>({});
   const [modalityStatuses, setModalityStatuses] = React.useState<Record<string, string>>({});
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [paymentAmount, setPaymentAmount] = React.useState<number>(180);
+  const [paymentAmount, setPaymentAmount] = React.useState<number>(230);
   const [isUpdatingAmount, setIsUpdatingAmount] = React.useState(false);
   
   const validModalities = registration?.modalidades?.filter(m => m.modalidade) || [];

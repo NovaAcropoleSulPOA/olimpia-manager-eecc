@@ -177,7 +177,7 @@ export default function Login() {
         .from('pagamentos')
         .insert([{
           atleta_id: userId,
-          valor: 180.00,
+          valor: 230.00,
           status: 'pendente',
           comprovante_url: null,
           validado_sem_comprovante: false,
