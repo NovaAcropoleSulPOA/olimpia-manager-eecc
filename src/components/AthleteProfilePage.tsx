@@ -22,9 +22,14 @@ interface AthleteProfileData {
   filial_estado: string;
 }
 
+interface PaymentStatus {
+  status: string;
+}
+
 export default function AthleteProfilePage() {
   const { user } = useAuth();
 
+  // Fetch athlete profile
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['athlete-profile', user?.id],
     queryFn: async () => {
@@ -45,7 +50,28 @@ export default function AthleteProfilePage() {
     enabled: !!user?.id,
   });
 
-  if (profileLoading) {
+  // Fetch payment status
+  const { data: paymentStatus, isLoading: paymentLoading } = useQuery({
+    queryKey: ['payment-status', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      console.log('Fetching payment status for:', user.id);
+      const { data, error } = await supabase
+        .from('pagamentos')
+        .select('status')
+        .eq('atleta_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching payment status:', error);
+        throw error;
+      }
+      return data as PaymentStatus;
+    },
+    enabled: !!user?.id,
+  });
+
+  if (profileLoading || paymentLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-olimpics-green-primary" />
@@ -61,10 +87,14 @@ export default function AthleteProfilePage() {
     );
   }
 
+  // Log payment status for debugging
+  console.log('Current payment status:', paymentStatus?.status);
+
   return (
     <div className="container mx-auto py-6 space-y-8">
       <AthleteProfile profile={profile} />
-      <PaymentInfo />
+      {/* Only show PaymentInfo if payment status is pending or if there's no payment record yet */}
+      {(!paymentStatus?.status || paymentStatus.status === 'pendente') && <PaymentInfo />}
       {user?.id && <AthleteScoresSection athleteId={user.id} />}
     </div>
   );

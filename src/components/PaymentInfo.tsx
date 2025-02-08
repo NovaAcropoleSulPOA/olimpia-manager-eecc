@@ -22,6 +22,7 @@ const PaymentInfo = () => {
     queryKey: ['payment-info', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
+      console.log('Fetching payment info for user:', user.id);
       
       const { data, error } = await supabase
         .from('vw_taxas_inscricao_usuarios')
@@ -34,6 +35,7 @@ const PaymentInfo = () => {
         throw error;
       }
 
+      console.log('Payment info retrieved:', data);
       return data as PaymentFeeInfo;
     },
     enabled: !!user?.id,
