@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import AthleteScoresSection from './AthleteScoresSection';
 import AthleteProfile from './AthleteProfile';
+import PaymentInfo from './PaymentInfo';
 import { Loader2 } from "lucide-react";
 
 interface AthleteProfileData {
@@ -31,7 +33,7 @@ export default function AthleteProfilePage() {
       const { data, error } = await supabase
         .from('view_perfil_atleta')
         .select('*')
-        .eq('atleta_id', user.id)  // Changed from 'id' to 'atleta_id'
+        .eq('atleta_id', user.id)
         .maybeSingle();
 
       if (error) {
@@ -62,6 +64,7 @@ export default function AthleteProfilePage() {
   return (
     <div className="container mx-auto py-6 space-y-8">
       <AthleteProfile profile={profile} />
+      <PaymentInfo />
       {user?.id && <AthleteScoresSection athleteId={user.id} />}
     </div>
   );
