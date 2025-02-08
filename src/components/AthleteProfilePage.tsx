@@ -50,7 +50,7 @@ export default function AthleteProfilePage() {
     enabled: !!user?.id,
   });
 
-  // Fetch payment status
+  // Fetch payment status from pagamentos table
   const { data: paymentStatus, isLoading: paymentLoading } = useQuery({
     queryKey: ['payment-status', user?.id],
     queryFn: async () => {
@@ -93,8 +93,8 @@ export default function AthleteProfilePage() {
   return (
     <div className="container mx-auto py-6 space-y-8">
       <AthleteProfile profile={profile} />
-      {/* Only show PaymentInfo if payment status is pending or if there's no payment record yet */}
-      {(!paymentStatus?.status || paymentStatus.status === 'pendente') && <PaymentInfo />}
+      {/* Show PaymentInfo ONLY when status is 'pendente' */}
+      {paymentStatus?.status === 'pendente' && <PaymentInfo />}
       {user?.id && <AthleteScoresSection athleteId={user.id} />}
     </div>
   );
