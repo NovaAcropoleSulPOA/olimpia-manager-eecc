@@ -15,7 +15,6 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchBranches } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import InputMask from 'react-input-mask';
-import PaymentInfo from '@/components/PaymentInfo';
 import { Link, useNavigate } from 'react-router-dom';
 import { validateCPF } from '@/utils/documentValidation';
 
@@ -439,8 +438,6 @@ export default function Login() {
                       )}
                     />
 
-                    <PaymentInfo />
-
                     <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
                       Após concluir seu cadastro, se ainda não tiver enviado o comprovante de pagamento, 
                       você poderá fazê-lo na tela de perfil do atleta. A validação do pagamento será 
@@ -561,6 +558,7 @@ export default function Login() {
                       <p className="text-olimpics-text mt-2 italic">
                         "Se você quer vencer nos Jogos Olímpicos, deve se preparar, exercitar-se, comer moderadamente, suportar a fadiga e obedecer ao treinador."
                       </p>
+                      <p className="text-sm text-gray-600 mt-1">— Enchirídion" (ou "Manual")</p>
                     </div>
 
                     <div className="quote-item">
