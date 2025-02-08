@@ -45,6 +45,7 @@ export default function AthleteProfilePage() {
         console.error('Error fetching athlete profile:', error);
         throw error;
       }
+      console.log('Profile data:', data);
       return data as AthleteProfileData;
     },
     enabled: !!user?.id,

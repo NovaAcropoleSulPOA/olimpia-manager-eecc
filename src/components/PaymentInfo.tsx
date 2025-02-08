@@ -18,6 +18,7 @@ interface PaymentFeeInfo {
 const PaymentInfo = () => {
   const { user } = useAuth();
 
+  // This query now uses the updated view that returns only the highest fee
   const { data: paymentInfo, isLoading } = useQuery({
     queryKey: ['payment-info', user?.id],
     queryFn: async () => {
@@ -35,7 +36,7 @@ const PaymentInfo = () => {
         throw error;
       }
 
-      console.log('Payment info retrieved:', data);
+      console.log('Payment info retrieved (highest fee profile):', data);
       return data as PaymentFeeInfo;
     },
     enabled: !!user?.id,
@@ -82,6 +83,11 @@ const PaymentInfo = () => {
         Informações de Pagamento
       </h3>
       <div className="grid gap-2 text-olimpics-text text-left">
+        {paymentInfo.perfil_nome && (
+          <p className="flex items-center gap-2">
+            <span className="text-lg">👤</span> Perfil: {paymentInfo.perfil_nome}
+          </p>
+        )}
         <p className="flex items-center gap-2">
           <span className="text-lg">💰</span> Valor: {paymentInfo.valor ? `R$ ${paymentInfo.valor.toFixed(2)}` : 'Não definido'}
         </p>
