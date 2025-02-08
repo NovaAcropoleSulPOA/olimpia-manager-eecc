@@ -49,6 +49,124 @@ export type Database = {
           },
         ]
       }
+      cronograma_atividade_modalidades: {
+        Row: {
+          cronograma_atividade_id: number
+          modalidade_id: number
+        }
+        Insert: {
+          cronograma_atividade_id: number
+          modalidade_id: number
+        }
+        Update: {
+          cronograma_atividade_id?: number
+          modalidade_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cronograma_atividade_modalidades_cronograma_atividade_id_fkey"
+            columns: ["cronograma_atividade_id"]
+            isOneToOne: false
+            referencedRelation: "cronograma_atividades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
+            columns: ["modalidade_id"]
+            isOneToOne: false
+            referencedRelation: "modalidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
+            columns: ["modalidade_id"]
+            isOneToOne: false
+            referencedRelation: "vw_inscricoes_atletas"
+            referencedColumns: ["modalidade_id"]
+          },
+          {
+            foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
+            columns: ["modalidade_id"]
+            isOneToOne: false
+            referencedRelation: "vw_pontuacoes_gerais_atletas"
+            referencedColumns: ["modalidade_id"]
+          },
+        ]
+      }
+      cronograma_atividades: {
+        Row: {
+          atividade: string
+          cronograma_id: number
+          dia: string
+          global: boolean
+          horario_fim: string
+          horario_inicio: string
+          id: number
+          local: string
+          ordem: number | null
+        }
+        Insert: {
+          atividade: string
+          cronograma_id: number
+          dia: string
+          global?: boolean
+          horario_fim: string
+          horario_inicio: string
+          id?: number
+          local: string
+          ordem?: number | null
+        }
+        Update: {
+          atividade?: string
+          cronograma_id?: number
+          dia?: string
+          global?: boolean
+          horario_fim?: string
+          horario_inicio?: string
+          id?: number
+          local?: string
+          ordem?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cronograma_atividades_cronograma_id_fkey"
+            columns: ["cronograma_id"]
+            isOneToOne: false
+            referencedRelation: "cronogramas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cronogramas: {
+        Row: {
+          created_at: string | null
+          data_fim: string | null
+          data_inicio: string | null
+          descricao: string | null
+          id: number
+          nome: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          id?: number
+          nome: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          id?: number
+          nome?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       filiais: {
         Row: {
           cidade: string
@@ -163,6 +281,7 @@ export type Database = {
           data_validacao: string | null
           id: number
           status: string | null
+          taxa_inscricao_id: number | null
           validado_sem_comprovante: boolean | null
           valor: number
         }
@@ -173,6 +292,7 @@ export type Database = {
           data_validacao?: string | null
           id?: number
           status?: string | null
+          taxa_inscricao_id?: number | null
           validado_sem_comprovante?: boolean | null
           valor?: number
         }
@@ -183,6 +303,7 @@ export type Database = {
           data_validacao?: string | null
           id?: number
           status?: string | null
+          taxa_inscricao_id?: number | null
           validado_sem_comprovante?: boolean | null
           valor?: number
         }
@@ -214,6 +335,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_pontuacoes_gerais_atletas"
             referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "pagamentos_taxa_inscricao_fk"
+            columns: ["taxa_inscricao_id"]
+            isOneToOne: false
+            referencedRelation: "taxas_inscricao"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -527,6 +655,47 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_analytics_inscricoes"
             referencedColumns: ["filial_id"]
+          },
+        ]
+      }
+      taxas_inscricao: {
+        Row: {
+          contato_nome: string | null
+          contato_telefone: string | null
+          data_limite_inscricao: string | null
+          id: number
+          isento: boolean
+          perfil_id: number
+          pix_key: string | null
+          valor: number
+        }
+        Insert: {
+          contato_nome?: string | null
+          contato_telefone?: string | null
+          data_limite_inscricao?: string | null
+          id?: number
+          isento?: boolean
+          perfil_id: number
+          pix_key?: string | null
+          valor: number
+        }
+        Update: {
+          contato_nome?: string | null
+          contato_telefone?: string | null
+          data_limite_inscricao?: string | null
+          id?: number
+          isento?: boolean
+          perfil_id?: number
+          pix_key?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_taxas_perfil"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
           },
         ]
       }
