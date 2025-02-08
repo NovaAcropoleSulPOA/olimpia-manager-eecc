@@ -189,22 +189,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       if (error) {
         console.log('Login error:', error);
-        let errorCode = "";
+        let errorMessage = "";
   
-        // Se o erro possuir a propriedade "body", tente extrair o código de erro dela
-        if (error.body) {
-          try {
-            const parsed = JSON.parse(error.body);
-            errorCode = parsed.code || "";
-          } catch (e) {
-            console.error("Error parsing error.body:", e);
-          }
-        }
-  
-        if (
-          errorCode === "invalid_credentials" ||
-          error.message.toLowerCase().includes("invalid login credentials")
-        ) {
+        if (error.message.toLowerCase().includes("invalid login credentials")) {
           toast.error("Verifique suas credenciais. Usuário ou senha incorretos.");
           return;
         }
