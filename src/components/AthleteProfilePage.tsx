@@ -89,16 +89,18 @@ export default function AthleteProfilePage() {
     );
   }
 
-  // Log payment status for debugging
-  console.log('Raw payment status:', paymentStatus?.status);
+  // Case-insensitive check for payment status
   const isPendingPayment = paymentStatus?.status?.toLowerCase() === 'pendente';
-  console.log('Is payment pending? (case-insensitive check):', isPendingPayment);
+  console.log('Payment status check:', {
+    rawStatus: paymentStatus?.status,
+    isPending: isPendingPayment,
+  });
 
   return (
     <div className="container mx-auto py-6 space-y-8">
       <AthleteProfile profile={profile} />
-      {/* Show PaymentInfo when status is 'pendente' (case-insensitive) */}
-      {isPendingPayment && <PaymentInfo />}
+      {/* Show PaymentInfo only when payment is pending */}
+      {isPendingPayment && <PaymentInfo key={user.id} />}
       {user?.id && <AthleteScoresSection athleteId={user.id} />}
     </div>
   );

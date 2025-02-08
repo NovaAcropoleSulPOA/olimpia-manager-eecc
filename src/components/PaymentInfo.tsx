@@ -18,7 +18,7 @@ interface PaymentFeeInfo {
 const PaymentInfo = () => {
   const { user } = useAuth();
 
-  // This query now uses the updated view that returns only the highest fee
+  // This query uses the view that returns only the highest fee profile
   const { data: paymentInfo, isLoading } = useQuery({
     queryKey: ['payment-info', user?.id],
     queryFn: async () => {
@@ -36,7 +36,7 @@ const PaymentInfo = () => {
         throw error;
       }
 
-      console.log('Payment info retrieved (highest fee profile):', data);
+      console.log('Payment info for highest fee profile:', data);
       return data as PaymentFeeInfo;
     },
     enabled: !!user?.id,
