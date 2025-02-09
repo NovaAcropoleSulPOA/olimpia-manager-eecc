@@ -121,6 +121,9 @@ const PaymentInfo = () => {
 
         {/* Right column: QR Code and copy functionality */}
         <div className="flex flex-col items-center justify-center gap-4">
+          <h3 className="text-lg font-semibold text-olimpics-green-primary text-center">
+          Aponte a câmera do celeular para o Código QR
+          </h3>
           {paymentInfo.qr_code_image && (
             <img
               src={paymentInfo.qr_code_image}
@@ -128,6 +131,9 @@ const PaymentInfo = () => {
               className="w-64 h-64 object-contain" // Increased size for better visibility
             />
           )}
+          <h3 className="text-lg font-semibold text-olimpics-green-primary text-center">
+          ... ou copie o código abaixo:
+          </h3>
           
           {/* QR Code copy functionality */}
           {paymentInfo.qr_code_codigo && (
