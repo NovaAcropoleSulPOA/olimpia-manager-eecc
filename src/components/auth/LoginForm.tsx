@@ -18,7 +18,7 @@ const loginSchema = z.object({
 
 export const LoginForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, resendVerificationEmail } = useAuth();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -31,20 +31,32 @@ export const LoginForm = () => {
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
       setIsSubmitting(true);
+      console.log('Attempting login with:', values.email);
       await signIn(values.email, values.password);
     } catch (error: any) {
       console.error("Login Error:", error);
       
-      if (error.message?.toLowerCase().includes("invalid login credentials")) {
-        toast.error("Credenciais inválidas. Por favor, verifique seu email e senha e tente novamente.");
-      } else if (error.message?.includes("Email not confirmed")) {
-        toast.error("Email não confirmado. Por favor, verifique sua caixa de entrada e confirme seu email.");
-      } else if (error.message?.includes("Too many requests")) {
-        toast.error("Muitas tentativas de login. Por favor, aguarde alguns minutos e tente novamente.");
+      if (error.message?.toLowerCase().includes("email not confirmed")) {
+        toast.error(
+          <div className="flex flex-col gap-2">
+            <p>Email não confirmado. Por favor, verifique sua caixa de entrada.</p>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => resendVerificationEmail(values.email)}
+            >
+              Reenviar email de confirmação
+            </Button>
+          </div>
+        );
+      } else if (error.message?.toLowerCase().includes("invalid login credentials")) {
+        toast.error("Email ou senha incorretos. Por favor, verifique suas credenciais.");
+      } else if (error.message?.includes("too many requests")) {
+        toast.error("Muitas tentativas de login. Por favor, aguarde alguns minutos.");
       } else if (error.message?.toLowerCase().includes("network")) {
-        toast.error("Erro de conexão. Verifique sua internet e tente novamente.");
+        toast.error("Erro de conexão. Verifique sua internet.");
       } else {
-        toast.error("Erro ao fazer login. Por favor, tente novamente mais tarde.");
+        toast.error("Erro ao fazer login. Por favor, tente novamente.");
       }
 
       // Clear password field on error for security
