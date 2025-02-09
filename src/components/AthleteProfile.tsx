@@ -43,7 +43,7 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
   }
 
   const formatCurrency = (value?: number) => {
-    if (!value) return 'Valor não pago';
+    if (!value && value !== 0) return 'Valor não definido';
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
@@ -56,7 +56,7 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
       state: { 
         fromProfile: true 
       },
-      replace: false // Use push instead of replace to maintain history
+      replace: false
     });
   };
 
@@ -120,28 +120,26 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">{profile.email}</span>
                   </p>
-                  {!isPublicUser && (
-                    <>
-                      <p className="flex items-center gap-2">
-                        <CreditCard className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">
-                          Status do Pagamento: {' '}
-                          <span className={`font-medium ${profile.pagamento_status === 'confirmado' ? 'text-green-600' : 'text-orange-500'}`}>
-                            {profile.pagamento_status === 'confirmado' ? 'Confirmado' : 'Pendente'}
-                          </span>
-                        </span>
-                      </p>
-                      <p className="flex items-center gap-2">
-                        <CreditCard className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">
-                          Valor do Pagamento: {' '}
-                          <span className={`font-medium ${profile.pagamento_status === 'confirmado' ? 'text-green-600' : 'text-orange-500'}`}>
-                            {formatCurrency(profile.pagamento_valor)}
-                          </span>
-                        </span>
-                      </p>
-                    </>
-                  )}
+                  {/* Payment Status - Now shown for both user types */}
+                  <p className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">
+                      Status do Pagamento: {' '}
+                      <span className={`font-medium ${profile.pagamento_status === 'confirmado' ? 'text-green-600' : 'text-orange-500'}`}>
+                        {profile.pagamento_status === 'confirmado' ? 'Confirmado' : 'Pendente'}
+                      </span>
+                    </span>
+                  </p>
+                  {/* Payment Amount - Now shown for both user types */}
+                  <p className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">
+                      Valor do Pagamento: {' '}
+                      <span className={`font-medium ${profile.pagamento_status === 'confirmado' ? 'text-green-600' : 'text-orange-500'}`}>
+                        {formatCurrency(profile.pagamento_valor)}
+                      </span>
+                    </span>
+                  </p>
                   <Button
                     onClick={handlePasswordChange}
                     variant="outline"
