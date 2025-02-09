@@ -24,6 +24,7 @@ interface AthleteProfileData {
 
 interface PaymentStatus {
   status: string;
+  valor?: number;
 }
 
 export default function AthleteProfilePage() {
@@ -58,26 +59,42 @@ export default function AthleteProfilePage() {
     queryFn: async () => {
       if (!user?.id) return null;
       console.log('Fetching payment status for:', user.id);
-      
+
       if (isPublicUser) {
-        // For public users, check their payment status from pagamentos table
-        const { data, error } = await supabase
+        // For public users, check their payment status and fee from vw_taxas_inscricao_usuarios
+        const { data: taxaData, error: taxaError } = await supabase
+          .from('vw_taxas_inscricao_usuarios')
+          .select('*')
+          .eq('usuario_id', user.id)
+          .maybeSingle();
+
+        if (taxaError) {
+          console.error('Error fetching public user payment info:', taxaError);
+          throw taxaError;
+        }
+
+        // Check payment status from pagamentos table
+        const { data: pgtoData, error: pgtoError } = await supabase
           .from('pagamentos')
           .select('status')
           .eq('atleta_id', user.id)
           .maybeSingle();
 
-        if (error) {
-          console.error('Error fetching public user payment status:', error);
-          throw error;
+        if (pgtoError) {
+          console.error('Error fetching public user payment status:', pgtoError);
+          throw pgtoError;
         }
-        console.log('Public user payment status:', data);
-        return data as PaymentStatus;
+
+        console.log('Public user payment data:', { taxa: taxaData, pagamento: pgtoData });
+        return {
+          status: pgtoData?.status || 'pendente',
+          valor: taxaData?.valor
+        } as PaymentStatus;
       } else {
         // For athletes, check their payment status from pagamentos table
         const { data, error } = await supabase
           .from('pagamentos')
-          .select('status')
+          .select('status, valor')
           .eq('atleta_id', user.id)
           .maybeSingle();
 
@@ -112,6 +129,7 @@ export default function AthleteProfilePage() {
   const isPendingPayment = paymentStatus?.status?.toLowerCase() === 'pendente';
   console.log('Payment status check:', {
     rawStatus: paymentStatus?.status,
+    valor: paymentStatus?.valor,
     isPending: isPendingPayment,
     isPublicUser,
   });
