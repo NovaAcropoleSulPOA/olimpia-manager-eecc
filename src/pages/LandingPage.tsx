@@ -157,7 +157,7 @@ const LandingPage = () => {
               </div>
 
               {/* YouTube Video Section */}
-              <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8">
+              <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8 min-h-[600px]">
                 <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
                 Escola do Esporte com Coração
                 </h2>
