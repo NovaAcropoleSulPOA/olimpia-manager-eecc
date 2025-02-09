@@ -99,6 +99,22 @@ const LandingPage = () => {
                 "Mais rápidos, mais altos, mais fortes, estamos unidos!"
               </p>
 
+              {/* Social Links Section */}
+              <div className="flex flex-wrap justify-center gap-4 mb-8">
+                {socialLinks.map((link, index) => (
+                  <a
+                    key={index}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full text-olimpics-green-primary hover:bg-white transition-all shadow-md hover:shadow-lg"
+                  >
+                    {link.icon}
+                    <span className="text-sm font-medium">{link.name}</span>
+                  </a>
+                ))}
+              </div>
+
               {/* Info Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <Card 
@@ -176,21 +192,6 @@ const LandingPage = () => {
                 </div>
               </div>
 
-              {/* Social Links Section */}
-              <div className="flex flex-wrap justify-center gap-4 mb-8">
-                {socialLinks.map((link, index) => (
-                  <a
-                    key={index}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full text-olimpics-green-primary hover:bg-white transition-all shadow-md hover:shadow-lg"
-                  >
-                    {link.icon}
-                    <span className="text-sm font-medium">{link.name}</span>
-                  </a>
-                ))}
-              </div>
             </div>
 
             {/* Right side - Login Form */}
