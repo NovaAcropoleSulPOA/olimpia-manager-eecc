@@ -161,13 +161,21 @@ export default function OrganizerDashboard() {
     return <EmptyState />;
   }
 
-  // Filter registrations based on user input
-  const filteredRegistrations = registrations?.filter(registration => {
-    const nameMatch = registration.nome_atleta.toLowerCase().includes(nameFilter.toLowerCase());
-    const branchMatch = branchFilter === "all" || registration.filial_id === branchFilter;
-    const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
-    return nameMatch && branchMatch && statusMatch;
-  });
+  // Filter and sort registrations
+  const filteredRegistrations = registrations
+    ?.filter(registration => {
+      const nameMatch = registration.nome_atleta.toLowerCase().includes(nameFilter.toLowerCase());
+      const branchMatch = branchFilter === "all" || registration.filial_id === branchFilter;
+      const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
+      return nameMatch && branchMatch && statusMatch;
+    })
+    .sort((a, b) => {
+      // If one of them is the current user, put it first
+      if (a.id === user?.id) return -1;
+      if (b.id === user?.id) return 1;
+      // Otherwise, sort alphabetically by name
+      return a.nome_atleta.localeCompare(b.nome_atleta, 'pt-BR', { sensitivity: 'base' });
+    });
 
   return (
     <div className="container mx-auto py-6 space-y-6">
