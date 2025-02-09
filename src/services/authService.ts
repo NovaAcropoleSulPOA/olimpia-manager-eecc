@@ -46,6 +46,7 @@ export const fetchUserProfile = async (userId: string) => {
 export const handleAuthRedirect = (userProfile: any, pathname: string, navigate: Function) => {
   console.log('AuthContext - Handling auth redirect');
   console.log('AuthContext - Current location:', pathname);
+  console.log('AuthContext - User profile for redirect:', userProfile);
   
   // Don't redirect if we're on the reset-password page and came from profile
   if (pathname === '/reset-password') {
@@ -67,6 +68,11 @@ export const handleAuthRedirect = (userProfile: any, pathname: string, navigate:
     } else if (roles.includes('Representante de Delegação')) {
       console.log('AuthContext - Redirecting to delegation dashboard');
       navigate('/delegation-dashboard');
+    } else if (roles.includes('Público Geral') || roles.length === 0) {
+      // Default redirection for Público Geral or users with no specific roles
+      console.log('AuthContext - Redirecting public user to profile');
+      navigate('/athlete-profile');
     }
   }
 };
+
