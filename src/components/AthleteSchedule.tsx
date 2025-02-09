@@ -101,111 +101,99 @@ export default function AthleteSchedule() {
       .flatMap(timeSlots => Object.keys(timeSlots))
   )).sort();
 
+  const getActivityStyle = (activity: ScheduleActivity) => {
+    if (activity.is_registered) {
+      return 'border-olimpics-green-primary bg-olimpics-green-primary/10';
+    }
+    if (activity.global) {
+      return 'border-yellow-400 bg-yellow-50';
+    }
+    return 'border-gray-200 bg-white';
+  };
+
   return (
     <Card>
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-olimpics-green-primary flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Cronograma de Atividades
-          </CardTitle>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-2">
-                      <CircleHelp className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-500">Legenda</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="space-y-2 p-2">
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-olimpics-orange-primary/30 border border-olimpics-orange-primary" />
-                        <span className="text-sm">Atividades Inscritas</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-olimpics-green-primary/30 border border-olimpics-green-primary" />
-                        <span className="text-sm">Atividades Gerais</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-gray-100 border border-gray-200" />
-                        <span className="text-sm">Outras Atividades</span>
-                      </div>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-olimpics-green-primary flex items-center gap-2">
+          <Calendar className="h-5 w-5" />
+          Cronograma de Atividades
+        </CardTitle>
+        <div className="flex items-center gap-4">
+          <div className="space-y-2 border rounded-lg p-3 bg-white shadow-sm">
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-olimpics-green-primary/30 border border-olimpics-green-primary" />
+              <span className="text-sm">Atividades Inscritas</span>
             </div>
-            <CollapsibleTrigger>
-              <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
-            </CollapsibleTrigger>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-yellow-50 border border-yellow-400" />
+              <span className="text-sm">Atividades Gerais</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-3 w-3 rounded-full bg-white border border-gray-200" />
+              <span className="text-sm">Outras Atividades</span>
+            </div>
           </div>
-        </CardHeader>
-        <CollapsibleContent>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    <th className="border-b p-4 text-left font-semibold text-olimpics-green-primary">
-                      Horário
+          <CollapsibleTrigger>
+            <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
+          </CollapsibleTrigger>
+        </div>
+      </CardHeader>
+      <CollapsibleContent>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="border-b p-4 text-left font-semibold text-olimpics-green-primary">
+                    Horário
+                  </th>
+                  {dates.map(date => (
+                    <th key={date} className="border-b p-4 text-left font-semibold text-olimpics-green-primary">
+                      {format(new Date(date), "dd/MM/yyyy")}
                     </th>
-                    {dates.map(date => (
-                      <th key={date} className="border-b p-4 text-left font-semibold text-olimpics-green-primary">
-                        {format(new Date(date), "dd/MM/yyyy")}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {timeSlots.map(timeSlot => {
-                    const [start, end] = timeSlot.split('-');
-                    return (
-                      <tr key={timeSlot} className="border-b last:border-b-0">
-                        <td className="p-4 align-top">
-                          <div className="flex items-center gap-1 text-sm text-gray-600">
-                            <Clock className="h-4 w-4 shrink-0" />
-                            <span className="whitespace-nowrap">
-                              {start.slice(0, 5)} - {end.slice(0, 5)}
-                            </span>
-                          </div>
-                        </td>
-                        {dates.map(date => (
-                          <td key={`${date}-${timeSlot}`} className="p-4 align-top">
-                            <div className="space-y-2">
-                              {groupedActivities[date]?.[timeSlot]?.map((activity, index) => (
-                                <div
-                                  key={`${activity.id}-${index}`}
-                                  className={`p-3 rounded-lg border ${
-                                    activity.is_registered || activity.global
-                                      ? 'border-olimpics-orange-primary bg-olimpics-orange-primary/10'
-                                      : activity.global
-                                      ? 'border-olimpics-green-primary bg-olimpics-green-primary/10'
-                                      : 'border-gray-200'
-                                  }`}
-                                >
-                                  <div className="space-y-1">
-                                    <h4 className="font-medium">{activity.atividade}</h4>
-                                    <div className="text-sm text-gray-600">
-                                      <span>{activity.local}</span>
-                                    </div>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {timeSlots.map(timeSlot => {
+                  const [start, end] = timeSlot.split('-');
+                  return (
+                    <tr key={timeSlot} className="border-b last:border-b-0">
+                      <td className="p-4 align-top">
+                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                          <Clock className="h-4 w-4 shrink-0" />
+                          <span className="whitespace-nowrap">
+                            {start.slice(0, 5)} - {end.slice(0, 5)}
+                          </span>
+                        </div>
+                      </td>
+                      {dates.map(date => (
+                        <td key={`${date}-${timeSlot}`} className="p-4 align-top">
+                          <div className="space-y-2">
+                            {groupedActivities[date]?.[timeSlot]?.map((activity, index) => (
+                              <div
+                                key={`${activity.id}-${index}`}
+                                className={`p-3 rounded-lg border ${getActivityStyle(activity)}`}
+                              >
+                                <div className="space-y-1">
+                                  <h4 className="font-medium">{activity.atividade}</h4>
+                                  <div className="text-sm text-gray-600">
+                                    <span>{activity.local}</span>
                                   </div>
                                 </div>
-                              ))}
-                            </div>
-                          </td>
-                        ))}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </CollapsibleContent>
-      </Collapsible>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </CollapsibleContent>
     </Card>
   );
 }
