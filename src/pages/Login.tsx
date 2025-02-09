@@ -35,7 +35,7 @@ const registerSchema = z.object({
   telefone: z.string().min(14, 'Telefone inválido').max(15),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
-  branchId: z.string().uuid('Sede inválida').nullable(),
+  branchId: z.string().uuid('Sede inválida').optional(),
   tipo_documento: z.enum(['CPF', 'RG'], {
     required_error: "Selecione o tipo de documento",
   }),
@@ -60,6 +60,14 @@ const registerSchema = z.object({
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
+}).refine((data) => {
+  if (data.profile_type === 'Atleta' && !data.branchId) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Sede é obrigatória para Atletas",
+  path: ["branchId"],
 });
 
 export default function Login() {
@@ -83,7 +91,7 @@ export default function Login() {
       telefone: '',
       password: '',
       confirmPassword: '',
-      branchId: null,
+      branchId: '',
       tipo_documento: 'CPF',
       numero_documento: '',
       genero: 'Masculino',
@@ -104,8 +112,11 @@ export default function Login() {
     try {
       setIsSubmitting(true);
       await signIn(values.email, values.password);
+      // Não é necessário exibir toast.success ou chamar navigate('/')
+      // pois isso já é feito dentro do AuthContext.signIn
     } catch (error) {
       console.error("Login Error:", error);
+      // Caso ocorra um erro inesperado (apesar do tratamento no AuthContext)
       toast.error("Erro ao fazer login. Verifique suas credenciais.");
     } finally {
       setIsSubmitting(false);
@@ -116,6 +127,11 @@ export default function Login() {
     try {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
+
+      if (values.profile_type === 'Atleta' && !values.branchId) {
+        toast.error('Por favor, selecione uma Sede.');
+        return;
+      }
 
       const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
@@ -181,24 +197,24 @@ export default function Login() {
         return;
       }
 
-      const paymentData = {
-        atleta_id: userId,
-        valor: 235.00,
-        status: 'pendente',
-        comprovante_url: null,
-        validado_sem_comprovante: false,
-        data_validacao: null,
-        data_criacao: new Date().toISOString()
-      };
+      if (values.profile_type === 'Atleta') {
+        const { error: paymentError } = await supabase
+          .from('pagamentos')
+          .insert([{
+            atleta_id: userId,
+            valor: 235.00,
+            status: 'pendente',
+            comprovante_url: null,
+            validado_sem_comprovante: false,
+            data_validacao: null,
+            data_criacao: new Date().toISOString()
+          }]);
 
-      const { error: paymentError } = await supabase
-        .from('pagamentos')
-        .insert([paymentData]);
-
-      if (paymentError) {
-        console.error('Payment record creation error:', paymentError);
-        toast.error('Erro ao criar registro de pagamento.');
-        return;
+        if (paymentError) {
+          console.error('Payment record creation error:', paymentError);
+          toast.error('Erro ao criar registro de pagamento.');
+          return;
+        }
       }
 
       registerForm.reset();
@@ -259,35 +275,6 @@ export default function Login() {
                               </div>
                             </RadioGroup>
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={registerForm.control}
-                      name="branchId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Sede</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value || "none"}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione sua Sede" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">Nenhuma</SelectItem>
-                              {branches.map((branch) => (
-                                <SelectItem key={branch.id} value={branch.id}>
-                                  {branch.nome}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -357,6 +344,36 @@ export default function Login() {
                         </FormItem>
                       )}
                     />
+
+                    {registerForm.watch('profile_type') === 'Atleta' && (
+                      <FormField
+                        control={registerForm.control}
+                        name="branchId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Sede</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione sua Sede" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {branches.map((branch) => (
+                                  <SelectItem key={branch.id} value={branch.id}>
+                                    {branch.nome}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
                     <FormField
                       control={registerForm.control}
