@@ -91,7 +91,7 @@ export default function Login() {
       telefone: '',
       password: '',
       confirmPassword: '',
-      branchId: '',
+      branchId: 'nenhuma',
       tipo_documento: 'CPF',
       numero_documento: '',
       genero: 'Masculino',
@@ -353,7 +353,7 @@ export default function Login() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem key="_nenhuma" value="">Nenhuma</SelectItem>
+                              <SelectItem key="_nenhuma" value="nenhuma">Nenhuma</SelectItem>
                               {branches.map((branch) => (
                                 <SelectItem key={branch.id} value={branch.id}>
                                   {branch.nome}
