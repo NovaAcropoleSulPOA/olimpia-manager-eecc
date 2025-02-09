@@ -1,9 +1,9 @@
-
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
+import CopyableCode from "@/components/CopyableCode"; // Make sure this component exists
 
 interface PaymentFeeInfo {
   valor: number | null;
@@ -13,6 +13,8 @@ interface PaymentFeeInfo {
   contato_telefone: string | null;
   isento: boolean;
   perfil_nome: string | null;
+  qr_code_image: string | null;
+  qr_code_codigo: string | null;
 }
 
 const PaymentInfo = () => {
@@ -114,11 +116,16 @@ const PaymentInfo = () => {
 
       <div className="flex flex-col items-center gap-4">
         <img 
-          src="/lovable-uploads/2a16c3db-40ff-4888-9796-799bf80f6748.png" 
+          src={paymentInfo.qr_code_image || undefined}
           alt="QR Code do PIX"
           className="w-48 h-48 object-contain"
         />
-        
+
+        {/* Copyable code element for the QR code value */}
+        {paymentInfo.qr_code_codigo && (
+          <CopyableCode code={paymentInfo.qr_code_codigo} />
+        )}
+
         <Button
           onClick={handleFormClick}
           className="w-full bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white"
