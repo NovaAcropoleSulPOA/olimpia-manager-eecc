@@ -161,7 +161,7 @@ const LandingPage = () => {
                 <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
                 Escola do Esporte com Coração
                 </h2>
-                <div className="aspect-w-16 aspect-h-9 mb-6">
+                <div className="aspect-w-16 aspect-h-12 mb-6">
                   <iframe
                     src="https://www.youtube.com/embed/BwFoRPHYEhg?si=BTizxrPlXejdGHFH"
                     title="Escola do Esporte com Coração YouTube Channel"
