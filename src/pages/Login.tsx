@@ -258,7 +258,7 @@ export default function Login() {
                       name="profile_type"
                       render={({ field }) => (
                         <FormItem className="space-y-1">
-                          <FormLabel>Tipo de Perfil</FormLabel>
+                          <FormLabel>Tipo de Cadastro</FormLabel>
                           <FormControl>
                             <RadioGroup
                               onValueChange={field.onChange}
@@ -267,11 +267,11 @@ export default function Login() {
                             >
                               <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="Atleta" id="atleta" />
-                                <Label htmlFor="atleta">Sou Atleta</Label>
+                                <Label htmlFor="atleta">Atleta</Label>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="Público Geral" id="publico" />
-                                <Label htmlFor="publico">Sou Público Geral</Label>
+                                <Label htmlFor="publico">Público Geral</Label>
                               </div>
                             </RadioGroup>
                           </FormControl>
