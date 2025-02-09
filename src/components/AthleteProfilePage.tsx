@@ -52,7 +52,7 @@ export default function AthleteProfilePage() {
     enabled: !!user?.id,
   });
 
-  // Fetch payment status from pagamentos table
+  // Fetch payment status from pagamentos table - now enabled for all users
   const { data: paymentStatus, isLoading: paymentLoading } = useQuery({
     queryKey: ['payment-status', user?.id],
     queryFn: async () => {
@@ -71,10 +71,10 @@ export default function AthleteProfilePage() {
       console.log('Payment status data:', data);
       return data as PaymentStatus;
     },
-    enabled: !!user?.id && !isPublicUser,
+    enabled: !!user?.id, // Now enabled for all users
   });
 
-  if (profileLoading || (!isPublicUser && paymentLoading)) {
+  if (profileLoading || paymentLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-olimpics-green-primary" />
@@ -90,8 +90,8 @@ export default function AthleteProfilePage() {
     );
   }
 
-  // Case-insensitive check for payment status
-  const isPendingPayment = !isPublicUser && paymentStatus?.status?.toLowerCase() === 'pendente';
+  // Case-insensitive check for payment status for all users
+  const isPendingPayment = paymentStatus?.status?.toLowerCase() === 'pendente';
   console.log('Payment status check:', {
     rawStatus: paymentStatus?.status,
     isPending: isPendingPayment,
@@ -113,8 +113,8 @@ export default function AthleteProfilePage() {
         }} 
         isPublicUser={isPublicUser}
       />
-      {/* Show PaymentInfo only when payment is pending and user is not public */}
-      {isPendingPayment && !isPublicUser && <PaymentInfo key={user?.id} />}
+      {/* Show PaymentInfo for any user with pending payment */}
+      {isPendingPayment && <PaymentInfo key={user?.id} />}
       {/* Show AthleteScoresSection only for athletes */}
       {!isPublicUser && user?.id && <AthleteScoresSection athleteId={user.id} />}
     </div>

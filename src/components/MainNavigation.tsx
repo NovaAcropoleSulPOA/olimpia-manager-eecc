@@ -27,11 +27,12 @@ export function MainNavigation() {
   const isOrganizer = userRoles.includes('Organizador');
   const isAthlete = userRoles.includes('Atleta');
   const isDelegationRep = userRoles.includes('Representante de Delegação');
+  const isPublicGeral = userRoles.includes('Público Geral');
 
   useEffect(() => {
     if (location.pathname === '/') {
       console.log('MainNavigation - Initial navigation based on roles');
-      if (isAthlete) {
+      if (isAthlete || isPublicGeral) {
         navigate('/athlete-profile');
       } else if (isOrganizer) {
         navigate('/organizer-dashboard');
@@ -39,7 +40,7 @@ export function MainNavigation() {
         navigate('/delegation-dashboard');
       }
     }
-  }, [isAthlete, isOrganizer, isDelegationRep, location.pathname, navigate]);
+  }, [isAthlete, isOrganizer, isDelegationRep, isPublicGeral, location.pathname, navigate]);
 
   const handleLogout = async () => {
     try {
@@ -55,12 +56,14 @@ export function MainNavigation() {
   };
 
   const menuItems = [
-    ...(isAthlete ? [
+    ...(isAthlete || userRoles.includes('Público Geral') ? [
       {
         title: "Perfil",
         icon: User,
         path: "/athlete-profile"
-      },
+      }
+    ] : []),
+    ...(isAthlete ? [
       {
         title: "Minhas Inscrições",
         icon: ClipboardList,
