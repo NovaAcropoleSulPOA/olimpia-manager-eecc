@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase, handleSupabaseError } from '@/lib/supabase';
-import { User } from '@supabase/supabase-js';
+import { User, AuthError } from '@supabase/supabase-js';
 
 interface AuthUser extends User {
   nome_completo?: string;
@@ -189,18 +189,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       if (error) {
         console.log('Login error:', error);
-        const { message, body } = error;
         
-        // Parse error body if it exists
-        let errorBody;
-        try {
-          errorBody = JSON.parse(body);
-        } catch {
-          errorBody = null;
+        // AuthError from Supabase always includes a message
+        const errorMessage = error.message;
+        
+        // Handle specific error cases
+        if (errorMessage.toLowerCase().includes('invalid login credentials')) {
+          throw new Error('Invalid login credentials');
         }
         
-        // Throw standardized error object
-        throw new Error(errorBody?.message || message || 'Login failed');
+        // If no specific case matches, throw the original error message
+        throw new Error(errorMessage || 'Login failed');
       }
   
       if (!data.user) {
