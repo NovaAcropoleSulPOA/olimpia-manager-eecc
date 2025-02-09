@@ -104,9 +104,13 @@ export const SignUpForm = () => {
         return;
       }
 
+      // Format the phone number by concatenating DDI with the cleaned number
+      const cleanedPhoneNumber = values.telefone.replace(/\D/g, '');
+      const fullPhoneNumber = `${values.ddi}${cleanedPhoneNumber}`;
+
       const signUpResult = await signUp({
         ...values,
-        telefone: values.telefone.replace(/\D/g, ''),
+        telefone: fullPhoneNumber,
         tipo_documento: values.tipo_documento,
         numero_documento: values.numero_documento.replace(/\D/g, ''),
         genero: values.genero,
