@@ -71,7 +71,7 @@ export default function AthleteProfilePage() {
       console.log('Payment status data:', data);
       return data as PaymentStatus;
     },
-    enabled: !!user?.id && !isPublicUser, // Only fetch payment status for athletes
+    enabled: !!user?.id && !isPublicUser,
   });
 
   if (profileLoading || (!isPublicUser && paymentLoading)) {

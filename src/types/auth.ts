@@ -7,6 +7,9 @@ export interface AuthUser extends User {
   filial_id?: string;
   confirmado?: boolean;
   papeis?: string[];
+  tipo_documento?: string;
+  numero_documento?: string;
+  genero?: string;
 }
 
 export interface AuthContextType {
@@ -17,3 +20,4 @@ export interface AuthContextType {
   signUp: (userData: any) => Promise<{ user: AuthUser | null; error: Error | null; }>;
   resendVerificationEmail: (email: string) => Promise<void>;
 }
+
