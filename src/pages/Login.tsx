@@ -275,7 +275,7 @@ export default function Login() {
                           <FormLabel>Sede</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            value={field.value || ""}
+                            value={field.value || "none"}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -283,7 +283,7 @@ export default function Login() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Nenhuma</SelectItem>
+                              <SelectItem value="none">Nenhuma</SelectItem>
                               {branches.map((branch) => (
                                 <SelectItem key={branch.id} value={branch.id}>
                                   {branch.nome}
