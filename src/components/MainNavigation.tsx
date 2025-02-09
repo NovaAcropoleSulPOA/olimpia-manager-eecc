@@ -57,7 +57,7 @@ export function MainNavigation() {
   const menuItems = [
     ...(isAthlete ? [
       {
-        title: "Perfil do Atleta",
+        title: "Perfil",
         icon: User,
         path: "/athlete-profile"
       },
@@ -76,7 +76,7 @@ export function MainNavigation() {
     ] : []),
     ...(isDelegationRep ? [
       {
-        title: "Dashboard da Delegação",
+        title: "Delegação",
         icon: Users,
         path: "/delegation-dashboard"
       }
