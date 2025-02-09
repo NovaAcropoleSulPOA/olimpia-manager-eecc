@@ -28,6 +28,7 @@ interface PaymentStatus {
 
 export default function AthleteProfilePage() {
   const { user } = useAuth();
+  const isPublicUser = user?.papeis?.includes('Público Geral') || user?.papeis?.length === 0;
 
   // Fetch athlete profile
   const { data: profile, isLoading: profileLoading } = useQuery({
@@ -70,10 +71,10 @@ export default function AthleteProfilePage() {
       console.log('Payment status data:', data);
       return data as PaymentStatus;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !isPublicUser, // Only fetch payment status for athletes
   });
 
-  if (profileLoading || paymentLoading) {
+  if (profileLoading || (!isPublicUser && paymentLoading)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-olimpics-green-primary" />
@@ -81,7 +82,7 @@ export default function AthleteProfilePage() {
     );
   }
 
-  if (!profile) {
+  if (!profile && !isPublicUser) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-red-500">Perfil não encontrado</p>
@@ -90,7 +91,7 @@ export default function AthleteProfilePage() {
   }
 
   // Case-insensitive check for payment status
-  const isPendingPayment = paymentStatus?.status?.toLowerCase() === 'pendente';
+  const isPendingPayment = !isPublicUser && paymentStatus?.status?.toLowerCase() === 'pendente';
   console.log('Payment status check:', {
     rawStatus: paymentStatus?.status,
     isPending: isPendingPayment,
@@ -98,10 +99,24 @@ export default function AthleteProfilePage() {
 
   return (
     <div className="container mx-auto py-6 space-y-8">
-      <AthleteProfile profile={profile} />
-      {/* Show PaymentInfo only when payment is pending */}
-      {isPendingPayment && <PaymentInfo key={user.id} />}
-      {user?.id && <AthleteScoresSection athleteId={user.id} />}
+      <AthleteProfile 
+        profile={profile || {
+          nome_completo: user?.nome_completo || '',
+          email: user?.email || '',
+          telefone: user?.telefone || '',
+          tipo_documento: user?.tipo_documento || '',
+          numero_documento: user?.numero_documento || '',
+          filial_nome: '',
+          filial_cidade: '',
+          filial_estado: '',
+          genero: user?.genero || '',
+        }} 
+        isPublicUser={isPublicUser}
+      />
+      {/* Show PaymentInfo only when payment is pending and user is not public */}
+      {isPendingPayment && !isPublicUser && <PaymentInfo key={user?.id} />}
+      {/* Show AthleteScoresSection only for athletes */}
+      {!isPublicUser && user?.id && <AthleteScoresSection athleteId={user.id} />}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,7 +11,7 @@ interface AthleteProfileProps {
     nome_completo: string;
     telefone: string;
     email: string;
-    numero_identificador: string;
+    numero_identificador?: string;
     tipo_documento: string;
     numero_documento: string;
     genero: string;
@@ -20,6 +21,7 @@ interface AthleteProfileProps {
     pagamento_status?: string;
     pagamento_valor?: number;
   };
+  isPublicUser: boolean;
 }
 
 const getProfileImage = (gender: string | undefined) => {
@@ -33,7 +35,7 @@ const getProfileImage = (gender: string | undefined) => {
   }
 };
 
-export default function AthleteProfile({ profile }: AthleteProfileProps) {
+export default function AthleteProfile({ profile, isPublicUser }: AthleteProfileProps) {
   const navigate = useNavigate();
   
   if (!profile) {
@@ -60,12 +62,14 @@ export default function AthleteProfile({ profile }: AthleteProfileProps) {
 
   return (
     <div className="space-y-6">
-      <Alert className="bg-olimpics-orange-primary/10 border-olimpics-orange-primary text-olimpics-text">
-        <Info className="h-5 w-5 text-olimpics-orange-primary" />
-        <AlertDescription className="text-sm font-medium">
-          As inscrições nas modalidades devem ser feitas no menu 'Minhas Inscrições'.
-        </AlertDescription>
-      </Alert>
+      {!isPublicUser && (
+        <Alert className="bg-olimpics-orange-primary/10 border-olimpics-orange-primary text-olimpics-text">
+          <Info className="h-5 w-5 text-olimpics-orange-primary" />
+          <AlertDescription className="text-sm font-medium">
+            As inscrições nas modalidades devem ser feitas no menu 'Minhas Inscrições'.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardContent className="p-6">
@@ -79,8 +83,12 @@ export default function AthleteProfile({ profile }: AthleteProfileProps) {
               />
               <div className="text-center">
                 <div className="bg-olimpics-green-primary text-white px-4 py-2 rounded-lg shadow-lg">
-                  <p className="text-sm font-medium">ID DO ATLETA</p>
-                  <p className="text-xl font-bold">{profile.numero_identificador}</p>
+                  <p className="text-sm font-medium">
+                    {isPublicUser ? 'PERFIL' : 'ID DO ATLETA'}
+                  </p>
+                  <p className="text-xl font-bold">
+                    {isPublicUser ? 'Público Geral' : profile.numero_identificador}
+                  </p>
                 </div>
               </div>
             </div>
@@ -112,24 +120,28 @@ export default function AthleteProfile({ profile }: AthleteProfileProps) {
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">{profile.email}</span>
                   </p>
-                  <p className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
-                      Status do Pagamento: {' '}
-                      <span className={`font-medium ${profile.pagamento_status === 'confirmado' ? 'text-green-600' : 'text-orange-500'}`}>
-                        {profile.pagamento_status === 'confirmado' ? 'Confirmado' : 'Pendente'}
-                      </span>
-                    </span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
-                      Valor do Pagamento: {' '}
-                      <span className={`font-medium ${profile.pagamento_status === 'confirmado' ? 'text-green-600' : 'text-orange-500'}`}>
-                        {formatCurrency(profile.pagamento_valor)}
-                      </span>
-                    </span>
-                  </p>
+                  {!isPublicUser && (
+                    <>
+                      <p className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          Status do Pagamento: {' '}
+                          <span className={`font-medium ${profile.pagamento_status === 'confirmado' ? 'text-green-600' : 'text-orange-500'}`}>
+                            {profile.pagamento_status === 'confirmado' ? 'Confirmado' : 'Pendente'}
+                          </span>
+                        </span>
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          Valor do Pagamento: {' '}
+                          <span className={`font-medium ${profile.pagamento_status === 'confirmado' ? 'text-green-600' : 'text-orange-500'}`}>
+                            {formatCurrency(profile.pagamento_valor)}
+                          </span>
+                        </span>
+                      </p>
+                    </>
+                  )}
                   <Button
                     onClick={handlePasswordChange}
                     variant="outline"
@@ -142,29 +154,30 @@ export default function AthleteProfile({ profile }: AthleteProfileProps) {
               </div>
 
               {/* Branch Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
-                  <Building2 className="h-5 w-5" />
-                  Informações da Filial
-                </h3>
-                <div className="space-y-3">
-                  <p className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{profile.filial_nome}</span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
-                      {profile.filial_cidade}, {profile.filial_estado}
-                    </span>
-                  </p>
+              {profile.filial_nome && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
+                    <Building2 className="h-5 w-5" />
+                    Informações da Filial
+                  </h3>
+                  <div className="space-y-3">
+                    <p className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{profile.filial_nome}</span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {profile.filial_cidade}, {profile.filial_estado}
+                      </span>
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
-
     </div>
   );
 }
