@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Card } from "@/components/ui/card";
-import { MapPin, Calendar } from 'lucide-react';
+import { MapPin, Calendar, Instagram, Globe, Youtube } from 'lucide-react';
 import { toast } from "sonner";
 import Login from "./Login";
 
@@ -14,6 +15,29 @@ const modalities = [
   { name: 'Tiro com Arco', icon: "🎯" },
   { name: 'Vôlei', icon: "🏐" },
   { name: 'Xadrez', icon: "♟️" }
+];
+
+const socialLinks = [
+  {
+    name: 'Escola do Esporte com Coração',
+    icon: <Instagram className="w-5 h-5" />,
+    url: 'https://www.instagram.com/escola.esporte.coracao',
+  },
+  {
+    name: 'Nova Acrópole Brasil Sul',
+    icon: <Instagram className="w-5 h-5" />,
+    url: 'https://www.instagram.com/novaacropolebrasilsul',
+  },
+  {
+    name: 'Nova Acrópole Website',
+    icon: <Globe className="w-5 h-5" />,
+    url: 'https://acropole.org.br/',
+  },
+  {
+    name: 'YouTube Channel',
+    icon: <Youtube className="w-5 h-5" />,
+    url: 'https://www.youtube.com/@escueladeldeporteconcorazo19',
+  },
 ];
 
 const LandingPage = () => {
@@ -47,12 +71,21 @@ const LandingPage = () => {
             <div className="text-white">
               {/* Header Section */}
               <div className="flex flex-col items-center mb-12">
-                <div className="relative w-32 h-32 mb-4">
-                  <img 
-                    src="/lovable-uploads/EECC_marca_portugues_cores_RGB.png"
-                    alt="EECC Logo"
-                    className="w-full h-full object-contain animate-pulse"
-                  />
+                <div className="flex items-center gap-6 mb-4">
+                  <div className="relative w-32 h-32">
+                    <img 
+                      src="/lovable-uploads/EECC_marca_portugues_cores_RGB.png"
+                      alt="EECC Logo"
+                      className="w-full h-full object-contain animate-pulse"
+                    />
+                  </div>
+                  <div className="relative w-32 h-32">
+                    <img 
+                      src="/lovable-uploads/9a26ef1b-7684-4457-bbcc-f92d929099ba.png"
+                      alt="Nova Acrópole Logo"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold text-olimpics-orange-primary mb-2">
                   Areté
@@ -107,6 +140,22 @@ const LandingPage = () => {
                 </Card>
               </div>
 
+              {/* YouTube Video Section */}
+              <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8">
+                <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
+                  Conheça a Escola do Esporte com Coração
+                </h2>
+                <div className="aspect-w-16 aspect-h-9 mb-6">
+                  <iframe
+                    src="https://www.youtube.com/embed/videoseries?list=UU@escueladeldeporteconcorazo19"
+                    title="Escola do Esporte com Coração YouTube Channel"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="rounded-lg shadow-md w-full h-full"
+                  ></iframe>
+                </div>
+              </div>
+
               {/* Modalities Section */}
               <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8">
                 <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
@@ -125,6 +174,22 @@ const LandingPage = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Social Links Section */}
+              <div className="flex flex-wrap justify-center gap-4 mb-8">
+                {socialLinks.map((link, index) => (
+                  <a
+                    key={index}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full text-olimpics-green-primary hover:bg-white transition-all shadow-md hover:shadow-lg"
+                  >
+                    {link.icon}
+                    <span className="text-sm font-medium">{link.name}</span>
+                  </a>
+                ))}
               </div>
             </div>
 
