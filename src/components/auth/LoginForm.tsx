@@ -32,9 +32,24 @@ export const LoginForm = () => {
     try {
       setIsSubmitting(true);
       await signIn(values.email, values.password);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login Error:", error);
-      toast.error("Erro ao fazer login. Verifique suas credenciais.");
+      
+      // Handle specific error cases
+      if (error.message?.toLowerCase().includes("invalid login credentials")) {
+        toast.error("Email ou senha incorretos. Por favor, verifique suas credenciais.");
+      } else if (error.message?.includes("Email not confirmed")) {
+        toast.error("Email não confirmado. Por favor, verifique sua caixa de entrada e confirme seu email.");
+      } else if (error.message?.includes("Too many requests")) {
+        toast.error("Muitas tentativas de login. Por favor, aguarde alguns minutos e tente novamente.");
+      } else if (error.message?.includes("network")) {
+        toast.error("Erro de conexão. Verifique sua internet e tente novamente.");
+      } else {
+        toast.error("Erro ao fazer login. Por favor, tente novamente.");
+      }
+
+      // Clear password field on error
+      form.setValue('password', '');
     } finally {
       setIsSubmitting(false);
     }
@@ -105,4 +120,3 @@ export const LoginForm = () => {
     </Form>
   );
 };
-
