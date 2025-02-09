@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { updatePaymentAmount } from '@/lib/api';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 interface AthleteRegistrationCardProps {
   registration: AthleteRegistration;
@@ -31,12 +34,44 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const [isUpdating, setIsUpdating] = React.useState<Record<string, boolean>>({});
   const [modalityStatuses, setModalityStatuses] = React.useState<Record<string, string>>({});
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [paymentAmount, setPaymentAmount] = React.useState<number>(235);
   const [isUpdatingAmount, setIsUpdatingAmount] = React.useState(false);
   
   const validModalities = registration?.modalidades?.filter(m => m.modalidade) || [];
   const hasModalities = validModalities.length > 0;
   const isSingleEmptyModality = registration?.inscricao_id && (!registration?.modalidades?.[0]?.modalidade || registration?.modalidades?.length === 0);
+
+  // Fetch payment information
+  const { data: paymentData, refetch: refetchPayment } = useQuery({
+    queryKey: ['payment-amount', registration.id],
+    queryFn: async () => {
+      if (!registration.id) return null;
+      console.log('Fetching payment amount for:', registration.id);
+      
+      const { data, error } = await supabase
+        .from('pagamentos')
+        .select('valor')
+        .eq('atleta_id', registration.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching payment amount:', error);
+        throw error;
+      }
+
+      console.log('Payment amount data:', data);
+      return data;
+    },
+    enabled: !!registration.id,
+  });
+
+  const [paymentAmount, setPaymentAmount] = React.useState<number>(paymentData?.valor || 0);
+
+  // Update paymentAmount when paymentData changes
+  React.useEffect(() => {
+    if (paymentData?.valor) {
+      setPaymentAmount(paymentData.valor);
+    }
+  }, [paymentData]);
 
   React.useEffect(() => {
     if (registration?.modalidades) {
@@ -104,6 +139,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     try {
       await updatePaymentAmount(registration.id, newAmount);
       setPaymentAmount(newAmount);
+      refetchPayment(); // Refresh the payment data after update
       toast.success('Valor do pagamento atualizado com sucesso!');
     } catch (error) {
       console.error('Error updating payment amount:', error);
