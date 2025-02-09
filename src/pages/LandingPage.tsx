@@ -143,11 +143,11 @@ const LandingPage = () => {
               {/* YouTube Video Section */}
               <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8">
                 <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
-                  Conheça a Escola do Esporte com Coração
+                Escola do Esporte com Coração
                 </h2>
                 <div className="aspect-w-16 aspect-h-9 mb-6">
                   <iframe
-                    src="https://www.youtube.com/embed/videoseries?list=UU@escueladeldeporteconcorazo19"
+                    src="https://www.youtube.com/embed/BwFoRPHYEhg?si=BTizxrPlXejdGHFH"
                     title="Escola do Esporte com Coração YouTube Channel"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
