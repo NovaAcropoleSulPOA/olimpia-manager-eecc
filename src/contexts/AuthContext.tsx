@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { AuthContextType, AuthUser } from '@/types/auth';
-import { PUBLIC_ROUTES } from '@/constants/routes';
+import { PUBLIC_ROUTES, PublicRoute } from '@/constants/routes';
 import { fetchUserProfile, handleAuthRedirect } from '@/services/authService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser({ ...session.user, ...userProfile });
             handleAuthRedirect(userProfile, location.pathname, navigate);
           }
-        } else if (!PUBLIC_ROUTES.includes(location.pathname) && 
+        } else if (!PUBLIC_ROUTES.includes(location.pathname as PublicRoute) && 
                   !(location.pathname === '/reset-password')) {
           navigate('/login');
         }
@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
               if (mounted) {
                 setUser(null);
-                if (!PUBLIC_ROUTES.includes(location.pathname)) {
+                if (!PUBLIC_ROUTES.includes(location.pathname as PublicRoute)) {
                   navigate('/login');
                 }
               }
@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('AuthContext - Error in auth setup:', error);
         if (mounted) {
           setUser(null);
-          if (!PUBLIC_ROUTES.includes(location.pathname)) {
+          if (!PUBLIC_ROUTES.includes(location.pathname as PublicRoute)) {
             navigate('/login');
           }
         }
@@ -266,3 +266,4 @@ export function useAuth() {
   }
   return context;
 }
+
