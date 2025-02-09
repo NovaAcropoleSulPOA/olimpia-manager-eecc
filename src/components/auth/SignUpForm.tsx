@@ -21,6 +21,7 @@ import { ProfileTypeSection } from './form-sections/ProfileTypeSection';
 const registerSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
   email: z.string().email('Email inválido'),
+  ddi: z.string().default('+55'),
   telefone: z.string().min(14, 'Telefone inválido').max(15),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
@@ -61,6 +62,7 @@ export const SignUpForm = () => {
     defaultValues: {
       nome: '',
       email: '',
+      ddi: '+55',
       telefone: '',
       password: '',
       confirmPassword: '',
