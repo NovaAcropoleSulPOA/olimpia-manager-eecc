@@ -71,12 +71,22 @@ export default function AthleteSchedule() {
       groups[date][time] = [];
     }
     
-    groups[date][time].push(activity);
+    // Check if activity is already included to avoid duplicates
+    const isDuplicate = groups[date][time].some(
+      existingActivity => existingActivity.atividade === activity.atividade
+    );
+    
+    if (!isDuplicate) {
+      groups[date][time].push(activity);
+    }
+    
     return groups;
   }, {} as GroupedActivities) || {};
 
-  // Get unique dates for column headers
-  const dates = Object.keys(groupedActivities).sort();
+  // Get dates that have activities
+  const dates = Object.keys(groupedActivities)
+    .filter(date => Object.keys(groupedActivities[date]).length > 0)
+    .sort();
 
   return (
     <Card>
@@ -99,7 +109,7 @@ export default function AthleteSchedule() {
                   Horário
                 </div>
                 
-                {/* Date column headers */}
+                {/* Date column headers - only for days with activities */}
                 {dates.map(date => (
                   <div key={date} className="font-semibold text-olimpics-green-primary p-2">
                     {format(new Date(date), "dd/MM/yyyy")}
