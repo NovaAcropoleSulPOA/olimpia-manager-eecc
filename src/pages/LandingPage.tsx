@@ -79,11 +79,11 @@ const LandingPage = () => {
                       className="w-full h-full object-contain animate-pulse"
                     />
                   </div>
-                  <Card className="bg-[#1A1F2C]/90 backdrop-blur p-4 w-32 h-32 flex items-center justify-center">
+                  <Card className="bg-[#1A1F2C]/90 backdrop-blur p-0 w-32 h-32 flex items-center justify-center overflow-hidden">
                     <img 
                       src="/lovable-uploads/9a26ef1b-7684-4457-bbcc-f92d929099ba.png"
                       alt="Nova Acrópole Logo"
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-cover"
                     />
                   </Card>
                 </div>
@@ -156,22 +156,6 @@ const LandingPage = () => {
                 </Card>
               </div>
 
-              {/* YouTube Video Section */}
-              <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8 min-h-[600px]">
-                <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
-                Escola do Esporte com Coração
-                </h2>
-                <div className="aspect-w-16 aspect-h-12 mb-6">
-                  <iframe
-                    src="https://www.youtube.com/embed/BwFoRPHYEhg?si=BTizxrPlXejdGHFH"
-                    title="Escola do Esporte com Coração YouTube Channel"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="rounded-lg shadow-md w-full h-full"
-                  ></iframe>
-                </div>
-              </div>
-
               {/* Modalities Section */}
               <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8">
                 <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
@@ -199,6 +183,24 @@ const LandingPage = () => {
               <Login />
             </div>
           </div>
+
+          {/* YouTube Video Section - Full Width */}
+          <div className="col-span-full mt-8">
+            <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8">
+              <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
+                Escola do Esporte com Coração
+              </h2>
+              <div className="aspect-w-16 aspect-h-9">
+                <iframe
+                  src="https://www.youtube.com/embed/BwFoRPHYEhg?si=BTizxrPlXejdGHFH"
+                  title="Escola do Esporte com Coração YouTube Channel"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-[600px] rounded-lg shadow-md"
+                ></iframe>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -206,3 +208,4 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+
