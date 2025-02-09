@@ -1,52 +1,31 @@
 
 import React from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { UseFormReturn } from 'react-hook-form';
+import { PasswordInput } from './password/PasswordInput';
+import { PasswordStrengthIndicator } from './password/PasswordStrengthIndicator';
 
 interface AuthSectionProps {
   form: UseFormReturn<any>;
 }
 
 export const AuthSection = ({ form }: AuthSectionProps) => {
+  const watchPassword = form.watch('password');
+
   return (
     <div className="space-y-4">
-      <FormField
-        control={form.control}
-        name="password"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-left w-full">Senha</FormLabel>
-            <FormControl>
-              <Input
-                type="password"
-                placeholder="••••••"
-                className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                {...field}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div>
+        <PasswordInput
+          form={form}
+          name="password"
+          label="Senha"
+        />
+        <PasswordStrengthIndicator password={watchPassword || ''} />
+      </div>
 
-      <FormField
-        control={form.control}
+      <PasswordInput
+        form={form}
         name="confirmPassword"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-left w-full">Confirmar Senha</FormLabel>
-            <FormControl>
-              <Input
-                type="password"
-                placeholder="••••••"
-                className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                {...field}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        label="Confirmar Senha"
       />
     </div>
   );
