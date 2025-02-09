@@ -124,6 +124,7 @@ export const SignUpForm = () => {
         return;
       }
 
+      // Get profile ID and registration fee
       const { data: profileData, error: profileError } = await supabase
         .from('perfis')
         .select('id')
@@ -136,6 +137,7 @@ export const SignUpForm = () => {
         return;
       }
 
+      // Assign role to user
       const { error: rolesError } = await supabase
         .from('papeis_usuarios')
         .insert([{
@@ -149,24 +151,36 @@ export const SignUpForm = () => {
         return;
       }
 
-      if (values.profile_type === 'Atleta') {
-        const { error: paymentError } = await supabase
-          .from('pagamentos')
-          .insert([{
-            atleta_id: userId,
-            valor: 235.00,
-            status: 'pendente',
-            comprovante_url: null,
-            validado_sem_comprovante: false,
-            data_validacao: null,
-            data_criacao: new Date().toISOString()
-          }]);
+      // Get registration fee for the profile type
+      const { data: feeData, error: feeError } = await supabase
+        .from('taxas_inscricao')
+        .select('valor')
+        .eq('perfil_id', profileData.id)
+        .single();
 
-        if (paymentError) {
-          console.error('Payment record creation error:', paymentError);
-          toast.error('Erro ao criar registro de pagamento.');
-          return;
-        }
+      if (feeError) {
+        console.error('Error getting registration fee:', feeError);
+        toast.error('Erro ao obter valor da taxa de inscrição.');
+        return;
+      }
+
+      // Create payment record
+      const { error: paymentError } = await supabase
+        .from('pagamentos')
+        .insert([{
+          atleta_id: userId,
+          valor: feeData.valor,
+          status: 'pendente',
+          comprovante_url: null,
+          validado_sem_comprovante: false,
+          data_validacao: null,
+          data_criacao: new Date().toISOString()
+        }]);
+
+      if (paymentError) {
+        console.error('Payment record creation error:', paymentError);
+        toast.error('Erro ao criar registro de pagamento.');
+        return;
       }
 
       form.reset();
@@ -198,7 +212,7 @@ export const SignUpForm = () => {
 
         <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
           Após concluir seu cadastro, se ainda não tiver enviado o comprovante de pagamento, 
-          você poderá fazê-lo na tela de perfil do atleta. A validação do pagamento será 
+          você poderá fazê-lo na tela de perfil. A validação do pagamento será 
           realizada pelos organizadores.
         </div>
 

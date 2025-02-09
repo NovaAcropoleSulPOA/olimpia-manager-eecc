@@ -309,34 +309,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "pagamentos_atleta_id_fkey"
-            columns: ["atleta_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pagamentos_atleta_id_fkey"
-            columns: ["atleta_id"]
-            isOneToOne: false
-            referencedRelation: "view_perfil_atleta"
-            referencedColumns: ["atleta_id"]
-          },
-          {
-            foreignKeyName: "pagamentos_atleta_id_fkey"
-            columns: ["atleta_id"]
-            isOneToOne: false
-            referencedRelation: "vw_inscricoes_atletas"
-            referencedColumns: ["atleta_id"]
-          },
-          {
-            foreignKeyName: "pagamentos_atleta_id_fkey"
-            columns: ["atleta_id"]
-            isOneToOne: false
-            referencedRelation: "vw_pontuacoes_gerais_atletas"
-            referencedColumns: ["atleta_id"]
-          },
-          {
             foreignKeyName: "pagamentos_taxa_inscricao_fk"
             columns: ["taxa_inscricao_id"]
             isOneToOne: false
