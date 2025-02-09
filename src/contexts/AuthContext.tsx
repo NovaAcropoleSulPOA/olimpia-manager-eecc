@@ -1,105 +1,19 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase, handleSupabaseError } from '@/lib/supabase';
-import { User, AuthError } from '@supabase/supabase-js';
-
-interface AuthUser extends User {
-  nome_completo?: string;
-  telefone?: string;
-  filial_id?: string;
-  confirmado?: boolean;
-  papeis?: string[];
-}
-
-interface AuthContextType {
-  user: AuthUser | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  signUp: (userData: any) => Promise<{ user: AuthUser | null; error: Error | null; }>;
-  resendVerificationEmail: (email: string) => Promise<void>;
-}
+import { AuthContextType, AuthUser } from '@/types/auth';
+import { PUBLIC_ROUTES } from '@/constants/routes';
+import { fetchUserProfile, handleAuthRedirect } from '@/services/authService';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const PUBLIC_ROUTES = ['/', '/login', '/forgot-password'];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-
-  const handleAuthRedirect = (userProfile: any) => {
-    console.log('AuthContext - Handling auth redirect');
-    console.log('AuthContext - Current location:', location.pathname);
-    console.log('AuthContext - Location state:', location.state);
-    
-    // Don't redirect if we're on the reset-password page and came from profile
-    if (location.pathname === '/reset-password' && location.state?.fromProfile) {
-      console.log('AuthContext - Skipping redirect for password reset from profile');
-      return;
-    }
-    
-    // Only redirect if on a public route
-    if (PUBLIC_ROUTES.includes(location.pathname)) {
-      const roles = userProfile.papeis || [];
-      console.log('AuthContext - User roles for redirect:', roles);
-
-      if (roles.includes('Atleta')) {
-        console.log('AuthContext - Redirecting to athlete profile');
-        navigate('/athlete-profile');
-      } else if (roles.includes('Organizador')) {
-        console.log('AuthContext - Redirecting to organizer dashboard');
-        navigate('/organizer-dashboard');
-      } else if (roles.includes('Representante de Delegação')) {
-        console.log('AuthContext - Redirecting to delegation dashboard');
-        navigate('/delegation-dashboard');
-      }
-    }
-  };
-
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      console.log('Fetching user profile for ID:', userId);
-      
-      const { data: userRoles, error: rolesError } = await supabase
-        .from('papeis_usuarios')
-        .select('perfis (id, nome)')
-        .eq('usuario_id', userId);
-
-      if (rolesError) throw rolesError;
-
-      const { data: userProfile, error: profileError } = await supabase
-        .from('usuarios')
-        .select('nome_completo, telefone, filial_id, confirmado')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (profileError) throw profileError;
-
-      // If no profile exists, return minimal profile
-      if (!userProfile) {
-        console.log('No user profile found, returning minimal profile');
-        return {
-          confirmado: false,
-          papeis: [],
-        };
-      }
-
-      const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
-      console.log('User roles fetched:', papeis);
-      
-      return {
-        ...userProfile,
-        papeis,
-      };
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      throw error;
-    }
-  };
 
   useEffect(() => {
     console.log('AuthContext - Setting up auth state...');
@@ -114,10 +28,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const userProfile = await fetchUserProfile(session.user.id);
           if (mounted) {
             setUser({ ...session.user, ...userProfile });
-            handleAuthRedirect(userProfile);
+            handleAuthRedirect(userProfile, location.pathname, navigate);
           }
         } else if (!PUBLIC_ROUTES.includes(location.pathname) && 
-                  !(location.pathname === '/reset-password' && location.state?.fromProfile)) {
+                  !(location.pathname === '/reset-password')) {
           navigate('/login');
         }
 
@@ -132,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   setUser({ ...session.user, ...userProfile });
                 }
                 if (event === 'SIGNED_IN') {
-                  handleAuthRedirect(userProfile);
+                  handleAuthRedirect(userProfile, location.pathname, navigate);
                 }
               } catch (error) {
                 console.error('AuthContext - Error setting up user session:', error);
@@ -189,16 +103,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       if (error) {
         console.log('Login error:', error);
-        
-        // AuthError from Supabase always includes a message
         const errorMessage = error.message;
         
-        // Handle specific error cases
         if (errorMessage.toLowerCase().includes('invalid login credentials')) {
           throw new Error('Invalid login credentials');
         }
         
-        // If no specific case matches, throw the original error message
         throw new Error(errorMessage || 'Login failed');
       }
   
@@ -210,11 +120,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("Login successful, fetching user profile...");
       const profile = await fetchUserProfile(data.user.id);
       setUser({ ...data.user, ...profile });
-      handleAuthRedirect(profile);
+      handleAuthRedirect(profile, location.pathname, navigate);
       toast.success("Login realizado com sucesso!");
     } catch (error: any) {
       console.error("Login error:", error);
-      throw error; // Re-throw the standardized error
+      throw error;
     } finally {
       setLoading(false);
     }
