@@ -667,6 +667,8 @@ export type Database = {
           isento: boolean
           perfil_id: number
           pix_key: string | null
+          qr_code_codigo: string | null
+          qr_code_image: string | null
           valor: number
         }
         Insert: {
@@ -677,6 +679,8 @@ export type Database = {
           isento?: boolean
           perfil_id: number
           pix_key?: string | null
+          qr_code_codigo?: string | null
+          qr_code_image?: string | null
           valor: number
         }
         Update: {
@@ -687,6 +691,8 @@ export type Database = {
           isento?: boolean
           perfil_id?: number
           pix_key?: string | null
+          qr_code_codigo?: string | null
+          qr_code_image?: string | null
           valor?: number
         }
         Relationships: [
@@ -879,6 +885,8 @@ export type Database = {
           isento: boolean | null
           perfil_nome: string | null
           pix_key: string | null
+          qr_code_codigo: string | null
+          qr_code_image: string | null
           usuario_id: string | null
           valor: number | null
         }
