@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -6,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import AthleteScoresSection from './AthleteScoresSection';
 import AthleteProfile from './AthleteProfile';
 import PaymentInfo from './PaymentInfo';
+import AthleteSchedule from './AthleteSchedule';
 import { Loader2 } from "lucide-react";
 
 interface AthleteProfileData {
@@ -31,7 +31,6 @@ export default function AthleteProfilePage() {
   const { user } = useAuth();
   const isPublicUser = user?.papeis?.includes('Público Geral') || user?.papeis?.length === 0;
 
-  // Fetch athlete profile
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['athlete-profile', user?.id],
     queryFn: async () => {
@@ -53,7 +52,6 @@ export default function AthleteProfilePage() {
     enabled: !!user?.id,
   });
 
-  // Fetch payment status for all users (both athletes and public)
   const { data: paymentStatus, isLoading: paymentLoading } = useQuery({
     queryKey: ['payment-status', user?.id],
     queryFn: async () => {
@@ -61,7 +59,6 @@ export default function AthleteProfilePage() {
       console.log('Fetching payment status for:', user.id);
 
       if (isPublicUser) {
-        // For public users, check their payment status and fee from vw_taxas_inscricao_usuarios
         const { data: taxaData, error: taxaError } = await supabase
           .from('vw_taxas_inscricao_usuarios')
           .select('*')
@@ -73,7 +70,6 @@ export default function AthleteProfilePage() {
           throw taxaError;
         }
 
-        // Check payment status from pagamentos table
         const { data: pgtoData, error: pgtoError } = await supabase
           .from('pagamentos')
           .select('status')
@@ -91,7 +87,6 @@ export default function AthleteProfilePage() {
           valor: taxaData?.valor
         } as PaymentStatus;
       } else {
-        // For athletes, check their payment status from pagamentos table
         const { data, error } = await supabase
           .from('pagamentos')
           .select('status, valor')
@@ -125,14 +120,7 @@ export default function AthleteProfilePage() {
     );
   }
 
-  // Case-insensitive check for payment status for all users
   const isPendingPayment = paymentStatus?.status?.toLowerCase() === 'pendente';
-  console.log('Payment status check:', {
-    rawStatus: paymentStatus?.status,
-    valor: paymentStatus?.valor,
-    isPending: isPendingPayment,
-    isPublicUser,
-  });
 
   return (
     <div className="container mx-auto py-6 space-y-8">
@@ -150,9 +138,8 @@ export default function AthleteProfilePage() {
         }} 
         isPublicUser={isPublicUser}
       />
-      {/* Show PaymentInfo for any user with pending payment */}
+      <AthleteSchedule />
       {isPendingPayment && <PaymentInfo key={user?.id} />}
-      {/* Show AthleteScoresSection only for athletes */}
       {!isPublicUser && user?.id && <AthleteScoresSection athleteId={user.id} />}
     </div>
   );
