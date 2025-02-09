@@ -95,6 +95,12 @@ export default function AthleteSchedule() {
     .filter(date => Object.keys(groupedActivities[date]).length > 0)
     .sort();
 
+  // Get all unique time slots
+  const timeSlots = Array.from(new Set(
+    Object.values(groupedActivities)
+      .flatMap(timeSlots => Object.keys(timeSlots))
+  )).sort();
+
   return (
     <Card>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -140,61 +146,62 @@ export default function AthleteSchedule() {
         <CollapsibleContent>
           <CardContent>
             <div className="overflow-x-auto">
-              <div className="grid grid-cols-[auto_repeat(auto-fill,minmax(250px,1fr))] gap-4 min-w-full">
-                {/* Time column header */}
-                <div className="font-semibold text-olimpics-green-primary p-2">
-                  Horário
-                </div>
-                
-                {/* Date column headers - only for days with activities */}
-                {dates.map(date => (
-                  <div key={date} className="font-semibold text-olimpics-green-primary p-2">
-                    {format(new Date(date), "dd/MM/yyyy")}
-                  </div>
-                ))}
-
-                {/* Get all unique time slots across all dates */}
-                {Array.from(new Set(
-                  Object.values(groupedActivities)
-                    .flatMap(timeSlots => Object.keys(timeSlots))
-                )).sort().map(timeSlot => {
-                  const [start, end] = timeSlot.split('-');
-                  return (
-                    <React.Fragment key={timeSlot}>
-                      {/* Time slot */}
-                      <div className="flex items-center gap-1 text-sm text-gray-600 p-2">
-                        <Clock className="h-4 w-4" />
-                        {start.slice(0, 5)} - {end.slice(0, 5)}
-                      </div>
-
-                      {/* Activities for each date at this time slot */}
-                      {dates.map(date => (
-                        <div key={`${date}-${timeSlot}`} className="p-2">
-                          {groupedActivities[date]?.[timeSlot]?.map((activity, index) => (
-                            <div
-                              key={`${activity.id}-${index}`}
-                              className={`p-3 rounded-lg border mb-2 last:mb-0 ${
-                                activity.is_registered || activity.global
-                                  ? 'border-olimpics-orange-primary bg-olimpics-orange-primary/10'
-                                  : activity.global
-                                  ? 'border-olimpics-green-primary bg-olimpics-green-primary/10'
-                                  : 'border-gray-200'
-                              }`}
-                            >
-                              <div className="space-y-1">
-                                <h4 className="font-medium">{activity.atividade}</h4>
-                                <div className="text-sm text-gray-600">
-                                  <span>{activity.local}</span>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="border-b p-4 text-left font-semibold text-olimpics-green-primary">
+                      Horário
+                    </th>
+                    {dates.map(date => (
+                      <th key={date} className="border-b p-4 text-left font-semibold text-olimpics-green-primary">
+                        {format(new Date(date), "dd/MM/yyyy")}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {timeSlots.map(timeSlot => {
+                    const [start, end] = timeSlot.split('-');
+                    return (
+                      <tr key={timeSlot} className="border-b last:border-b-0">
+                        <td className="p-4 align-top">
+                          <div className="flex items-center gap-1 text-sm text-gray-600">
+                            <Clock className="h-4 w-4 shrink-0" />
+                            <span className="whitespace-nowrap">
+                              {start.slice(0, 5)} - {end.slice(0, 5)}
+                            </span>
+                          </div>
+                        </td>
+                        {dates.map(date => (
+                          <td key={`${date}-${timeSlot}`} className="p-4 align-top">
+                            <div className="space-y-2">
+                              {groupedActivities[date]?.[timeSlot]?.map((activity, index) => (
+                                <div
+                                  key={`${activity.id}-${index}`}
+                                  className={`p-3 rounded-lg border ${
+                                    activity.is_registered || activity.global
+                                      ? 'border-olimpics-orange-primary bg-olimpics-orange-primary/10'
+                                      : activity.global
+                                      ? 'border-olimpics-green-primary bg-olimpics-green-primary/10'
+                                      : 'border-gray-200'
+                                  }`}
+                                >
+                                  <div className="space-y-1">
+                                    <h4 className="font-medium">{activity.atividade}</h4>
+                                    <div className="text-sm text-gray-600">
+                                      <span>{activity.local}</span>
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      ))}
-                    </React.Fragment>
-                  );
-                })}
-              </div>
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </CollapsibleContent>
