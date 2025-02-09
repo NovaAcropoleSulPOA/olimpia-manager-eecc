@@ -156,22 +156,6 @@ const LandingPage = () => {
                 </Card>
               </div>
 
-              {/* YouTube Video Section */}
-              <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8">
-                <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
-                Escola do Esporte com Coração
-                </h2>
-                <div className="aspect-w-16 aspect-h-9 mb-6">
-                  <iframe
-                    src="https://www.youtube.com/embed/BwFoRPHYEhg?si=BTizxrPlXejdGHFH"
-                    title="Escola do Esporte com Coração YouTube Channel"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="rounded-lg shadow-md w-full h-full"
-                  ></iframe>
-                </div>
-              </div>
-
               {/* Modalities Section */}
               <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8">
                 <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
@@ -195,8 +179,26 @@ const LandingPage = () => {
             </div>
 
             {/* Right side - Login Form */}
-            <div className="backdrop-blur-sm bg-white/95 rounded-lg shadow-xl p-6">
-              <Login />
+            <div className="flex flex-col gap-8">
+              <div className="backdrop-blur-sm bg-white/95 rounded-lg shadow-xl p-6">
+                <Login />
+              </div>
+
+              {/* YouTube Video Section - Moved below Login */}
+              <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg">
+                <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
+                  Escola do Esporte com Coração
+                </h2>
+                <div className="aspect-w-16 aspect-h-9">
+                  <iframe
+                    src="https://www.youtube.com/embed/BwFoRPHYEhg?si=BTizxrPlXejdGHFH"
+                    title="Escola do Esporte com Coração YouTube Channel"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="rounded-lg shadow-md w-full h-full"
+                  ></iframe>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -206,3 +208,4 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+
