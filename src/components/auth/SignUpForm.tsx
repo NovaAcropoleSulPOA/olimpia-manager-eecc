@@ -2,11 +2,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -15,9 +11,12 @@ import { toast } from "sonner";
 import { useQuery } from '@tanstack/react-query';
 import { fetchBranches } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
-import InputMask from 'react-input-mask';
 import { useNavigate } from 'react-router-dom';
 import { validateCPF } from '@/utils/documentValidation';
+import { PersonalInfoSection } from './form-sections/PersonalInfoSection';
+import { ContactSection } from './form-sections/ContactSection';
+import { AuthSection } from './form-sections/AuthSection';
+import { ProfileTypeSection } from './form-sections/ProfileTypeSection';
 
 const registerSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -184,241 +183,18 @@ export const SignUpForm = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="profile_type"
-          render={({ field }) => (
-            <FormItem className="space-y-1">
-              <FormLabel>Tipo de Cadastro</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className="flex flex-col space-y-1"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Atleta" id="atleta" />
-                    <Label htmlFor="atleta">Atleta</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="Público Geral" id="publico" />
-                    <Label htmlFor="publico">Público Geral</Label>
-                  </div>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="nome"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-left w-full">Nome Completo</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Seu nome completo"
-                  className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-left w-full">Email</FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  placeholder="seu@email.com"
-                  className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="telefone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-left w-full">Telefone com DDD</FormLabel>
-              <FormControl>
-                <InputMask
-                  mask="(99) 99999-9999"
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                >
-                  {(inputProps: any) => (
-                    <Input
-                      {...inputProps}
-                      type="tel"
-                      placeholder="(XX) XXXXX-XXXX"
-                      className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                    />
-                  )}
-                </InputMask>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="branchId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Sede</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                value={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione sua Sede" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch.id} value={branch.id}>
-                      {branch.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-left w-full">Senha</FormLabel>
-              <FormControl>
-                <Input
-                  type="password"
-                  placeholder="••••••"
-                  className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-left w-full">Confirmar Senha</FormLabel>
-              <FormControl>
-                <Input
-                  type="password"
-                  placeholder="••••••"
-                  className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="tipo_documento"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tipo de Documento</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo de documento" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="CPF">CPF</SelectItem>
-                  <SelectItem value="RG">RG</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="numero_documento"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Número do Documento</FormLabel>
-              <FormControl>
-                <InputMask
-                  mask={form.getValues('tipo_documento') === 'CPF' ? "999.999.999-99" : "9999999999"}
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                >
-                  {(inputProps: any) => (
-                    <Input
-                      {...inputProps}
-                      placeholder={form.getValues('tipo_documento') === 'CPF' ? "000.000.000-00" : "0000000000"}
-                      className="border-olimpics-green-primary/20 focus-visible:ring-olimpics-green-primary"
-                    />
-                  )}
-                </InputMask>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="genero"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Selecione o Gênero</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value || "Masculino"}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o gênero" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="Masculino">Masculino</SelectItem>
-                  <SelectItem value="Feminino">Feminino</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <ProfileTypeSection form={form} />
+        
+        <div className="space-y-6">
+          <PersonalInfoSection form={form} />
+          <ContactSection 
+            form={form} 
+            branches={branches} 
+            isLoadingBranches={isLoadingBranches} 
+          />
+          <AuthSection form={form} />
+        </div>
 
         <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
           Após concluir seu cadastro, se ainda não tiver enviado o comprovante de pagamento, 
@@ -444,4 +220,3 @@ export const SignUpForm = () => {
     </Form>
   );
 };
-
