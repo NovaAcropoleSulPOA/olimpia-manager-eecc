@@ -96,7 +96,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                   tick={{ fontSize: 12, fill: '#4b5563' }}
                   tickFormatter={(value) => `${value}`}
                   label={{ 
-                    value: 'Total de Atletas',
+                    value: 'Total de Inscrições Pagas',
                     angle: -90,
                     position: 'insideLeft',
                     style: { textAnchor: 'middle' }
@@ -124,7 +124,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                   yAxisId="left"
                   dataKey="total" 
                   fill="#009B40"
-                  name="Total de Atletas"
+                  name="Total de Inscrições"
                   radius={[4, 4, 0, 0]}
                 />
                 <Line

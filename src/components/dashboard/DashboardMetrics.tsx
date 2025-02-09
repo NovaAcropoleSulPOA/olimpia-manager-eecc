@@ -81,14 +81,14 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
       <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-olimpics-text">
-            Total de Atletas
+            Total de Inscrições
           </CardTitle>
           <Users className="h-4 w-4 text-olimpics-green-primary" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-olimpics-text">{totalAthletes}</div>
           <p className="text-xs text-muted-foreground mt-1">
-            Total de atletas inscritos
+            Total de inscritos
           </p>
         </CardContent>
       </Card>
@@ -116,14 +116,14 @@ export function DashboardMetrics({ data }: DashboardMetricsProps) {
       <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-200">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-olimpics-text">
-            Atletas com Pagamento Pendente
+            Inscrições com Pagamento Pendente
           </CardTitle>
           <Clock className="h-4 w-4 text-olimpics-green-secondary" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold text-olimpics-text">{totalAthletesPendingPayment}</div>
           <p className="text-xs text-muted-foreground mt-1">
-            Atletas aguardando confirmação
+            Inscrições aguardando confirmação
           </p>
         </CardContent>
       </Card>

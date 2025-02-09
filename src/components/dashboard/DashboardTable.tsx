@@ -142,7 +142,7 @@ export function DashboardTable({ data }: DashboardTableProps) {
                   onClick={() => handleSort('total_inscritos')}
                 >
                   <div className="flex items-center justify-end space-x-1">
-                    <span>Total de Atletas</span>
+                    <span>Total de Inscrições</span>
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                 </TableHead>
