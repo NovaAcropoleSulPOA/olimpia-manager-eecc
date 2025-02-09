@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,10 +23,6 @@ import { validateCPF } from '@/utils/documentValidation';
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
-});
-
-const forgotPasswordSchema = z.object({
-  email: z.string().email('Email inválido'),
 });
 
 const registerSchema = z.object({
@@ -60,14 +56,6 @@ const registerSchema = z.object({
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
-}).refine((data) => {
-  if (data.profile_type === 'Atleta' && !data.branchId) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Sede é obrigatória para Atletas",
-  path: ["branchId"],
 });
 
 export default function Login() {
@@ -91,7 +79,7 @@ export default function Login() {
       telefone: '',
       password: '',
       confirmPassword: '',
-      branchId: '',
+      branchId: undefined,
       tipo_documento: 'CPF',
       numero_documento: '',
       genero: 'Masculino',
@@ -99,11 +87,10 @@ export default function Login() {
     },
   });
 
-  const { data: branches = [], isLoading: isLoadingBranches, error: branchesError } = useQuery({
+  const { data: branches = [], isLoading: isLoadingBranches } = useQuery({
     queryKey: ['branches'],
     queryFn: fetchBranches,
     select: (data) => {
-      console.log('Processing branches data:', data);
       return data ? [...data].sort((a, b) => a.nome.localeCompare(b.nome)) : [];
     }
   });
@@ -112,11 +99,8 @@ export default function Login() {
     try {
       setIsSubmitting(true);
       await signIn(values.email, values.password);
-      // Não é necessário exibir toast.success ou chamar navigate('/')
-      // pois isso já é feito dentro do AuthContext.signIn
     } catch (error) {
       console.error("Login Error:", error);
-      // Caso ocorra um erro inesperado (apesar do tratamento no AuthContext)
       toast.error("Erro ao fazer login. Verifique suas credenciais.");
     } finally {
       setIsSubmitting(false);
@@ -127,11 +111,6 @@ export default function Login() {
     try {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
-
-      if (values.profile_type === 'Atleta' && !values.branchId) {
-        toast.error('Por favor, selecione uma Sede.');
-        return;
-      }
 
       const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
@@ -345,35 +324,33 @@ export default function Login() {
                       )}
                     />
 
-                    {registerForm.watch('profile_type') === 'Atleta' && (
-                      <FormField
-                        control={registerForm.control}
-                        name="branchId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Sede</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione sua Sede" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {branches.map((branch) => (
-                                  <SelectItem key={branch.id} value={branch.id}>
-                                    {branch.nome}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
+                    <FormField
+                      control={registerForm.control}
+                      name="branchId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Sede</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione sua Sede" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {branches.map((branch) => (
+                                <SelectItem key={branch.id} value={branch.id}>
+                                  {branch.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                     <FormField
                       control={registerForm.control}
