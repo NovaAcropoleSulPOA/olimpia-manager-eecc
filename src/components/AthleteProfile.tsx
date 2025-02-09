@@ -4,7 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { User, MapPin, Phone, Mail, Building2, FileText, CreditCard, Info, Lock } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import PaymentInfo from './PaymentInfo';
 
 interface AthleteProfileProps {
   profile: {
@@ -166,10 +165,6 @@ export default function AthleteProfile({ profile }: AthleteProfileProps) {
         </CardContent>
       </Card>
 
-      {/* Payment Information Section */}
-      {profile.pagamento_status !== 'confirmado' && (
-        <PaymentInfo />
-      )}
     </div>
   );
 }
