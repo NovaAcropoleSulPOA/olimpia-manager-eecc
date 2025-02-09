@@ -79,13 +79,13 @@ const LandingPage = () => {
                       className="w-full h-full object-contain animate-pulse"
                     />
                   </div>
-                  <div className="relative w-32 h-32">
+                  <Card className="bg-[#1A1F2C]/90 backdrop-blur p-4 w-32 h-32 flex items-center justify-center">
                     <img 
                       src="/lovable-uploads/9a26ef1b-7684-4457-bbcc-f92d929099ba.png"
                       alt="Nova Acrópole Logo"
                       className="w-full h-full object-contain"
                     />
-                  </div>
+                  </Card>
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold text-olimpics-orange-primary mb-2">
                   Areté
