@@ -3,7 +3,7 @@ import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, ChevronDown, Clock } from "lucide-react";
+import { Calendar, ChevronDown, Clock, CircleHelp } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -11,6 +11,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ScheduleActivity {
   id: number;
@@ -73,7 +79,8 @@ export default function AthleteSchedule() {
     
     // Check if activity is already included to avoid duplicates
     const isDuplicate = groups[date][time].some(
-      existingActivity => existingActivity.atividade === activity.atividade
+      existingActivity => existingActivity.atividade === activity.atividade &&
+      existingActivity.local === activity.local
     );
     
     if (!isDuplicate) {
@@ -91,14 +98,44 @@ export default function AthleteSchedule() {
   return (
     <Card>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-olimpics-green-primary flex items-center gap-2">
             <Calendar className="h-5 w-5" />
             Cronograma de Atividades
           </CardTitle>
-          <CollapsibleTrigger>
-            <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
-          </CollapsibleTrigger>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2">
+                      <CircleHelp className="h-4 w-4 text-gray-500" />
+                      <span className="text-gray-500">Legenda</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-2 p-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-olimpics-orange-primary/30 border border-olimpics-orange-primary" />
+                        <span className="text-sm">Atividades Inscritas</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-olimpics-green-primary/30 border border-olimpics-green-primary" />
+                        <span className="text-sm">Atividades Gerais</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-gray-100 border border-gray-200" />
+                        <span className="text-sm">Outras Atividades</span>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <CollapsibleTrigger>
+              <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
+            </CollapsibleTrigger>
+          </div>
         </CardHeader>
         <CollapsibleContent>
           <CardContent>
@@ -135,9 +172,9 @@ export default function AthleteSchedule() {
                         <div key={`${date}-${timeSlot}`} className="p-2">
                           {groupedActivities[date]?.[timeSlot]?.map((activity, index) => (
                             <div
-                              key={activity.id}
+                              key={`${activity.id}-${index}`}
                               className={`p-3 rounded-lg border mb-2 last:mb-0 ${
-                                activity.is_registered
+                                activity.is_registered || activity.global
                                   ? 'border-olimpics-orange-primary bg-olimpics-orange-primary/10'
                                   : activity.global
                                   ? 'border-olimpics-green-primary bg-olimpics-green-primary/10'
