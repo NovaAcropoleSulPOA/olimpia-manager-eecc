@@ -189,26 +189,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
       if (error) {
         console.log('Login error:', error);
-        let errorMessage = "";
-  
-        if (error.message.toLowerCase().includes("invalid login credentials")) {
-          toast.error("Verifique suas credenciais. Usuário ou senha incorretos.");
-          return;
+        const { message, body } = error;
+        
+        // Parse error body if it exists
+        let errorBody;
+        try {
+          errorBody = JSON.parse(body);
+        } catch {
+          errorBody = null;
         }
-  
-        if (error.message.includes("Email not confirmed")) {
-          toast.error("Email não confirmado. Por favor, verifique sua caixa de entrada.");
-          return;
-        }
-  
-        toast.error("Erro ao fazer login. Por favor, tente novamente.");
-        return;
+        
+        // Throw standardized error object
+        throw new Error(errorBody?.message || message || 'Login failed');
       }
   
       if (!data.user) {
         console.log("No user data returned");
-        toast.error("Erro ao fazer login. Tente novamente.");
-        return;
+        throw new Error("Login failed");
       }
   
       console.log("Login successful, fetching user profile...");
@@ -216,9 +213,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser({ ...data.user, ...profile });
       handleAuthRedirect(profile);
       toast.success("Login realizado com sucesso!");
-    } catch (error) {
-      console.error("Unexpected login error:", error);
-      toast.error("Erro ao fazer login. Por favor, tente novamente.");
+    } catch (error: any) {
+      console.error("Login error:", error);
+      throw error; // Re-throw the standardized error
     } finally {
       setLoading(false);
     }
