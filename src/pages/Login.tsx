@@ -91,7 +91,7 @@ export default function Login() {
       telefone: '',
       password: '',
       confirmPassword: '',
-      branchId: 'nenhuma',
+      branchId: '',
       tipo_documento: 'CPF',
       numero_documento: '',
       genero: 'Masculino',
@@ -112,8 +112,11 @@ export default function Login() {
     try {
       setIsSubmitting(true);
       await signIn(values.email, values.password);
+      // Não é necessário exibir toast.success ou chamar navigate('/')
+      // pois isso já é feito dentro do AuthContext.signIn
     } catch (error) {
       console.error("Login Error:", error);
+      // Caso ocorra um erro inesperado (apesar do tratamento no AuthContext)
       toast.error("Erro ao fazer login. Verifique suas credenciais.");
     } finally {
       setIsSubmitting(false);
@@ -124,6 +127,11 @@ export default function Login() {
     try {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
+
+      if (values.profile_type === 'Atleta' && !values.branchId) {
+        toast.error('Por favor, selecione uma Sede.');
+        return;
+      }
 
       const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
@@ -337,34 +345,35 @@ export default function Login() {
                       )}
                     />
 
-                    <FormField
-                      control={registerForm.control}
-                      name="branchId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Sede</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione sua Sede" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem key="_nenhuma" value="nenhuma">Nenhuma</SelectItem>
-                              {branches.map((branch) => (
-                                <SelectItem key={branch.id} value={branch.id}>
-                                  {branch.nome}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {registerForm.watch('profile_type') === 'Atleta' && (
+                      <FormField
+                        control={registerForm.control}
+                        name="branchId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Sede</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione sua Sede" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {branches.map((branch) => (
+                                  <SelectItem key={branch.id} value={branch.id}>
+                                    {branch.nome}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
                     <FormField
                       control={registerForm.control}
@@ -481,13 +490,11 @@ export default function Login() {
                       )}
                     />
 
-                    {registerForm.watch('profile_type') === 'Atleta' && (
-                      <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
-                        Após concluir seu cadastro, se ainda não tiver enviado o comprovante de pagamento, 
-                        você poderá fazê-lo na tela de perfil do atleta. A validação do pagamento será 
-                        realizada pelos organizadores.
-                      </div>
-                    )}
+                    <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
+                      Após concluir seu cadastro, se ainda não tiver enviado o comprovante de pagamento, 
+                      você poderá fazê-lo na tela de perfil do atleta. A validação do pagamento será 
+                      realizada pelos organizadores.
+                    </div>
 
                     <Button
                       type="submit"
