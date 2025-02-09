@@ -737,7 +737,7 @@ export type Database = {
           id?: string
           nome_completo: string
           numero_documento: string
-          numero_identificador?: string
+          numero_identificador: string
           telefone: string
           tipo_documento: string
         }

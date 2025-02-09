@@ -33,7 +33,7 @@ const registerSchema = z.object({
   telefone: z.string().min(14, 'Telefone inválido').max(15),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
-  branchId: z.string().uuid('Sede inválida').min(1, 'Selecione uma Sede'),
+  branchId: z.string().uuid('Sede inválida').optional(),
   tipo_documento: z.enum(['CPF', 'RG'], {
     required_error: "Selecione o tipo de documento",
   }),
@@ -52,9 +52,20 @@ const registerSchema = z.object({
   genero: z.enum(['Masculino', 'Feminino'], {
     required_error: "Selecione o gênero",
   }),
+  profile_type: z.enum(['Atleta', 'Público Geral'], {
+    required_error: "Selecione o tipo de perfil",
+  }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
+}).refine((data) => {
+  if (data.profile_type === 'Atleta' && !data.branchId) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Sede é obrigatória para Atletas",
+  path: ["branchId"],
 });
 
 export default function Login() {
@@ -81,7 +92,8 @@ export default function Login() {
       branchId: '',
       tipo_documento: 'CPF',
       numero_documento: '',
-      genero: 'Masculino', // Changed from empty string to a valid default value
+      genero: 'Masculino',
+      profile_type: 'Atleta',
     },
   });
 
@@ -114,7 +126,7 @@ export default function Login() {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
 
-      if (!values.branchId) {
+      if (values.profile_type === 'Atleta' && !values.branchId) {
         toast.error('Por favor, selecione uma Sede.');
         return;
       }
@@ -158,44 +170,54 @@ export default function Login() {
         return;
       }
 
+      const { data: profileData, error: profileError } = await supabase
+        .from('perfis')
+        .select('id')
+        .eq('nome', values.profile_type)
+        .single();
+
+      if (profileError || !profileData) {
+        console.error('Error getting profile ID:', profileError);
+        toast.error('Erro ao atribuir perfil ao usuário.');
+        return;
+      }
+
       const { error: rolesError } = await supabase
         .from('papeis_usuarios')
         .insert([{
           usuario_id: userId,
-          perfil_id: 1 // ID for "Atleta" role
+          perfil_id: profileData.id
         }]);
 
       if (rolesError) {
         console.error('Role assignment error:', rolesError);
-        toast.error('Erro ao atribuir papel de atleta ao usuário.');
+        toast.error('Erro ao atribuir papel ao usuário.');
         return;
       }
 
-      console.log('Athlete role assigned successfully');
+      if (values.profile_type === 'Atleta') {
+        const { error: paymentError } = await supabase
+          .from('pagamentos')
+          .insert([{
+            atleta_id: userId,
+            valor: 230.00,
+            status: 'pendente',
+            comprovante_url: null,
+            validado_sem_comprovante: false,
+            data_validacao: null,
+            data_criacao: new Date().toISOString()
+          }]);
 
-      const { error: paymentError } = await supabase
-        .from('pagamentos')
-        .insert([{
-          atleta_id: userId,
-          valor: 230.00,
-          status: 'pendente',
-          comprovante_url: null,
-          validado_sem_comprovante: false,
-          data_validacao: null,
-          data_criacao: new Date().toISOString()
-        }]);
-
-      if (paymentError) {
-        console.error('Payment record creation error:', paymentError);
-        toast.error('Erro ao criar registro de pagamento.');
-        return;
+        if (paymentError) {
+          console.error('Payment record creation error:', paymentError);
+          toast.error('Erro ao criar registro de pagamento.');
+          return;
+        }
       }
 
-      // Reset form after successful registration
       registerForm.reset();
-      
       toast.success('Cadastro realizado com sucesso!');
-      navigate('/'); // Redirect to main page instead of login
+      navigate('/');
 
     } catch (error) {
       console.error('Registration process error:', error);
@@ -229,7 +251,33 @@ export default function Login() {
               <CardContent className="pt-6">
                 <Form {...registerForm}>
                   <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                    {/* Personal Information Fields */}
+                    <FormField
+                      control={registerForm.control}
+                      name="profile_type"
+                      render={({ field }) => (
+                        <FormItem className="space-y-1">
+                          <FormLabel>Tipo de Perfil</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex flex-col space-y-1"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Atleta" id="atleta" />
+                                <Label htmlFor="atleta">Sou Atleta</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Público Geral" id="publico" />
+                                <Label htmlFor="publico">Sou Público Geral</Label>
+                              </div>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
                     <FormField
                       control={registerForm.control}
                       name="nome"
@@ -295,33 +343,35 @@ export default function Login() {
                       )}
                     />
 
-                    <FormField
-                      control={registerForm.control}
-                      name="branchId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Sede</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione sua Sede" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {branches.map((branch) => (
-                                <SelectItem key={branch.id} value={branch.id}>
-                                  {branch.nome}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {registerForm.watch('profile_type') === 'Atleta' && (
+                      <FormField
+                        control={registerForm.control}
+                        name="branchId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Sede</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione sua Sede" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {branches.map((branch) => (
+                                  <SelectItem key={branch.id} value={branch.id}>
+                                    {branch.nome}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
                     <FormField
                       control={registerForm.control}
