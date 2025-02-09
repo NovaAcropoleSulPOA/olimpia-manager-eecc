@@ -35,7 +35,7 @@ const registerSchema = z.object({
   telefone: z.string().min(14, 'Telefone inválido').max(15),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
-  branchId: z.string().uuid('Sede inválida').optional(),
+  branchId: z.string().uuid('Sede inválida').nullable(),
   tipo_documento: z.enum(['CPF', 'RG'], {
     required_error: "Selecione o tipo de documento",
   }),
@@ -60,14 +60,6 @@ const registerSchema = z.object({
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
-}).refine((data) => {
-  if (data.profile_type === 'Atleta' && !data.branchId) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Sede é obrigatória para Atletas",
-  path: ["branchId"],
 });
 
 export default function Login() {
@@ -91,7 +83,7 @@ export default function Login() {
       telefone: '',
       password: '',
       confirmPassword: '',
-      branchId: '',
+      branchId: null,
       tipo_documento: 'CPF',
       numero_documento: '',
       genero: 'Masculino',
@@ -127,11 +119,6 @@ export default function Login() {
     try {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
-
-      if (values.profile_type === 'Atleta' && !values.branchId) {
-        toast.error('Por favor, selecione uma Sede.');
-        return;
-      }
 
       const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
@@ -282,6 +269,35 @@ export default function Login() {
 
                     <FormField
                       control={registerForm.control}
+                      name="branchId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Sede</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value || ""}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione sua Sede" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">Nenhuma</SelectItem>
+                              {branches.map((branch) => (
+                                <SelectItem key={branch.id} value={branch.id}>
+                                  {branch.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={registerForm.control}
                       name="nome"
                       render={({ field }) => (
                         <FormItem>
@@ -345,36 +361,6 @@ export default function Login() {
                       )}
                     />
 
-                    {registerForm.watch('profile_type') === 'Atleta' && (
-                      <FormField
-                        control={registerForm.control}
-                        name="branchId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Sede</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione sua Sede" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {branches.map((branch) => (
-                                  <SelectItem key={branch.id} value={branch.id}>
-                                    {branch.nome}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-
                     <FormField
                       control={registerForm.control}
                       name="password"
@@ -421,7 +407,7 @@ export default function Login() {
                           <FormLabel>Tipo de Documento</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            defaultValue={field.value || "CPF"}
                           >
                             <FormControl>
                               <SelectTrigger>
