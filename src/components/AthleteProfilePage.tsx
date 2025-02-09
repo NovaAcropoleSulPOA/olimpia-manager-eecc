@@ -52,26 +52,44 @@ export default function AthleteProfilePage() {
     enabled: !!user?.id,
   });
 
-  // Fetch payment status from pagamentos table - now enabled for all users
+  // Fetch payment status for all users (both athletes and public)
   const { data: paymentStatus, isLoading: paymentLoading } = useQuery({
     queryKey: ['payment-status', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       console.log('Fetching payment status for:', user.id);
-      const { data, error } = await supabase
-        .from('pagamentos')
-        .select('status')
-        .eq('atleta_id', user.id)
-        .maybeSingle();
+      
+      if (isPublicUser) {
+        // For public users, check their payment status from pagamentos table
+        const { data, error } = await supabase
+          .from('pagamentos')
+          .select('status')
+          .eq('atleta_id', user.id)
+          .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching payment status:', error);
-        throw error;
+        if (error) {
+          console.error('Error fetching public user payment status:', error);
+          throw error;
+        }
+        console.log('Public user payment status:', data);
+        return data as PaymentStatus;
+      } else {
+        // For athletes, check their payment status from pagamentos table
+        const { data, error } = await supabase
+          .from('pagamentos')
+          .select('status')
+          .eq('atleta_id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching athlete payment status:', error);
+          throw error;
+        }
+        console.log('Athlete payment status:', data);
+        return data as PaymentStatus;
       }
-      console.log('Payment status data:', data);
-      return data as PaymentStatus;
     },
-    enabled: !!user?.id, // Now enabled for all users
+    enabled: !!user?.id,
   });
 
   if (profileLoading || paymentLoading) {
@@ -95,6 +113,7 @@ export default function AthleteProfilePage() {
   console.log('Payment status check:', {
     rawStatus: paymentStatus?.status,
     isPending: isPendingPayment,
+    isPublicUser,
   });
 
   return (
