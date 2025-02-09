@@ -186,12 +186,17 @@ export default function DelegationDashboard() {
     return <EmptyState />;
   }
 
-  // Filter registrations based on user input
+  // Filter and sort registrations based on user input
   const filteredRegistrations = registrations?.filter(registration => {
     const nameMatch = registration.nome_atleta.toLowerCase().includes(nameFilter.toLowerCase());
     const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
-    // No need to filter by branch since the query already filters by the user's branch
     return nameMatch && statusMatch;
+  }).sort((a, b) => {
+    // Current user's card always appears first
+    if (a.id === user?.id) return -1;
+    if (b.id === user?.id) return 1;
+    // Sort remaining cards alphabetically by name
+    return a.nome_atleta.localeCompare(b.nome_atleta);
   });
 
   return (
