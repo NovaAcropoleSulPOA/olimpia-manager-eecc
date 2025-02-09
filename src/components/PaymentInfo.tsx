@@ -122,7 +122,7 @@ const PaymentInfo = () => {
         {/* Right column: QR Code and copy functionality */}
         <div className="flex flex-col items-center justify-center gap-4">
           <h3 className="text-lg font-semibold text-olimpics-green-primary text-center">
-          Aponte a câmera do celeular para o Código QR
+          Aponte a câmera do celular para o Código QR e obtenha todos os detalhes do pagamento
           </h3>
           {paymentInfo.qr_code_image && (
             <img
