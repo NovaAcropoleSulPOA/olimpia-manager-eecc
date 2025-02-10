@@ -31,7 +31,7 @@ const socialLinks = [
   {
     name: 'Nova Acrópole Website',
     icon: <Globe className="w-5 h-5" />,
-    url: 'https://acropole.org.br/',
+    url: 'www.nova-acropole.org.br',
   },
   {
     name: 'YouTube Channel',
@@ -51,15 +51,19 @@ const LandingPage = () => {
     const startDate = '2025-04-11';
     const endDate = '2025-04-13';
     const title = 'Olimpíadas Estaduais da Nova Acrópole 2025 - Porto Alegre';
-    const location = 'Parque Esportivo PUCRS, Av. Ipiranga, 6690 - Partenon, Porto Alegre, RS';
-    
+  
+    // Use latitude and longitude instead of a full address
+    const latitude = -30.0553489;   // Replace with the actual latitude
+    const longitude = -51.1723835;  // Replace with the actual longitude
+    const location = `${latitude},${longitude}`;
+  
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate.replace(/-/g, '')}/${endDate.replace(/-/g, '')}&location=${encodeURIComponent(location)}`;
-    
+  
     if (window.confirm('Deseja adicionar este evento ao seu calendário?')) {
       window.open(googleCalendarUrl, '_blank');
       toast.success('Redirecionando para o Google Calendar');
     }
-  };
+  };  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-olimpics-background to-white">
@@ -83,6 +87,13 @@ const LandingPage = () => {
                     <img 
                       src="/lovable-uploads/9a26ef1b-7684-4457-bbcc-f92d929099ba.png"
                       alt="Nova Acrópole Logo"
+                      className="w-full h-full object-cover"
+                    />
+                  </Card>
+                  <Card className="bg-[#1A1F2C]/90 backdrop-blur p-0 w-32 h-32 flex items-center justify-center overflow-hidden">
+                    <img 
+                      src="/lovable-uploads/LOGO_COMITE_PIERRE_COUBERTIN.png"
+                      alt="Comitê Pierre de Coubertin Logo"
                       className="w-full h-full object-cover"
                     />
                   </Card>
