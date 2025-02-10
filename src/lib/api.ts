@@ -21,7 +21,7 @@ export interface AthleteRegistration {
   confirmado: boolean;
   telefone: string;
   filial: string;
-  filial_id: string;  // Added this field
+  filial_id: string;
   modalidades: AthleteModality[];
   status_inscricao: 'pendente' | 'confirmado' | 'rejeitado' | 'cancelado';
   status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
@@ -134,33 +134,58 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     console.log('Current user ID:', user.id);
 
-    // Check if user is an organizer
-    const { data: userRoles, error: rolesError } = await supabase
-      .from('papeis_usuarios')
-      .select(`
-        perfil_id,
-        perfis:perfis (
-          nome
-        )
-      `)
-      .eq('usuario_id', user.id)
-      .returns<UserRole[]>();
+    // Fetch user roles and branch info
+    const [userRolesResult, userProfileResult] = await Promise.all([
+      supabase
+        .from('papeis_usuarios')
+        .select(`
+          perfil_id,
+          perfis:perfis (
+            nome
+          )
+        `)
+        .eq('usuario_id', user.id),
+      supabase
+        .from('usuarios')
+        .select('filial_id')
+        .eq('id', user.id)
+        .single()
+    ]);
 
-    if (rolesError) {
-      console.error('Error fetching user roles:', rolesError);
-      throw rolesError;
+    if (userRolesResult.error) {
+      console.error('Error fetching user roles:', userRolesResult.error);
+      throw userRolesResult.error;
     }
 
+    if (userProfileResult.error) {
+      console.error('Error fetching user profile:', userProfileResult.error);
+      throw userProfileResult.error;
+    }
+
+    const userRoles = userRolesResult.data as UserRole[];
+    const userProfile = userProfileResult.data;
+
     console.log('User roles:', userRoles);
+    console.log('User profile:', userProfile);
 
     const isOrganizer = userRoles?.some(role => role.perfis?.nome === 'Organizador');
     console.log('Is user an organizer?', isOrganizer);
 
-    // For organizers, fetch ALL registrations without any filters
-    const { data, error } = await supabase
+    // Build the query based on user role
+    let query = supabase
       .from('vw_inscricoes_atletas')
-      .select('*')
-      .order('nome_atleta');
+      .select('*');
+
+    // For delegation representatives, only filter by branch
+    if (!isOrganizer && userProfile?.filial_id) {
+      console.log('Filtering by branch:', userProfile.filial_id);
+      query = query.eq('filial_id', userProfile.filial_id);
+    }
+
+    // Order results by name
+    query = query.order('nome_atleta');
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching registrations:', error);
