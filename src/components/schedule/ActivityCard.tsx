@@ -12,6 +12,7 @@ interface ActivityCardProps {
     is_registered: boolean;
     global: boolean;
     registration_status: string;
+    modalidade_id: number | null;
   };
 }
 
