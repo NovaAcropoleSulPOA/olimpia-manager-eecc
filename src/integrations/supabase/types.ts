@@ -802,6 +802,7 @@ export type Database = {
       vw_cronograma_atividades_usuario: {
         Row: {
           atividade: string | null
+          cronograma_id: number | null
           dia: string | null
           global: boolean | null
           horario_fim: string | null
@@ -810,8 +811,7 @@ export type Database = {
           is_registered: boolean | null
           local: string | null
           modalidade_id: number | null
-          modalidade_nome: string | null
-          registration_status: string | null
+          ordem: number | null
         }
         Relationships: [
           {
@@ -834,6 +834,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_pontuacoes_gerais_atletas"
             referencedColumns: ["modalidade_id"]
+          },
+          {
+            foreignKeyName: "cronograma_atividades_cronograma_id_fkey"
+            columns: ["cronograma_id"]
+            isOneToOne: false
+            referencedRelation: "cronogramas"
+            referencedColumns: ["id"]
           },
         ]
       }
