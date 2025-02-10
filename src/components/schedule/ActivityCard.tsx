@@ -8,16 +8,12 @@ interface ActivityCardProps {
     atividade: string;
     local: string;
     modalidade_nome: string;
-    is_registered: boolean;
     global: boolean;
   };
 }
 
 export function ActivityCard({ activity }: ActivityCardProps) {
   const getActivityStyle = (activity: ActivityCardProps['activity']) => {
-    if (activity.is_registered) {
-      return 'border-olimpics-green-primary bg-olimpics-green-primary/10';
-    }
     if (activity.global) {
       return 'border-yellow-400 bg-yellow-50';
     }
@@ -38,8 +34,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
             {activity.modalidade_nome.split(', ').map((modalidade, idx) => (
               <Badge 
                 key={idx}
-                variant={activity.is_registered ? "default" : "secondary"}
-                className={activity.is_registered ? "bg-olimpics-green-primary" : ""}
+                variant="secondary"
               >
                 {modalidade}
               </Badge>

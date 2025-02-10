@@ -7,13 +7,12 @@ import { ActivityCard } from './ActivityCard';
 interface ScheduleActivity {
   id: number;
   atividade: string;
+  local: string;
+  modalidade_nome: string;
+  global: boolean;
   horario_inicio: string;
   horario_fim: string;
   dia: string;
-  local: string;
-  is_registered: boolean;
-  global: boolean;
-  modalidade_nome: string;
 }
 
 interface GroupedActivities {

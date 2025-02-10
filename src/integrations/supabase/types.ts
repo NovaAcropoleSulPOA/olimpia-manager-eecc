@@ -71,6 +71,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "cronograma_atividade_modalidades_cronograma_atividade_id_fkey"
+            columns: ["cronograma_atividade_id"]
+            isOneToOne: false
+            referencedRelation: "vw_cronograma_atividades"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
             columns: ["modalidade_id"]
             isOneToOne: false
@@ -789,6 +796,19 @@ export type Database = {
           total_inscritos: number | null
           valor_total_pago: number | null
           valor_total_pendente: number | null
+        }
+        Relationships: []
+      }
+      vw_cronograma_atividades: {
+        Row: {
+          atividade: string | null
+          dia: string | null
+          global: boolean | null
+          horario_fim: string | null
+          horario_inicio: string | null
+          id: number | null
+          local: string | null
+          modalidade_nome: string | null
         }
         Relationships: []
       }

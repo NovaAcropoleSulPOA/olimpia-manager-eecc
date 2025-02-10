@@ -5,19 +5,17 @@ import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
 import { Loader2 } from "lucide-react";
-import { ScheduleLegend } from './schedule/ScheduleLegend';
 import { ScheduleTable } from './schedule/ScheduleTable';
 
 interface ScheduleActivity {
   id: number;
   atividade: string;
+  local: string;
+  modalidade_nome: string;
+  global: boolean;
   horario_inicio: string;
   horario_fim: string;
   dia: string;
-  local: string;
-  is_registered: boolean;
-  global: boolean;
-  modalidade_nome: string;
 }
 
 interface GroupedActivities {
@@ -31,7 +29,7 @@ export default function AthleteSchedule() {
     queryKey: ['schedule-activities'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('vw_cronograma_atividades_usuario')
+        .from('vw_cronograma_atividades')
         .select('*')
         .order('dia')
         .order('horario_inicio');
@@ -66,15 +64,7 @@ export default function AthleteSchedule() {
       groups[date][time] = [];
     }
     
-    // Check if activity is already included to avoid duplicates
-    const isDuplicate = groups[date][time].some(
-      existingActivity => existingActivity.atividade === activity.atividade &&
-      existingActivity.local === activity.local
-    );
-    
-    if (!isDuplicate) {
-      groups[date][time].push(activity);
-    }
+    groups[date][time].push(activity);
     
     return groups;
   }, {} as GroupedActivities) || {};
@@ -97,7 +87,6 @@ export default function AthleteSchedule() {
           <Calendar className="h-5 w-5" />
           Cronograma de Atividades
         </CardTitle>
-        <ScheduleLegend />
       </CardHeader>
       <CardContent>
         <ScheduleTable 
