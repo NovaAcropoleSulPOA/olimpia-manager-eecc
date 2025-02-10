@@ -4,30 +4,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  CheckCircle2, XCircle, Clock, AlertCircle,
-  Plus, Loader2, Info, ChevronDown, ChevronUp
-} from "lucide-react";
-import { format } from "date-fns";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Info, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import AthleteSchedule from "@/components/AthleteSchedule";
+import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import AthleteSchedule from "@/components/AthleteSchedule";
+import { EnrollmentList } from "./enrollment/EnrollmentList";
+import { AvailableModalities } from "./enrollment/AvailableModalities";
 
 interface Modality {
   id: number;
@@ -38,21 +22,6 @@ interface Modality {
   limite_vagas: number;
   grupo?: string;
 }
-
-const getModalityStatusIcon = (status: string) => {
-  switch (status) {
-    case 'confirmado':
-      return <CheckCircle2 className="h-5 w-5 text-green-600" />;
-    case 'rejeitado':
-      return <XCircle className="h-5 w-5 text-red-600" />;
-    case 'pendente':
-      return <Clock className="h-5 w-5 text-yellow-600" />;
-    case 'cancelado':
-      return <AlertCircle className="h-5 w-5 text-gray-600" />;
-    default:
-      return null;
-  }
-};
 
 export default function AthleteRegistrations() {
   const { user } = useAuth();
@@ -68,7 +37,7 @@ export default function AthleteRegistrations() {
       const { data, error } = await supabase
         .from('view_perfil_atleta')
         .select('*')
-        .eq('atleta_id', user.id)  // Changed from 'id' to 'atleta_id'
+        .eq('atleta_id', user.id)
         .single();
       
       if (error) {
@@ -271,150 +240,16 @@ export default function AthleteRegistrations() {
           </CardHeader>
           <CollapsibleContent className="transition-all duration-300">
             <CardContent>
-              <div className="rounded-lg border overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-olimpics-green-primary/5 hover:bg-olimpics-green-primary/10">
-                      <TableHead className="font-semibold">Modalidade</TableHead>
-                      <TableHead className="font-semibold">Tipo</TableHead>
-                      <TableHead className="font-semibold">Categoria</TableHead>
-                      <TableHead className="font-semibold">Status</TableHead>
-                      <TableHead className="font-semibold">Data de Inscrição</TableHead>
-                      <TableHead className="font-semibold">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {registeredModalities?.map((registration) => (
-                      <TableRow 
-                        key={registration.modalidade_id}
-                        className="transition-colors hover:bg-gray-50"
-                      >
-                        <TableCell className="font-medium">{registration.modalidade?.nome}</TableCell>
-                        <TableCell className="capitalize">{registration.modalidade?.tipo_modalidade}</TableCell>
-                        <TableCell className="capitalize">{registration.modalidade?.categoria}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {getModalityStatusIcon(registration.status)}
-                            <span className="capitalize">{registration.status}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(registration.data_inscricao), "dd/MM/yyyy")}
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            disabled={registration.status !== 'pendente' || withdrawMutation.isPending}
-                            onClick={() => withdrawMutation.mutate(registration.modalidade_id)}
-                            className="transition-all duration-200 hover:bg-red-600"
-                          >
-                            {withdrawMutation.isPending ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Processando...
-                              </>
-                            ) : (
-                              "Desistir"
-                            )}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <EnrollmentList
+                registeredModalities={registeredModalities || []}
+                withdrawMutation={withdrawMutation}
+              />
 
-              <div className="mt-8 space-y-4">
-                <CardTitle className="text-xl font-bold text-olimpics-text">
-                  Modalidades Disponíveis
-                </CardTitle>
-                <Accordion 
-                  type="single" 
-                  collapsible 
-                  className="space-y-4"
-                >
-                  {groupedModalities && Object.entries(groupedModalities).map(([grupo, modalities]) => {
-                    const availableModalities = modalities.filter(
-                      modality => !registeredModalities?.some(
-                        reg => reg.modalidade_id === modality.id
-                      )
-                    );
-
-                    if (availableModalities.length === 0) return null;
-
-                    return (
-                      <AccordionItem 
-                        key={grupo} 
-                        value={grupo}
-                        className="border rounded-lg px-4 shadow-sm transition-all duration-200 hover:shadow-md"
-                      >
-                        <AccordionTrigger className="hover:no-underline py-4">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-semibold text-olimpics-text">{grupo}</h3>
-                            <span className="text-sm text-gray-500">
-                              ({availableModalities.length} modalidades)
-                            </span>
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="pb-4">
-                          <div className="rounded-lg border overflow-hidden">
-                            <Table>
-                              <TableHeader>
-                                <TableRow className="bg-olimpics-green-primary/5 hover:bg-olimpics-green-primary/10">
-                                  <TableHead className="font-semibold">Modalidade</TableHead>
-                                  <TableHead className="font-semibold">Tipo</TableHead>
-                                  <TableHead className="font-semibold">Categoria</TableHead>
-                                  <TableHead className="font-semibold">Ações</TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {availableModalities.map((modality) => (
-                                  <TableRow 
-                                    key={modality.id}
-                                    className="transition-colors hover:bg-gray-50"
-                                  >
-                                    <TableCell className="font-medium">
-                                      {modality.nome}
-                                    </TableCell>
-                                    <TableCell className="capitalize">
-                                      {modality.tipo_modalidade}
-                                    </TableCell>
-                                    <TableCell className="capitalize">
-                                      {modality.categoria}
-                                    </TableCell>
-                                    <TableCell>
-                                      <Button
-                                        variant="default"
-                                        size="sm"
-                                        disabled={registerMutation.isPending}
-                                        onClick={() => registerMutation.mutate(modality.id)}
-                                        className="bg-olimpics-green-primary hover:bg-olimpics-green-primary/90 transition-all duration-200"
-                                      >
-                                        {registerMutation.isPending ? (
-                                          <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Processando...
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Plus className="h-4 w-4 mr-1" />
-                                            Inscrever
-                                          </>
-                                        )}
-                                      </Button>
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    );
-                  })}
-                </Accordion>
-              </div>
+              <AvailableModalities
+                groupedModalities={groupedModalities || {}}
+                registeredModalities={registeredModalities || []}
+                registerMutation={registerMutation}
+              />
             </CardContent>
           </CollapsibleContent>
         </Card>
