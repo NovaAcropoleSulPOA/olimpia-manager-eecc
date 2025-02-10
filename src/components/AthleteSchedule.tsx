@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface ScheduleActivity {
   id: number;
+  cronograma_atividade_id: number;
   atividade: string;
   horario_inicio: string;
   horario_fim: string;
@@ -16,6 +17,7 @@ interface ScheduleActivity {
   local: string;
   global: boolean;
   modalidade_nome: string | null;
+  atleta_id: string;
 }
 
 interface GroupedActivities {
@@ -28,21 +30,22 @@ export default function AthleteSchedule() {
   const { user } = useAuth();
 
   const { data: activities, isLoading } = useQuery({
-    queryKey: ['schedule-activities', user?.id],
+    queryKey: ['personal-schedule-activities', user?.id],
     queryFn: async () => {
-      console.log('Fetching schedule activities');
+      console.log('Fetching personal schedule activities for user:', user?.id);
       const { data, error } = await supabase
-        .from('vw_cronograma_atividades')
+        .from('vw_cronograma_atividades_por_atleta')
         .select('*')
+        .eq('atleta_id', user?.id)
         .order('dia')
         .order('horario_inicio');
 
       if (error) {
-        console.error('Error fetching schedule:', error);
+        console.error('Error fetching personal schedule:', error);
         throw error;
       }
 
-      console.log('Retrieved schedule activities:', data);
+      console.log('Retrieved personal schedule activities:', data);
       return data as ScheduleActivity[];
     },
     enabled: !!user?.id,
@@ -69,14 +72,14 @@ export default function AthleteSchedule() {
       groups[date][time] = [];
     }
     
-    if (!groups[date][time].some(existingActivity => existingActivity.id === activity.id)) {
+    if (!groups[date][time].some(existingActivity => existingActivity.cronograma_atividade_id === activity.cronograma_atividade_id)) {
       groups[date][time].push(activity);
     }
     
     return groups;
   }, {} as GroupedActivities) || {};
 
-  // Get unique dates and ensure they exist in groupedActivities
+  // Get unique dates
   const dates = Object.keys(groupedActivities).sort();
 
   // Get unique time slots from activities that have actual data
