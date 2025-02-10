@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search } from "lucide-react";
 import {
   Card,
@@ -22,7 +22,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp, Printer } from "lucide-react";
 
 interface EnrolledUser {
   nome_atleta: string;
@@ -77,16 +78,55 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
     );
   };
 
+  const handlePrint = () => {
+    // Expand all sections before printing
+    setExpandedModality(null);
+    setExpandedFilial(null);
+    window.print();
+  };
+
   return (
     <div className="space-y-6">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-        <Input
-          placeholder="Buscar por nome, email ou documento..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      <style>
+        {`
+          @media print {
+            .no-print {
+              display: none !important;
+            }
+            .print-expanded {
+              display: block !important;
+            }
+            .print-break-after {
+              page-break-after: always;
+            }
+            [data-state="closed"] {
+              display: block !important;
+            }
+            [data-state="closed"] > div {
+              display: block !important;
+            }
+          }
+        `}
+      </style>
+
+      <div className="flex items-center justify-between gap-4 no-print">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+          <Input
+            placeholder="Buscar por nome, email ou documento..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Button
+          variant="outline"
+          onClick={handlePrint}
+          className="flex items-center gap-2"
+        >
+          <Printer className="h-4 w-4" />
+          Imprimir Lista
+        </Button>
       </div>
 
       <div className="space-y-4">
@@ -105,16 +145,12 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
                         {Object.values(filiais).flat().length} inscritos
                       </Badge>
                     </CardTitle>
-                    {expandedModality === modalidade ? (
-                      <ChevronUp className="h-5 w-5" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5" />
-                    )}
+                    <ChevronDown className="h-5 w-5 no-print" />
                   </div>
                 </CardHeader>
               </CollapsibleTrigger>
 
-              <CollapsibleContent>
+              <CollapsibleContent className="print-expanded">
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     {Object.entries(filiais).map(([filial, users]) => {
@@ -135,15 +171,11 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
                                   {filteredUsers.length} atletas
                                 </Badge>
                               </div>
-                              {expandedFilial === `${modalidade}-${filial}` ? (
-                                <ChevronUp className="h-4 w-4" />
-                              ) : (
-                                <ChevronDown className="h-4 w-4" />
-                              )}
+                              <ChevronDown className="h-4 w-4 no-print" />
                             </div>
                           </CollapsibleTrigger>
 
-                          <CollapsibleContent>
+                          <CollapsibleContent className="print-expanded">
                             <div className="mt-4 rounded-lg border overflow-hidden">
                               <Table>
                                 <TableHeader>
