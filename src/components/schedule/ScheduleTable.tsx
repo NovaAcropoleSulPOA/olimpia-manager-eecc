@@ -3,7 +3,18 @@ import React from 'react';
 import { format } from "date-fns";
 import { Clock } from "lucide-react";
 import { ActivityCard } from './ActivityCard';
-import { ScheduleActivity } from '../AthleteSchedule';
+
+interface ScheduleActivity {
+  id: number;
+  atividade: string;
+  horario_inicio: string;
+  horario_fim: string;
+  dia: string;
+  local: string;
+  is_registered: boolean;
+  global: boolean;
+  modalidade_nome: string;
+}
 
 interface GroupedActivities {
   [key: string]: {
@@ -18,14 +29,6 @@ interface ScheduleTableProps {
 }
 
 export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleTableProps) {
-  if (dates.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        Nenhuma atividade encontrada no cronograma.
-      </div>
-    );
-  }
-
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
@@ -57,9 +60,9 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
                 {dates.map(date => (
                   <td key={`${date}-${timeSlot}`} className="p-4 align-top">
                     <div className="space-y-2">
-                      {groupedActivities[date]?.[timeSlot]?.map((activity) => (
+                      {groupedActivities[date]?.[timeSlot]?.map((activity, index) => (
                         <ActivityCard 
-                          key={activity.id}
+                          key={`${activity.id}-${index}`}
                           activity={activity}
                         />
                       ))}

@@ -25,7 +25,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import AthleteSchedule from "@/components/AthleteSchedule";
 
 interface Modality {
   id: number;
@@ -238,8 +237,6 @@ export default function AthleteRegistrations() {
         </AlertDescription>
       </Alert>
 
-      <AthleteSchedule />
-      
       <Card>
         <CardHeader>
           <CardTitle>Minhas Inscrições</CardTitle>
