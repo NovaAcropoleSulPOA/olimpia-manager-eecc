@@ -100,10 +100,21 @@ const LandingPage = () => {
                 </h2>
               </div>
 
+              <div className="text-white">
+                <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center lg:text-left animate-fade-in">
+                  <span>Olimpíadas Estaduais da Escola do Esporte com Coração </span> <br /> 
+                  <span className="text-3xl md:text-5xl">Edição:</span> <br /> 
+                  <span className="text-3xl md:text-5xl">Porto Alegre/RS</span>
+                </h1>
+                <p className="text-xl md:text-2xl italic mb-12 text-center lg:text-left animate-fade-in">
+                "Mais rápidos, mais altos, mais fortes, estamos unidos!"
+                </p>
+              </div>
+
               <Card className="mb-8 p-6 bg-white/10 backdrop-blur border-white/20 shadow-lg animate-fade-in">
-                <div className="space-y-4 text-center lg:text-left">
+                <div className="space-y-4 text-center lg:text-center">
                   <h3 className="text-2xl font-bold text-olimpics-orange-primary">
-                    Bem-vindo(s) à maior Olimpíada de Esporte com Filosofia do Rio Grande do Sul!
+                    Bem-vindo/a(s) à maior Olimpíada de Esporte com Filosofia do Rio Grande do Sul!
                   </h3>
                   <p className="text-lg leading-relaxed text-olimpics-orange-primary">
                     Mais que medalhas, a Olimpíada é um caminho de autoconhecimento e superação. Uma verdadeira celebração da humanidade.
@@ -191,15 +202,7 @@ const LandingPage = () => {
                 ))}
               </div>
 
-              <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center lg:text-left animate-fade-in">
-                <span>Olimpíadas Estaduais da Escola do Esporte com Coração </span> <br /> 
-                <span className="text-3xl md:text-5xl">Edição:</span> <br /> 
-                <span className="text-3xl md:text-5xl">Porto Alegre/RS</span>
-              </h1>
 
-              <p className="text-xl md:text-2xl italic mb-12 text-center lg:text-left animate-fade-in">
-                "Mais rápidos, mais altos, mais fortes, estamos unidos!"
-              </p>
             </div>
 
             <div className="backdrop-blur-sm bg-white/95 rounded-lg shadow-xl p-6 lg:sticky lg:top-8 animate-fade-in">
