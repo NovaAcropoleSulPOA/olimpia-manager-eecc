@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -218,7 +217,6 @@ export default function ResetPassword() {
                 variant="outline"
                 onClick={handleBack}
                 className="w-full"
-                disabled={isSubmitting}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar
