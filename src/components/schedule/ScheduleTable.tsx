@@ -3,20 +3,7 @@ import React from 'react';
 import { format } from "date-fns";
 import { Clock } from "lucide-react";
 import { ActivityCard } from './ActivityCard';
-
-interface ScheduleActivity {
-  id: number;
-  atividade: string;
-  horario_inicio: string;
-  horario_fim: string;
-  dia: string;
-  local: string;
-  is_registered: boolean;
-  global: boolean;
-  modalidade_nome: string | null;
-  registration_status: string;
-  modalidade_id: number | null;
-}
+import { ScheduleActivity } from '../AthleteSchedule';
 
 interface GroupedActivities {
   [key: string]: {

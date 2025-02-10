@@ -8,7 +8,7 @@ import { ScheduleLegend } from './schedule/ScheduleLegend';
 import { ScheduleTable } from './schedule/ScheduleTable';
 import { useAuth } from "@/contexts/AuthContext";
 
-interface ScheduleActivity {
+export interface ScheduleActivity {
   id: number;
   atividade: string;
   horario_inicio: string;

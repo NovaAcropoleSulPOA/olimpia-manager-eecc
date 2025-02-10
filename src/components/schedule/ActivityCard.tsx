@@ -2,22 +2,14 @@
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { ScheduleActivity } from '../AthleteSchedule';
 
 interface ActivityCardProps {
-  activity: {
-    id: number;
-    atividade: string;
-    local: string;
-    modalidade_nome: string | null;
-    is_registered: boolean;
-    global: boolean;
-    registration_status: string;
-    modalidade_ids: number[] | null;
-  };
+  activity: ScheduleActivity;
 }
 
 export function ActivityCard({ activity }: ActivityCardProps) {
-  const getActivityStyle = (activity: ActivityCardProps['activity']) => {
+  const getActivityStyle = (activity: ScheduleActivity) => {
     if (activity.is_registered) {
       const statusStyles = {
         'confirmado': 'border-green-600 bg-green-50',
