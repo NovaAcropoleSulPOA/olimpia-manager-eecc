@@ -76,12 +76,10 @@ export default function AthleteSchedule() {
     return groups;
   }, {} as GroupedActivities) || {};
 
-  // Get unique dates from activities array
-  const dates = [...new Set(activities?.map(activity => activity.dia))]
-    .filter(Boolean)
-    .sort();
+  // Get unique dates and ensure they exist in groupedActivities
+  const dates = Object.keys(groupedActivities).sort();
 
-  // Get unique time slots from activities array
+  // Get unique time slots from activities that have actual data
   const timeSlots = [...new Set(
     activities?.map(activity => `${activity.horario_inicio}-${activity.horario_fim}`)
   )].sort();
