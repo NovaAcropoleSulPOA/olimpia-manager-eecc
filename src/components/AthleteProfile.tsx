@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
@@ -75,10 +74,8 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
 
       <Card>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Left Column */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-6">
-              {/* Profile Image and ID */}
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative w-48 h-48">
                   <div 
@@ -107,7 +104,6 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                 </div>
               </div>
 
-              {/* Personal Information */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
                   <User className="h-5 w-5" />
@@ -136,9 +132,7 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
               </div>
             </div>
 
-            {/* Right Column */}
             <div className="space-y-6">
-              {/* Payment Information */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
                   <CreditCard className="h-5 w-5" />
@@ -166,7 +160,6 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                 </div>
               </div>
 
-              {/* Branch Information */}
               {profile.filial_nome && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
@@ -187,15 +180,16 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                   </div>
                 </div>
               )}
+            </div>
 
-              {/* User Roles Section */}
+            <div className="space-y-6">
               {profile.papeis && profile.papeis.length > 0 && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
                     <Shield className="h-5 w-5" />
                     Perfis de Acesso
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2">
                     {profile.papeis.map((role, index) => (
                       <Badge 
                         key={index}
@@ -209,7 +203,6 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                 </div>
               )}
 
-              {/* Password Change Button */}
               <Button
                 onClick={handlePasswordChange}
                 variant="outline"
