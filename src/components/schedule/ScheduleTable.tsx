@@ -8,7 +8,7 @@ interface ScheduleActivity {
   id: number;
   atividade: string;
   local: string;
-  modalidade_nome: string;
+  modalidade_nome: string | null;
   global: boolean;
   horario_inicio: string;
   horario_fim: string;
@@ -30,7 +30,7 @@ interface ScheduleTableProps {
 export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleTableProps) {
   console.log('ScheduleTable render:', { groupedActivities, dates, timeSlots });
   
-  if (dates.length === 0) {
+  if (!dates.length) {
     return (
       <div className="p-4 text-center text-gray-500">
         Nenhuma atividade encontrada no cronograma.
@@ -69,9 +69,9 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
                 {dates.map(date => (
                   <td key={`${date}-${timeSlot}`} className="p-4 align-top">
                     <div className="space-y-2">
-                      {groupedActivities[date]?.[timeSlot]?.map((activity, index) => (
+                      {groupedActivities[date]?.[timeSlot]?.map((activity) => (
                         <ActivityCard 
-                          key={`${activity.id}-${index}`}
+                          key={activity.id}
                           activity={activity}
                         />
                       ))}

@@ -12,7 +12,7 @@ interface ScheduleActivity {
   id: number;
   atividade: string;
   local: string;
-  modalidade_nome: string;
+  modalidade_nome: string | null;
   global: boolean;
   horario_inicio: string;
   horario_fim: string;
@@ -105,19 +105,13 @@ export default function AthleteSchedule() {
 
   console.log('Grouped activities:', groupedActivities);
 
-  // Get dates that have activities
-  const dates = Object.keys(groupedActivities)
-    .filter(date => Object.keys(groupedActivities[date]).length > 0)
-    .sort();
-
-  console.log('Available dates:', dates);
-
-  // Get all unique time slots
+  // Get unique dates and time slots
+  const dates = Object.keys(groupedActivities).sort();
   const timeSlots = Array.from(new Set(
-    Object.values(groupedActivities)
-      .flatMap(timeSlots => Object.keys(timeSlots))
+    activities.map(activity => `${activity.horario_inicio}-${activity.horario_fim}`)
   )).sort();
 
+  console.log('Available dates:', dates);
   console.log('Time slots:', timeSlots);
 
   return (

@@ -7,7 +7,7 @@ interface ActivityCardProps {
     id: number;
     atividade: string;
     local: string;
-    modalidade_nome: string;
+    modalidade_nome: string | null;
     global: boolean;
   };
 }
@@ -24,6 +24,8 @@ export function ActivityCard({ activity }: ActivityCardProps) {
   const modalidades = activity.modalidade_nome
     ? activity.modalidade_nome.split(',').map(m => m.trim()).filter(Boolean)
     : [];
+
+  console.log('ActivityCard modalidades:', modalidades);
 
   return (
     <div
