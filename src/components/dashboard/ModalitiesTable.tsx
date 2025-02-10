@@ -1,3 +1,4 @@
+
 import { BranchAnalytics } from "@/lib/api";
 import {
   Card,
@@ -145,25 +146,25 @@ export function ModalitiesTable({ data }: ModalitiesTableProps) {
       <CardContent>
         <div className="space-y-6">
           {/* Stacked Bar Chart */}
-          <div className="h-[500px] w-full"> {/* Increased height */}
+          <div className="h-[500px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart 
                 data={chartData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 120 }} // Increased bottom margin
+                margin={{ top: 20, right: 30, left: 20, bottom: 120 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="filial" 
                   angle={-45}
                   textAnchor="end"
-                  height={100} // Increased height for labels
+                  height={100}
                   interval={0}
                   tick={{ 
                     fontSize: 11,
                     fill: '#4b5563',
-                    dy: 10 // Move labels down
+                    dy: 10
                   }}
-                  tickMargin={35} // Added margin between ticks and axis
+                  tickMargin={35}
                 />
                 <YAxis 
                   tick={{ fontSize: 11, fill: '#4b5563' }}
@@ -197,7 +198,7 @@ export function ModalitiesTable({ data }: ModalitiesTableProps) {
             </ResponsiveContainer>
           </div>
 
-          {/* Expandable Branch Details */}
+          {/* Branch Details */}
           <div className="space-y-4">
             {groupedData.map((branch) => (
               <Collapsible
