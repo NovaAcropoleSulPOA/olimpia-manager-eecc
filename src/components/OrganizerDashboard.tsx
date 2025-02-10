@@ -142,15 +142,22 @@ export default function OrganizerDashboard() {
     return <EmptyState />;
   }
 
-  // Apply user filters to athletes
+  // Apply user filters and sort athletes
   const filteredAthletes = athletes?.filter(athlete => {
     const nameMatch = athlete.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
     const branchMatch = branchFilter === "all" || athlete.filial_id === branchFilter;
     const statusMatch = paymentStatusFilter === "all" || athlete.status_pagamento === paymentStatusFilter;
     return nameMatch && branchMatch && statusMatch;
+  }).sort((a, b) => {
+    // If one of them is the current user, it should come first
+    if (a.id === user?.id) return -1;
+    if (b.id === user?.id) return 1;
+    
+    // Otherwise, sort alphabetically by name
+    return (a.nome_atleta || '').localeCompare(b.nome_atleta || '', 'pt-BR', { sensitivity: 'base' });
   });
 
-  console.log('Filtered athletes:', filteredAthletes?.length);
+  console.log('Filtered and sorted athletes:', filteredAthletes?.length);
 
   const handleStatusChange = async (modalityId: string, status: string, justification: string) => {
     console.log('Attempting to update modality status:', { modalityId, status, justification });
