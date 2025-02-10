@@ -34,10 +34,11 @@ export default function AthleteSchedule() {
   const { data: activities, isLoading } = useQuery({
     queryKey: ['schedule-activities', user?.id],
     queryFn: async () => {
-      console.log('Fetching schedule activities');
+      console.log('Fetching schedule activities for user:', user?.id);
       const { data, error } = await supabase
         .from('vw_cronograma_atividades_usuario')
         .select('*')
+        .or(`usuario_id.eq.${user?.id},global.eq.true`)
         .order('dia')
         .order('horario_inicio');
 

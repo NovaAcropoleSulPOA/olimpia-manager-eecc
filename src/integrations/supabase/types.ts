@@ -37,6 +37,13 @@ export type Database = {
             foreignKeyName: "criterios_pontuacao_modalidade_id_fkey"
             columns: ["modalidade_id"]
             isOneToOne: false
+            referencedRelation: "vw_cronograma_atividades_usuario"
+            referencedColumns: ["modalidade_id"]
+          },
+          {
+            foreignKeyName: "criterios_pontuacao_modalidade_id_fkey"
+            columns: ["modalidade_id"]
+            isOneToOne: false
             referencedRelation: "vw_inscricoes_atletas"
             referencedColumns: ["modalidade_id"]
           },
@@ -83,6 +90,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "modalidades"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
+            columns: ["modalidade_id"]
+            isOneToOne: false
+            referencedRelation: "vw_cronograma_atividades_usuario"
+            referencedColumns: ["modalidade_id"]
           },
           {
             foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
@@ -227,6 +241,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "modalidades"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscricoes_modalidades_modalidade_id_fkey"
+            columns: ["modalidade_id"]
+            isOneToOne: false
+            referencedRelation: "vw_cronograma_atividades_usuario"
+            referencedColumns: ["modalidade_id"]
           },
           {
             foreignKeyName: "inscricoes_modalidades_modalidade_id_fkey"
@@ -508,6 +529,13 @@ export type Database = {
             foreignKeyName: "pontuacoes_modalidade_id_fkey"
             columns: ["modalidade_id"]
             isOneToOne: false
+            referencedRelation: "vw_cronograma_atividades_usuario"
+            referencedColumns: ["modalidade_id"]
+          },
+          {
+            foreignKeyName: "pontuacoes_modalidade_id_fkey"
+            columns: ["modalidade_id"]
+            isOneToOne: false
             referencedRelation: "vw_inscricoes_atletas"
             referencedColumns: ["modalidade_id"]
           },
@@ -580,6 +608,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "modalidades"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "premiacoes_modalidade_id_fkey"
+            columns: ["modalidade_id"]
+            isOneToOne: false
+            referencedRelation: "vw_cronograma_atividades_usuario"
+            referencedColumns: ["modalidade_id"]
           },
           {
             foreignKeyName: "premiacoes_modalidade_id_fkey"
@@ -812,30 +847,9 @@ export type Database = {
           modalidade_id: number | null
           modalidade_nome: string | null
           registration_status: string | null
+          usuario_id: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
-            columns: ["modalidade_id"]
-            isOneToOne: false
-            referencedRelation: "modalidades"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
-            columns: ["modalidade_id"]
-            isOneToOne: false
-            referencedRelation: "vw_inscricoes_atletas"
-            referencedColumns: ["modalidade_id"]
-          },
-          {
-            foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
-            columns: ["modalidade_id"]
-            isOneToOne: false
-            referencedRelation: "vw_pontuacoes_gerais_atletas"
-            referencedColumns: ["modalidade_id"]
-          },
-        ]
+        Relationships: []
       }
       vw_inscricoes_atletas: {
         Row: {
