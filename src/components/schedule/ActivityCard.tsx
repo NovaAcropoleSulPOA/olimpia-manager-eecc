@@ -20,6 +20,11 @@ export function ActivityCard({ activity }: ActivityCardProps) {
     return 'border-gray-200 bg-white';
   };
 
+  // Split modalidades string into array and clean up empty entries
+  const modalidades = activity.modalidade_nome
+    ? activity.modalidade_nome.split(',').map(m => m.trim()).filter(Boolean)
+    : [];
+
   return (
     <div
       className={`p-3 rounded-lg border ${getActivityStyle(activity)}`}
@@ -29,12 +34,13 @@ export function ActivityCard({ activity }: ActivityCardProps) {
         <div className="text-sm text-gray-600">
           <span>{activity.local}</span>
         </div>
-        {activity.modalidade_nome && (
+        {modalidades.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {activity.modalidade_nome.split(', ').map((modalidade, idx) => (
+            {modalidades.map((modalidade, idx) => (
               <Badge 
                 key={idx}
                 variant="secondary"
+                className="text-xs py-0.5"
               >
                 {modalidade}
               </Badge>
