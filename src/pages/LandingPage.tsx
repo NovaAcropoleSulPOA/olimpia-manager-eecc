@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { MapPin, Calendar, Instagram, Globe, Youtube } from 'lucide-react';
@@ -71,9 +70,7 @@ const LandingPage = () => {
         <div className="absolute inset-0 bg-black/40" />
         <div className="container relative z-10 mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left side - Event Info */}
             <div className="text-white">
-              {/* Header Section */}
               <div className="flex flex-col items-center mb-12">
                 <div className="flex items-center gap-6 mb-4">
                   <div className="relative w-32 h-32">
@@ -103,6 +100,23 @@ const LandingPage = () => {
                 </h2>
               </div>
 
+              <Card className="mb-8 p-6 bg-white/10 backdrop-blur border-white/20 shadow-lg">
+                <div className="space-y-4 text-center lg:text-left">
+                  <h3 className="text-2xl font-bold text-olimpics-orange-primary">
+                    Bem-vindo(s) à maior Olimpíada de Esporte com Filosofia do Rio Grande do Sul!
+                  </h3>
+                  <p className="text-lg leading-relaxed">
+                    Mais que medalhas, a Olimpíada é um caminho de autoconhecimento e superação. Uma verdadeira celebração da humanidade.
+                  </p>
+                  <p className="text-lg leading-relaxed italic">
+                    Venha desafiar seus limites e buscar a excelência. O maior adversário é você mesmo.
+                  </p>
+                  <p className="text-xl font-semibold text-olimpics-orange-primary">
+                    Onde o Espírito Olímpico encontra a Filosofia. Inscreva-se nas Olimpíadas Estaduais da Escola do Esporte com Coração!
+                  </p>
+                </div>
+              </Card>
+
               <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center lg:text-left">
                 <span>Olimpíadas Estaduais da Escola do Esporte com Coração </span> <br /> <span> </span> <br /> <span>Edição:</span>&#32;<br /> <span>Porto Alegre/RS</span>
               </h1>
@@ -110,7 +124,6 @@ const LandingPage = () => {
                 "Mais rápidos, mais altos, mais fortes, estamos unidos!"
               </p>
 
-              {/* Social Links Section */}
               <div className="flex flex-wrap justify-center gap-4 mb-8">
                 {socialLinks.map((link, index) => (
                   <a
@@ -126,7 +139,6 @@ const LandingPage = () => {
                 ))}
               </div>
 
-              {/* Info Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <Card 
                   className="p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 bg-white/95 backdrop-blur cursor-pointer"
@@ -167,7 +179,6 @@ const LandingPage = () => {
                 </Card>
               </div>
 
-              {/* Modalities Section */}
               <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8">
                 <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
                   Modalidades Olímpicas
@@ -186,16 +197,13 @@ const LandingPage = () => {
                   ))}
                 </div>
               </div>
-
             </div>
 
-            {/* Right side - Login Form */}
             <div className="backdrop-blur-sm bg-white/95 rounded-lg shadow-xl p-6">
               <Login />
             </div>
           </div>
 
-          {/* YouTube Video Section - Full Width */}
           <div className="col-span-full mt-8">
             <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8">
               <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
@@ -219,4 +227,3 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
-
