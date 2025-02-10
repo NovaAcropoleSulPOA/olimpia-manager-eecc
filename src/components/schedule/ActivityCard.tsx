@@ -8,7 +8,7 @@ interface ActivityCardProps {
     id: number;
     atividade: string;
     local: string;
-    modalidade_nome: string;
+    modalidade_nome: string | null;
     is_registered: boolean;
     global: boolean;
     registration_status: string;

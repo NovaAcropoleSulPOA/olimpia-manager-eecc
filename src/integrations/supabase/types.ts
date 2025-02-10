@@ -802,7 +802,6 @@ export type Database = {
       vw_cronograma_atividades_usuario: {
         Row: {
           atividade: string | null
-          atleta_id: string | null
           dia: string | null
           global: boolean | null
           horario_fim: string | null

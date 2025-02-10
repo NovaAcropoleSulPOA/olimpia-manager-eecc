@@ -13,7 +13,7 @@ interface ScheduleActivity {
   local: string;
   is_registered: boolean;
   global: boolean;
-  modalidade_nome: string;
+  modalidade_nome: string | null;
   registration_status: string;
   modalidade_id: number | null;
 }
