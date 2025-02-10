@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -28,11 +27,11 @@ interface PaymentStatus {
   valor?: number;
 }
 
-// Updated interface to match Supabase response structure
+// Updated interface to match exact Supabase response structure
 interface UserRole {
   perfis: {
     nome: string;
-  }
+  }[]
 }
 
 export default function AthleteProfilePage() {
@@ -73,7 +72,7 @@ export default function AthleteProfilePage() {
       }
 
       // Combine profile data with roles
-      const userRoles = (rolesData as UserRole[])?.map(role => role.perfis.nome) || [];
+      const userRoles = (rolesData as UserRole[])?.flatMap(role => role.perfis.map(p => p.nome)) || [];
       
       console.log('Profile data:', { ...profileData, papeis: userRoles });
       return {
