@@ -41,15 +41,39 @@ export default function ResetPassword() {
   });
 
   React.useEffect(() => {
+    let mounted = true;
+
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session && !fromProfile) {
-        console.log('No session found, redirecting to login');
-        navigate('/login');
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session check error:', sessionError);
+          if (mounted) {
+            setError('Erro ao verificar sessão');
+            navigate('/login');
+          }
+          return;
+        }
+
+        if (!session && !fromProfile) {
+          console.log('No session found, redirecting to login');
+          if (mounted) {
+            navigate('/login');
+          }
+        }
+      } catch (err) {
+        console.error('Session check failed:', err);
+        if (mounted) {
+          navigate('/login');
+        }
       }
     };
 
     checkSession();
+    return () => {
+      mounted = false;
+    };
   }, [navigate, fromProfile]);
 
   const handleBack = () => {
@@ -69,41 +93,40 @@ export default function ResetPassword() {
     try {
       console.log('Starting password update process...');
       
-      // First verify the user is authenticated
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        console.error('No valid session found');
-        setError('Sessão expirada. Por favor, faça login novamente.');
-        navigate('/login');
-        return;
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw new Error('Erro ao verificar sessão. Por favor, faça login novamente.');
       }
 
-      // Update password
+      if (!session?.access_token) {
+        console.error('No valid session found');
+        throw new Error('Sessão expirada. Por favor, faça login novamente.');
+      }
+
       const { error: updateError } = await supabase.auth.updateUser({
         password: values.password
       });
 
       if (updateError) {
         console.error('Password update error:', updateError);
-        setError('Erro ao atualizar senha. Por favor, tente novamente.');
-        return;
+        throw new Error(updateError.message || 'Erro ao atualizar senha');
       }
 
-      console.log('Password updated successfully, showing toast...');
+      console.log('Password updated successfully');
       
-      // Show success message first
+      // Show success message and navigate
       toast.success('Senha alterada com sucesso!', {
-        duration: 3000,
+        duration: 2000, // Shorter duration for better UX
         onDismiss: () => {
-          console.log('Toast dismissed, navigating...');
-          // Only navigate after the toast is shown
           navigate('/athlete-profile', { replace: true });
         }
       });
       
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      setError('Erro inesperado. Por favor, tente novamente.');
+    } catch (error: any) {
+      console.error('Password update failed:', error);
+      setError(error?.message || 'Erro ao atualizar senha. Por favor, tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -170,23 +193,23 @@ export default function ResetPassword() {
             </div>
 
             <div className="flex flex-col space-y-4">
-                <Button
-                  type="submit"
-                  className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Atualizando...' : 'Atualizar Senha'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleBack}
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Voltar
-                </Button>
+              <Button
+                type="submit"
+                className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Atualizando...' : 'Atualizar Senha'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBack}
+                className="w-full"
+                disabled={isSubmitting}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
+              </Button>
             </div>
           </form>
         </Form>
