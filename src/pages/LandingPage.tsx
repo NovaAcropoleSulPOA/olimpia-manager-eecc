@@ -90,11 +90,13 @@ const LandingPage = () => {
                       className="w-full h-full object-contain animate-pulse"
                     />
                   </Card>
-                  <img 
-                    src="/lovable-uploads/LOGO_COMITE_PIERRE_COUBERTIN.png"
-                    alt="Comitê Pierre de Coubertin Logo"
-                    className="w-full h-full object-cover"
-                  />
+                  <div className="relative w-32 h-32">
+                    <img 
+                      src="/lovable-uploads/LOGO_COMITE_PIERRE_COUBERTIN.png"
+                      alt="Comitê Pierre de Coubertin Logo"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold text-olimpics-orange-primary mb-2">
                   Areté
