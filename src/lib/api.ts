@@ -122,7 +122,7 @@ interface UserRole {
 }
 
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
-  console.log('Fetching athlete registrations...');
+  console.log('Starting fetchAthleteRegistrations...');
   try {
     // First, get the current user ID
     const { data: { user } } = await supabase.auth.getUser();
@@ -134,7 +134,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     console.log('Current user ID:', user.id);
 
-    // Then, check if user is an organizer
+    // Check if user is an organizer
     const { data: userRoles, error: rolesError } = await supabase
       .from('papeis_usuarios')
       .select(`
@@ -156,15 +156,11 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     const isOrganizer = userRoles?.some(role => role.perfis?.nome === 'Organizador');
     console.log('Is user an organizer?', isOrganizer);
 
-    // Fetch registrations based on role - no filters for organizers
-    const query = supabase
+    // For organizers, fetch ALL registrations without any filters
+    const { data, error } = await supabase
       .from('vw_inscricoes_atletas')
       .select('*')
       .order('nome_atleta');
-
-    console.log('Executing query for role:', isOrganizer ? 'Organizador' : 'Other');
-
-    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching registrations:', error);
