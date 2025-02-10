@@ -1,16 +1,17 @@
+
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DashboardMetrics } from "./dashboard/DashboardMetrics";
 import { DashboardCharts } from "./dashboard/DashboardCharts";
 import { AthleteRegistrationCard } from "./AthleteRegistrationCard";
-import { AthleteFilters } from "./dashboard/AthleteFilters";
 import { ModalityEnrollments } from "./dashboard/ModalityEnrollments";
 import { toast } from "sonner";
 import { LayoutDashboard, Users, ListChecks, RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-96 text-center">
@@ -30,14 +31,10 @@ const EmptyState = () => (
 );
 
 export default function DelegationDashboard() {
-  const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
   
-  // Filter states
-  const [nameFilter, setNameFilter] = useState("");
-  const [paymentStatusFilter, setPaymentStatusFilter] = useState("all");
-
   // First, fetch the user's filial_id
   const { data: userProfile } = useQuery({
     queryKey: ['user-profile', user?.id],
@@ -57,8 +54,8 @@ export default function DelegationDashboard() {
 
   const { 
     data: branchAnalytics, 
-    isLoading: isLoadingAnalytics, 
-    error: analyticsError, 
+    isLoading: isLoadingAnalytics,
+    error: analyticsError,
     refetch: refetchAnalytics 
   } = useQuery({
     queryKey: ['branch-analytics', userProfile?.filial_id],
@@ -77,66 +74,62 @@ export default function DelegationDashboard() {
   });
 
   const { 
-    data: registrations, 
-    isLoading: isLoadingRegistrations, 
-    error: registrationsError,
-    refetch: refetchRegistrations
+    data: athletes, 
+    isLoading: isLoadingAthletes,
+    error: athletesError,
+    refetch: refetchAthletes
   } = useQuery({
-    queryKey: ['athlete-registrations', userProfile?.filial_id],
+    queryKey: ['branch-athletes', userProfile?.filial_id],
     queryFn: async () => {
-      console.log('Fetching registrations from view for filial:', userProfile?.filial_id);
+      console.log('Fetching athletes for filial:', userProfile?.filial_id);
       const { data, error } = await supabase
-        .from('vw_inscricoes_atletas')
+        .from('vw_athletes_management')
         .select('*')
         .eq('filial_id', userProfile?.filial_id);
       
       if (error) {
-        console.error('Error fetching registrations:', error);
+        console.error('Error fetching athletes:', error);
         throw error;
       }
 
-      if (!data) {
-        console.log('No registrations data returned');
-        return [];
-      }
-
-      // Group registrations by athlete
+      // Group athletes and their modalities
       const athletesMap = new Map();
-
-      data.forEach(registration => {
-        if (!athletesMap.has(registration.atleta_id)) {
-          athletesMap.set(registration.atleta_id, {
-            id: registration.atleta_id,
-            nome_atleta: registration.atleta_nome || registration.nome_atleta || '',
-            email: registration.atleta_email || registration.email || '',
-            confirmado: registration.status_confirmacao,
-            telefone: registration.telefone || '',
-            filial: registration.filial_nome || registration.filial || '',
-            modalidades: [],
-            status_pagamento: registration.status_pagamento || 'pendente',
-            tipo_documento: registration.tipo_documento || '',
-            numero_documento: registration.numero_documento || '',
-            genero: registration.genero || '',
-            numero_identificador: registration.numero_identificador || ''
+      
+      data?.forEach(record => {
+        if (!athletesMap.has(record.atleta_id)) {
+          athletesMap.set(record.atleta_id, {
+            id: record.atleta_id,
+            nome_atleta: record.nome_atleta,
+            email: record.email,
+            telefone: record.telefone,
+            confirmado: record.status_confirmacao,
+            filial: record.filial_nome,
+            tipo_documento: record.tipo_documento,
+            numero_documento: record.numero_documento,
+            genero: record.genero,
+            numero_identificador: record.numero_identificador,
+            status_pagamento: record.status_pagamento || 'pendente',
+            modalidades: []
           });
         }
 
-        // Only add modality if it exists
-        if (registration.modalidade_nome) {
-          const athlete = athletesMap.get(registration.atleta_id);
-          athlete.modalidades.push({
-            id: registration.inscricao_id?.toString() || '',
-            modalidade: registration.modalidade_nome,
-            status: registration.status_inscricao || 'pendente',
-            justificativa_status: ''
-          });
+        if (record.modalidade_nome && record.inscricao_id) {
+          const athlete = athletesMap.get(record.atleta_id);
+          const modalityExists = athlete.modalidades.some(m => m.id === record.inscricao_id.toString());
+          
+          if (!modalityExists) {
+            athlete.modalidades.push({
+              id: record.inscricao_id.toString(),
+              modalidade: record.modalidade_nome,
+              status: record.status_inscricao || 'pendente',
+              justificativa_status: record.justificativa_status || ''
+            });
+          }
         }
       });
 
-      // Convert Map to array
-      const groupedAthletes = Array.from(athletesMap.values());
-      console.log('Grouped athletes data:', groupedAthletes);
-      return groupedAthletes;
+      console.log('Processed athletes data:', Array.from(athletesMap.values()));
+      return Array.from(athletesMap.values());
     },
     enabled: !!userProfile?.filial_id,
   });
@@ -162,11 +155,8 @@ export default function DelegationDashboard() {
     console.log('Refreshing delegation dashboard data...');
     try {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
-        queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] }),
-        queryClient.invalidateQueries({ queryKey: ['confirmed-enrollments'] }),
         refetchAnalytics(),
-        refetchRegistrations()
+        refetchAthletes()
       ]);
       console.log('Dashboard data refreshed successfully');
       toast.success("Dados atualizados com sucesso!");
@@ -178,7 +168,7 @@ export default function DelegationDashboard() {
     }
   };
 
-  if (isLoadingAnalytics || isLoadingRegistrations) {
+  if (isLoadingAnalytics || isLoadingAthletes) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
@@ -186,9 +176,8 @@ export default function DelegationDashboard() {
     );
   }
 
-  if (analyticsError || registrationsError) {
-    console.error('Error fetching data:', analyticsError || registrationsError);
-    toast.error('Erro ao carregar dados do dashboard');
+  if (analyticsError || athletesError) {
+    console.error('Error fetching data:', analyticsError || athletesError);
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -205,18 +194,11 @@ export default function DelegationDashboard() {
     return <EmptyState />;
   }
 
-  // Filter and sort registrations based on user input
-  const filteredRegistrations = registrations?.filter(registration => {
-    const nameMatch = registration.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
-    const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
-    return nameMatch && statusMatch;
-  }).sort((a, b) => {
-    // Current user's card always appears first
-    if (a.id === user?.id) return -1;
-    if (b.id === user?.id) return 1;
-    // Sort remaining cards alphabetically by name
-    return (a.nome_atleta || '').localeCompare(b.nome_atleta || '');
-  });
+  // Filter athletes based on search term
+  const filteredAthletes = athletes?.filter(athlete => 
+    athlete.nome_atleta?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    athlete.numero_identificador?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -275,24 +257,24 @@ export default function DelegationDashboard() {
 
         <TabsContent value="athletes" className="mt-6">
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-olimpics-text">Gerenciamento de Atletas</h2>
-            
-            <AthleteFilters
-              nameFilter={nameFilter}
-              onNameFilterChange={setNameFilter}
-              branchFilter="all"
-              onBranchFilterChange={() => {}} // No-op since we don't need branch filter
-              paymentStatusFilter={paymentStatusFilter}
-              onPaymentStatusFilterChange={setPaymentStatusFilter}
-              branches={[]} // Empty array since we don't need branch selection
-              hideFilial={true}
-            />
+            <div className="flex flex-col gap-4">
+              <h2 className="text-2xl font-bold text-olimpics-text">Gerenciamento de Atletas</h2>
+              <div className="flex items-center gap-4">
+                <Input
+                  type="text"
+                  placeholder="Pesquisar por nome ou número identificador..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="max-w-md"
+                />
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredRegistrations?.map((registration) => (
+              {filteredAthletes?.map((athlete) => (
                 <AthleteRegistrationCard
-                  key={registration.id}
-                  registration={registration}
+                  key={athlete.id}
+                  registration={athlete}
                   onStatusChange={async (modalityId, status, justification) => {
                     console.log('Updating modality status:', { modalityId, status, justification });
                     try {
@@ -304,17 +286,11 @@ export default function DelegationDashboard() {
                         });
 
                       if (error) throw error;
-                      
-                      await Promise.all([
-                        queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
-                        queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
-                      ]);
-                      
+                      await refetchAthletes();
                       toast.success("Status atualizado com sucesso!");
                     } catch (error) {
                       console.error('Error updating status:', error);
                       toast.error("Erro ao atualizar status");
-                      throw error;
                     }
                   }}
                   onPaymentStatusChange={async (athleteId, status) => {
@@ -327,27 +303,20 @@ export default function DelegationDashboard() {
                         });
 
                       if (error) throw error;
-                      
-                      await Promise.all([
-                        queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
-                        queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
-                      ]);
-                      
+                      await refetchAthletes();
                       toast.success("Status de pagamento atualizado com sucesso!");
                     } catch (error) {
                       console.error('Error updating payment status:', error);
-                      const errorMessage = error instanceof Error ? error.message : "Erro ao atualizar status de pagamento";
-                      toast.error(errorMessage);
-                      throw error;
+                      toast.error("Erro ao atualizar status de pagamento");
                     }
                   }}
-                  isCurrentUser={user?.id === registration.id}
+                  isCurrentUser={user?.id === athlete.id}
                 />
               ))}
               
-              {filteredRegistrations?.length === 0 && (
+              {filteredAthletes?.length === 0 && (
                 <div className="col-span-full text-center py-8 text-muted-foreground">
-                  Nenhum atleta encontrado com os filtros selecionados.
+                  Nenhum atleta encontrado.
                 </div>
               )}
             </div>
