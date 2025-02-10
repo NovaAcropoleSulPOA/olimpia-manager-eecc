@@ -812,6 +812,20 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_cronograma_atividades_por_atleta: {
+        Row: {
+          atividade: string | null
+          atleta_id: string | null
+          cronograma_atividade_id: number | null
+          dia: string | null
+          global: boolean | null
+          horario_fim: string | null
+          horario_inicio: string | null
+          local: string | null
+          modalidade_nome: string | null
+        }
+        Relationships: []
+      }
       vw_inscricoes_atletas: {
         Row: {
           atleta_email: string | null

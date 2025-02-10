@@ -16,6 +16,7 @@ import AthleteProfilePage from './components/AthleteProfilePage';
 import AthleteRegistrations from './components/AthleteRegistrations';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import Cronograma from './pages/Cronograma';
 import React from 'react';
 
 const queryClient = new QueryClient({
@@ -47,6 +48,7 @@ function App() {
                   <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
                   <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
                   <Route path="/delegation-dashboard" element={<DelegationDashboard />} />
+                  <Route path="/cronograma" element={<Cronograma />} />
                 </Route>
               </Routes>
             </div>

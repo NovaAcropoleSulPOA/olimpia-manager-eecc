@@ -1,3 +1,4 @@
+
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Sidebar, 
@@ -13,7 +14,7 @@ import {
   SidebarGroupLabel,
   SidebarTrigger
 } from './ui/sidebar';
-import { User, BarChart3, LogOut, Menu, ClipboardList, Users } from 'lucide-react';
+import { User, BarChart3, LogOut, Menu, ClipboardList, Users, Calendar } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
@@ -56,6 +57,11 @@ export function MainNavigation() {
   };
 
   const menuItems = [
+    {
+      title: "Cronograma",
+      icon: Calendar,
+      path: "/cronograma"
+    },
     ...(isAthlete || userRoles.includes('Público Geral') ? [
       {
         title: "Perfil",
@@ -96,8 +102,8 @@ export function MainNavigation() {
 
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex flex-1 w-full"> {/* Removed fixed height calculation */}
-        <Sidebar className="bg-olimpics-green-primary text-white sticky top-16 h-[calc(100vh-4rem)]"> {/* Added sticky positioning */}
+      <div className="flex flex-1 w-full">
+        <Sidebar className="bg-olimpics-green-primary text-white sticky top-16 h-[calc(100vh-4rem)]">
           <SidebarHeader className="relative p-6 border-b border-olimpics-green-secondary">
             <h2 className="text-xl font-bold text-center">Menu</h2>
             <SidebarTrigger className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden text-white hover:text-olimpics-green-secondary">
@@ -154,7 +160,7 @@ export function MainNavigation() {
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
-        <main className="flex-1 p-6 bg-olimpics-background min-h-[calc(100vh-4rem-4rem)]"> {/* Adjusted min-height */}
+        <main className="flex-1 p-6 bg-olimpics-background min-h-[calc(100vh-4rem-4rem)]">
           <Outlet />
         </main>
       </div>
