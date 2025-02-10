@@ -119,7 +119,8 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
   try {
     const { data, error } = await supabase
       .from('vw_inscricoes_atletas')
-      .select('*');
+      .select('*')
+      .order('nome_atleta');
 
     if (error) {
       console.error('Error fetching registrations:', error);
@@ -138,7 +139,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       confirmado: registration.status_confirmacao || false,
       telefone: registration.telefone || '',
       filial: registration.filial_nome || registration.filial,
-      filial_id: registration.filial_id || '',  // Added this field
+      filial_id: registration.filial_id || '',
       modalidades: [{
         id: registration.inscricao_id?.toString() || registration.id?.toString(),
         modalidade: registration.modalidade_nome || registration.modalidade,

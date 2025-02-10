@@ -140,18 +140,16 @@ export default function OrganizerDashboard() {
   }
 
   // Filter registrations based on user input
-  const filteredRegistrations = registrations
-    ?.filter(registration => {
-      const nameMatch = registration.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
-      const branchMatch = branchFilter === "all" || registration.filial_id === branchFilter;
-      const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
-      return nameMatch && branchMatch && statusMatch;
-    })
-    .sort((a, b) => {
-      if (a.id === user?.id) return -1;
-      if (b.id === user?.id) return 1;
-      return (a.nome_atleta || '').localeCompare(b.nome_atleta || '');
-    });
+  const filteredRegistrations = registrations?.filter(registration => {
+    const nameMatch = registration.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
+    const branchMatch = branchFilter === "all" || registration.filial_id === branchFilter;
+    const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
+    return nameMatch && branchMatch && statusMatch;
+  }).sort((a, b) => {
+    if (a.id === user?.id) return -1;
+    if (b.id === user?.id) return 1;
+    return (a.nome_atleta || '').localeCompare(b.nome_atleta || '');
+  });
 
   const handleStatusChange = async (modalityId: string, status: string, justification: string) => {
     console.log('Attempting to update modality status:', { modalityId, status, justification });
