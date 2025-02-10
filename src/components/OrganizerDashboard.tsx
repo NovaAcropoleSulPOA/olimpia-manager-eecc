@@ -8,7 +8,7 @@ import { AthleteRegistrationCard } from "./AthleteRegistrationCard";
 import { AthleteFilters } from "./dashboard/AthleteFilters";
 import { ModalityEnrollments } from "./dashboard/ModalityEnrollments";
 import { toast } from "sonner";
-import { RefreshCw } from "lucide-react";
+import { LayoutDashboard, Users, ListChecks, RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -111,6 +111,47 @@ export default function OrganizerDashboard() {
     }
   };
 
+  if (isLoadingAnalytics || isLoadingRegistrations) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
+      </div>
+    );
+  }
+
+  if (analyticsError || registrationsError) {
+    console.error('Error fetching data:', analyticsError || registrationsError);
+    toast.error('Erro ao carregar dados do dashboard');
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-500 mb-2">Erro ao carregar dados</p>
+          <Button variant="outline" onClick={handleRefresh}>
+            Tentar Novamente
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!branchAnalytics || branchAnalytics.length === 0) {
+    return <EmptyState />;
+  }
+
+  // Filter and sort registrations
+  const filteredRegistrations = registrations
+    ?.filter(registration => {
+      const nameMatch = registration.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
+      const branchMatch = branchFilter === "all" || registration.filial_id === branchFilter;
+      const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
+      return nameMatch && branchMatch && statusMatch;
+    })
+    .sort((a, b) => {
+      if (a.id === user?.id) return -1;
+      if (b.id === user?.id) return 1;
+      return (a.nome_atleta || '').localeCompare(b.nome_atleta || '');
+    });
+
   const handleStatusChange = async (modalityId: string, status: string, justification: string) => {
     console.log('Attempting to update modality status:', { modalityId, status, justification });
     try {
@@ -150,49 +191,6 @@ export default function OrganizerDashboard() {
     }
   };
 
-  if (isLoadingAnalytics || isLoadingRegistrations) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
-      </div>
-    );
-  }
-
-  if (analyticsError || registrationsError) {
-    console.error('Error fetching data:', analyticsError || registrationsError);
-    toast.error('Erro ao carregar dados do dashboard');
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-red-500 mb-2">Erro ao carregar dados</p>
-          <Button variant="outline" onClick={handleRefresh}>
-            Tentar Novamente
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!branchAnalytics || branchAnalytics.length === 0) {
-    return <EmptyState />;
-  }
-
-  // Filter and sort registrations
-  const filteredRegistrations = registrations
-    ?.filter(registration => {
-      const nameMatch = registration.nome_atleta.toLowerCase().includes(nameFilter.toLowerCase());
-      const branchMatch = branchFilter === "all" || registration.filial_id === branchFilter;
-      const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
-      return nameMatch && branchMatch && statusMatch;
-    })
-    .sort((a, b) => {
-      // If one of them is the current user, put it first
-      if (a.id === user?.id) return -1;
-      if (b.id === user?.id) return 1;
-      // Otherwise, sort alphabetically by name
-      return a.nome_atleta.localeCompare(b.nome_atleta, 'pt-BR', { sensitivity: 'base' });
-    });
-
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center mb-8">
@@ -215,19 +213,40 @@ export default function OrganizerDashboard() {
           )}
         </Button>
       </div>
-      
-      <div className="grid gap-6">
-        <DashboardMetrics data={branchAnalytics} />
-        <DashboardCharts data={branchAnalytics} />
-      </div>
 
-      <Tabs defaultValue="athletes" className="mt-8">
-        <TabsList>
-          <TabsTrigger value="athletes">Gerenciar Atletas</TabsTrigger>
-          <TabsTrigger value="enrollments">Inscrições por Modalidade</TabsTrigger>
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList className="w-full border-b mb-8 bg-background flex justify-start space-x-2 p-0">
+          <TabsTrigger 
+            value="dashboard"
+            className="flex items-center gap-2 px-6 py-3 text-base font-medium data-[state=active]:border-b-2 data-[state=active]:border-olimpics-green-primary rounded-none"
+          >
+            <LayoutDashboard className="h-5 w-5" />
+            Dashboards
+          </TabsTrigger>
+          <TabsTrigger 
+            value="athletes"
+            className="flex items-center gap-2 px-6 py-3 text-base font-medium data-[state=active]:border-b-2 data-[state=active]:border-olimpics-green-primary rounded-none"
+          >
+            <Users className="h-5 w-5" />
+            Gerenciar Atletas
+          </TabsTrigger>
+          <TabsTrigger 
+            value="enrollments"
+            className="flex items-center gap-2 px-6 py-3 text-base font-medium data-[state=active]:border-b-2 data-[state=active]:border-olimpics-green-primary rounded-none"
+          >
+            <ListChecks className="h-5 w-5" />
+            Inscrições por Modalidade
+          </TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="athletes">
+
+        <TabsContent value="dashboard" className="mt-6">
+          <div className="grid gap-6">
+            <DashboardMetrics data={branchAnalytics} />
+            <DashboardCharts data={branchAnalytics} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="athletes" className="mt-6">
           <div className="mt-4">
             <h2 className="text-2xl font-bold mb-4 text-olimpics-text">Gerenciamento de Atletas</h2>
             
@@ -261,7 +280,7 @@ export default function OrganizerDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="enrollments">
+        <TabsContent value="enrollments" className="mt-6">
           <div className="mt-4">
             <h2 className="text-2xl font-bold mb-4 text-olimpics-text">Inscrições por Modalidade</h2>
             {confirmedEnrollments && confirmedEnrollments.length > 0 ? (
