@@ -25,6 +25,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import AthleteSchedule from './schedule/AthleteSchedule';
 
 interface Modality {
   id: number;
