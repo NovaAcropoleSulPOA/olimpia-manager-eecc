@@ -111,8 +111,19 @@ export default function ResetPassword() {
 
       if (updateError) {
         console.error('Password update error:', updateError);
-        if (updateError.message?.includes('same_password')) {
-          throw new Error('Nova senha deve ser diferente da antiga.');
+        // Check for the specific error code
+        if (updateError.message && typeof updateError.message === 'string') {
+          try {
+            const errorBody = JSON.parse(updateError.message);
+            if (errorBody.code === 'same_password') {
+              throw new Error('Nova senha deve ser diferente da antiga.');
+            }
+          } catch {
+            // If we can't parse the error message, check if it includes the error text
+            if (updateError.message.includes('same_password')) {
+              throw new Error('Nova senha deve ser diferente da antiga.');
+            }
+          }
         }
         throw new Error(updateError.message || 'Erro ao atualizar senha');
       }
