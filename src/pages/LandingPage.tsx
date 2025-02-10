@@ -42,26 +42,28 @@ const socialLinks = [
 
 const LandingPage = () => {
   const handleLocationClick = () => {
-    // Replace these values with the desired coordinates.
-    const latitude = -30.0553489;
-    const longitude = -51.1723835;
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    const address = "Av. Ipiranga, 6690 - Partenon, Porto Alegre, RS - Brasil";
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
     window.open(mapsUrl, '_blank');
-  };  
+  };
 
   const handleCalendarSync = () => {
     const startDate = '2025-04-11';
     const endDate = '2025-04-13';
     const title = 'Olimpíadas Estaduais da Nova Acrópole 2025 - Porto Alegre';
-    const location = 'Parque Esportivo PUCRS, Av. Ipiranga, 6690 - Partenon, Porto Alegre, RS';
-    
+  
+    // Use latitude and longitude instead of a full address
+    const latitude = -30.0553489;   // Replace with the actual latitude
+    const longitude = -51.1723835;  // Replace with the actual longitude
+    const location = `${latitude},${longitude}`;
+  
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate.replace(/-/g, '')}/${endDate.replace(/-/g, '')}&location=${encodeURIComponent(location)}`;
-    
+  
     if (window.confirm('Deseja adicionar este evento ao seu calendário?')) {
       window.open(googleCalendarUrl, '_blank');
       toast.success('Redirecionando para o Google Calendar');
     }
-  };
+  };  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-olimpics-background to-white">
