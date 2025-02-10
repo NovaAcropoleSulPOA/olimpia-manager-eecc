@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { AthleteRegistration } from '@/lib/api';
+import { AthleteManagement } from '@/lib/api';
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
 interface AthleteRegistrationCardProps {
-  registration: AthleteRegistration;
+  registration: AthleteManagement;
   onStatusChange: (modalityId: string, status: string, justification: string) => Promise<void>;
   onPaymentStatusChange?: (athleteId: string, status: string) => Promise<void>;
   isCurrentUser?: boolean;
