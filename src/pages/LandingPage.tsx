@@ -87,16 +87,14 @@ const LandingPage = () => {
                     <img 
                       src="/lovable-uploads/9a26ef1b-7684-4457-bbcc-f92d929099ba.png"
                       alt="Nova Acrópole Logo"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain animate-pulse"
                     />
                   </Card>
-                  <Card className="bg-[#1A1F2C]/90 backdrop-blur p-0 w-32 h-32 flex items-center justify-center overflow-hidden">
-                    <img 
-                      src="/lovable-uploads/LOGO_COMITE_PIERRE_COUBERTIN.png"
-                      alt="Comitê Pierre de Coubertin Logo"
-                      className="w-full h-full object-cover"
-                    />
-                  </Card>
+                  <img 
+                    src="/lovable-uploads/LOGO_COMITE_PIERRE_COUBERTIN.png"
+                    alt="Comitê Pierre de Coubertin Logo"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold text-olimpics-orange-primary mb-2">
                   Areté
