@@ -237,6 +237,8 @@ export default function AthleteRegistrations() {
         </AlertDescription>
       </Alert>
 
+      <AthleteSchedule />
+
       <Card>
         <CardHeader>
           <CardTitle>Minhas Inscrições</CardTitle>
