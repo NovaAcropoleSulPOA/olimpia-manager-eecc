@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -31,7 +30,7 @@ interface PaymentStatus {
 interface UserRoleData {
   perfis: {
     nome: string;
-  };
+  }[];
 }
 
 export default function AthleteProfilePage() {
@@ -106,7 +105,7 @@ export default function AthleteProfilePage() {
       }
 
       // Properly map the roles data
-      const userRoles = rolesData?.map((role: UserRoleData) => role.perfis.nome) || [];
+      const userRoles = rolesData?.flatMap((role: UserRoleData) => role.perfis.map(p => p.nome)) || [];
       
       console.log('Profile data:', { ...profileData, papeis: userRoles });
       return {
