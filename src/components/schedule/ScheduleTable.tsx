@@ -28,6 +28,16 @@ interface ScheduleTableProps {
 }
 
 export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleTableProps) {
+  console.log('ScheduleTable render:', { groupedActivities, dates, timeSlots });
+  
+  if (dates.length === 0) {
+    return (
+      <div className="p-4 text-center text-gray-500">
+        Nenhuma atividade encontrada no cronograma.
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
