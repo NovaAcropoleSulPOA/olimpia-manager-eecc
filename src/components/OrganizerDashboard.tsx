@@ -144,17 +144,22 @@ export default function OrganizerDashboard() {
 
   // Apply user filters to registrations
   const filteredRegistrations = registrations?.filter(registration => {
+    console.log('Filtering registration:', registration);
     const nameMatch = registration.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
     const branchMatch = branchFilter === "all" || registration.filial_id === branchFilter;
     const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
-    return nameMatch && branchMatch && statusMatch;
+    const matches = nameMatch && branchMatch && statusMatch;
+    console.log(`Registration ${registration.id} matches:`, { nameMatch, branchMatch, statusMatch });
+    return matches;
   }).sort((a, b) => {
     if (a.id === user?.id) return -1;
     if (b.id === user?.id) return 1;
     return (a.nome_atleta || '').localeCompare(b.nome_atleta || '');
   });
 
+  console.log('Total registrations before filtering:', registrations?.length);
   console.log('Filtered registrations:', filteredRegistrations?.length);
+  console.log('Current filters:', { nameFilter, branchFilter, paymentStatusFilter });
 
   const handleStatusChange = async (modalityId: string, status: string, justification: string) => {
     console.log('Attempting to update modality status:', { modalityId, status, justification });
@@ -265,15 +270,18 @@ export default function OrganizerDashboard() {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-              {filteredRegistrations?.map((registration) => (
-                <AthleteRegistrationCard
-                  key={registration.id}
-                  registration={registration}
-                  onStatusChange={handleStatusChange}
-                  onPaymentStatusChange={handlePaymentStatusChange}
-                  isCurrentUser={user?.id === registration.id}
-                />
-              ))}
+              {filteredRegistrations?.map((registration) => {
+                console.log('Rendering athlete card:', registration.id);
+                return (
+                  <AthleteRegistrationCard
+                    key={registration.id}
+                    registration={registration}
+                    onStatusChange={handleStatusChange}
+                    onPaymentStatusChange={handlePaymentStatusChange}
+                    isCurrentUser={user?.id === registration.id}
+                  />
+                );
+              })}
               
               {!filteredRegistrations?.length && (
                 <div className="col-span-full text-center py-8 text-muted-foreground">
