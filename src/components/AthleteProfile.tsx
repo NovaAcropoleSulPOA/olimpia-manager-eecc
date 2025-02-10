@@ -75,38 +75,38 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
 
       <Card>
         <CardContent className="p-6">
-          <div className="grid md:grid-cols-12 gap-6">
-            {/* Profile Image and ID Section */}
-            <div className="md:col-span-3 flex flex-col items-center space-y-4">
-              <div className="relative w-48 h-48">
-                <div 
-                  className="absolute inset-0 bg-contain bg-center bg-no-repeat opacity-10"
-                  style={{ 
-                    backgroundImage: 'url("/lovable-uploads/LOGO_COMITE_PIERRE_COUBERTIN.png")',
-                    backgroundSize: '80%',
-                    backgroundPosition: 'center'
-                  }}
-                />
-                <img
-                  src={getProfileImage(profile.genero)}
-                  alt="Profile"
-                  className="w-full h-full rounded-full object-cover border-4 border-olimpics-green-primary relative z-10"
-                />
-              </div>
-              <div className="text-center">
-                <div className="bg-olimpics-green-primary text-white px-4 py-2 rounded-lg shadow-lg">
-                  <p className="text-sm font-medium">
-                    {isPublicUser ? 'PERFIL' : 'ID DO ATLETA'}
-                  </p>
-                  <p className="text-xl font-bold">
-                    {isPublicUser ? 'Público Geral' : profile.numero_identificador}
-                  </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="space-y-6">
+              {/* Profile Image and ID */}
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative w-48 h-48">
+                  <div 
+                    className="absolute inset-0 bg-contain bg-center bg-no-repeat opacity-10"
+                    style={{ 
+                      backgroundImage: 'url("/lovable-uploads/LOGO_COMITE_PIERRE_COUBERTIN.png")',
+                      backgroundSize: '80%',
+                      backgroundPosition: 'center'
+                    }}
+                  />
+                  <img
+                    src={getProfileImage(profile.genero)}
+                    alt="Profile"
+                    className="w-full h-full rounded-full object-cover border-4 border-olimpics-green-primary relative z-10"
+                  />
+                </div>
+                <div className="text-center">
+                  <div className="bg-olimpics-green-primary text-white px-4 py-2 rounded-lg shadow-lg">
+                    <p className="text-sm font-medium">
+                      {isPublicUser ? 'PERFIL' : 'ID DO ATLETA'}
+                    </p>
+                    <p className="text-xl font-bold">
+                      {isPublicUser ? 'Público Geral' : profile.numero_identificador}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Main Information Section */}
-            <div className="md:col-span-9 space-y-6">
               {/* Personal Information */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
@@ -132,6 +132,19 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">{profile.email}</span>
                   </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-6">
+              {/* Payment Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
+                  <CreditCard className="h-5 w-5" />
+                  Informações de Pagamento
+                </h3>
+                <div className="space-y-3">
                   <p className="flex items-center gap-2">
                     <CreditCard className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">
@@ -150,14 +163,6 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                       </span>
                     </span>
                   </p>
-                  <Button
-                    onClick={handlePasswordChange}
-                    variant="outline"
-                    className="w-full flex items-center gap-2 mt-2"
-                  >
-                    <Lock className="h-4 w-4" />
-                    Alterar Senha
-                  </Button>
                 </div>
               </div>
 
@@ -183,7 +188,7 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                 </div>
               )}
 
-              {/* User Roles Section - Now in two columns */}
+              {/* User Roles Section */}
               {profile.papeis && profile.papeis.length > 0 && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
@@ -203,6 +208,16 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                   </div>
                 </div>
               )}
+
+              {/* Password Change Button */}
+              <Button
+                onClick={handlePasswordChange}
+                variant="outline"
+                className="w-full flex items-center gap-2"
+              >
+                <Lock className="h-4 w-4" />
+                Alterar Senha
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -210,4 +225,3 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
     </div>
   );
 }
-
