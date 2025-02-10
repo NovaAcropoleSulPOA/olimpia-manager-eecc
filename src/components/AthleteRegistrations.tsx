@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { 
   CheckCircle2, XCircle, Clock, AlertCircle,
-  Plus, Loader2, Info, ChevronDown
+  Plus, Loader2, Info, ChevronDown, ChevronUp
 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -26,6 +26,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import AthleteSchedule from "@/components/AthleteSchedule";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface Modality {
   id: number;
@@ -56,6 +57,7 @@ export default function AthleteRegistrations() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isEnrollmentsOpen, setIsEnrollmentsOpen] = React.useState(true);
 
   const { data: athleteProfile } = useQuery({
     queryKey: ['athlete-profile', user?.id],
@@ -94,7 +96,6 @@ export default function AthleteRegistrations() {
     });
   };
 
-  // Fetch all available modalities
   const { data: allModalities, isLoading: modalitiesLoading } = useQuery({
     queryKey: ['modalities', athleteProfile?.genero],
     queryFn: async () => {
@@ -115,7 +116,6 @@ export default function AthleteRegistrations() {
 
       const filteredModalities = filterModalitiesByGender(filteredByVacancies);
       
-      // Sort modalities first by grupo, then by name
       return filteredModalities.sort((a, b) => {
         if (a.grupo === b.grupo) {
           return a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
@@ -163,6 +163,7 @@ export default function AthleteRegistrations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['athlete-modalities'] });
       queryClient.invalidateQueries({ queryKey: ['modalities'] });
+      queryClient.invalidateQueries({ queryKey: ['personal-schedule-activities'] });
       toast({
         title: "Desistência confirmada",
         description: "Você desistiu da modalidade com sucesso.",
@@ -196,6 +197,7 @@ export default function AthleteRegistrations() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['athlete-modalities'] });
       queryClient.invalidateQueries({ queryKey: ['modalities'] });
+      queryClient.invalidateQueries({ queryKey: ['personal-schedule-activities'] });
       toast({
         title: "Inscrição realizada",
         description: "Você se inscreveu na modalidade com sucesso.",
@@ -219,7 +221,6 @@ export default function AthleteRegistrations() {
     );
   }
 
-  // Group modalities by grupo
   const groupedModalities = allModalities?.reduce((groups: Record<string, any[]>, modality) => {
     const grupo = modality.grupo || 'Outras Modalidades';
     if (!groups[grupo]) {
@@ -240,138 +241,154 @@ export default function AthleteRegistrations() {
 
       <AthleteSchedule />
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Minhas Inscrições</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Modalidade</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Data de Inscrição</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {registeredModalities?.map((registration) => (
-                <TableRow key={registration.modalidade_id}>
-                  <TableCell>{registration.modalidade?.nome}</TableCell>
-                  <TableCell className="capitalize">{registration.modalidade?.tipo_modalidade}</TableCell>
-                  <TableCell className="capitalize">{registration.modalidade?.categoria}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {getModalityStatusIcon(registration.status)}
-                      <span className="capitalize">{registration.status}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(registration.data_inscricao), "dd/MM/yyyy")}
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      disabled={registration.status !== 'pendente' || withdrawMutation.isPending}
-                      onClick={() => withdrawMutation.mutate(registration.modalidade_id)}
-                    >
-                      {withdrawMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processando...
-                        </>
-                      ) : (
-                        "Desistir"
-                      )}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+      <Collapsible
+        open={isEnrollmentsOpen}
+        onOpenChange={setIsEnrollmentsOpen}
+        className="w-full"
+      >
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle>Minhas Inscrições</CardTitle>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-9 p-0">
+                {isEnrollmentsOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Modalidade</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Data de Inscrição</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {registeredModalities?.map((registration) => (
+                    <TableRow key={registration.modalidade_id}>
+                      <TableCell>{registration.modalidade?.nome}</TableCell>
+                      <TableCell className="capitalize">{registration.modalidade?.tipo_modalidade}</TableCell>
+                      <TableCell className="capitalize">{registration.modalidade?.categoria}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getModalityStatusIcon(registration.status)}
+                          <span className="capitalize">{registration.status}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(registration.data_inscricao), "dd/MM/yyyy")}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={registration.status !== 'pendente' || withdrawMutation.isPending}
+                          onClick={() => withdrawMutation.mutate(registration.modalidade_id)}
+                        >
+                          {withdrawMutation.isPending ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Processando...
+                            </>
+                          ) : (
+                            "Desistir"
+                          )}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
 
-          <div className="mt-8">
-            <CardTitle className="mb-4">Modalidades Disponíveis</CardTitle>
-            <Accordion type="single" collapsible className="space-y-4">
-              {groupedModalities && Object.entries(groupedModalities).map(([grupo, modalities]) => {
-                // Filter out modalities that are already registered
-                const availableModalities = modalities.filter(
-                  modality => !registeredModalities?.some(
-                    reg => reg.modalidade_id === modality.id
-                  )
-                );
+              <div className="mt-8">
+                <CardTitle className="mb-4">Modalidades Disponíveis</CardTitle>
+                <Accordion type="single" collapsible className="space-y-4">
+                  {groupedModalities && Object.entries(groupedModalities).map(([grupo, modalities]) => {
+                    const availableModalities = modalities.filter(
+                      modality => !registeredModalities?.some(
+                        reg => reg.modalidade_id === modality.id
+                      )
+                    );
 
-                if (availableModalities.length === 0) return null;
+                    if (availableModalities.length === 0) return null;
 
-                return (
-                  <AccordionItem 
-                    key={grupo} 
-                    value={grupo}
-                    className="border rounded-lg px-4"
-                  >
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-semibold">{grupo}</h3>
-                        <span className="text-sm text-gray-500">
-                          ({availableModalities.length} modalidades)
-                        </span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Modalidade</TableHead>
-                            <TableHead>Tipo</TableHead>
-                            <TableHead>Categoria</TableHead>
-                            <TableHead>Ações</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {availableModalities.map((modality) => (
-                            <TableRow key={modality.id}>
-                              <TableCell>{modality.nome}</TableCell>
-                              <TableCell className="capitalize">
-                                {modality.tipo_modalidade}
-                              </TableCell>
-                              <TableCell className="capitalize">
-                                {modality.categoria}
-                              </TableCell>
-                              <TableCell>
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  disabled={registerMutation.isPending}
-                                  onClick={() => registerMutation.mutate(modality.id)}
-                                >
-                                  {registerMutation.isPending ? (
-                                    <>
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                      Processando...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Plus className="h-4 w-4 mr-1" />
-                                      Inscrever
-                                    </>
-                                  )}
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
-          </div>
-        </CardContent>
-      </Card>
+                    return (
+                      <AccordionItem 
+                        key={grupo} 
+                        value={grupo}
+                        className="border rounded-lg px-4"
+                      >
+                        <AccordionTrigger className="hover:no-underline">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-semibold">{grupo}</h3>
+                            <span className="text-sm text-gray-500">
+                              ({availableModalities.length} modalidades)
+                            </span>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Modalidade</TableHead>
+                                <TableHead>Tipo</TableHead>
+                                <TableHead>Categoria</TableHead>
+                                <TableHead>Ações</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {availableModalities.map((modality) => (
+                                <TableRow key={modality.id}>
+                                  <TableCell>{modality.nome}</TableCell>
+                                  <TableCell className="capitalize">
+                                    {modality.tipo_modalidade}
+                                  </TableCell>
+                                  <TableCell className="capitalize">
+                                    {modality.categoria}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      disabled={registerMutation.isPending}
+                                      onClick={() => registerMutation.mutate(modality.id)}
+                                    >
+                                      {registerMutation.isPending ? (
+                                        <>
+                                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                          Processando...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Plus className="h-4 w-4 mr-1" />
+                                          Inscrever
+                                        </>
+                                      )}
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
     </div>
   );
 }
