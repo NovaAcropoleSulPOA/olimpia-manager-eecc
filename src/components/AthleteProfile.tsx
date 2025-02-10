@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
@@ -92,31 +91,11 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                     {isPublicUser ? 'Público Geral' : profile.numero_identificador}
                   </p>
                 </div>
-                {/* User Roles Section */}
-                {profile.papeis && profile.papeis.length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    <p className="text-sm font-medium text-olimpics-green-primary flex items-center justify-center gap-2">
-                      <Shield className="h-4 w-4" />
-                      Perfis de Acesso
-                    </p>
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      {profile.papeis.map((role, index) => (
-                        <Badge 
-                          key={index}
-                          variant="secondary" 
-                          className="bg-olimpics-green-primary/10 text-olimpics-green-primary border-olimpics-green-primary/20"
-                        >
-                          {role}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
             {/* Main Information Section */}
-            <div className="md:col-span-9 grid md:grid-cols-2 gap-6">
+            <div className="md:col-span-9 space-y-6">
               {/* Personal Information */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
@@ -142,7 +121,6 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">{profile.email}</span>
                   </p>
-                  {/* Payment Status - Now shown for both user types */}
                   <p className="flex items-center gap-2">
                     <CreditCard className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">
@@ -152,7 +130,6 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                       </span>
                     </span>
                   </p>
-                  {/* Payment Amount - Now shown for both user types */}
                   <p className="flex items-center gap-2">
                     <CreditCard className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">
@@ -191,6 +168,27 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                         {profile.filial_cidade}, {profile.filial_estado}
                       </span>
                     </p>
+                  </div>
+                </div>
+              )}
+
+              {/* User Roles Section - Moved here */}
+              {profile.papeis && profile.papeis.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
+                    <Shield className="h-5 w-5" />
+                    Perfis de Acesso
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.papeis.map((role, index) => (
+                      <Badge 
+                        key={index}
+                        variant="secondary" 
+                        className="bg-olimpics-green-primary/10 text-olimpics-green-primary border-olimpics-green-primary/20"
+                      >
+                        {role}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
               )}
