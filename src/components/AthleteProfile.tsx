@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
@@ -74,7 +75,8 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
 
       <Card>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {/* Column 1: Profile Image and Personal Info */}
             <div className="space-y-6">
               <div className="flex flex-col items-center space-y-4">
                 <div className="relative w-48 h-48">
@@ -103,7 +105,10 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                   </div>
                 </div>
               </div>
+            </div>
 
+            {/* Column 2: Personal Information */}
+            <div className="space-y-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
                   <User className="h-5 w-5" />
@@ -132,6 +137,7 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
               </div>
             </div>
 
+            {/* Column 3: Branch Information and Payment */}
             <div className="space-y-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
@@ -182,6 +188,7 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
               )}
             </div>
 
+            {/* Column 4: Access Profiles and Password Change */}
             <div className="space-y-6">
               {profile.papeis && profile.papeis.length > 0 && (
                 <div className="space-y-4">
