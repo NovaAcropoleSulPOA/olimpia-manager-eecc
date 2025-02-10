@@ -20,6 +20,7 @@ interface AthleteProfileData {
   filial_nome: string;
   filial_cidade: string;
   filial_estado: string;
+  papeis?: string[];
 }
 
 interface PaymentStatus {
@@ -36,18 +37,42 @@ export default function AthleteProfilePage() {
     queryFn: async () => {
       if (!user?.id) return null;
       console.log('Fetching athlete profile for:', user.id);
-      const { data, error } = await supabase
+
+      // Fetch basic profile data
+      const { data: profileData, error: profileError } = await supabase
         .from('view_perfil_atleta')
         .select('*')
         .eq('atleta_id', user.id)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching athlete profile:', error);
-        throw error;
+      if (profileError) {
+        console.error('Error fetching athlete profile:', profileError);
+        throw profileError;
       }
-      console.log('Profile data:', data);
-      return data as AthleteProfileData;
+
+      // Fetch user roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('papeis_usuarios')
+        .select(`
+          perfis (
+            nome
+          )
+        `)
+        .eq('usuario_id', user.id);
+
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError);
+        throw rolesError;
+      }
+
+      // Combine profile data with roles
+      const userRoles = rolesData?.map(role => role.perfis.nome) || [];
+      
+      console.log('Profile data:', { ...profileData, papeis: userRoles });
+      return {
+        ...profileData,
+        papeis: userRoles
+      } as AthleteProfileData;
     },
     enabled: !!user?.id,
   });
@@ -125,16 +150,21 @@ export default function AthleteProfilePage() {
   return (
     <div className="container mx-auto py-6 space-y-8">
       <AthleteProfile 
-        profile={profile || {
-          nome_completo: user?.nome_completo || '',
-          email: user?.email || '',
-          telefone: user?.telefone || '',
-          tipo_documento: user?.tipo_documento || '',
-          numero_documento: user?.numero_documento || '',
-          filial_nome: '',
-          filial_cidade: '',
-          filial_estado: '',
-          genero: user?.genero || '',
+        profile={{
+          ...profile || {
+            nome_completo: user?.nome_completo || '',
+            email: user?.email || '',
+            telefone: user?.telefone || '',
+            tipo_documento: user?.tipo_documento || '',
+            numero_documento: user?.numero_documento || '',
+            filial_nome: '',
+            filial_cidade: '',
+            filial_estado: '',
+            genero: user?.genero || '',
+          },
+          papeis: user?.papeis,
+          pagamento_status: paymentStatus?.status,
+          pagamento_valor: paymentStatus?.valor,
         }} 
         isPublicUser={isPublicUser}
       />

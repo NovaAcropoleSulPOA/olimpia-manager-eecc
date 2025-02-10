@@ -2,9 +2,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
-import { User, MapPin, Phone, Mail, Building2, FileText, CreditCard, Info, Lock } from "lucide-react";
+import { User, MapPin, Phone, Mail, Building2, FileText, CreditCard, Info, Lock, Shield } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface AthleteProfileProps {
   profile: {
@@ -20,6 +21,7 @@ interface AthleteProfileProps {
     filial_estado: string;
     pagamento_status?: string;
     pagamento_valor?: number;
+    papeis?: string[];
   };
   isPublicUser: boolean;
 }
@@ -90,6 +92,26 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                     {isPublicUser ? 'Público Geral' : profile.numero_identificador}
                   </p>
                 </div>
+                {/* User Roles Section */}
+                {profile.papeis && profile.papeis.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <p className="text-sm font-medium text-olimpics-green-primary flex items-center justify-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Perfis de Acesso
+                    </p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {profile.papeis.map((role, index) => (
+                        <Badge 
+                          key={index}
+                          variant="secondary" 
+                          className="bg-olimpics-green-primary/10 text-olimpics-green-primary border-olimpics-green-primary/20"
+                        >
+                          {role}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
