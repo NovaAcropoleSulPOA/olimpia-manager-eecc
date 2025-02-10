@@ -58,8 +58,6 @@ export default function AthleteSchedule() {
 
   // Group activities by date and time
   const groupedActivities = activities?.reduce((groups, activity) => {
-    if (!activity.dia) return groups;
-    
     const date = activity.dia;
     const time = `${activity.horario_inicio}-${activity.horario_fim}`;
     
@@ -71,27 +69,22 @@ export default function AthleteSchedule() {
       groups[date][time] = [];
     }
     
-    // Check if activity is already included to avoid duplicates
-    const isDuplicate = groups[date][time].some(
-      existingActivity => existingActivity.id === activity.id
-    );
-    
-    if (!isDuplicate) {
+    if (!groups[date][time].some(existingActivity => existingActivity.id === activity.id)) {
       groups[date][time].push(activity);
     }
     
     return groups;
   }, {} as GroupedActivities) || {};
 
-  // Get unique dates that have activities
-  const dates = Array.from(new Set(activities?.map(activity => activity.dia) || []))
+  // Get unique dates from activities array
+  const dates = [...new Set(activities?.map(activity => activity.dia))]
     .filter(Boolean)
     .sort();
 
-  // Get all unique time slots
-  const timeSlots = Array.from(new Set(
-    activities?.map(activity => `${activity.horario_inicio}-${activity.horario_fim}`) || []
-  )).sort();
+  // Get unique time slots from activities array
+  const timeSlots = [...new Set(
+    activities?.map(activity => `${activity.horario_inicio}-${activity.horario_fim}`)
+  )].sort();
 
   console.log('Grouped activities:', groupedActivities);
   console.log('Dates with activities:', dates);
