@@ -807,35 +807,10 @@ export type Database = {
           horario_fim: string | null
           horario_inicio: string | null
           id: number | null
-          is_registered: boolean | null
           local: string | null
-          modalidade_id: number | null
           modalidade_nome: string | null
-          registration_status: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
-            columns: ["modalidade_id"]
-            isOneToOne: false
-            referencedRelation: "modalidades"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
-            columns: ["modalidade_id"]
-            isOneToOne: false
-            referencedRelation: "vw_inscricoes_atletas"
-            referencedColumns: ["modalidade_id"]
-          },
-          {
-            foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
-            columns: ["modalidade_id"]
-            isOneToOne: false
-            referencedRelation: "vw_pontuacoes_gerais_atletas"
-            referencedColumns: ["modalidade_id"]
-          },
-        ]
+        Relationships: []
       }
       vw_inscricoes_atletas: {
         Row: {
