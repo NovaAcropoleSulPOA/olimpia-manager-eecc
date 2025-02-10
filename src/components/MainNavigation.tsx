@@ -57,11 +57,6 @@ export function MainNavigation() {
   };
 
   const menuItems = [
-    {
-      title: "Cronograma",
-      icon: Calendar,
-      path: "/cronograma"
-    },
     ...(isAthlete || userRoles.includes('Público Geral') ? [
       {
         title: "Perfil",
@@ -69,6 +64,11 @@ export function MainNavigation() {
         path: "/athlete-profile"
       }
     ] : []),
+    {
+      title: "Cronograma",
+      icon: Calendar,
+      path: "/cronograma"
+    },
     ...(isAthlete ? [
       {
         title: "Minhas Inscrições",
