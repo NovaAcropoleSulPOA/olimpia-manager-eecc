@@ -31,7 +31,7 @@ const socialLinks = [
   {
     name: 'Nova Acrópole Website',
     icon: <Globe className="w-5 h-5" />,
-    url: 'www.nova-acropole.org.br',
+    url: 'https://www.nova-acropole.org.br',
   },
   {
     name: 'YouTube Channel',
