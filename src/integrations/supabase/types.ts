@@ -71,13 +71,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "cronograma_atividade_modalidades_cronograma_atividade_id_fkey"
-            columns: ["cronograma_atividade_id"]
-            isOneToOne: false
-            referencedRelation: "vw_cronograma_atividades_usuario"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
             columns: ["modalidade_id"]
             isOneToOne: false
@@ -798,51 +791,6 @@ export type Database = {
           valor_total_pendente: number | null
         }
         Relationships: []
-      }
-      vw_cronograma_atividades_usuario: {
-        Row: {
-          atividade: string | null
-          cronograma_id: number | null
-          dia: string | null
-          global: boolean | null
-          horario_fim: string | null
-          horario_inicio: string | null
-          id: number | null
-          is_registered: boolean | null
-          local: string | null
-          modalidade_id: number | null
-          ordem: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
-            columns: ["modalidade_id"]
-            isOneToOne: false
-            referencedRelation: "modalidades"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
-            columns: ["modalidade_id"]
-            isOneToOne: false
-            referencedRelation: "vw_inscricoes_atletas"
-            referencedColumns: ["modalidade_id"]
-          },
-          {
-            foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
-            columns: ["modalidade_id"]
-            isOneToOne: false
-            referencedRelation: "vw_pontuacoes_gerais_atletas"
-            referencedColumns: ["modalidade_id"]
-          },
-          {
-            foreignKeyName: "cronograma_atividades_cronograma_id_fkey"
-            columns: ["cronograma_id"]
-            isOneToOne: false
-            referencedRelation: "cronogramas"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       vw_inscricoes_atletas: {
         Row: {
