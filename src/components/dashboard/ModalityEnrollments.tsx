@@ -1,6 +1,6 @@
 
-import React, { useState, useRef } from 'react';
-import { Search, Printer } from "lucide-react";
+import React, { useState } from 'react';
+import { Search } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -22,7 +22,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 
 interface EnrolledUser {
@@ -78,126 +77,20 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
     );
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <div className="space-y-6">
-      <style>
-        {`
-          @media print {
-            @page {
-              size: landscape;
-              margin: 2cm;
-            }
-            
-            body * {
-              visibility: hidden;
-            }
-            
-            .enrollment-list,
-            .enrollment-list * {
-              visibility: visible;
-            }
-            
-            .enrollment-list {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
-            }
-            
-            .no-print {
-              display: none !important;
-            }
-            
-            .print-only {
-              display: block !important;
-            }
-            
-            [data-state="closed"] {
-              display: block !important;
-            }
-            
-            [data-state="closed"] > div {
-              display: block !important;
-              height: auto !important;
-            }
-            
-            .print-table {
-              border-collapse: collapse;
-              width: 100%;
-              margin-bottom: 2rem;
-              page-break-inside: avoid;
-            }
-            
-            .print-table th,
-            .print-table td {
-              border: 1px solid #ddd;
-              padding: 8px;
-              text-align: left;
-            }
-            
-            .print-table th {
-              background-color: #f5f5f5;
-              font-weight: bold;
-            }
-            
-            .print-modality-header {
-              font-size: 24px;
-              margin-bottom: 1rem;
-              text-align: center;
-              color: black;
-              font-weight: bold;
-              page-break-before: always;
-            }
-            
-            .print-filial-header {
-              font-size: 18px;
-              margin: 1rem 0;
-              color: black;
-              font-weight: bold;
-            }
-            
-            .print-page-header {
-              text-align: center;
-              font-size: 28px;
-              margin-bottom: 2rem;
-              font-weight: bold;
-              color: black;
-            }
-            
-            .collapsible-content {
-              display: block !important;
-              height: auto !important;
-            }
-          }
-        `}
-      </style>
-
-      <div className="flex items-center justify-between gap-4 no-print">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-          <Input
-            placeholder="Buscar por nome, email ou documento..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Button
-          variant="outline"
-          onClick={handlePrint}
-          className="flex items-center gap-2"
-        >
-          <Printer className="h-4 w-4" />
-          Imprimir Lista
-        </Button>
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+        <Input
+          placeholder="Buscar por nome, email ou documento..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
       </div>
 
-      <div className="space-y-4 enrollment-list">
-        <div className="print-page-header">Lista de Inscrições por Modalidade</div>
+      <div className="space-y-4">
+        <div className="text-2xl font-bold text-olimpics-text mb-4">Lista de Inscrições por Modalidade</div>
         
         {Object.entries(groupedEnrollments).map(([modalidade, filiais]) => (
           <Card key={modalidade} className="overflow-hidden">
@@ -208,18 +101,18 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
               <CollapsibleTrigger className="w-full">
                 <CardHeader className="bg-olimpics-green-primary/5 hover:bg-olimpics-green-primary/10 transition-colors">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-olimpics-text flex items-center gap-2 print-modality-header">
+                    <CardTitle className="text-olimpics-text flex items-center gap-2">
                       {modalidade}
-                      <Badge variant="secondary" className="ml-2 no-print">
+                      <Badge variant="secondary" className="ml-2">
                         {Object.values(filiais).flat().length} inscritos
                       </Badge>
                     </CardTitle>
-                    <ChevronDown className="h-5 w-5 no-print" />
+                    <ChevronDown className="h-5 w-5" />
                   </div>
                 </CardHeader>
               </CollapsibleTrigger>
 
-              <CollapsibleContent className="print-show">
+              <CollapsibleContent>
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     {Object.entries(filiais).map(([filial, users]) => {
@@ -235,18 +128,18 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
                           <CollapsibleTrigger className="w-full">
                             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium print-filial-header">{filial}</span>
-                                <Badge variant="outline" className="no-print">
+                                <span className="font-medium">{filial}</span>
+                                <Badge variant="outline">
                                   {filteredUsers.length} atletas
                                 </Badge>
                               </div>
-                              <ChevronDown className="h-4 w-4 no-print" />
+                              <ChevronDown className="h-4 w-4" />
                             </div>
                           </CollapsibleTrigger>
 
-                          <CollapsibleContent className="print-show">
+                          <CollapsibleContent>
                             <div className="mt-4 rounded-lg border">
-                              <Table className="print-table">
+                              <Table>
                                 <TableHeader>
                                   <TableRow>
                                     <TableHead className="font-semibold">Nome</TableHead>
