@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Search } from "lucide-react";
+import { Search, Printer } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Printer } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 interface EnrolledUser {
   nome_atleta: string;
@@ -87,60 +87,90 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
       <style>
         {`
           @media print {
+            @page {
+              size: landscape;
+              margin: 2cm;
+            }
+            
             body * {
               visibility: hidden;
             }
+            
             .enrollment-list,
             .enrollment-list * {
               visibility: visible;
             }
+            
             .enrollment-list {
               position: absolute;
               left: 0;
               top: 0;
               width: 100%;
             }
+            
             .no-print {
               display: none !important;
             }
-            .print-show {
+            
+            .print-only {
               display: block !important;
             }
+            
             [data-state="closed"] {
               display: block !important;
             }
+            
             [data-state="closed"] > div {
               display: block !important;
               height: auto !important;
             }
+            
             .print-table {
               border-collapse: collapse;
               width: 100%;
               margin-bottom: 2rem;
+              page-break-inside: avoid;
             }
+            
             .print-table th,
             .print-table td {
               border: 1px solid #ddd;
               padding: 8px;
               text-align: left;
             }
+            
             .print-table th {
               background-color: #f5f5f5;
+              font-weight: bold;
             }
-            .print-header {
+            
+            .print-modality-header {
               font-size: 24px;
               margin-bottom: 1rem;
               text-align: center;
               color: black;
+              font-weight: bold;
+              page-break-before: always;
             }
-            .print-subheader {
+            
+            .print-filial-header {
               font-size: 18px;
               margin: 1rem 0;
               color: black;
+              font-weight: bold;
             }
-            @page {
-              size: landscape;
-              margin: 2cm;
+            
+            .print-page-header {
+              text-align: center;
+              font-size: 28px;
+              margin-bottom: 2rem;
+              font-weight: bold;
+              color: black;
+            }
+            
+            .collapsible-content {
+              display: block !important;
+              height: auto !important;
             }
           }
         `}
@@ -167,6 +197,8 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
       </div>
 
       <div className="space-y-4 enrollment-list">
+        <div className="print-page-header">Lista de Inscrições por Modalidade</div>
+        
         {Object.entries(groupedEnrollments).map(([modalidade, filiais]) => (
           <Card key={modalidade} className="overflow-hidden">
             <Collapsible
@@ -176,7 +208,7 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
               <CollapsibleTrigger className="w-full">
                 <CardHeader className="bg-olimpics-green-primary/5 hover:bg-olimpics-green-primary/10 transition-colors">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-olimpics-text flex items-center gap-2 print-header">
+                    <CardTitle className="text-olimpics-text flex items-center gap-2 print-modality-header">
                       {modalidade}
                       <Badge variant="secondary" className="ml-2 no-print">
                         {Object.values(filiais).flat().length} inscritos
@@ -203,7 +235,7 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
                           <CollapsibleTrigger className="w-full">
                             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                               <div className="flex items-center gap-2">
-                                <span className="font-medium print-subheader">{filial}</span>
+                                <span className="font-medium print-filial-header">{filial}</span>
                                 <Badge variant="outline" className="no-print">
                                   {filteredUsers.length} atletas
                                 </Badge>
@@ -213,10 +245,10 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
                           </CollapsibleTrigger>
 
                           <CollapsibleContent className="print-show">
-                            <div className="mt-4 rounded-lg border overflow-hidden">
+                            <div className="mt-4 rounded-lg border">
                               <Table className="print-table">
                                 <TableHeader>
-                                  <TableRow className="bg-olimpics-green-primary/5">
+                                  <TableRow>
                                     <TableHead className="font-semibold">Nome</TableHead>
                                     <TableHead className="font-semibold">Documento</TableHead>
                                     <TableHead className="font-semibold">Contato</TableHead>
