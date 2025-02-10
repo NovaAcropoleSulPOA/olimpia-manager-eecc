@@ -83,15 +83,14 @@ export default function AthleteSchedule() {
     return groups;
   }, {} as GroupedActivities) || {};
 
-  // Get dates that have activities
-  const dates = Object.keys(groupedActivities)
-    .filter(date => Object.keys(groupedActivities[date]).length > 0)
+  // Get unique dates that have activities
+  const dates = Array.from(new Set(activities?.map(activity => activity.dia) || []))
+    .filter(Boolean)
     .sort();
 
   // Get all unique time slots
   const timeSlots = Array.from(new Set(
-    Object.values(groupedActivities)
-      .flatMap(timeSlots => Object.keys(timeSlots))
+    activities?.map(activity => `${activity.horario_inicio}-${activity.horario_fim}`) || []
   )).sort();
 
   console.log('Grouped activities:', groupedActivities);

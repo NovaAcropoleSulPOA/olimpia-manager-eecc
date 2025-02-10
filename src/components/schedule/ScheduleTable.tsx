@@ -28,7 +28,7 @@ interface ScheduleTableProps {
 }
 
 export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleTableProps) {
-  if (dates.length === 0) {
+  if (!dates.length) {
     return (
       <div className="text-center py-8 text-gray-500">
         Nenhuma atividade encontrada no cronograma.
