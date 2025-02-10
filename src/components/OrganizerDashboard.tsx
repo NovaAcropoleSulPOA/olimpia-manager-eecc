@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,6 +6,7 @@ import { useDashboardData } from "./dashboard/hooks/useDashboardData";
 import { DashboardTab } from "./dashboard/tabs/DashboardTab";
 import { AthleteManagementTab } from "./dashboard/tabs/AthleteManagementTab";
 import { EnrollmentsTab } from "./dashboard/tabs/EnrollmentsTab";
+import { useAuth } from "@/contexts/AuthContext";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-96 text-center">
@@ -27,6 +27,7 @@ const EmptyState = () => (
 
 export default function OrganizerDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { user } = useAuth();
   const {
     branches,
     branchAnalytics,
@@ -36,7 +37,8 @@ export default function OrganizerDashboard() {
     isLoadingRegistrations,
     analyticsError,
     registrationsError,
-    handleRefresh
+    handleRefresh,
+    userRole
   } = useDashboardData();
 
   const handleRefreshClick = async () => {
@@ -124,7 +126,11 @@ export default function OrganizerDashboard() {
         </TabsContent>
 
         <TabsContent value="athletes" className="mt-6">
-          <AthleteManagementTab registrations={registrations} branches={branches} />
+          <AthleteManagementTab 
+            registrations={registrations} 
+            branches={branches}
+            userRole={userRole} 
+          />
         </TabsContent>
 
         <TabsContent value="enrollments" className="mt-6">

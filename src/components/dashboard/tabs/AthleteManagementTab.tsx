@@ -10,14 +10,17 @@ import { useQueryClient } from "@tanstack/react-query";
 interface AthleteManagementTabProps {
   registrations: any[];
   branches: any[];
+  userRole?: string;
 }
 
-export const AthleteManagementTab = ({ registrations, branches }: AthleteManagementTabProps) => {
+export const AthleteManagementTab = ({ registrations, branches, userRole }: AthleteManagementTabProps) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [nameFilter, setNameFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("all");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState("all");
+
+  const isOrganizer = userRole === 'Organizador';
 
   const handleStatusChange = async (modalityId: string, status: string, justification: string) => {
     console.log('Attempting to update modality status:', { modalityId, status, justification });
@@ -61,6 +64,13 @@ export const AthleteManagementTab = ({ registrations, branches }: AthleteManagem
   const filteredRegistrations = registrations
     ?.filter(registration => {
       const nameMatch = registration.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
+      
+      // For organizers, only apply name filter
+      if (isOrganizer) {
+        return nameMatch;
+      }
+      
+      // For delegation representatives and others, apply all filters
       const branchMatch = branchFilter === "all" || registration.filial_id === branchFilter;
       const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
       return nameMatch && branchMatch && statusMatch;
@@ -83,6 +93,7 @@ export const AthleteManagementTab = ({ registrations, branches }: AthleteManagem
         paymentStatusFilter={paymentStatusFilter}
         onPaymentStatusFilterChange={setPaymentStatusFilter}
         branches={branches}
+        hideFilial={isOrganizer} // Hide branch filter for organizers
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">

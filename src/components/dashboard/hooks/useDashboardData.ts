@@ -1,11 +1,32 @@
-
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBranchAnalytics, fetchAthleteRegistrations } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const useDashboardData = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  const { data: userRole } = useQuery({
+    queryKey: ['user-role', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('papeis_usuarios')
+        .select('perfis (nome)')
+        .eq('usuario_id', user.id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return null;
+      }
+      
+      return data?.perfis?.nome || null;
+    },
+    enabled: !!user?.id
+  });
 
   const { data: branches } = useQuery({
     queryKey: ['branches'],
@@ -84,6 +105,7 @@ export const useDashboardData = () => {
     isLoadingRegistrations,
     analyticsError,
     registrationsError,
-    handleRefresh
+    handleRefresh,
+    userRole
   };
 };
