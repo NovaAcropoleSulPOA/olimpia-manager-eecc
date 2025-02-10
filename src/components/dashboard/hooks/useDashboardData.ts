@@ -23,11 +23,36 @@ export const useDashboardData = () => {
         return null;
       }
       
-      // Find if user has Organizador role
+      // Find user roles
       const isOrganizer = data?.some(role => role.perfis?.[0]?.nome === 'Organizador');
-      return isOrganizer ? 'Organizador' : null;
+      const isDelegationRep = data?.some(role => role.perfis?.[0]?.nome === 'Representante de Delegação');
+      
+      if (isOrganizer) return 'Organizador';
+      if (isDelegationRep) return 'Representante de Delegação';
+      return null;
     },
     enabled: !!user?.id
+  });
+
+  // Get the user's filial_id if they are a Delegation Representative
+  const { data: userFilialId } = useQuery({
+    queryKey: ['user-filial', user?.id],
+    queryFn: async () => {
+      if (!user?.id || userRole !== 'Representante de Delegação') return null;
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('filial_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user filial:', error);
+        return null;
+      }
+      
+      return data?.filial_id;
+    },
+    enabled: !!user?.id && userRole === 'Representante de Delegação'
   });
 
   const { data: branches } = useQuery({
@@ -49,10 +74,20 @@ export const useDashboardData = () => {
     error: analyticsError, 
     refetch: refetchAnalytics 
   } = useQuery({
-    queryKey: ['branch-analytics'],
-    queryFn: fetchBranchAnalytics,
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: true,
+    queryKey: ['branch-analytics', userRole, userFilialId],
+    queryFn: async () => {
+      let query = supabase.from('vw_analytics_inscricoes').select('*');
+      
+      // If user is a Delegation Representative, filter by their branch
+      if (userRole === 'Representante de Delegação' && userFilialId) {
+        query = query.eq('filial_id', userFilialId);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!userRole,
   });
 
   const { 
@@ -61,24 +96,41 @@ export const useDashboardData = () => {
     error: registrationsError,
     refetch: refetchRegistrations
   } = useQuery({
-    queryKey: ['athlete-registrations'],
-    queryFn: fetchAthleteRegistrations,
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: true,
+    queryKey: ['athlete-registrations', userRole, userFilialId],
+    queryFn: async () => {
+      let query = supabase.from('vw_inscricoes_atletas').select('*');
+      
+      // If user is a Delegation Representative, filter by their branch
+      if (userRole === 'Representante de Delegação' && userFilialId) {
+        query = query.eq('filial_id', userFilialId);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!userRole,
   });
 
   const { data: confirmedEnrollments } = useQuery({
-    queryKey: ['confirmed-enrollments'],
+    queryKey: ['confirmed-enrollments', userRole, userFilialId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('vw_inscricoes_atletas')
         .select('*')
         .eq('status_inscricao', 'confirmado')
         .order('modalidade_nome');
       
+      // If user is a Delegation Representative, filter by their branch
+      if (userRole === 'Representante de Delegação' && userFilialId) {
+        query = query.eq('filial_id', userFilialId);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
-    }
+    },
+    enabled: !!userRole,
   });
 
   const handleRefresh = async () => {
