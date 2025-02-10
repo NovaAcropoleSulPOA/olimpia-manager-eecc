@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -43,7 +44,7 @@ export default function AthleteProfilePage() {
       if (!user?.id) return null;
       console.log('Fetching athlete profile for:', user.id);
 
-      // For all users, first try to get the full athlete profile view
+      // Get full profile data from view_perfil_atleta
       const { data: profileData, error: profileError } = await supabase
         .from('view_perfil_atleta')
         .select('*')
@@ -55,11 +56,22 @@ export default function AthleteProfilePage() {
         throw profileError;
       }
 
-      // If no profile data is found in view_perfil_atleta, get basic user info from usuarios table
+      // If no profile data in view, get basic user info
       if (!profileData) {
+        console.log('No profile in view, fetching from usuarios table');
         const { data: userData, error: userError } = await supabase
           .from('usuarios')
-          .select('*')
+          .select(`
+            id,
+            nome_completo,
+            telefone,
+            email,
+            numero_identificador,
+            tipo_documento,
+            numero_documento,
+            genero,
+            filial_id
+          `)
           .eq('id', user.id)
           .maybeSingle();
 
@@ -73,7 +85,23 @@ export default function AthleteProfilePage() {
           return null;
         }
 
-        // Return basic user profile
+        // If user has filial_id, get filial details
+        let filialData = null;
+        if (userData.filial_id) {
+          const { data: filial, error: filialError } = await supabase
+            .from('filiais')
+            .select('nome, cidade, estado')
+            .eq('id', userData.filial_id)
+            .maybeSingle();
+
+          if (filialError) {
+            console.error('Error fetching filial data:', filialError);
+          } else {
+            filialData = filial;
+          }
+        }
+
+        // Return basic user profile with filial data if available
         return {
           atleta_id: userData.id,
           nome_completo: userData.nome_completo,
@@ -83,9 +111,9 @@ export default function AthleteProfilePage() {
           tipo_documento: userData.tipo_documento,
           numero_documento: userData.numero_documento,
           genero: userData.genero,
-          filial_nome: '',
-          filial_cidade: '',
-          filial_estado: '',
+          filial_nome: filialData?.nome || '',
+          filial_cidade: filialData?.cidade || '',
+          filial_estado: filialData?.estado || '',
         };
       }
 
@@ -104,7 +132,7 @@ export default function AthleteProfilePage() {
         throw rolesError;
       }
 
-      // Properly map the roles data
+      // Map the roles data
       const userRoles = rolesData?.flatMap((role: UserRoleData) => role.perfis.map(p => p.nome)) || [];
       
       console.log('Profile data:', { ...profileData, papeis: userRoles });

@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { User, FileText, Phone, Mail } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface PersonalInfoProps {
   nome_completo: string;
@@ -26,21 +27,39 @@ export default function PersonalInfo({
       <div className="space-y-3">
         <p className="flex items-center gap-2">
           <User className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">{nome_completo}</span>
+          <span className={cn(
+            "text-sm",
+            nome_completo ? "font-medium" : "text-muted-foreground italic"
+          )}>
+            {nome_completo || 'Nome não informado'}
+          </span>
         </p>
         <p className="flex items-center gap-2">
           <FileText className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">
+          <span className={cn(
+            "text-sm",
+            numero_documento ? "" : "text-muted-foreground italic"
+          )}>
             {tipo_documento}: {numero_documento || 'Não informado'}
           </span>
         </p>
         <p className="flex items-center gap-2">
           <Phone className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{telefone || 'Não informado'}</span>
+          <span className={cn(
+            "text-sm",
+            telefone ? "" : "text-muted-foreground italic"
+          )}>
+            {telefone || 'Telefone não informado'}
+          </span>
         </p>
         <p className="flex items-center gap-2">
           <Mail className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{email || 'Não informado'}</span>
+          <span className={cn(
+            "text-sm",
+            email ? "" : "text-muted-foreground italic"
+          )}>
+            {email || 'Email não informado'}
+          </span>
         </p>
       </div>
     </div>
