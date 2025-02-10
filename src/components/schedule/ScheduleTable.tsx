@@ -13,7 +13,9 @@ interface ScheduleActivity {
   local: string;
   is_registered: boolean;
   global: boolean;
-  modalidade_nome: string;
+  modalidade_nome: string | null;
+  registration_status: string;
+  modalidade_id: number | null;
 }
 
 interface GroupedActivities {
@@ -29,6 +31,14 @@ interface ScheduleTableProps {
 }
 
 export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleTableProps) {
+  if (dates.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        Nenhuma atividade encontrada no cronograma.
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
@@ -60,9 +70,9 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
                 {dates.map(date => (
                   <td key={`${date}-${timeSlot}`} className="p-4 align-top">
                     <div className="space-y-2">
-                      {groupedActivities[date]?.[timeSlot]?.map((activity, index) => (
+                      {groupedActivities[date]?.[timeSlot]?.map((activity) => (
                         <ActivityCard 
-                          key={`${activity.id}-${index}`}
+                          key={activity.id}
                           activity={activity}
                         />
                       ))}

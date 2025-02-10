@@ -3,10 +3,10 @@ import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { Calendar, Loader2 } from "lucide-react";
 import { ScheduleLegend } from './schedule/ScheduleLegend';
 import { ScheduleTable } from './schedule/ScheduleTable';
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ScheduleActivity {
   id: number;
@@ -17,7 +17,9 @@ interface ScheduleActivity {
   local: string;
   is_registered: boolean;
   global: boolean;
-  modalidade_nome: string;
+  modalidade_nome: string | null;
+  registration_status: string;
+  modalidade_id: number | null;
 }
 
 interface GroupedActivities {
@@ -27,9 +29,12 @@ interface GroupedActivities {
 }
 
 export default function AthleteSchedule() {
+  const { user } = useAuth();
+
   const { data: activities, isLoading } = useQuery({
-    queryKey: ['schedule-activities'],
+    queryKey: ['schedule-activities', user?.id],
     queryFn: async () => {
+      console.log('Fetching schedule activities');
       const { data, error } = await supabase
         .from('vw_cronograma_atividades_usuario')
         .select('*')
@@ -41,8 +46,10 @@ export default function AthleteSchedule() {
         throw error;
       }
 
+      console.log('Retrieved schedule activities:', data);
       return data as ScheduleActivity[];
     },
+    enabled: !!user?.id,
   });
 
   if (isLoading) {
@@ -55,6 +62,8 @@ export default function AthleteSchedule() {
 
   // Group activities by date and time
   const groupedActivities = activities?.reduce((groups, activity) => {
+    if (!activity.dia) return groups;
+    
     const date = activity.dia;
     const time = `${activity.horario_inicio}-${activity.horario_fim}`;
     
@@ -68,8 +77,7 @@ export default function AthleteSchedule() {
     
     // Check if activity is already included to avoid duplicates
     const isDuplicate = groups[date][time].some(
-      existingActivity => existingActivity.atividade === activity.atividade &&
-      existingActivity.local === activity.local
+      existingActivity => existingActivity.id === activity.id
     );
     
     if (!isDuplicate) {
@@ -89,6 +97,10 @@ export default function AthleteSchedule() {
     Object.values(groupedActivities)
       .flatMap(timeSlots => Object.keys(timeSlots))
   )).sort();
+
+  console.log('Grouped activities:', groupedActivities);
+  console.log('Dates with activities:', dates);
+  console.log('Time slots:', timeSlots);
 
   return (
     <Card>
