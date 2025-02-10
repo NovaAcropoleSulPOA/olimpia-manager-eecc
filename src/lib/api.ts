@@ -51,6 +51,20 @@ export interface BranchAnalytics {
   top_modalidades_misto: Record<string, number>;
 }
 
+interface SupabaseUserRole {
+  perfil_id: number;
+  perfis: {
+    nome: string;
+  }[];
+}
+
+interface UserRole {
+  perfil_id: number;
+  perfis: {
+    nome: string;
+  };
+}
+
 export const updatePaymentAmount = async (
   athleteId: string,
   amount: number
@@ -114,17 +128,9 @@ export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
   }
 };
 
-interface UserRole {
-  perfil_id: number;
-  perfis: {
-    nome: string;
-  };
-}
-
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
   console.log('Starting fetchAthleteRegistrations...');
   try {
-    // First, get the current user ID
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
@@ -134,7 +140,6 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
 
     console.log('Current user ID:', user.id);
 
-    // Fetch user roles and branch info
     const [userRolesResult, userProfileResult] = await Promise.all([
       supabase
         .from('papeis_usuarios')
@@ -162,7 +167,11 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       throw userProfileResult.error;
     }
 
-    const userRoles = userRolesResult.data as UserRole[];
+    const userRoles = (userRolesResult.data as SupabaseUserRole[]).map(role => ({
+      perfil_id: role.perfil_id,
+      perfis: role.perfis[0] // Take first perfis entry since it's an array in response
+    })) as UserRole[];
+    
     const userProfile = userProfileResult.data;
 
     console.log('User roles:', userRoles);
@@ -171,18 +180,15 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     const isOrganizer = userRoles?.some(role => role.perfis?.nome === 'Organizador');
     console.log('Is user an organizer?', isOrganizer);
 
-    // Build the query based on user role
     let query = supabase
       .from('vw_inscricoes_atletas')
       .select('*');
 
-    // For delegation representatives, only filter by branch
     if (!isOrganizer && userProfile?.filial_id) {
       console.log('Filtering by branch:', userProfile.filial_id);
       query = query.eq('filial_id', userProfile.filial_id);
     }
 
-    // Order results by name
     query = query.order('nome_atleta');
 
     const { data, error } = await query;
@@ -223,11 +229,9 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       numero_identificador: registration.numero_identificador || undefined
     }));
 
-    // Group registrations by athlete
     const groupedData = transformedData.reduce((acc, curr) => {
       const existingAthlete = acc.find(a => a.id === curr.id);
       if (existingAthlete) {
-        // Merge modalidades arrays while preventing duplicates
         const modalidadesSet = new Set([
           ...existingAthlete.modalidades.map(m => JSON.stringify(m)),
           ...curr.modalidades.map(m => JSON.stringify(m))
