@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "lucide-react";
+import { Calendar, ChevronUp, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { ScheduleTable } from '@/components/schedule/ScheduleTable';
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ScheduleActivity {
   id: number;
@@ -26,6 +27,8 @@ interface GroupedActivities {
 }
 
 export default function Cronograma() {
+  const [isVideoVisible, setIsVideoVisible] = useState(true);
+
   const { data: activities, isLoading } = useQuery({
     queryKey: ['cronograma-activities'],
     queryFn: async () => {
@@ -82,14 +85,30 @@ export default function Cronograma() {
 
   return (
     <div className="space-y-6">
-      <div className="aspect-w-16 aspect-h-9 w-full rounded-lg overflow-hidden shadow-lg">
-        <iframe
-          src="https://www.youtube.com/embed/OSHPBjTutP4?si=LKjz9U5obrt8f9ZI"
-          title="Cronograma Video"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="w-full h-full"
-        />
+      <div className="relative">
+        <div className={`transition-all duration-300 ease-in-out ${isVideoVisible ? 'h-[500px] opacity-100' : 'h-0 opacity-0 overflow-hidden'}`}>
+          <div className="w-full h-full rounded-lg overflow-hidden shadow-lg">
+            <iframe
+              src="https://www.youtube.com/embed/OSHPBjTutP4?si=LKjz9U5obrt8f9ZI"
+              title="Cronograma Video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsVideoVisible(!isVideoVisible)}
+          className="absolute top-2 right-2 bg-white/80 backdrop-blur-sm hover:bg-white/90 transition-colors"
+        >
+          {isVideoVisible ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
+        </Button>
       </div>
 
       <Card>
