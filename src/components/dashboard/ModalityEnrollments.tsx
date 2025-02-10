@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Search } from "lucide-react";
+import { Search, ChevronDown, Printer, FoldVertical, UnfoldVertical } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, Printer } from "lucide-react";
 
 interface EnrolledUser {
   nome_atleta: string;
@@ -50,6 +49,7 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedModality, setExpandedModality] = useState<string | null>(null);
   const [expandedFilial, setExpandedFilial] = useState<string | null>(null);
+  const [allSectionsExpanded, setAllSectionsExpanded] = useState(false);
 
   // Group enrollments by modality and then by filial
   const groupedEnrollments = enrollments.reduce((acc: GroupedEnrollments, enrollment) => {
@@ -78,8 +78,38 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
     );
   };
 
+  const toggleAllSections = () => {
+    const newExpandedState = !allSectionsExpanded;
+    setAllSectionsExpanded(newExpandedState);
+    
+    // If expanding, set all modalities and filials as expanded
+    if (newExpandedState) {
+      const modalityKeys = Object.keys(groupedEnrollments);
+      setExpandedModality(modalityKeys[0]); // Expand first modality
+      
+      // Get first filial of first modality
+      const firstModalityFilials = Object.keys(groupedEnrollments[modalityKeys[0]] || {});
+      setExpandedFilial(`${modalityKeys[0]}-${firstModalityFilials[0]}`);
+    } else {
+      // If collapsing, clear all expanded states
+      setExpandedModality(null);
+      setExpandedFilial(null);
+    }
+  };
+
   const handlePrint = () => {
-    window.print();
+    // Expand all sections before printing
+    setAllSectionsExpanded(true);
+    const modalityKeys = Object.keys(groupedEnrollments);
+    setExpandedModality(modalityKeys[0]);
+    
+    const firstModalityFilials = Object.keys(groupedEnrollments[modalityKeys[0]] || {});
+    setExpandedFilial(`${modalityKeys[0]}-${firstModalityFilials[0]}`);
+    
+    // Short delay to ensure sections are expanded before printing
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   return (
@@ -156,21 +186,40 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
             className="pl-10"
           />
         </div>
-        <Button
-          variant="outline"
-          onClick={handlePrint}
-          className="flex items-center gap-2"
-        >
-          <Printer className="h-4 w-4" />
-          Imprimir Lista
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={toggleAllSections}
+            className="flex items-center gap-2"
+          >
+            {allSectionsExpanded ? (
+              <>
+                <FoldVertical className="h-4 w-4" />
+                Recolher Tudo
+              </>
+            ) : (
+              <>
+                <UnfoldVertical className="h-4 w-4" />
+                Expandir Tudo
+              </>
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handlePrint}
+            className="flex items-center gap-2"
+          >
+            <Printer className="h-4 w-4" />
+            Imprimir Lista
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-4 enrollment-list">
         {Object.entries(groupedEnrollments).map(([modalidade, filiais]) => (
           <Card key={modalidade} className="overflow-hidden">
             <Collapsible
-              open={expandedModality === modalidade}
+              open={expandedModality === modalidade || allSectionsExpanded}
               onOpenChange={() => setExpandedModality(expandedModality === modalidade ? null : modalidade)}
             >
               <CollapsibleTrigger className="w-full">
@@ -197,7 +246,7 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
                       return (
                         <Collapsible
                           key={filial}
-                          open={expandedFilial === `${modalidade}-${filial}`}
+                          open={expandedFilial === `${modalidade}-${filial}` || allSectionsExpanded}
                           onOpenChange={() => setExpandedFilial(expandedFilial === `${modalidade}-${filial}` ? null : `${modalidade}-${filial}`)}
                         >
                           <CollapsibleTrigger className="w-full">
@@ -255,3 +304,4 @@ export const ModalityEnrollments = ({ enrollments }: ModalityEnrollmentsProps) =
     </div>
   );
 };
+
