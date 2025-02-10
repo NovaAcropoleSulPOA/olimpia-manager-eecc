@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { format } from "date-fns";
 import { Clock } from "lucide-react";
 import { ActivityCard } from './ActivityCard';
 
@@ -36,7 +35,8 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
     );
   }
 
-  const columnWidth = `${100 / (dates.length + 1)}%`;
+  const weekDays = ["Sábado", "Domingo"];
+  const columnWidth = `${100 / (weekDays.length + 1)}%`;
 
   return (
     <div className="overflow-x-auto">
@@ -49,13 +49,13 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
             >
               Horário
             </th>
-            {dates.map(date => (
+            {weekDays.map((day, index) => (
               <th 
-                key={date} 
+                key={day} 
                 className="border-b p-4 text-left font-semibold text-olimpics-green-primary"
                 style={{ width: columnWidth }}
               >
-                {format(new Date(date), "dd/MM/yyyy")}
+                {day}
               </th>
             ))}
           </tr>
@@ -73,7 +73,7 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
                     </span>
                   </div>
                 </td>
-                {dates.map(date => (
+                {dates.map((date, index) => (
                   <td 
                     key={`${date}-${timeSlot}`} 
                     className="p-4 align-top"
