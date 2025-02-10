@@ -50,21 +50,21 @@ export default function ResetPassword() {
           console.error('Session check error:', sessionError);
           if (mounted) {
             setError('Erro ao verificar sessão');
-            navigate('/login');
+            navigate('/');
           }
           return;
         }
 
         if (!session && !fromProfile) {
-          console.log('No session found, redirecting to login');
+          console.log('No session found, redirecting to index');
           if (mounted) {
-            navigate('/login');
+            navigate('/');
           }
         }
       } catch (err) {
         console.error('Session check failed:', err);
         if (mounted) {
-          navigate('/login');
+          navigate('/');
         }
       }
     };
@@ -79,7 +79,7 @@ export default function ResetPassword() {
     if (fromProfile) {
       navigate('/athlete-profile');
     } else {
-      navigate('/login');
+      navigate('/');
     }
   };
 
@@ -210,7 +210,7 @@ export default function ResetPassword() {
                 className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Atualizando...' : 'Atualizar Senha'}
+                {isSubmitting ? 'Senha Atualizada!...' : 'Atualizar Senha'}
               </Button>
               <Button
                 type="button"
