@@ -28,8 +28,8 @@ export default function PersonalInfo({
         <p className="flex items-center gap-2">
           <User className="h-4 w-4 text-muted-foreground" />
           <span className={cn(
-            "text-sm",
-            nome_completo ? "font-medium" : "text-muted-foreground italic"
+            "text-sm font-medium",
+            !nome_completo && "text-muted-foreground italic"
           )}>
             {nome_completo || 'Nome não informado'}
           </span>
@@ -38,25 +38,25 @@ export default function PersonalInfo({
           <FileText className="h-4 w-4 text-muted-foreground" />
           <span className={cn(
             "text-sm",
-            numero_documento ? "" : "text-muted-foreground italic"
+            !(tipo_documento && numero_documento) && "text-muted-foreground italic"
           )}>
-            {tipo_documento}: {numero_documento || 'Não informado'}
+            {tipo_documento && numero_documento ? `${tipo_documento}: ${numero_documento}` : 'Documento não informado'}
           </span>
         </p>
         <p className="flex items-center gap-2">
           <Phone className="h-4 w-4 text-muted-foreground" />
           <span className={cn(
             "text-sm",
-            telefone ? "" : "text-muted-foreground italic"
+            !telefone && "text-muted-foreground italic"
           )}>
-            {telefone || 'Telefone não informado'}
+            {telefone ? telefone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3') : 'Telefone não informado'}
           </span>
         </p>
         <p className="flex items-center gap-2">
           <Mail className="h-4 w-4 text-muted-foreground" />
           <span className={cn(
             "text-sm",
-            email ? "" : "text-muted-foreground italic"
+            !email && "text-muted-foreground italic"
           )}>
             {email || 'Email não informado'}
           </span>

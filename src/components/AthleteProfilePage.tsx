@@ -20,183 +20,40 @@ interface AthleteProfileData {
   filial_nome: string;
   filial_cidade: string;
   filial_estado: string;
+  status_confirmacao: boolean;
   papeis?: string[];
-}
-
-interface PaymentStatus {
-  status: string;
-  valor?: number;
-}
-
-interface UserRoleData {
-  perfis: {
-    nome: string;
-  }[];
+  pagamento_status?: string;
+  pagamento_valor?: number;
 }
 
 export default function AthleteProfilePage() {
   const { user } = useAuth();
   const isPublicUser = user?.papeis?.includes('Público Geral') || user?.papeis?.length === 0;
 
-  const { data: profile, isLoading: profileLoading } = useQuery({
+  const { data: profile, isLoading } = useQuery({
     queryKey: ['athlete-profile', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       console.log('Fetching athlete profile for:', user.id);
 
-      // Get full profile data from view_perfil_atleta
-      const { data: profileData, error: profileError } = await supabase
+      const { data, error } = await supabase
         .from('view_perfil_atleta')
         .select('*')
         .eq('atleta_id', user.id)
         .maybeSingle();
 
-      if (profileError) {
-        console.error('Error fetching athlete profile:', profileError);
-        throw profileError;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        throw error;
       }
 
-      // If no profile data in view, get basic user info
-      if (!profileData) {
-        console.log('No profile in view, fetching from usuarios table');
-        const { data: userData, error: userError } = await supabase
-          .from('usuarios')
-          .select(`
-            id,
-            nome_completo,
-            telefone,
-            email,
-            numero_identificador,
-            tipo_documento,
-            numero_documento,
-            genero,
-            filial_id
-          `)
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (userError) {
-          console.error('Error fetching user data:', userError);
-          throw userError;
-        }
-
-        if (!userData) {
-          console.error('No user data found');
-          return null;
-        }
-
-        // If user has filial_id, get filial details
-        let filialData = null;
-        if (userData.filial_id) {
-          const { data: filial, error: filialError } = await supabase
-            .from('filiais')
-            .select('nome, cidade, estado')
-            .eq('id', userData.filial_id)
-            .maybeSingle();
-
-          if (filialError) {
-            console.error('Error fetching filial data:', filialError);
-          } else {
-            filialData = filial;
-          }
-        }
-
-        // Return basic user profile with filial data if available
-        return {
-          atleta_id: userData.id,
-          nome_completo: userData.nome_completo,
-          telefone: userData.telefone,
-          email: user.email,
-          numero_identificador: userData.numero_identificador,
-          tipo_documento: userData.tipo_documento,
-          numero_documento: userData.numero_documento,
-          genero: userData.genero,
-          filial_nome: filialData?.nome || '',
-          filial_cidade: filialData?.cidade || '',
-          filial_estado: filialData?.estado || '',
-        };
-      }
-
-      // Fetch user roles
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('papeis_usuarios')
-        .select(`
-          perfis (
-            nome
-          )
-        `)
-        .eq('usuario_id', user.id);
-
-      if (rolesError) {
-        console.error('Error fetching user roles:', rolesError);
-        throw rolesError;
-      }
-
-      // Map the roles data
-      const userRoles = rolesData?.flatMap((role: UserRoleData) => role.perfis.map(p => p.nome)) || [];
-      
-      console.log('Profile data:', { ...profileData, papeis: userRoles });
-      return {
-        ...profileData,
-        papeis: userRoles
-      } as AthleteProfileData;
+      console.log('Profile data:', data);
+      return data as AthleteProfileData;
     },
     enabled: !!user?.id,
   });
 
-  const { data: paymentStatus, isLoading: paymentLoading } = useQuery({
-    queryKey: ['payment-status', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      console.log('Fetching payment status for:', user.id);
-
-      if (isPublicUser) {
-        const { data: taxaData, error: taxaError } = await supabase
-          .from('vw_taxas_inscricao_usuarios')
-          .select('*')
-          .eq('usuario_id', user.id)
-          .maybeSingle();
-
-        if (taxaError) {
-          console.error('Error fetching public user payment info:', taxaError);
-          throw taxaError;
-        }
-
-        const { data: pgtoData, error: pgtoError } = await supabase
-          .from('pagamentos')
-          .select('status')
-          .eq('atleta_id', user.id)
-          .maybeSingle();
-
-        if (pgtoError) {
-          console.error('Error fetching public user payment status:', pgtoError);
-          throw pgtoError;
-        }
-
-        console.log('Public user payment data:', { taxa: taxaData, pagamento: pgtoData });
-        return {
-          status: pgtoData?.status || 'pendente',
-          valor: taxaData?.valor
-        } as PaymentStatus;
-      } else {
-        const { data, error } = await supabase
-          .from('pagamentos')
-          .select('status, valor')
-          .eq('atleta_id', user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error fetching athlete payment status:', error);
-          throw error;
-        }
-        console.log('Athlete payment status:', data);
-        return data as PaymentStatus;
-      }
-    },
-    enabled: !!user?.id,
-  });
-
-  if (profileLoading || paymentLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-olimpics-green-primary" />
@@ -204,30 +61,25 @@ export default function AthleteProfilePage() {
     );
   }
 
-  // Removed the profile check since we now always have at least basic user data
-  const profileData = {
-    ...(profile || {
-      nome_completo: user?.nome_completo || '',
-      email: user?.email || '',
-      telefone: user?.telefone || '',
-      tipo_documento: user?.tipo_documento || '',
-      numero_documento: user?.numero_documento || '',
-      filial_nome: '',
-      filial_cidade: '',
-      filial_estado: '',
-      genero: user?.genero || '',
-    }),
-    papeis: user?.papeis,
-    pagamento_status: paymentStatus?.status,
-    pagamento_valor: paymentStatus?.valor,
-  };
+  if (!profile) {
+    return (
+      <div className="container mx-auto py-6 space-y-8">
+        <div className="text-center text-olimpics-text">
+          Perfil não encontrado. Por favor, entre em contato com o suporte.
+        </div>
+      </div>
+    );
+  }
 
-  const isPendingPayment = paymentStatus?.status?.toLowerCase() === 'pendente';
+  const isPendingPayment = profile.pagamento_status?.toLowerCase() === 'pendente';
 
   return (
     <div className="container mx-auto py-6 space-y-8">
       <AthleteProfile 
-        profile={profileData}
+        profile={{
+          ...profile,
+          papeis: user?.papeis,
+        }}
         isPublicUser={isPublicUser}
       />
       {isPendingPayment && <PaymentInfo key={user?.id} />}

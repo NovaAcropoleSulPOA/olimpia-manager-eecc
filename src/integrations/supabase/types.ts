@@ -618,13 +618,6 @@ export type Database = {
             foreignKeyName: "ranking_filiais_filial_id_fkey"
             columns: ["filial_id"]
             isOneToOne: false
-            referencedRelation: "view_perfil_atleta"
-            referencedColumns: ["filial_id"]
-          },
-          {
-            foreignKeyName: "ranking_filiais_filial_id_fkey"
-            columns: ["filial_id"]
-            isOneToOne: false
             referencedRelation: "vw_analytics_inscricoes"
             referencedColumns: ["filial_id"]
           },
@@ -753,13 +746,6 @@ export type Database = {
             foreignKeyName: "usuarios_filial_id_fkey"
             columns: ["filial_id"]
             isOneToOne: false
-            referencedRelation: "view_perfil_atleta"
-            referencedColumns: ["filial_id"]
-          },
-          {
-            foreignKeyName: "usuarios_filial_id_fkey"
-            columns: ["filial_id"]
-            isOneToOne: false
             referencedRelation: "vw_analytics_inscricoes"
             referencedColumns: ["filial_id"]
           },
@@ -790,6 +776,7 @@ export type Database = {
           filial_estado: string | null
           filial_id: string | null
           filial_nome: string | null
+          foto_perfil: string | null
           genero: string | null
           nome_completo: string | null
           numero_documento: string | null
@@ -797,11 +784,41 @@ export type Database = {
           pagamento_data_criacao: string | null
           pagamento_status: string | null
           pagamento_valor: number | null
+          papeis: string[] | null
           status_confirmacao: boolean | null
           telefone: string | null
           tipo_documento: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "usuarios_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["filial_id"]
+          },
+          {
+            foreignKeyName: "usuarios_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "vw_athletes_management"
+            referencedColumns: ["filial_id"]
+          },
+          {
+            foreignKeyName: "usuarios_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "vw_inscricoes_atletas"
+            referencedColumns: ["filial_id"]
+          },
+        ]
       }
       vw_analytics_inscricoes: {
         Row: {
