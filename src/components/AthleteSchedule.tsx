@@ -7,6 +7,7 @@ import { Calendar } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { ScheduleLegend } from './schedule/ScheduleLegend';
 import { ScheduleTable } from './schedule/ScheduleTable';
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ScheduleActivity {
   id: number;
@@ -18,6 +19,7 @@ interface ScheduleActivity {
   is_registered: boolean;
   global: boolean;
   modalidade_nome: string;
+  registration_status: string;
 }
 
 interface GroupedActivities {
@@ -27,12 +29,15 @@ interface GroupedActivities {
 }
 
 export default function AthleteSchedule() {
+  const { user } = useAuth();
+
   const { data: activities, isLoading } = useQuery({
-    queryKey: ['schedule-activities'],
+    queryKey: ['schedule-activities', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('vw_cronograma_atividades_usuario')
         .select('*')
+        .eq('atleta_id', user?.id)
         .order('dia')
         .order('horario_inicio');
 
@@ -43,6 +48,7 @@ export default function AthleteSchedule() {
 
       return data as ScheduleActivity[];
     },
+    enabled: !!user?.id,
   });
 
   if (isLoading) {
