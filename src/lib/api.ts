@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase';
 
 export interface Branch {
@@ -124,7 +125,17 @@ interface UserRole {
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
   console.log('Fetching athlete registrations...');
   try {
-    // First, check if user is an organizer
+    // First, get the current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('No authenticated user found');
+      throw new Error('No authenticated user found');
+    }
+
+    console.log('Current user ID:', user.id);
+
+    // Then, check if user is an organizer
     const { data: userRoles, error: rolesError } = await supabase
       .from('papeis_usuarios')
       .select(`
@@ -133,7 +144,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
           nome
         )
       `)
-      .eq('usuario_id', supabase.auth.getUser().then(res => res.data.user?.id))
+      .eq('usuario_id', user.id)
       .returns<UserRole[]>();
 
     if (rolesError) {
