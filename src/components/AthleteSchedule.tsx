@@ -17,6 +17,7 @@ interface ScheduleActivity {
   local: string;
   global: boolean;
   modalidade_nome: string | null;
+  modalidade_status: string | null;
   atleta_id: string;
 }
 

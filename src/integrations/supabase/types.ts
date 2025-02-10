@@ -823,6 +823,7 @@ export type Database = {
           horario_inicio: string | null
           local: string | null
           modalidade_nome: string | null
+          modalidade_status: string | null
         }
         Relationships: []
       }

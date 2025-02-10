@@ -9,6 +9,7 @@ interface ActivityCardProps {
     atividade: string;
     local: string;
     modalidade_nome: string | null;
+    modalidade_status: string | null;
     global: boolean;
   };
 }
@@ -19,6 +20,31 @@ export function ActivityCard({ activity }: ActivityCardProps) {
       return 'border-yellow-400 bg-yellow-50';
     }
     return 'border-gray-200 bg-white';
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'confirmado':
+        return 'bg-green-100 text-green-800 hover:bg-green-100/80';
+      case 'pendente':
+        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80';
+      case 'cancelado':
+        return 'bg-red-100 text-red-800 hover:bg-red-100/80';
+      default:
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-100/80';
+    }
+  };
+
+  const renderModalityWithStatus = (modalityName: string, status: string) => {
+    return (
+      <Badge 
+        key={`${modalityName}-${status}`}
+        variant="secondary"
+        className={cn(getStatusColor(status))}
+      >
+        {modalityName}
+      </Badge>
+    );
   };
 
   return (
@@ -33,16 +59,13 @@ export function ActivityCard({ activity }: ActivityCardProps) {
         <div className="text-sm text-gray-600">
           <span>{activity.local}</span>
         </div>
-        {activity.modalidade_nome && (
+        {activity.modalidade_nome && activity.modalidade_status && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {activity.modalidade_nome.split(', ').map((modalidade, idx) => (
-              <Badge 
-                key={idx}
-                variant="secondary"
-              >
-                {modalidade}
-              </Badge>
-            ))}
+            {activity.modalidade_nome.split(', ').map((modalidade, idx) => {
+              const statuses = activity.modalidade_status?.split(', ') || [];
+              const status = statuses[idx] || 'pendente';
+              return renderModalityWithStatus(modalidade, status);
+            })}
           </div>
         )}
       </div>
