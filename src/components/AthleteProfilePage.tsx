@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -5,7 +6,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import AthleteScoresSection from './AthleteScoresSection';
 import AthleteProfile from './AthleteProfile';
 import PaymentInfo from './PaymentInfo';
-import AthleteSchedule from './AthleteSchedule';
 import { Loader2 } from "lucide-react";
 
 interface AthleteProfileData {
@@ -138,7 +138,6 @@ export default function AthleteProfilePage() {
         }} 
         isPublicUser={isPublicUser}
       />
-      <AthleteSchedule />
       {isPendingPayment && <PaymentInfo key={user?.id} />}
       {!isPublicUser && user?.id && <AthleteScoresSection athleteId={user.id} />}
     </div>
