@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -105,17 +106,17 @@ export default function DelegationDashboard() {
         if (!athletesMap.has(registration.atleta_id)) {
           athletesMap.set(registration.atleta_id, {
             id: registration.atleta_id,
-            nome_atleta: registration.atleta_nome,
-            email: registration.atleta_email,
+            nome_atleta: registration.atleta_nome || registration.nome_atleta || '',
+            email: registration.atleta_email || registration.email || '',
             confirmado: registration.status_confirmacao,
-            telefone: registration.telefone,
-            filial: registration.filial_nome,
+            telefone: registration.telefone || '',
+            filial: registration.filial_nome || registration.filial || '',
             modalidades: [],
             status_pagamento: registration.status_pagamento || 'pendente',
-            tipo_documento: registration.tipo_documento,
-            numero_documento: registration.numero_documento,
-            genero: registration.genero,
-            numero_identificador: registration.numero_identificador
+            tipo_documento: registration.tipo_documento || '',
+            numero_documento: registration.numero_documento || '',
+            genero: registration.genero || '',
+            numero_identificador: registration.numero_identificador || ''
           });
         }
 
@@ -188,7 +189,7 @@ export default function DelegationDashboard() {
 
   // Filter and sort registrations based on user input
   const filteredRegistrations = registrations?.filter(registration => {
-    const nameMatch = registration.nome_atleta.toLowerCase().includes(nameFilter.toLowerCase());
+    const nameMatch = registration.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
     const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
     return nameMatch && statusMatch;
   }).sort((a, b) => {
@@ -196,7 +197,7 @@ export default function DelegationDashboard() {
     if (a.id === user?.id) return -1;
     if (b.id === user?.id) return 1;
     // Sort remaining cards alphabetically by name
-    return a.nome_atleta.localeCompare(b.nome_atleta);
+    return (a.nome_atleta || '').localeCompare(b.nome_atleta || '');
   });
 
   return (
