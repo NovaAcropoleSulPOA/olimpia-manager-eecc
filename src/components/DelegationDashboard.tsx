@@ -188,7 +188,9 @@ export default function DelegationDashboard() {
 
   // Filter and sort registrations based on user input
   const filteredRegistrations = registrations?.filter(registration => {
-    const nameMatch = registration.nome_atleta.toLowerCase().includes(nameFilter.toLowerCase());
+    const nameMatch = registration.nome_atleta && typeof registration.nome_atleta === 'string' 
+      ? registration.nome_atleta.toLowerCase().includes(nameFilter.toLowerCase())
+      : false;
     const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
     return nameMatch && statusMatch;
   }).sort((a, b) => {
@@ -196,7 +198,7 @@ export default function DelegationDashboard() {
     if (a.id === user?.id) return -1;
     if (b.id === user?.id) return 1;
     // Sort remaining cards alphabetically by name
-    return a.nome_atleta.localeCompare(b.nome_atleta);
+    return (a.nome_atleta || '').localeCompare(b.nome_atleta || '');
   });
 
   return (
