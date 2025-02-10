@@ -140,7 +140,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
         .from('papeis_usuarios')
         .select(`
           perfil_id,
-          perfis:perfis (
+          perfis (
             nome
           )
         `)
