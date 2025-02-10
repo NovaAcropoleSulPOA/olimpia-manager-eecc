@@ -15,7 +15,7 @@ export const useDashboardData = () => {
       if (!user?.id) return null;
       const { data, error } = await supabase
         .from('papeis_usuarios')
-        .select('perfis (nome)')
+        .select('perfis:perfis (nome)')
         .eq('usuario_id', user.id);
       
       if (error) {
