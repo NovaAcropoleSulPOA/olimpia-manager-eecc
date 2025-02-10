@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBranchAnalytics, fetchAthleteRegistrations, updateModalityStatus, updatePaymentStatus } from "@/lib/api";
@@ -138,7 +139,7 @@ export default function OrganizerDashboard() {
     return <EmptyState />;
   }
 
-  // Filter and sort registrations
+  // Filter registrations based on user input
   const filteredRegistrations = registrations
     ?.filter(registration => {
       const nameMatch = registration.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
