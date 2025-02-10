@@ -9,7 +9,7 @@ const modalities = [
   { name: 'Corrida', icon: "🏃" },
   { name: 'Lançamento de Dardo', icon: "🎯" },
   { name: 'Natação', icon: "🏊" },
-  { name: 'Poesia Escrita', icon: "📝" },
+  { name: 'Poesia (Escrita e Declamada)', icon: "📝" },
   { name: 'Salto em Distância', icon: "🦘" },
   { name: 'Tênis de Mesa', icon: "🏓" },
   { name: 'Tiro com Arco', icon: "🎯" },
