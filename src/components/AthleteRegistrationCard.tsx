@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   
   const validModalities = registration?.modalidades?.filter(m => m.modalidade) || [];
   const hasModalities = validModalities.length > 0;
-  const isSingleEmptyModality = registration?.inscricao_id && (!registration?.modalidades?.[0]?.modalidade || registration?.modalidades?.length === 0);
 
   // Fetch payment information
   const { data: paymentData, refetch: refetchPayment } = useQuery({
@@ -263,10 +263,10 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
 
             <div className="flex items-center gap-2">
               <Building2 className="h-4 w-4 text-muted-foreground" />
-              <span>{registration.filial}</span>
+              <span>{registration.filial_nome}</span>
             </div>
 
-            {hasModalities && !isSingleEmptyModality && (
+            {hasModalities && (
               <div className="col-span-2 flex flex-wrap gap-2 mt-2">
                 {validModalities.map((modality, index) => (
                   <Badge 
@@ -323,7 +323,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                 </div>
                 <div className="flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
-                  <span>{registration.filial}</span>
+                  <span>{registration.filial_nome}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
@@ -344,7 +344,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           </DialogDescription>
         </DialogHeader>
 
-        {hasModalities && !isSingleEmptyModality && (
+        {hasModalities && (
           <ScrollArea className="h-[50vh] w-full rounded-md border p-4">
             <Table>
               <TableHeader>

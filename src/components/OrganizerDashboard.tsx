@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBranchAnalytics, fetchAthleteManagement, updateModalityStatus, updatePaymentStatus } from "@/lib/api";
@@ -265,22 +264,7 @@ export default function OrganizerDashboard() {
               {filteredAthletes?.map((athlete) => (
                 <AthleteRegistrationCard
                   key={athlete.id}
-                  registration={{
-                    id: athlete.id,
-                    nome_atleta: athlete.nome_atleta,
-                    email: athlete.email,
-                    telefone: athlete.telefone,
-                    filial: athlete.filial_nome,
-                    filial_id: athlete.filial_id,
-                    modalidades: athlete.modalidades,
-                    status_inscricao: 'pendente',
-                    status_pagamento: athlete.status_pagamento,
-                    tipo_documento: athlete.tipo_documento,
-                    numero_documento: athlete.numero_documento,
-                    genero: athlete.genero,
-                    numero_identificador: athlete.numero_identificador,
-                    confirmado: athlete.status_confirmacao
-                  }}
+                  registration={athlete}
                   onStatusChange={handleStatusChange}
                   onPaymentStatusChange={handlePaymentStatusChange}
                   isCurrentUser={user?.id === athlete.id}
