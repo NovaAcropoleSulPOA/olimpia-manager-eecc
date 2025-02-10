@@ -26,21 +26,21 @@ export default function PersonalInfo({
       <div className="space-y-3">
         <p className="flex items-center gap-2">
           <User className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{nome_completo}</span>
+          <span className="text-sm font-medium">{nome_completo}</span>
         </p>
         <p className="flex items-center gap-2">
           <FileText className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm">
-            {tipo_documento}: {numero_documento}
+            {tipo_documento}: {numero_documento || 'Não informado'}
           </span>
         </p>
         <p className="flex items-center gap-2">
           <Phone className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{telefone}</span>
+          <span className="text-sm">{telefone || 'Não informado'}</span>
         </p>
         <p className="flex items-center gap-2">
           <Mail className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{email}</span>
+          <span className="text-sm">{email || 'Não informado'}</span>
         </p>
       </div>
     </div>
