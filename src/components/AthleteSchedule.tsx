@@ -96,7 +96,7 @@ export default function AthleteSchedule() {
       <CardHeader className="pb-2">
         <CardTitle className="text-olimpics-green-primary flex items-center gap-2">
           <Calendar className="h-5 w-5" />
-          Cronograma de Atividades
+          Meu Cronograma de Atividades
         </CardTitle>
       </CardHeader>
       <CardContent>
