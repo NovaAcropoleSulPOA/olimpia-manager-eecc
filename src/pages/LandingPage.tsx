@@ -87,14 +87,14 @@ const LandingPage = () => {
                     <img 
                       src="/lovable-uploads/9a26ef1b-7684-4457-bbcc-f92d929099ba.png"
                       alt="Nova Acrópole Logo"
-                      className="w-full h-full object-contain animate-pulse"
+                      className="w-full h-full object-cover"
                     />
                   </Card>
                   <div className="relative w-32 h-32">
                     <img 
                       src="/lovable-uploads/LOGO_COMITE_PIERRE_COUBERTIN.png"
                       alt="Comitê Pierre de Coubertin Logo"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain animate-pulse"
                     />
                   </div>
                 </div>
