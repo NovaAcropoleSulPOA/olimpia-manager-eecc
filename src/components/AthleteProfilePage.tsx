@@ -28,6 +28,12 @@ interface PaymentStatus {
   valor?: number;
 }
 
+interface UserRolesResponse {
+  perfis: {
+    nome: string;
+  };
+}
+
 export default function AthleteProfilePage() {
   const { user } = useAuth();
   const isPublicUser = user?.papeis?.includes('Público Geral') || user?.papeis?.length === 0;
@@ -66,7 +72,7 @@ export default function AthleteProfilePage() {
       }
 
       // Combine profile data with roles
-      const userRoles = rolesData?.map(role => role.perfis.nome) || [];
+      const userRoles = (rolesData as UserRolesResponse[])?.map(role => role.perfis.nome) || [];
       
       console.log('Profile data:', { ...profileData, papeis: userRoles });
       return {
