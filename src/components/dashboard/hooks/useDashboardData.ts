@@ -24,7 +24,7 @@ export const useDashboardData = () => {
       }
       
       // Find if user has Organizador role
-      const isOrganizer = data?.some(role => role.perfis?.nome === 'Organizador');
+      const isOrganizer = data?.some(role => role.perfis?.[0]?.nome === 'Organizador');
       return isOrganizer ? 'Organizador' : null;
     },
     enabled: !!user?.id
