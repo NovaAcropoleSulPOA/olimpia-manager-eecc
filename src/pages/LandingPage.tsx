@@ -70,25 +70,25 @@ const LandingPage = () => {
       <div className="relative min-h-screen bg-gradient-to-r from-olimpics-green-primary to-olimpics-green-secondary">
         <div className="absolute inset-0 bg-black/40" />
         <div className="container relative z-10 mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             <div className="text-white">
-              <div className="flex flex-col items-center mb-12">
-                <div className="flex items-center gap-6 mb-4">
-                  <div className="relative w-32 h-32">
+              <div className="flex flex-col items-center mb-8">
+                <div className="flex items-center justify-center gap-4 mb-4 w-full">
+                  <div className="relative w-24 h-24 md:w-32 md:h-32">
                     <img 
                       src="/lovable-uploads/EECC_marca_portugues_cores_RGB.png"
                       alt="EECC Logo"
                       className="w-full h-full object-contain animate-pulse"
                     />
                   </div>
-                  <Card className="bg-[#1A1F2C]/90 backdrop-blur p-0 w-32 h-32 flex items-center justify-center overflow-hidden">
+                  <Card className="bg-[#1A1F2C]/90 backdrop-blur p-0 w-24 h-24 md:w-32 md:h-32 flex items-center justify-center overflow-hidden">
                     <img 
                       src="/lovable-uploads/9a26ef1b-7684-4457-bbcc-f92d929099ba.png"
                       alt="Nova Acrópole Logo"
                       className="w-full h-full object-cover"
                     />
                   </Card>
-                  <div className="relative w-32 h-32">
+                  <div className="relative w-24 h-24 md:w-32 md:h-32">
                     <img 
                       src="/lovable-uploads/LOGO_COMITE_PIERRE_COUBERTIN.png"
                       alt="Comitê Pierre de Coubertin Logo"
@@ -96,7 +96,7 @@ const LandingPage = () => {
                     />
                   </div>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-olimpics-orange-primary mb-2">
+                <h2 className="text-3xl md:text-4xl font-bold text-olimpics-orange-primary">
                   Areté
                 </h2>
               </div>
@@ -118,32 +118,7 @@ const LandingPage = () => {
                 </div>
               </Card>
 
-              <div className="flex flex-wrap justify-center gap-4 mb-8">
-                {socialLinks.map((link, index) => (
-                  <a
-                    key={index}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full text-olimpics-green-primary hover:bg-white transition-all shadow-md hover:shadow-lg"
-                  >
-                    {link.icon}
-                    <span className="text-sm font-medium">{link.name}</span>
-                  </a>
-                ))}
-              </div>
-
-              <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center lg:text-left">
-                <span>Olimpíadas Estaduais da Escola do Esporte com Coração </span> <br /> 
-                <span className="text-3xl md:text-5xl">Edição:</span> <br /> 
-                <span className="text-3xl md:text-5xl">Porto Alegre/RS</span>
-              </h1>
-
-              <p className="text-xl md:text-2xl italic mb-12 text-center lg:text-left">
-                "Mais rápidos, mais altos, mais fortes, estamos unidos!"
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 <Card 
                   className="p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 bg-white/95 backdrop-blur cursor-pointer"
                   onClick={handleLocationClick}
@@ -187,7 +162,7 @@ const LandingPage = () => {
                 <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
                   Modalidades Olímpicas
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                   {modalities.map((modality, index) => (
                     <div
                       key={index}
@@ -201,9 +176,34 @@ const LandingPage = () => {
                   ))}
                 </div>
               </div>
+
+              <div className="flex flex-wrap justify-center gap-4 mb-8">
+                {socialLinks.map((link, index) => (
+                  <a
+                    key={index}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full text-olimpics-green-primary hover:bg-white transition-all shadow-md hover:shadow-lg"
+                  >
+                    {link.icon}
+                    <span className="text-sm font-medium">{link.name}</span>
+                  </a>
+                ))}
+              </div>
+
+              <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center lg:text-left">
+                <span>Olimpíadas Estaduais da Escola do Esporte com Coração </span> <br /> 
+                <span className="text-3xl md:text-5xl">Edição:</span> <br /> 
+                <span className="text-3xl md:text-5xl">Porto Alegre/RS</span>
+              </h1>
+
+              <p className="text-xl md:text-2xl italic mb-12 text-center lg:text-left">
+                "Mais rápidos, mais altos, mais fortes, estamos unidos!"
+              </p>
             </div>
 
-            <div className="backdrop-blur-sm bg-white/95 rounded-lg shadow-xl p-6">
+            <div className="backdrop-blur-sm bg-white/95 rounded-lg shadow-xl p-6 lg:sticky lg:top-8">
               <Login />
             </div>
           </div>
