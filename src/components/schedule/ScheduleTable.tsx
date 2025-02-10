@@ -7,12 +7,15 @@ import { ActivityCard } from './ActivityCard';
 interface ScheduleActivity {
   id: number;
   atividade: string;
-  local: string;
-  modalidade_nome: string | null;
-  global: boolean;
   horario_inicio: string;
   horario_fim: string;
   dia: string;
+  local: string;
+  is_registered: boolean;
+  global: boolean;
+  modalidade_nome: string | null;
+  registration_status: string;
+  modalidade_id: number | null;
 }
 
 interface GroupedActivities {
@@ -28,11 +31,9 @@ interface ScheduleTableProps {
 }
 
 export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleTableProps) {
-  console.log('ScheduleTable render:', { groupedActivities, dates, timeSlots });
-  
-  if (!dates.length) {
+  if (dates.length === 0) {
     return (
-      <div className="p-4 text-center text-gray-500">
+      <div className="text-center py-8 text-gray-500">
         Nenhuma atividade encontrada no cronograma.
       </div>
     );
