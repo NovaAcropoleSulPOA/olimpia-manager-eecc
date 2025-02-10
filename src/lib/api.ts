@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase';
 
 export interface Branch {
@@ -115,6 +114,13 @@ export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
   }
 };
 
+interface UserRole {
+  perfil_id: number;
+  perfis: {
+    nome: string;
+  };
+}
+
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
   console.log('Fetching athlete registrations...');
   try {
@@ -127,7 +133,8 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
           nome
         )
       `)
-      .eq('usuario_id', supabase.auth.getUser().then(res => res.data.user?.id));
+      .eq('usuario_id', supabase.auth.getUser().then(res => res.data.user?.id))
+      .returns<UserRole[]>();
 
     if (rolesError) {
       console.error('Error fetching user roles:', rolesError);
