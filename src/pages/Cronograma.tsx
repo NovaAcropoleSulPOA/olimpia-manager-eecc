@@ -81,20 +81,32 @@ export default function Cronograma() {
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-olimpics-green-primary flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Cronograma Geral do Evento
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ScheduleTable 
-          groupedActivities={groupedActivities}
-          dates={dates}
-          timeSlots={timeSlots}
+    <div className="space-y-6">
+      <div className="aspect-w-16 aspect-h-9 w-full rounded-lg overflow-hidden shadow-lg">
+        <iframe
+          src="https://www.youtube.com/embed/OSHPBjTutP4?si=LKjz9U5obrt8f9ZI"
+          title="Cronograma Video"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="w-full h-full"
         />
-      </CardContent>
-    </Card>
+      </div>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-olimpics-green-primary flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Cronograma Geral do Evento
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScheduleTable 
+            groupedActivities={groupedActivities}
+            dates={dates}
+            timeSlots={timeSlots}
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 }
