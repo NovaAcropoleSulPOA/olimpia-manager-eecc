@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,6 @@ export default function DelegationDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
   
-  // First, fetch the user's filial_id
   const { data: userProfile } = useQuery({
     queryKey: ['user-profile', user?.id],
     queryFn: async () => {
@@ -92,7 +90,6 @@ export default function DelegationDashboard() {
         throw error;
       }
 
-      // Group athletes and their modalities
       const athletesMap = new Map();
       
       data?.forEach(record => {
@@ -128,8 +125,14 @@ export default function DelegationDashboard() {
         }
       });
 
-      console.log('Processed athletes data:', Array.from(athletesMap.values()));
-      return Array.from(athletesMap.values());
+      const athletesArray = Array.from(athletesMap.values());
+      
+      return athletesArray.sort((a, b) => {
+        if (a.id === user?.id) return -1;
+        if (b.id === user?.id) return 1;
+        
+        return a.nome_atleta.localeCompare(b.nome_atleta, 'pt-BR', { sensitivity: 'base' });
+      });
     },
     enabled: !!userProfile?.filial_id,
   });
@@ -194,7 +197,6 @@ export default function DelegationDashboard() {
     return <EmptyState />;
   }
 
-  // Filter athletes based on search term
   const filteredAthletes = athletes?.filter(athlete => 
     athlete.nome_atleta?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     athlete.numero_identificador?.toLowerCase().includes(searchTerm.toLowerCase())
