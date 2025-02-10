@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from "@/components/ui/card";
@@ -77,11 +78,21 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
           <div className="grid md:grid-cols-12 gap-6">
             {/* Profile Image and ID Section */}
             <div className="md:col-span-3 flex flex-col items-center space-y-4">
-              <img
-                src={getProfileImage(profile.genero)}
-                alt="Profile"
-                className="w-48 h-48 rounded-full object-cover border-4 border-olimpics-green-primary"
-              />
+              <div className="relative w-48 h-48">
+                <div 
+                  className="absolute inset-0 bg-contain bg-center bg-no-repeat opacity-10"
+                  style={{ 
+                    backgroundImage: 'url("/lovable-uploads/LOGO_COMITE_PIERRE_COUBERTIN.png")',
+                    backgroundSize: '80%',
+                    backgroundPosition: 'center'
+                  }}
+                />
+                <img
+                  src={getProfileImage(profile.genero)}
+                  alt="Profile"
+                  className="w-full h-full rounded-full object-cover border-4 border-olimpics-green-primary relative z-10"
+                />
+              </div>
               <div className="text-center">
                 <div className="bg-olimpics-green-primary text-white px-4 py-2 rounded-lg shadow-lg">
                   <p className="text-sm font-medium">
@@ -172,14 +183,14 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
                 </div>
               )}
 
-              {/* User Roles Section - Moved here */}
+              {/* User Roles Section - Now in two columns */}
               {profile.papeis && profile.papeis.length > 0 && (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
                     <Shield className="h-5 w-5" />
                     Perfis de Acesso
                   </h3>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {profile.papeis.map((role, index) => (
                       <Badge 
                         key={index}
@@ -199,3 +210,4 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
     </div>
   );
 }
+
