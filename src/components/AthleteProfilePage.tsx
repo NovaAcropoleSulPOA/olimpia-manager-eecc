@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -27,11 +28,10 @@ interface PaymentStatus {
   valor?: number;
 }
 
-// Updated interface to match exact Supabase response structure
 interface UserRole {
   perfis: {
     nome: string;
-  }[]
+  }
 }
 
 export default function AthleteProfilePage() {
@@ -44,7 +44,7 @@ export default function AthleteProfilePage() {
       if (!user?.id) return null;
       console.log('Fetching athlete profile for:', user.id);
 
-      // Fetch basic profile data
+      // For all users, first try to get the full athlete profile view
       const { data: profileData, error: profileError } = await supabase
         .from('view_perfil_atleta')
         .select('*')
@@ -54,6 +54,40 @@ export default function AthleteProfilePage() {
       if (profileError) {
         console.error('Error fetching athlete profile:', profileError);
         throw profileError;
+      }
+
+      // If no profile data is found in view_perfil_atleta, get basic user info from usuarios table
+      if (!profileData) {
+        const { data: userData, error: userError } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (userError) {
+          console.error('Error fetching user data:', userError);
+          throw userError;
+        }
+
+        if (!userData) {
+          console.error('No user data found');
+          return null;
+        }
+
+        // Return basic user profile
+        return {
+          atleta_id: userData.id,
+          nome_completo: userData.nome_completo,
+          telefone: userData.telefone,
+          email: user.email,
+          numero_identificador: userData.numero_identificador,
+          tipo_documento: userData.tipo_documento,
+          numero_documento: userData.numero_documento,
+          genero: userData.genero,
+          filial_nome: '',
+          filial_cidade: '',
+          filial_estado: '',
+        };
       }
 
       // Fetch user roles
@@ -71,7 +105,6 @@ export default function AthleteProfilePage() {
         throw rolesError;
       }
 
-      // Combine profile data with roles
       const userRoles = (rolesData as UserRole[])?.flatMap(role => role.perfis.map(p => p.nome)) || [];
       
       console.log('Profile data:', { ...profileData, papeis: userRoles });
@@ -143,35 +176,30 @@ export default function AthleteProfilePage() {
     );
   }
 
-  if (!profile && !isPublicUser) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-red-500">Perfil não encontrado</p>
-      </div>
-    );
-  }
+  // Removed the profile check since we now always have at least basic user data
+  const profileData = {
+    ...(profile || {
+      nome_completo: user?.nome_completo || '',
+      email: user?.email || '',
+      telefone: user?.telefone || '',
+      tipo_documento: user?.tipo_documento || '',
+      numero_documento: user?.numero_documento || '',
+      filial_nome: '',
+      filial_cidade: '',
+      filial_estado: '',
+      genero: user?.genero || '',
+    }),
+    papeis: user?.papeis,
+    pagamento_status: paymentStatus?.status,
+    pagamento_valor: paymentStatus?.valor,
+  };
 
   const isPendingPayment = paymentStatus?.status?.toLowerCase() === 'pendente';
 
   return (
     <div className="container mx-auto py-6 space-y-8">
       <AthleteProfile 
-        profile={{
-          ...profile || {
-            nome_completo: user?.nome_completo || '',
-            email: user?.email || '',
-            telefone: user?.telefone || '',
-            tipo_documento: user?.tipo_documento || '',
-            numero_documento: user?.numero_documento || '',
-            filial_nome: '',
-            filial_cidade: '',
-            filial_estado: '',
-            genero: user?.genero || '',
-          },
-          papeis: user?.papeis,
-          pagamento_status: paymentStatus?.status,
-          pagamento_valor: paymentStatus?.valor,
-        }} 
+        profile={profileData}
         isPublicUser={isPublicUser}
       />
       {isPendingPayment && <PaymentInfo key={user?.id} />}
