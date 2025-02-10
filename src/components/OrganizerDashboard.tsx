@@ -6,10 +6,12 @@ import { DashboardMetrics } from "./dashboard/DashboardMetrics";
 import { DashboardCharts } from "./dashboard/DashboardCharts";
 import { AthleteRegistrationCard } from "./AthleteRegistrationCard";
 import { AthleteFilters } from "./dashboard/AthleteFilters";
+import { ModalityEnrollments } from "./dashboard/ModalityEnrollments";
 import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-96 text-center">
@@ -73,6 +75,20 @@ export default function OrganizerDashboard() {
     queryFn: fetchAthleteRegistrations,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
+  });
+
+  const { data: confirmedEnrollments } = useQuery({
+    queryKey: ['confirmed-enrollments'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('vw_inscricoes_atletas')
+        .select('*')
+        .eq('status_inscricao', 'confirmado')
+        .order('modalidade_nome');
+      
+      if (error) throw error;
+      return data || [];
+    }
   });
 
   const handleRefresh = async () => {
@@ -205,37 +221,59 @@ export default function OrganizerDashboard() {
         <DashboardCharts data={branchAnalytics} />
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4 text-olimpics-text">Gerenciamento de Atletas</h2>
+      <Tabs defaultValue="athletes" className="mt-8">
+        <TabsList>
+          <TabsTrigger value="athletes">Gerenciar Atletas</TabsTrigger>
+          <TabsTrigger value="enrollments">Inscrições por Modalidade</TabsTrigger>
+        </TabsList>
         
-        <AthleteFilters
-          nameFilter={nameFilter}
-          onNameFilterChange={setNameFilter}
-          branchFilter={branchFilter}
-          onBranchFilterChange={setBranchFilter}
-          paymentStatusFilter={paymentStatusFilter}
-          onPaymentStatusFilterChange={setPaymentStatusFilter}
-          branches={branches || []}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredRegistrations?.map((registration) => (
-            <AthleteRegistrationCard
-              key={registration.id}
-              registration={registration}
-              onStatusChange={handleStatusChange}
-              onPaymentStatusChange={handlePaymentStatusChange}
-              isCurrentUser={user?.id === registration.id}
+        <TabsContent value="athletes">
+          <div className="mt-4">
+            <h2 className="text-2xl font-bold mb-4 text-olimpics-text">Gerenciamento de Atletas</h2>
+            
+            <AthleteFilters
+              nameFilter={nameFilter}
+              onNameFilterChange={setNameFilter}
+              branchFilter={branchFilter}
+              onBranchFilterChange={setBranchFilter}
+              paymentStatusFilter={paymentStatusFilter}
+              onPaymentStatusFilterChange={setPaymentStatusFilter}
+              branches={branches || []}
             />
-          ))}
-          
-          {filteredRegistrations?.length === 0 && (
-            <div className="col-span-full text-center py-8 text-muted-foreground">
-              Nenhum atleta encontrado com os filtros selecionados.
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+              {filteredRegistrations?.map((registration) => (
+                <AthleteRegistrationCard
+                  key={registration.id}
+                  registration={registration}
+                  onStatusChange={handleStatusChange}
+                  onPaymentStatusChange={handlePaymentStatusChange}
+                  isCurrentUser={user?.id === registration.id}
+                />
+              ))}
+              
+              {filteredRegistrations?.length === 0 && (
+                <div className="col-span-full text-center py-8 text-muted-foreground">
+                  Nenhum atleta encontrado com os filtros selecionados.
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="enrollments">
+          <div className="mt-4">
+            <h2 className="text-2xl font-bold mb-4 text-olimpics-text">Inscrições por Modalidade</h2>
+            {confirmedEnrollments && confirmedEnrollments.length > 0 ? (
+              <ModalityEnrollments enrollments={confirmedEnrollments} />
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                Nenhuma inscrição confirmada encontrada.
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
