@@ -36,7 +36,7 @@ export default function AthleteSchedule() {
     queryFn: async () => {
       console.log('Fetching schedule activities');
       const { data, error } = await supabase
-        .from('vw_cronograma_atividades_usuario')
+        .from('vw_cronograma_atividades')
         .select('*')
         .order('dia')
         .order('horario_inicio');

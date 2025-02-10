@@ -74,7 +74,7 @@ export type Database = {
             foreignKeyName: "cronograma_atividade_modalidades_cronograma_atividade_id_fkey"
             columns: ["cronograma_atividade_id"]
             isOneToOne: false
-            referencedRelation: "vw_cronograma_atividades_usuario"
+            referencedRelation: "vw_cronograma_atividades"
             referencedColumns: ["id"]
           },
           {
@@ -799,7 +799,7 @@ export type Database = {
         }
         Relationships: []
       }
-      vw_cronograma_atividades_usuario: {
+      vw_cronograma_atividades: {
         Row: {
           atividade: string | null
           dia: string | null
