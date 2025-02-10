@@ -25,6 +25,8 @@ export function ActivityCard({ activity }: ActivityCardProps) {
     return 'border-gray-200 bg-white';
   };
 
+  const modalityNames = activity.modalidade_nome ? activity.modalidade_nome.split(', ') : [];
+
   return (
     <div
       className={cn(
@@ -37,9 +39,9 @@ export function ActivityCard({ activity }: ActivityCardProps) {
         <div className="text-sm text-gray-600">
           <span>{activity.local}</span>
         </div>
-        {activity.modalidade_nome && (
+        {modalityNames.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {activity.modalidade_nome.split(', ').map((modalidade, idx) => (
+            {modalityNames.map((modalidade, idx) => (
               <Badge 
                 key={idx}
                 variant={activity.is_registered ? "default" : "secondary"}
@@ -54,7 +56,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
             ))}
           </div>
         )}
-        {activity.is_registered && (
+        {activity.is_registered && activity.registration_status && (
           <Badge 
             variant="outline" 
             className={cn(

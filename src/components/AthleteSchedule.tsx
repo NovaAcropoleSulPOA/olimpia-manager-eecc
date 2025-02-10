@@ -18,8 +18,9 @@ export interface ScheduleActivity {
   is_registered: boolean;
   global: boolean;
   modalidade_nome: string | null;
-  registration_status: string;
+  registration_status: string | null;
   modalidade_ids: number[] | null;
+  usuario_id: string | null;
 }
 
 interface GroupedActivities {
@@ -81,7 +82,12 @@ export default function AthleteSchedule() {
     );
     
     if (!isDuplicate) {
-      groups[date][time].push(activity);
+      // Only set is_registered if the current user is registered
+      const isUserRegistered = activity.usuario_id === user?.id;
+      groups[date][time].push({
+        ...activity,
+        is_registered: isUserRegistered
+      });
     }
     
     return groups;
