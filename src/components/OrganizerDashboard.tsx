@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchBranchAnalytics, fetchAthleteRegistrations, updateModalityStatus, updatePaymentStatus } from "@/lib/api";
+import { fetchBranchAnalytics, fetchAthleteManagement, updateModalityStatus, updatePaymentStatus } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { DashboardMetrics } from "./dashboard/DashboardMetrics";
 import { DashboardCharts } from "./dashboard/DashboardCharts";
@@ -69,13 +70,13 @@ export default function OrganizerDashboard() {
 
   // Fetch athlete registrations
   const { 
-    data: registrations, 
-    isLoading: isLoadingRegistrations, 
-    error: registrationsError,
-    refetch: refetchRegistrations
+    data: athletes, 
+    isLoading: isLoadingAthletes, 
+    error: athletesError,
+    refetch: refetchAthletes
   } = useQuery({
-    queryKey: ['athlete-registrations'],
-    queryFn: fetchAthleteRegistrations,
+    queryKey: ['athlete-management'],
+    queryFn: () => fetchAthleteManagement(false), // false means don't filter by branch
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
   });
@@ -101,9 +102,9 @@ export default function OrganizerDashboard() {
     try {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
-        queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] }),
+        queryClient.invalidateQueries({ queryKey: ['athlete-management'] }),
         refetchAnalytics(),
-        refetchRegistrations()
+        refetchAthletes()
       ]);
       console.log('Dashboard data refreshed successfully');
       toast.success("Dados atualizados com sucesso!");
@@ -115,7 +116,7 @@ export default function OrganizerDashboard() {
     }
   };
 
-  if (isLoadingAnalytics || isLoadingRegistrations) {
+  if (isLoadingAnalytics || isLoadingAthletes) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
@@ -123,8 +124,8 @@ export default function OrganizerDashboard() {
     );
   }
 
-  if (analyticsError || registrationsError) {
-    console.error('Error fetching data:', analyticsError || registrationsError);
+  if (analyticsError || athletesError) {
+    console.error('Error fetching data:', analyticsError || athletesError);
     toast.error('Erro ao carregar dados do dashboard');
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -142,19 +143,15 @@ export default function OrganizerDashboard() {
     return <EmptyState />;
   }
 
-  // Apply user filters to registrations
-  const filteredRegistrations = registrations?.filter(registration => {
-    const nameMatch = registration.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
-    const branchMatch = branchFilter === "all" || registration.filial_id === branchFilter;
-    const statusMatch = paymentStatusFilter === "all" || registration.status_pagamento === paymentStatusFilter;
+  // Apply user filters to athletes
+  const filteredAthletes = athletes?.filter(athlete => {
+    const nameMatch = athlete.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
+    const branchMatch = branchFilter === "all" || athlete.filial_id === branchFilter;
+    const statusMatch = paymentStatusFilter === "all" || athlete.status_pagamento === paymentStatusFilter;
     return nameMatch && branchMatch && statusMatch;
-  }).sort((a, b) => {
-    if (a.id === user?.id) return -1;
-    if (b.id === user?.id) return 1;
-    return (a.nome_atleta || '').localeCompare(b.nome_atleta || '');
   });
 
-  console.log('Filtered registrations:', filteredRegistrations?.length);
+  console.log('Filtered athletes:', filteredAthletes?.length);
 
   const handleStatusChange = async (modalityId: string, status: string, justification: string) => {
     console.log('Attempting to update modality status:', { modalityId, status, justification });
@@ -165,7 +162,7 @@ export default function OrganizerDashboard() {
       
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
-        queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
+        queryClient.invalidateQueries({ queryKey: ['athlete-management'] })
       ]);
       console.log('Queries invalidated and refetched');
     } catch (error) {
@@ -184,7 +181,7 @@ export default function OrganizerDashboard() {
       
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
-        queryClient.invalidateQueries({ queryKey: ['athlete-registrations'] })
+        queryClient.invalidateQueries({ queryKey: ['athlete-management'] })
       ]);
       console.log('Queries invalidated and refetched after payment status update');
     } catch (error) {
@@ -265,17 +262,32 @@ export default function OrganizerDashboard() {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-              {filteredRegistrations?.map((registration) => (
+              {filteredAthletes?.map((athlete) => (
                 <AthleteRegistrationCard
-                  key={registration.id}
-                  registration={registration}
+                  key={athlete.id}
+                  registration={{
+                    id: athlete.id,
+                    nome_atleta: athlete.nome_atleta,
+                    email: athlete.email,
+                    telefone: athlete.telefone,
+                    filial: athlete.filial_nome,
+                    filial_id: athlete.filial_id,
+                    modalidades: athlete.modalidades,
+                    status_inscricao: 'pendente',
+                    status_pagamento: athlete.status_pagamento,
+                    tipo_documento: athlete.tipo_documento,
+                    numero_documento: athlete.numero_documento,
+                    genero: athlete.genero,
+                    numero_identificador: athlete.numero_identificador,
+                    confirmado: athlete.status_confirmacao
+                  }}
                   onStatusChange={handleStatusChange}
                   onPaymentStatusChange={handlePaymentStatusChange}
-                  isCurrentUser={user?.id === registration.id}
+                  isCurrentUser={user?.id === athlete.id}
                 />
               ))}
               
-              {!filteredRegistrations?.length && (
+              {!filteredAthletes?.length && (
                 <div className="col-span-full text-center py-8 text-muted-foreground">
                   Nenhum atleta encontrado com os filtros selecionados.
                 </div>
