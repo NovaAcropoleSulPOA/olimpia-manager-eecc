@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { useQuery } from "@tanstack/react-query";
+import React, { useEffect } from 'react';
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Loader2 } from "lucide-react";
@@ -29,6 +29,42 @@ interface GroupedActivities {
 
 export default function AthleteSchedule() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!user?.id) return;
+
+    console.log('Setting up real-time subscription for athlete schedule');
+    
+    const channel = supabase
+      .channel('athlete-schedule-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all changes (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'inscricoes_modalidades',
+          filter: `atleta_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Received real-time update:', payload);
+          // Invalidate and refetch the schedule data
+          queryClient.invalidateQueries({
+            queryKey: ['personal-schedule-activities', user.id]
+          });
+        }
+      )
+      .subscribe(status => {
+        console.log('Subscription status:', status);
+      });
+
+    // Cleanup subscription on unmount
+    return () => {
+      console.log('Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   const { data: activities, isLoading } = useQuery({
     queryKey: ['personal-schedule-activities', user?.id],
