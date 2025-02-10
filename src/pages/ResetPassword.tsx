@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +28,7 @@ export default function ResetPassword() {
   const location = useLocation();
   const { user } = useAuth();
   const [error, setError] = React.useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const fromProfile = location.state?.fromProfile;
 
@@ -59,7 +61,14 @@ export default function ResetPassword() {
   };
 
   const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    setError(null);
+
     try {
+      console.log('Starting password update process...');
+      
       // First verify the user is authenticated
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
@@ -69,7 +78,7 @@ export default function ResetPassword() {
         return;
       }
 
-      // Update password first, then redirect
+      // Update password
       const { error: updateError } = await supabase.auth.updateUser({
         password: values.password
       });
@@ -80,13 +89,23 @@ export default function ResetPassword() {
         return;
       }
 
-      // If successful, redirect and show success message
-      navigate('/athlete-profile');
-      toast.success('Senha alterada com sucesso!');
+      console.log('Password updated successfully, showing toast...');
+      
+      // Show success message first
+      toast.success('Senha alterada com sucesso!', {
+        duration: 3000,
+        onDismiss: () => {
+          console.log('Toast dismissed, navigating...');
+          // Only navigate after the toast is shown
+          navigate('/athlete-profile', { replace: true });
+        }
+      });
       
     } catch (error) {
       console.error('Unexpected error:', error);
       setError('Erro inesperado. Por favor, tente novamente.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -154,14 +173,16 @@ export default function ResetPassword() {
                 <Button
                   type="submit"
                   className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary"
+                  disabled={isSubmitting}
                 >
-                  Atualizar Senha
+                  {isSubmitting ? 'Atualizando...' : 'Atualizar Senha'}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleBack}
                   className="w-full"
+                  disabled={isSubmitting}
                 >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Voltar
