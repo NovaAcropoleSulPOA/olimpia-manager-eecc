@@ -14,6 +14,7 @@ interface ScheduleActivity {
   is_registered: boolean;
   global: boolean;
   modalidade_nome: string;
+  registration_status: string;  // Added this property
 }
 
 interface GroupedActivities {
