@@ -28,10 +28,11 @@ interface PaymentStatus {
   valor?: number;
 }
 
-interface UserRolesResponse {
+// Updated interface to match Supabase response structure
+interface UserRole {
   perfis: {
     nome: string;
-  };
+  }
 }
 
 export default function AthleteProfilePage() {
@@ -72,7 +73,7 @@ export default function AthleteProfilePage() {
       }
 
       // Combine profile data with roles
-      const userRoles = (rolesData as UserRolesResponse[])?.map(role => role.perfis.nome) || [];
+      const userRoles = (rolesData as UserRole[])?.map(role => role.perfis.nome) || [];
       
       console.log('Profile data:', { ...profileData, papeis: userRoles });
       return {
