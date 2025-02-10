@@ -11,11 +11,8 @@ interface ScheduleActivity {
   horario_fim: string;
   dia: string;
   local: string;
-  is_registered: boolean;
   global: boolean;
   modalidade_nome: string | null;
-  registration_status: string;
-  modalidade_id: number | null;
 }
 
 interface GroupedActivities {
@@ -39,16 +36,25 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
     );
   }
 
+  const columnWidth = `${100 / (dates.length + 1)}%`;
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
         <thead>
           <tr>
-            <th className="border-b p-4 text-left font-semibold text-olimpics-green-primary">
+            <th 
+              className="border-b p-4 text-left font-semibold text-olimpics-green-primary"
+              style={{ width: columnWidth }}
+            >
               Horário
             </th>
             {dates.map(date => (
-              <th key={date} className="border-b p-4 text-left font-semibold text-olimpics-green-primary">
+              <th 
+                key={date} 
+                className="border-b p-4 text-left font-semibold text-olimpics-green-primary"
+                style={{ width: columnWidth }}
+              >
                 {format(new Date(date), "dd/MM/yyyy")}
               </th>
             ))}
@@ -59,7 +65,7 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
             const [start, end] = timeSlot.split('-');
             return (
               <tr key={timeSlot} className="border-b last:border-b-0">
-                <td className="p-4 align-top">
+                <td className="p-4 align-top" style={{ width: columnWidth }}>
                   <div className="flex items-center gap-1 text-sm text-gray-600">
                     <Clock className="h-4 w-4 shrink-0" />
                     <span className="whitespace-nowrap">
@@ -68,7 +74,11 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
                   </div>
                 </td>
                 {dates.map(date => (
-                  <td key={`${date}-${timeSlot}`} className="p-4 align-top">
+                  <td 
+                    key={`${date}-${timeSlot}`} 
+                    className="p-4 align-top"
+                    style={{ width: columnWidth }}
+                  >
                     <div className="space-y-2">
                       {groupedActivities[date]?.[timeSlot]?.map((activity) => (
                         <ActivityCard 

@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Loader2 } from "lucide-react";
-import { ScheduleLegend } from './schedule/ScheduleLegend';
 import { ScheduleTable } from './schedule/ScheduleTable';
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -15,11 +14,8 @@ interface ScheduleActivity {
   horario_fim: string;
   dia: string;
   local: string;
-  is_registered: boolean;
   global: boolean;
   modalidade_nome: string | null;
-  registration_status: string;
-  modalidade_id: number | null;
 }
 
 interface GroupedActivities {
@@ -104,12 +100,11 @@ export default function AthleteSchedule() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="pb-2">
         <CardTitle className="text-olimpics-green-primary flex items-center gap-2">
           <Calendar className="h-5 w-5" />
           Cronograma de Atividades
         </CardTitle>
-        <ScheduleLegend />
       </CardHeader>
       <CardContent>
         <ScheduleTable 
