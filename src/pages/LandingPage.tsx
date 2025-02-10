@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { MapPin, Calendar, Instagram, Globe, Youtube } from 'lucide-react';
@@ -100,15 +101,15 @@ const LandingPage = () => {
                 </h2>
               </div>
 
-              <Card className="mb-8 p-6 bg-white/10 backdrop-blur border-white/20 shadow-lg">
+              <Card className="mb-8 p-6 bg-white/10 backdrop-blur border-white/20 shadow-lg animate-pulse">
                 <div className="space-y-4 text-center lg:text-left">
                   <h3 className="text-2xl font-bold text-olimpics-orange-primary">
                     Bem-vindo(s) à maior Olimpíada de Esporte com Filosofia do Rio Grande do Sul!
                   </h3>
-                  <p className="text-lg leading-relaxed">
+                  <p className="text-lg leading-relaxed text-olimpics-orange-primary">
                     Mais que medalhas, a Olimpíada é um caminho de autoconhecimento e superação. Uma verdadeira celebração da humanidade.
                   </p>
-                  <p className="text-lg leading-relaxed italic">
+                  <p className="text-lg leading-relaxed italic text-olimpics-orange-primary">
                     Venha desafiar seus limites e buscar a excelência. O maior adversário é você mesmo.
                   </p>
                   <p className="text-xl font-semibold text-olimpics-orange-primary">
@@ -116,13 +117,6 @@ const LandingPage = () => {
                   </p>
                 </div>
               </Card>
-
-              <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center lg:text-left">
-                <span>Olimpíadas Estaduais da Escola do Esporte com Coração </span> <br /> <span> </span> <br /> <span>Edição:</span>&#32;<br /> <span>Porto Alegre/RS</span>
-              </h1>
-              <p className="text-xl md:text-2xl italic mb-12 text-center lg:text-left">
-                "Mais rápidos, mais altos, mais fortes, estamos unidos!"
-              </p>
 
               <div className="flex flex-wrap justify-center gap-4 mb-8">
                 {socialLinks.map((link, index) => (
@@ -138,6 +132,16 @@ const LandingPage = () => {
                   </a>
                 ))}
               </div>
+
+              <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center lg:text-left">
+                <span>Olimpíadas Estaduais da Escola do Esporte com Coração </span> <br /> 
+                <span className="text-3xl md:text-5xl">Edição:</span> <br /> 
+                <span className="text-3xl md:text-5xl">Porto Alegre/RS</span>
+              </h1>
+
+              <p className="text-xl md:text-2xl italic mb-12 text-center lg:text-left">
+                "Mais rápidos, mais altos, mais fortes, estamos unidos!"
+              </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <Card 
