@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBranchAnalytics, fetchAthleteRegistrations } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
@@ -15,15 +16,16 @@ export const useDashboardData = () => {
       const { data, error } = await supabase
         .from('papeis_usuarios')
         .select('perfis (nome)')
-        .eq('usuario_id', user.id)
-        .single();
+        .eq('usuario_id', user.id);
       
       if (error) {
         console.error('Error fetching user role:', error);
         return null;
       }
       
-      return data?.perfis?.nome || null;
+      // Find if user has Organizador role
+      const isOrganizer = data?.some(role => role.perfis?.nome === 'Organizador');
+      return isOrganizer ? 'Organizador' : null;
     },
     enabled: !!user?.id
   });
