@@ -19,7 +19,7 @@ interface ScheduleActivity {
   global: boolean;
   modalidade_nome: string | null;
   registration_status: string;
-  modalidade_id: number | null;
+  modalidade_ids: number[] | null;
 }
 
 interface GroupedActivities {
@@ -38,7 +38,6 @@ export default function AthleteSchedule() {
       const { data, error } = await supabase
         .from('vw_cronograma_atividades_usuario')
         .select('*')
-        .or(`usuario_id.eq.${user?.id},global.eq.true`)
         .order('dia')
         .order('horario_inicio');
 
