@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -215,7 +216,7 @@ export default function AthleteRegistrations() {
 
   if (modalitiesLoading || registrationsLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[50vh]">
         <Loader2 className="h-8 w-8 animate-spin text-olimpics-green-primary" />
       </div>
     );
@@ -231,8 +232,8 @@ export default function AthleteRegistrations() {
   }, {});
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <Alert className="bg-olimpics-green-primary/10 border-olimpics-green-primary text-olimpics-text">
+    <div className="container mx-auto py-6 space-y-6 max-w-7xl">
+      <Alert className="bg-olimpics-green-primary/10 border-olimpics-green-primary text-olimpics-text shadow-sm transition-all duration-200 hover:bg-olimpics-green-primary/15">
         <Info className="h-5 w-5 text-olimpics-green-primary" />
         <AlertDescription className="text-sm">
           As inscrições nas modalidades devem ser realizadas nesta página! Após a confirmação da inscrição em uma modalidade pelo Representante de Delegação, o atleta não poderá cancelar sua participação nesta modalidade diretamente pelo sistema. Caso seja necessário cancelar uma inscrição já aprovada, o atleta deverá entrar em contato com o seu respectivo Representante de Delegação para solicitar qualquer alteração.
@@ -244,74 +245,95 @@ export default function AthleteRegistrations() {
       <Collapsible
         open={isEnrollmentsOpen}
         onOpenChange={setIsEnrollmentsOpen}
-        className="w-full"
+        className="w-full space-y-4"
       >
-        <Card>
+        <Card className="transition-all duration-200 hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle>Minhas Inscrições</CardTitle>
+            <CardTitle className="text-2xl font-bold text-olimpics-text flex items-center gap-2">
+              Minhas Inscrições
+              <span className="text-sm font-normal text-gray-500">
+                ({registeredModalities?.length || 0} modalidades)
+              </span>
+            </CardTitle>
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-9 p-0">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-9 p-0 hover:bg-olimpics-green-primary/10"
+              >
                 {isEnrollmentsOpen ? (
-                  <ChevronUp className="h-4 w-4" />
+                  <ChevronUp className="h-4 w-4 text-olimpics-text" />
                 ) : (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-4 w-4 text-olimpics-text" />
                 )}
               </Button>
             </CollapsibleTrigger>
           </CardHeader>
-          <CollapsibleContent>
+          <CollapsibleContent className="transition-all duration-300">
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Modalidade</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Data de Inscrição</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {registeredModalities?.map((registration) => (
-                    <TableRow key={registration.modalidade_id}>
-                      <TableCell>{registration.modalidade?.nome}</TableCell>
-                      <TableCell className="capitalize">{registration.modalidade?.tipo_modalidade}</TableCell>
-                      <TableCell className="capitalize">{registration.modalidade?.categoria}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getModalityStatusIcon(registration.status)}
-                          <span className="capitalize">{registration.status}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(registration.data_inscricao), "dd/MM/yyyy")}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          disabled={registration.status !== 'pendente' || withdrawMutation.isPending}
-                          onClick={() => withdrawMutation.mutate(registration.modalidade_id)}
-                        >
-                          {withdrawMutation.isPending ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Processando...
-                            </>
-                          ) : (
-                            "Desistir"
-                          )}
-                        </Button>
-                      </TableCell>
+              <div className="rounded-lg border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-olimpics-green-primary/5 hover:bg-olimpics-green-primary/10">
+                      <TableHead className="font-semibold">Modalidade</TableHead>
+                      <TableHead className="font-semibold">Tipo</TableHead>
+                      <TableHead className="font-semibold">Categoria</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold">Data de Inscrição</TableHead>
+                      <TableHead className="font-semibold">Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {registeredModalities?.map((registration) => (
+                      <TableRow 
+                        key={registration.modalidade_id}
+                        className="transition-colors hover:bg-gray-50"
+                      >
+                        <TableCell className="font-medium">{registration.modalidade?.nome}</TableCell>
+                        <TableCell className="capitalize">{registration.modalidade?.tipo_modalidade}</TableCell>
+                        <TableCell className="capitalize">{registration.modalidade?.categoria}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getModalityStatusIcon(registration.status)}
+                            <span className="capitalize">{registration.status}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(registration.data_inscricao), "dd/MM/yyyy")}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            disabled={registration.status !== 'pendente' || withdrawMutation.isPending}
+                            onClick={() => withdrawMutation.mutate(registration.modalidade_id)}
+                            className="transition-all duration-200 hover:bg-red-600"
+                          >
+                            {withdrawMutation.isPending ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Processando...
+                              </>
+                            ) : (
+                              "Desistir"
+                            )}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-              <div className="mt-8">
-                <CardTitle className="mb-4">Modalidades Disponíveis</CardTitle>
-                <Accordion type="single" collapsible className="space-y-4">
+              <div className="mt-8 space-y-4">
+                <CardTitle className="text-xl font-bold text-olimpics-text">
+                  Modalidades Disponíveis
+                </CardTitle>
+                <Accordion 
+                  type="single" 
+                  collapsible 
+                  className="space-y-4"
+                >
                   {groupedModalities && Object.entries(groupedModalities).map(([grupo, modalities]) => {
                     const availableModalities = modalities.filter(
                       modality => !registeredModalities?.some(
@@ -325,60 +347,68 @@ export default function AthleteRegistrations() {
                       <AccordionItem 
                         key={grupo} 
                         value={grupo}
-                        className="border rounded-lg px-4"
+                        className="border rounded-lg px-4 shadow-sm transition-all duration-200 hover:shadow-md"
                       >
-                        <AccordionTrigger className="hover:no-underline">
+                        <AccordionTrigger className="hover:no-underline py-4">
                           <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-semibold">{grupo}</h3>
+                            <h3 className="text-lg font-semibold text-olimpics-text">{grupo}</h3>
                             <span className="text-sm text-gray-500">
                               ({availableModalities.length} modalidades)
                             </span>
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent>
-                          <Table>
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Modalidade</TableHead>
-                                <TableHead>Tipo</TableHead>
-                                <TableHead>Categoria</TableHead>
-                                <TableHead>Ações</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {availableModalities.map((modality) => (
-                                <TableRow key={modality.id}>
-                                  <TableCell>{modality.nome}</TableCell>
-                                  <TableCell className="capitalize">
-                                    {modality.tipo_modalidade}
-                                  </TableCell>
-                                  <TableCell className="capitalize">
-                                    {modality.categoria}
-                                  </TableCell>
-                                  <TableCell>
-                                    <Button
-                                      variant="default"
-                                      size="sm"
-                                      disabled={registerMutation.isPending}
-                                      onClick={() => registerMutation.mutate(modality.id)}
-                                    >
-                                      {registerMutation.isPending ? (
-                                        <>
-                                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                          Processando...
-                                        </>
-                                      ) : (
-                                        <>
-                                          <Plus className="h-4 w-4 mr-1" />
-                                          Inscrever
-                                        </>
-                                      )}
-                                    </Button>
-                                  </TableCell>
+                        <AccordionContent className="pb-4">
+                          <div className="rounded-lg border overflow-hidden">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-olimpics-green-primary/5 hover:bg-olimpics-green-primary/10">
+                                  <TableHead className="font-semibold">Modalidade</TableHead>
+                                  <TableHead className="font-semibold">Tipo</TableHead>
+                                  <TableHead className="font-semibold">Categoria</TableHead>
+                                  <TableHead className="font-semibold">Ações</TableHead>
                                 </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
+                              </TableHeader>
+                              <TableBody>
+                                {availableModalities.map((modality) => (
+                                  <TableRow 
+                                    key={modality.id}
+                                    className="transition-colors hover:bg-gray-50"
+                                  >
+                                    <TableCell className="font-medium">
+                                      {modality.nome}
+                                    </TableCell>
+                                    <TableCell className="capitalize">
+                                      {modality.tipo_modalidade}
+                                    </TableCell>
+                                    <TableCell className="capitalize">
+                                      {modality.categoria}
+                                    </TableCell>
+                                    <TableCell>
+                                      <Button
+                                        variant="default"
+                                        size="sm"
+                                        disabled={registerMutation.isPending}
+                                        onClick={() => registerMutation.mutate(modality.id)}
+                                        className="bg-olimpics-green-primary hover:bg-olimpics-green-primary/90 transition-all duration-200"
+                                      >
+                                        {registerMutation.isPending ? (
+                                          <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Processando...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Plus className="h-4 w-4 mr-1" />
+                                            Inscrever
+                                          </>
+                                        )}
+                                      </Button>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
                         </AccordionContent>
                       </AccordionItem>
                     );
