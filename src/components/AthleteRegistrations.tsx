@@ -25,7 +25,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import AthleteSchedule from './schedule/AthleteSchedule';
 
 interface Modality {
   id: number;
@@ -237,8 +236,6 @@ export default function AthleteRegistrations() {
           As inscrições nas modalidades devem ser realizadas nesta página! Após a confirmação da inscrição em uma modalidade pelo Representante de Delegação, o atleta não poderá cancelar sua participação nesta modalidade diretamente pelo sistema. Caso seja necessário cancelar uma inscrição já aprovada, o atleta deverá entrar em contato com o seu respectivo Representante de Delegação para solicitar qualquer alteração.
         </AlertDescription>
       </Alert>
-
-      <AthleteSchedule />
 
       <Card>
         <CardHeader>
