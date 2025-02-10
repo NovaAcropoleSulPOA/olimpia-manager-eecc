@@ -42,8 +42,11 @@ const socialLinks = [
 
 const LandingPage = () => {
   const handleLocationClick = () => {
-    const address = "Av. Ipiranga, 6690 - Partenon, Porto Alegre, RS - Brasil";
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+    // Use latitude and longitude instead of a full address
+    const latitude = -30.0553489;   // Replace with the actual latitude
+    const longitude = -51.1723835;  // Replace with the actual longitude
+    const location = `${latitude},${longitude}`;
+    const mapsUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate.replace(/-/g, '')}/${endDate.replace(/-/g, '')}&location=${encodeURIComponent(location)}`;
     window.open(mapsUrl, '_blank');
   };
 
