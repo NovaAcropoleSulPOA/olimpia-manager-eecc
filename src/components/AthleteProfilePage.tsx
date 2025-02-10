@@ -28,10 +28,10 @@ interface PaymentStatus {
   valor?: number;
 }
 
-interface UserRole {
+interface UserRoleData {
   perfis: {
     nome: string;
-  }
+  };
 }
 
 export default function AthleteProfilePage() {
@@ -105,7 +105,8 @@ export default function AthleteProfilePage() {
         throw rolesError;
       }
 
-      const userRoles = (rolesData as UserRole[])?.flatMap(role => role.perfis.map(p => p.nome)) || [];
+      // Properly map the roles data
+      const userRoles = rolesData?.map((role: UserRoleData) => role.perfis.nome) || [];
       
       console.log('Profile data:', { ...profileData, papeis: userRoles });
       return {
