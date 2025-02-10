@@ -52,9 +52,8 @@ const LandingPage = () => {
     const endDate = '2025-04-13';
     const title = 'Olimpíadas Estaduais da Nova Acrópole 2025 - Porto Alegre';
   
-    // Use latitude and longitude instead of a full address
-    const latitude = -30.0553489;   // Replace with the actual latitude
-    const longitude = -51.1723835;  // Replace with the actual longitude
+    const latitude = -30.0553489;
+    const longitude = -51.1723835;
     const location = `${latitude},${longitude}`;
   
     const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate.replace(/-/g, '')}/${endDate.replace(/-/g, '')}&location=${encodeURIComponent(location)}`;
@@ -101,7 +100,7 @@ const LandingPage = () => {
                 </h2>
               </div>
 
-              <Card className="mb-8 p-6 bg-white/10 backdrop-blur border-white/20 shadow-lg animate-pulse">
+              <Card className="mb-8 p-6 bg-white/10 backdrop-blur border-white/20 shadow-lg animate-fade-in">
                 <div className="space-y-4 text-center lg:text-left">
                   <h3 className="text-2xl font-bold text-olimpics-orange-primary">
                     Bem-vindo(s) à maior Olimpíada de Esporte com Filosofia do Rio Grande do Sul!
@@ -120,7 +119,7 @@ const LandingPage = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 <Card 
-                  className="p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 bg-white/95 backdrop-blur cursor-pointer"
+                  className="p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 bg-white/95 backdrop-blur cursor-pointer animate-fade-in"
                   onClick={handleLocationClick}
                 >
                   <div className="flex flex-col items-center text-center gap-4">
@@ -140,7 +139,7 @@ const LandingPage = () => {
                 </Card>
 
                 <Card 
-                  className="p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 bg-white/95 backdrop-blur cursor-pointer"
+                  className="p-6 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 bg-white/95 backdrop-blur cursor-pointer animate-fade-in"
                   onClick={handleCalendarSync}
                 >
                   <div className="flex flex-col items-center text-center gap-4">
@@ -158,7 +157,7 @@ const LandingPage = () => {
                 </Card>
               </div>
 
-              <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8">
+              <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8 animate-fade-in">
                 <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
                   Modalidades Olímpicas
                 </h2>
@@ -192,24 +191,24 @@ const LandingPage = () => {
                 ))}
               </div>
 
-              <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center lg:text-left">
+              <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center lg:text-left animate-fade-in">
                 <span>Olimpíadas Estaduais da Escola do Esporte com Coração </span> <br /> 
                 <span className="text-3xl md:text-5xl">Edição:</span> <br /> 
                 <span className="text-3xl md:text-5xl">Porto Alegre/RS</span>
               </h1>
 
-              <p className="text-xl md:text-2xl italic mb-12 text-center lg:text-left">
+              <p className="text-xl md:text-2xl italic mb-12 text-center lg:text-left animate-fade-in">
                 "Mais rápidos, mais altos, mais fortes, estamos unidos!"
               </p>
             </div>
 
-            <div className="backdrop-blur-sm bg-white/95 rounded-lg shadow-xl p-6 lg:sticky lg:top-8">
+            <div className="backdrop-blur-sm bg-white/95 rounded-lg shadow-xl p-6 lg:sticky lg:top-8 animate-fade-in">
               <Login />
             </div>
           </div>
 
           <div className="col-span-full mt-8">
-            <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8">
+            <div className="bg-white/95 backdrop-blur rounded-lg p-6 shadow-lg mb-8 animate-fade-in">
               <h2 className="text-2xl font-bold text-olimpics-text mb-6 text-center">
                 Escola do Esporte com Coração
               </h2>
@@ -231,3 +230,4 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+
