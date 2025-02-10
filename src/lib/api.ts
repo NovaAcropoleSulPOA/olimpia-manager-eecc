@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase';
 
 export interface Branch {
@@ -157,11 +156,15 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     const isOrganizer = userRoles?.some(role => role.perfis?.nome === 'Organizador');
     console.log('Is user an organizer?', isOrganizer);
 
-    // Fetch registrations based on role
-    const { data, error } = await supabase
+    // Fetch registrations based on role - no filters for organizers
+    const query = supabase
       .from('vw_inscricoes_atletas')
       .select('*')
       .order('nome_atleta');
+
+    console.log('Executing query for role:', isOrganizer ? 'Organizador' : 'Other');
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching registrations:', error);
@@ -169,7 +172,7 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     }
 
     console.log('Raw registrations data:', data);
-    console.log('Number of registrations:', data?.length);
+    console.log('Number of raw registrations:', data?.length);
 
     if (!data) {
       console.log('No registrations data returned');
