@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase';
 
 export interface Branch {
@@ -117,6 +118,28 @@ export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
 export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]> => {
   console.log('Fetching athlete registrations...');
   try {
+    // First, check if user is an organizer
+    const { data: userRoles, error: rolesError } = await supabase
+      .from('papeis_usuarios')
+      .select(`
+        perfil_id,
+        perfis:perfis (
+          nome
+        )
+      `)
+      .eq('usuario_id', supabase.auth.getUser().then(res => res.data.user?.id));
+
+    if (rolesError) {
+      console.error('Error fetching user roles:', rolesError);
+      throw rolesError;
+    }
+
+    console.log('User roles:', userRoles);
+
+    const isOrganizer = userRoles?.some(role => role.perfis?.nome === 'Organizador');
+    console.log('Is user an organizer?', isOrganizer);
+
+    // Fetch registrations based on role
     const { data, error } = await supabase
       .from('vw_inscricoes_atletas')
       .select('*')
@@ -126,6 +149,9 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       console.error('Error fetching registrations:', error);
       throw error;
     }
+
+    console.log('Raw registrations data:', data);
+    console.log('Number of registrations:', data?.length);
 
     if (!data) {
       console.log('No registrations data returned');
@@ -155,17 +181,25 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       numero_identificador: registration.numero_identificador || undefined
     }));
 
+    // Group registrations by athlete
     const groupedData = transformedData.reduce((acc, curr) => {
       const existingAthlete = acc.find(a => a.id === curr.id);
       if (existingAthlete) {
-        existingAthlete.modalidades.push(...curr.modalidades);
+        // Merge modalidades arrays while preventing duplicates
+        const modalidadesSet = new Set([
+          ...existingAthlete.modalidades.map(m => JSON.stringify(m)),
+          ...curr.modalidades.map(m => JSON.stringify(m))
+        ]);
+        existingAthlete.modalidades = Array.from(modalidadesSet).map(m => JSON.parse(m));
       } else {
         acc.push(curr);
       }
       return acc;
     }, [] as AthleteRegistration[]);
 
-    console.log('Transformed registrations data:', groupedData);
+    console.log('Transformed and grouped data:', groupedData);
+    console.log('Number of unique athletes:', groupedData.length);
+
     return groupedData;
   } catch (error) {
     console.error('Error in fetchAthleteRegistrations:', error);

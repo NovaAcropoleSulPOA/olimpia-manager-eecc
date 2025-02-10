@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBranchAnalytics, fetchAthleteRegistrations, updateModalityStatus, updatePaymentStatus } from "@/lib/api";
@@ -41,6 +40,7 @@ export default function OrganizerDashboard() {
   const [branchFilter, setBranchFilter] = useState("all");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState("all");
 
+  // Fetch branches for filter dropdown
   const { data: branches } = useQuery({
     queryKey: ['branches'],
     queryFn: async () => {
@@ -54,6 +54,7 @@ export default function OrganizerDashboard() {
     }
   });
 
+  // Fetch analytics data
   const { 
     data: branchAnalytics, 
     isLoading: isLoadingAnalytics, 
@@ -66,6 +67,7 @@ export default function OrganizerDashboard() {
     refetchOnWindowFocus: true,
   });
 
+  // Fetch athlete registrations
   const { 
     data: registrations, 
     isLoading: isLoadingRegistrations, 
@@ -78,6 +80,7 @@ export default function OrganizerDashboard() {
     refetchOnWindowFocus: true,
   });
 
+  // Fetch confirmed enrollments
   const { data: confirmedEnrollments } = useQuery({
     queryKey: ['confirmed-enrollments'],
     queryFn: async () => {
@@ -139,7 +142,7 @@ export default function OrganizerDashboard() {
     return <EmptyState />;
   }
 
-  // Filter registrations based on user input
+  // Apply user filters to registrations
   const filteredRegistrations = registrations?.filter(registration => {
     const nameMatch = registration.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
     const branchMatch = branchFilter === "all" || registration.filial_id === branchFilter;
@@ -150,6 +153,8 @@ export default function OrganizerDashboard() {
     if (b.id === user?.id) return 1;
     return (a.nome_atleta || '').localeCompare(b.nome_atleta || '');
   });
+
+  console.log('Filtered registrations:', filteredRegistrations?.length);
 
   const handleStatusChange = async (modalityId: string, status: string, justification: string) => {
     console.log('Attempting to update modality status:', { modalityId, status, justification });
@@ -270,7 +275,7 @@ export default function OrganizerDashboard() {
                 />
               ))}
               
-              {filteredRegistrations?.length === 0 && (
+              {!filteredRegistrations?.length && (
                 <div className="col-span-full text-center py-8 text-muted-foreground">
                   Nenhum atleta encontrado com os filtros selecionados.
                 </div>
