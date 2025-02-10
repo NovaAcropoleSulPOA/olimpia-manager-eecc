@@ -117,7 +117,7 @@ const LandingPage = () => {
                     <img 
                       src="/lovable-uploads/0a5e70c8-a05f-4bbe-89dd-08c867e74b50.png"
                       alt="Olympic Rings"
-                      className="w-full h-full object-cover opacity-5"
+                      className="w-full h-full object-cover opacity-10"
                     />
                   </div>
                   <div className="relative z-10 space-y-4">
