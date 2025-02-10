@@ -110,22 +110,31 @@ const LandingPage = () => {
                 </p>
               </div>
 
-              <Card className="mb-8 p-6 bg-white/10 backdrop-blur border-white/20 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 animate-fade-in">
-                <div className="space-y-4">
-                  <h3 className="text-2xl font-bold text-[#F2FCE2]">
-                    Bem-vindo/a(s) à maior Olimpíada de Esporte com Filosofia do Rio Grande do Sul!
-                  </h3>
-                  <p className="text-lg leading-relaxed text-[#F2FCE2]">
-                    Mais que medalhas, a Olimpíada é um caminho de autoconhecimento e superação. Uma verdadeira celebração da humanidade.
-                  </p>
-                  <p className="text-lg leading-relaxed italic text-[#F2FCE2]">
-                    Venha desafiar seus limites e buscar a excelência. O maior adversário é você mesmo.
-                  </p>
-                  <p className="text-xl font-semibold text-[#F2FCE2]">
-                    Onde o Espírito Olímpico encontra a Filosofia. Inscreva-se nas Olimpíadas Estaduais da Escola do Esporte com Coração!
-                  </p>
-                </div>
-              </Card>
+              <div className="relative">
+                <Card className="mb-8 p-6 bg-white/5 backdrop-blur border-white/20 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 animate-fade-in overflow-hidden">
+                  <div className="absolute inset-0 z-0">
+                    <img 
+                      src="/lovable-uploads/0a5e70c8-a05f-4bbe-89dd-08c867e74b50.png"
+                      alt="Olympic Rings"
+                      className="w-full h-full object-cover opacity-10"
+                    />
+                  </div>
+                  <div className="relative z-10 space-y-4">
+                    <h3 className="text-2xl font-bold text-olimpics-green-primary">
+                      Bem-vindo/a(s) à maior Olimpíada de Esporte com Filosofia do Rio Grande do Sul!
+                    </h3>
+                    <p className="text-lg leading-relaxed text-olimpics-green-primary">
+                      Mais que medalhas, a Olimpíada é um caminho de autoconhecimento e superação. Uma verdadeira celebração da humanidade.
+                    </p>
+                    <p className="text-lg leading-relaxed italic text-olimpics-green-primary">
+                      Venha desafiar seus limites e buscar a excelência. O maior adversário é você mesmo.
+                    </p>
+                    <p className="text-xl font-semibold text-olimpics-green-primary">
+                      Onde o Espírito Olímpico encontra a Filosofia. Inscreva-se nas Olimpíadas Estaduais da Escola do Esporte com Coração!
+                    </p>
+                  </div>
+                </Card>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 <Card 
