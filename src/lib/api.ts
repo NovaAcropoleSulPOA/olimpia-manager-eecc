@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase';
 
 export interface Branch {
@@ -157,12 +156,15 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
     const isOrganizer = userRoles?.some(role => role.perfis?.nome === 'Organizador');
     console.log('Is user an organizer?', isOrganizer);
 
-    // Query inscriptions view with debug logging
-    console.log('Starting query to vw_inscricoes_atletas...');
-    const { data, error } = await supabase
+    // Fetch registrations based on role - no filters for organizers
+    const query = supabase
       .from('vw_inscricoes_atletas')
       .select('*')
       .order('nome_atleta');
+
+    console.log('Executing query for role:', isOrganizer ? 'Organizador' : 'Other');
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching registrations:', error);
@@ -200,26 +202,23 @@ export const fetchAthleteRegistrations = async (): Promise<AthleteRegistration[]
       numero_identificador: registration.numero_identificador || undefined
     }));
 
-    console.log('Transformed data before grouping:', transformedData.length);
-
-    // Group registrations by athlete with detailed logging
+    // Group registrations by athlete
     const groupedData = transformedData.reduce((acc, curr) => {
       const existingAthlete = acc.find(a => a.id === curr.id);
       if (existingAthlete) {
-        console.log(`Merging modalidades for athlete ${curr.id}`);
+        // Merge modalidades arrays while preventing duplicates
         const modalidadesSet = new Set([
           ...existingAthlete.modalidades.map(m => JSON.stringify(m)),
           ...curr.modalidades.map(m => JSON.stringify(m))
         ]);
         existingAthlete.modalidades = Array.from(modalidadesSet).map(m => JSON.parse(m));
       } else {
-        console.log(`Adding new athlete ${curr.id}`);
         acc.push(curr);
       }
       return acc;
     }, [] as AthleteRegistration[]);
 
-    console.log('Final grouped data:', groupedData);
+    console.log('Transformed and grouped data:', groupedData);
     console.log('Number of unique athletes:', groupedData.length);
 
     return groupedData;
