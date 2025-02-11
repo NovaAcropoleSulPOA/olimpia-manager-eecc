@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase';
 
 export interface AthleteModality {
@@ -299,12 +298,12 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
       nome_completo,
       email,
       filial_id,
-      filiais!inner (
+      filiais (
         nome
       ),
-      papeis_usuarios!inner (
+      papeis_usuarios (
         perfil_id,
-        perfis!inner (
+        perfis (
           nome
         )
       )
@@ -317,17 +316,25 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
 
   console.log('Raw users data:', users);
 
-  const formattedUsers = users?.map((user: SupabaseUserData) => ({
-    id: user.id,
-    nome_completo: user.nome_completo,
-    email: user.email,
-    filial_id: user.filial_id,
-    filial_nome: Array.isArray(user.filiais) ? user.filiais[0]?.nome || 'Sem filial' : 'Sem filial',
-    profiles: (user as any).papeis_usuarios?.map((profile: SupabaseUserRole) => ({
-      perfil_id: profile.perfil_id,
-      perfil_nome: Array.isArray(profile.perfis) ? profile.perfis[0]?.nome || '' : ''
-    })) || []
-  }));
+  const formattedUsers = users?.map((user) => {
+    // Get branch name from the nested filiais object
+    const branchName = user.filiais?.nome || 'Sem filial';
+
+    // Get profiles from the nested papeis_usuarios array
+    const profiles = user.papeis_usuarios?.map(papel => ({
+      perfil_id: papel.perfil_id,
+      perfil_nome: papel.perfis?.nome || ''
+    })) || [];
+
+    return {
+      id: user.id,
+      nome_completo: user.nome_completo,
+      email: user.email,
+      filial_id: user.filial_id,
+      filial_nome: branchName,
+      profiles: profiles
+    };
+  }) || [];
 
   console.log('Formatted users:', formattedUsers);
   return formattedUsers;
