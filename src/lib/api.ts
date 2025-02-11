@@ -66,14 +66,14 @@ interface SupabaseUserResponse {
   nome_completo: string;
   email: string;
   filial_id: string;
-  filiais: Array<{
+  filiais: {
     nome: string;
-  }>;
+  } | null;
   papeis_usuarios: Array<{
     perfil_id: number;
-    perfis: Array<{
+    perfis: {
       nome: string;
-    }>;
+    } | null;
   }>;
 }
 
@@ -338,17 +338,12 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
   const formattedUsers = users.map((rawUser: any) => {
     const user = rawUser as SupabaseUserResponse;
     
-    const branchName = Array.isArray(user.filiais) && user.filiais.length > 0 
-      ? user.filiais[0].nome 
-      : 'Sem filial';
+    const branchName = user.filiais?.nome || 'Sem filial';
 
-    const profiles = (Array.isArray(user.papeis_usuarios) ? user.papeis_usuarios : [])
-      .map(papel => ({
-        perfil_id: papel.perfil_id,
-        perfil_nome: Array.isArray(papel.perfis) && papel.perfis.length > 0 
-          ? papel.perfis[0].nome 
-          : ''
-      }));
+    const profiles = (user.papeis_usuarios || []).map(papel => ({
+      perfil_id: papel.perfil_id,
+      perfil_nome: papel.perfis?.nome || ''
+    }));
 
     return {
       id: user.id,
