@@ -319,14 +319,18 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
   console.log('Raw users data:', users);
 
   const formattedUsers = users?.map((user) => {
-    // Get branch name from the nested filiais object
-    const branchName = user.filiais?.nome || 'Sem filial';
+    // Get branch name from the nested filiais array
+    const filialArray = user.filiais as { nome: string }[];
+    const branchName = filialArray?.[0]?.nome || 'Sem filial';
 
     // Get profiles from the nested papeis_usuarios array
-    const profiles = (user.papeis_usuarios || []).map(papel => ({
-      perfil_id: papel.perfil_id,
-      perfil_nome: papel.perfis?.nome || ''
-    }));
+    const profiles = (user.papeis_usuarios || []).map(papel => {
+      const perfilArray = papel.perfis as { nome: string }[];
+      return {
+        perfil_id: papel.perfil_id,
+        perfil_nome: perfilArray?.[0]?.nome || ''
+      };
+    });
 
     return {
       id: user.id,
