@@ -265,3 +265,58 @@ export const updateModalityStatus = async (
 
   return Promise.resolve();
 };
+
+interface UserProfile {
+  id: string;
+  nome_completo: string;
+  email: string;
+  filial_id: string;
+  filial_nome: string;
+  profiles: Array<{
+    perfil_id: number;
+    perfil_nome: string;
+  }>;
+}
+
+export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
+  const { data: users, error: usersError } = await supabase
+    .from('usuarios')
+    .select(`
+      id,
+      nome_completo,
+      email,
+      filial_id,
+      filiais (
+        nome
+      )
+    `);
+
+  if (usersError) throw usersError;
+
+  const usersWithProfiles = await Promise.all(
+    users.map(async (user) => {
+      const { data: profiles, error: profilesError } = await supabase
+        .rpc('get_user_profiles', { p_user_id: user.id });
+
+      if (profilesError) throw profilesError;
+
+      return {
+        ...user,
+        filial_nome: user.filiais?.nome || 'Sem filial',
+        profiles: profiles || []
+      };
+    })
+  );
+
+  return usersWithProfiles;
+};
+
+export const updateUserProfiles = async (userId: string, profileIds: number[]): Promise<void> => {
+  const { error } = await supabase
+    .rpc('assign_user_profiles', {
+      p_user_id: userId,
+      p_profile_ids: profileIds
+    });
+
+  if (error) throw error;
+};
