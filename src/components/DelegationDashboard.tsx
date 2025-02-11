@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { PaginatedAthleteList } from "./dashboard/PaginatedAthleteList";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-96 text-center">
@@ -171,6 +172,43 @@ export default function DelegationDashboard() {
     }
   };
 
+  const handleStatusChange = async (modalityId: string, status: string, justification: string) => {
+    console.log('Updating modality status:', { modalityId, status, justification });
+    try {
+      const { error } = await supabase
+        .rpc('atualizar_status_inscricao', {
+          inscricao_id: parseInt(modalityId),
+          novo_status: status,
+          justificativa: justification
+        });
+
+      if (error) throw error;
+      await refetchAthletes();
+      toast.success("Status atualizado com sucesso!");
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error("Erro ao atualizar status");
+    }
+  };
+
+  const handlePaymentStatusChange = async (athleteId: string, status: string) => {
+    console.log('Updating payment status:', { athleteId, status });
+    try {
+      const { error } = await supabase
+        .rpc('atualizar_status_pagamento', {
+          p_atleta_id: athleteId,
+          p_novo_status: status
+        });
+
+      if (error) throw error;
+      await refetchAthletes();
+      toast.success("Status de pagamento atualizado com sucesso!");
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      toast.error("Erro ao atualizar status de pagamento");
+    }
+  };
+
   if (isLoadingAnalytics || isLoadingAthletes) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -272,56 +310,12 @@ export default function DelegationDashboard() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredAthletes?.map((athlete) => (
-                <AthleteRegistrationCard
-                  key={athlete.id}
-                  registration={athlete}
-                  onStatusChange={async (modalityId, status, justification) => {
-                    console.log('Updating modality status:', { modalityId, status, justification });
-                    try {
-                      const { error } = await supabase
-                        .rpc('atualizar_status_inscricao', {
-                          inscricao_id: parseInt(modalityId),
-                          novo_status: status,
-                          justificativa: justification
-                        });
-
-                      if (error) throw error;
-                      await refetchAthletes();
-                      toast.success("Status atualizado com sucesso!");
-                    } catch (error) {
-                      console.error('Error updating status:', error);
-                      toast.error("Erro ao atualizar status");
-                    }
-                  }}
-                  onPaymentStatusChange={async (athleteId, status) => {
-                    console.log('Updating payment status:', { athleteId, status });
-                    try {
-                      const { error } = await supabase
-                        .rpc('atualizar_status_pagamento', {
-                          p_atleta_id: athleteId,
-                          p_novo_status: status
-                        });
-
-                      if (error) throw error;
-                      await refetchAthletes();
-                      toast.success("Status de pagamento atualizado com sucesso!");
-                    } catch (error) {
-                      console.error('Error updating payment status:', error);
-                      toast.error("Erro ao atualizar status de pagamento");
-                    }
-                  }}
-                  isCurrentUser={user?.id === athlete.id}
-                />
-              ))}
-              
-              {filteredAthletes?.length === 0 && (
-                <div className="col-span-full text-center py-8 text-muted-foreground">
-                  Nenhum atleta encontrado.
-                </div>
-              )}
-            </div>
+            <PaginatedAthleteList
+              athletes={filteredAthletes || []}
+              onStatusChange={handleStatusChange}
+              onPaymentStatusChange={handlePaymentStatusChange}
+              currentUserId={user?.id}
+            />
           </div>
         </TabsContent>
 

@@ -12,6 +12,7 @@ import { LayoutDashboard, Users, ListChecks, RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PaginatedAthleteList } from "./dashboard/PaginatedAthleteList";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-96 text-center">
@@ -267,25 +268,16 @@ export default function OrganizerDashboard() {
               branches={branches || []}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-              {filteredAthletes?.map((athlete) => (
-                <AthleteRegistrationCard
-                  key={athlete.id}
-                  registration={athlete}
-                  onStatusChange={handleStatusChange}
-                  onPaymentStatusChange={handlePaymentStatusChange}
-                  isCurrentUser={user?.id === athlete.id}
-                />
-              ))}
-              
-              {!filteredAthletes?.length && (
-                <div className="col-span-full text-center py-8 text-muted-foreground">
-                  Nenhum atleta encontrado com os filtros selecionados.
-                </div>
-              )}
-            </div>
+          <div className="mt-4">
+            <PaginatedAthleteList
+              athletes={filteredAthletes || []}
+              onStatusChange={handleStatusChange}
+              onPaymentStatusChange={handlePaymentStatusChange}
+              currentUserId={user?.id}
+            />
           </div>
-        </TabsContent>
+        </div>
+      </TabsContent>
 
         <TabsContent value="enrollments" className="mt-6">
           <div className="mt-4">
