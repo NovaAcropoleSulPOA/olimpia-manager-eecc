@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase';
 
 export interface AthleteModality {
@@ -310,7 +311,7 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
       return {
         ...user,
         filial_nome: user.filiais?.nome || 'Sem filial',
-        profiles: (profiles as SupabaseUserRole[])?.map(profile => ({
+        profiles: profiles?.map(profile => ({
           perfil_id: profile.perfil_id,
           perfil_nome: profile.perfis.nome
         })) || []
