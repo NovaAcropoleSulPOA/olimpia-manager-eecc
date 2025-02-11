@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Info, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Info, Loader2, ChevronDown, ChevronUp, UserPlus } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -216,44 +216,60 @@ export default function AthleteRegistrations() {
         onOpenChange={setIsEnrollmentsOpen}
         className="w-full space-y-4"
       >
-        <Card className="transition-all duration-200 hover:shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-2xl font-bold text-olimpics-text flex items-center gap-2">
-              Minhas Inscrições
-              <span className="text-sm font-normal text-gray-500">
-                ({registeredModalities?.length || 0} modalidades)
-              </span>
-            </CardTitle>
-            <CollapsibleTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="w-9 p-0 hover:bg-olimpics-green-primary/10"
-              >
-                {isEnrollmentsOpen ? (
-                  <ChevronUp className="h-4 w-4 text-olimpics-text" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-olimpics-text" />
-                )}
-              </Button>
-            </CollapsibleTrigger>
-          </CardHeader>
-          <CollapsibleContent className="transition-all duration-300">
-            <CardContent>
-              <EnrollmentList
-                registeredModalities={registeredModalities || []}
-                withdrawMutation={withdrawMutation}
-              />
+        <div className="relative overflow-hidden rounded-lg bg-[#FEF7CD] p-1 animate-fade-in">
+          <div className="absolute inset-0 bg-gradient-to-r from-olimpics-green-primary/5 to-olimpics-green-secondary/5" />
+          <Card className="transition-all duration-300 hover:shadow-xl border-2 border-olimpics-green-primary/20 bg-white/95 backdrop-blur">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
+              <div className="flex items-center gap-3">
+                <UserPlus className="h-6 w-6 text-olimpics-green-primary animate-pulse" />
+                <CardTitle className="text-2xl font-bold text-olimpics-text flex items-center gap-2">
+                  Área de Inscrições
+                  <span className="text-sm font-normal text-gray-500">
+                    ({registeredModalities?.length || 0} modalidades)
+                  </span>
+                </CardTitle>
+              </div>
+              <CollapsibleTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-9 p-0 hover:bg-olimpics-green-primary/10"
+                >
+                  {isEnrollmentsOpen ? (
+                    <ChevronUp className="h-4 w-4 text-olimpics-text" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-olimpics-text" />
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+            </CardHeader>
+            <CollapsibleContent className="transition-all duration-300">
+              <CardContent>
+                <div className="mb-6 text-center">
+                  <h3 className="text-lg font-semibold text-olimpics-green-primary mb-2">
+                    Inscreva-se Agora nas Modalidades Olímpicas!
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Escolha suas modalidades e faça parte desta celebração do esporte e filosofia
+                  </p>
+                </div>
 
-              <AvailableModalities
-                groupedModalities={groupedModalities || {}}
-                registeredModalities={registeredModalities || []}
-                registerMutation={registerMutation}
-              />
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
+                <EnrollmentList
+                  registeredModalities={registeredModalities || []}
+                  withdrawMutation={withdrawMutation}
+                />
+
+                <AvailableModalities
+                  groupedModalities={groupedModalities || {}}
+                  registeredModalities={registeredModalities || []}
+                  registerMutation={registerMutation}
+                />
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </div>
       </Collapsible>
     </div>
   );
 }
+
