@@ -304,7 +304,7 @@ export const updateModalityStatus = async (
   return Promise.resolve();
 };
 
-export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
+export const fetchUserProfiles = async () => {
   console.log('Fetching user profiles...');
   
   const { data: users, error: usersError } = await supabase
@@ -335,25 +335,17 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
 
   if (!users) return [];
 
-  const formattedUsers = users.map((rawUser: any) => {
-    const user = rawUser as SupabaseUserResponse;
-    
-    const branchName = user.filiais?.nome || 'Sem filial';
-
-    const profiles = (user.papeis_usuarios || []).map(papel => ({
+  const formattedUsers = users.map((user: any) => ({
+    id: user.id,
+    nome_completo: user.nome_completo,
+    email: user.email,
+    filial_id: user.filial_id,
+    filial_nome: user.filiais?.nome || 'Sem filial',
+    profiles: (user.papeis_usuarios || []).map((papel: any) => ({
       perfil_id: papel.perfil_id,
       perfil_nome: papel.perfis?.nome || ''
-    }));
-
-    return {
-      id: user.id,
-      nome_completo: user.nome_completo,
-      email: user.email,
-      filial_id: user.filial_id,
-      filial_nome: branchName,
-      profiles: profiles
-    };
-  });
+    }))
+  }));
 
   console.log('Formatted users:', formattedUsers);
   return formattedUsers;
