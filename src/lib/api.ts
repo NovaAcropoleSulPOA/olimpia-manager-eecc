@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase';
 
 export interface AthleteModality {
@@ -278,6 +279,13 @@ interface UserProfile {
   }>;
 }
 
+interface SupabaseProfile {
+  perfil_id: number;
+  perfis: {
+    nome: string;
+  };
+}
+
 export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
   const { data: users, error: usersError } = await supabase
     .from('usuarios')
@@ -310,10 +318,10 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
       return {
         ...user,
         filial_nome: user.filiais?.nome || 'Sem filial',
-        profiles: profiles?.map(profile => ({
+        profiles: (profiles as SupabaseProfile[] || []).map(profile => ({
           perfil_id: profile.perfil_id,
           perfil_nome: profile.perfis.nome
-        })) || []
+        }))
       };
     })
   );
