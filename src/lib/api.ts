@@ -62,6 +62,22 @@ interface UserProfile {
   }>;
 }
 
+interface SupabaseUserResponse {
+  id: string;
+  nome_completo: string;
+  email: string;
+  filial_id: string;
+  filiais: {
+    nome: string;
+  } | null;
+  papeis_usuarios: Array<{
+    perfil_id: number;
+    perfis: {
+      nome: string;
+    } | null;
+  }>;
+}
+
 interface SupabaseUserRole {
   perfil_id: number;
   perfis: {
@@ -318,7 +334,7 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
 
   console.log('Raw users data:', users);
 
-  const formattedUsers = users?.map((user) => {
+  const formattedUsers = (users as SupabaseUserResponse[] || []).map((user) => {
     // Get branch name from the nested filiais object
     const branchName = user.filiais?.nome || 'Sem filial';
 
@@ -336,7 +352,7 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
       filial_nome: branchName,
       profiles: profiles
     };
-  }) || [];
+  });
 
   console.log('Formatted users:', formattedUsers);
   return formattedUsers;
