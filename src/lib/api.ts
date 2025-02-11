@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase';
 
 export interface AthleteModality {
@@ -316,15 +317,15 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
 
   console.log('Raw users data:', users);
 
-  const formattedUsers = users?.map(user => ({
+  const formattedUsers = users?.map((user: SupabaseUserData) => ({
     id: user.id,
     nome_completo: user.nome_completo,
     email: user.email,
     filial_id: user.filial_id,
-    filial_nome: Array.isArray(user.filiais) ? user.filiais[0]?.nome || 'Sem filial' : user.filiais?.nome || 'Sem filial',
-    profiles: user.papeis_usuarios?.map(profile => ({
+    filial_nome: Array.isArray(user.filiais) ? user.filiais[0]?.nome || 'Sem filial' : 'Sem filial',
+    profiles: (user as any).papeis_usuarios?.map((profile: SupabaseUserRole) => ({
       perfil_id: profile.perfil_id,
-      perfil_nome: Array.isArray(profile.perfis) ? profile.perfis[0]?.nome || '' : profile.perfis?.nome || ''
+      perfil_nome: Array.isArray(profile.perfis) ? profile.perfis[0]?.nome || '' : ''
     })) || []
   }));
 
