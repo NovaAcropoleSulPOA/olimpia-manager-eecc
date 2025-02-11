@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase';
 
 export interface AthleteModality {
@@ -50,11 +49,23 @@ export interface BranchAnalytics {
   top_modalidades_misto: Record<string, number>;
 }
 
+interface UserProfile {
+  id: string;
+  nome_completo: string;
+  email: string;
+  filial_id: string;
+  filial_nome: string;
+  profiles: Array<{
+    perfil_id: number;
+    perfil_nome: string;
+  }>;
+}
+
 interface SupabaseUserRole {
   perfil_id: number;
   perfis: {
     nome: string;
-  }[];
+  };
 }
 
 interface UserRole {
@@ -267,25 +278,6 @@ export const updateModalityStatus = async (
   return Promise.resolve();
 };
 
-interface UserProfile {
-  id: string;
-  nome_completo: string;
-  email: string;
-  filial_id: string;
-  filial_nome: string;
-  profiles: Array<{
-    perfil_id: number;
-    perfil_nome: string;
-  }>;
-}
-
-interface SupabaseProfile {
-  perfil_id: number;
-  perfis: {
-    nome: string;
-  };
-}
-
 export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
   const { data: users, error: usersError } = await supabase
     .from('usuarios')
@@ -318,10 +310,10 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
       return {
         ...user,
         filial_nome: user.filiais?.nome || 'Sem filial',
-        profiles: (profiles as SupabaseProfile[] || []).map(profile => ({
+        profiles: (profiles as SupabaseUserRole[])?.map(profile => ({
           perfil_id: profile.perfil_id,
           perfil_nome: profile.perfis.nome
-        }))
+        })) || []
       };
     })
   );
