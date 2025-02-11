@@ -296,14 +296,24 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
   const usersWithProfiles = await Promise.all(
     users.map(async (user) => {
       const { data: profiles, error: profilesError } = await supabase
-        .rpc('get_user_profiles', { p_user_id: user.id });
+        .from('papeis_usuarios')
+        .select(`
+          perfil_id,
+          perfis (
+            nome
+          )
+        `)
+        .eq('usuario_id', user.id);
 
       if (profilesError) throw profilesError;
 
       return {
         ...user,
         filial_nome: user.filiais?.nome || 'Sem filial',
-        profiles: profiles || []
+        profiles: profiles?.map(profile => ({
+          perfil_id: profile.perfil_id,
+          perfil_nome: profile.perfis.nome
+        })) || []
       };
     })
   );
