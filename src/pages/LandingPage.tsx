@@ -102,12 +102,12 @@ const LandingPage = () => {
 
               <div className="text-white">
                 <h1 className="text-4xl md:text-6xl font-bold mb-4 text-center lg:text-left animate-fade-in">
-                  <span>Olimpíadas Estaduais da Escola do Esporte com Coração </span> <br /> 
+                  <span>Olimpíadas Estaduais da Escola do Esporte com Coração - 2025</span> <br /> 
                   <span className="text-3xl md:text-5xl">Edição:</span> <br /> 
                   <span className="text-3xl md:text-5xl">Porto Alegre/RS</span>
                 </h1>
                 <p className="text-xl md:text-2xl italic mb-12 text-center lg:text-left animate-fade-in">
-                "Mais rápidos, mais altos, mais fortes, estamos unidos!"
+                "Mais rápido, mais alto, mais forte. Estamos unidos!"
                 </p>
               </div>
 
@@ -125,7 +125,7 @@ const LandingPage = () => {
                       Bem-vindo/a(s) à maior Olimpíada de Esporte com Filosofia do Rio Grande do Sul!
                     </h3>
                     <p className="text-lg leading-relaxed text-white drop-shadow">
-                      Mais que medalhas, a Olimpíada é um caminho de autoconhecimento e superação. Uma verdadeira celebração da humanidade.
+                      Mais que medalhas, a Olimpíada é um caminho de autoconhecimento e superação. Uma verdadeira celebração da Humanidade.
                     </p>
                     <p className="text-lg leading-relaxed italic text-white drop-shadow">
                       Venha desafiar seus limites e buscar a excelência. O maior adversário é você mesmo.
