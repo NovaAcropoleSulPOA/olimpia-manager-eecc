@@ -14,7 +14,7 @@ import {
   SidebarGroupLabel,
   SidebarTrigger
 } from './ui/sidebar';
-import { User, BarChart3, LogOut, Menu, ClipboardList, Users, Calendar } from 'lucide-react';
+import { User, BarChart3, LogOut, Menu, ClipboardList, Users, Calendar, Settings2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
@@ -29,6 +29,7 @@ export function MainNavigation() {
   const isAthlete = userRoles.includes('Atleta');
   const isDelegationRep = userRoles.includes('Representante de Delegação');
   const isPublicGeral = userRoles.includes('Público Geral');
+  const isAdmin = userRoles.includes('Administração');
 
   useEffect(() => {
     if (location.pathname === '/') {
@@ -39,9 +40,11 @@ export function MainNavigation() {
         navigate('/organizer-dashboard');
       } else if (isDelegationRep) {
         navigate('/delegation-dashboard');
+      } else if (isAdmin) {
+        navigate('/administration');
       }
     }
-  }, [isAthlete, isOrganizer, isDelegationRep, isPublicGeral, location.pathname, navigate]);
+  }, [isAthlete, isOrganizer, isDelegationRep, isPublicGeral, isAdmin, location.pathname, navigate]);
 
   const handleLogout = async () => {
     try {
@@ -88,6 +91,13 @@ export function MainNavigation() {
         title: "Delegação",
         icon: Users,
         path: "/delegation-dashboard"
+      }
+    ] : []),
+    ...(isAdmin ? [
+      {
+        title: "Administração",
+        icon: Settings2,
+        path: "/administration"
       }
     ] : [])
   ];

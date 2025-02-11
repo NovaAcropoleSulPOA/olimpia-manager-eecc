@@ -12,9 +12,6 @@ import { LayoutDashboard, Users, ListChecks, RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings2 } from "lucide-react";
-import { fetchUserProfiles } from "@/lib/api";
-import { UserProfilesTable } from "./dashboard/UserProfilesTable";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center h-96 text-center">
@@ -78,7 +75,7 @@ export default function OrganizerDashboard() {
     refetch: refetchAthletes
   } = useQuery({
     queryKey: ['athlete-management'],
-    queryFn: () => fetchAthleteManagement(false), // false means don't filter by branch
+    queryFn: () => fetchAthleteManagement(false),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
   });
@@ -96,16 +93,6 @@ export default function OrganizerDashboard() {
       if (error) throw error;
       return data || [];
     }
-  });
-
-  const { 
-    data: userProfiles, 
-    isLoading: isLoadingProfiles 
-  } = useQuery({
-    queryKey: ['user-profiles'],
-    queryFn: fetchUserProfiles,
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: true,
   });
 
   const handleRefresh = async () => {
@@ -257,13 +244,6 @@ export default function OrganizerDashboard() {
             <ListChecks className="h-5 w-5" />
             Inscrições por Modalidade
           </TabsTrigger>
-          <TabsTrigger 
-            value="profiles"
-            className="flex items-center gap-2 px-6 py-3 text-base font-medium data-[state=active]:border-b-2 data-[state=active]:border-olimpics-green-primary rounded-none"
-          >
-            <Settings2 className="h-5 w-5" />
-            Gerenciar Perfis
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="mt-6">
@@ -317,17 +297,6 @@ export default function OrganizerDashboard() {
                 Nenhuma inscrição confirmada encontrada.
               </div>
             )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="profiles" className="mt-6">
-          <div className="mt-4">
-            <h2 className="text-2xl font-bold mb-4 text-olimpics-text">Gerenciamento de Perfis de Usuário</h2>
-            <UserProfilesTable
-              data={userProfiles || []}
-              branches={branches || []}
-              isLoading={isLoadingProfiles}
-            />
           </div>
         </TabsContent>
       </Tabs>

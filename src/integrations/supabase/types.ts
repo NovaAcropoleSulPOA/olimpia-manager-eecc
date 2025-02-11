@@ -1012,9 +1012,21 @@ export type Database = {
         }
         Returns: undefined
       }
+      has_profile: {
+        Args: {
+          user_id: string
+          profile_name: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      perfil_tipo:
+        | "Administração"
+        | "Organizador"
+        | "Atleta"
+        | "Representante de Delegação"
+        | "Público Geral"
     }
     CompositeTypes: {
       [_ in never]: never
