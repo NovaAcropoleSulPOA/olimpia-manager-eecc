@@ -66,22 +66,22 @@ interface SupabaseUserResponse {
   nome_completo: string;
   email: string;
   filial_id: string;
-  filiais: {
+  filiais: Array<{
     nome: string;
-  }[];
+  }>;
   papeis_usuarios: Array<{
     perfil_id: number;
-    perfis: {
+    perfis: Array<{
       nome: string;
-    }[];
+    }>;
   }>;
 }
 
 interface SupabaseUserRole {
   perfil_id: number;
-  perfis: {
+  perfis: Array<{
     nome: string;
-  }[];
+  }>;
 }
 
 interface SupabaseUserData {
@@ -89,16 +89,16 @@ interface SupabaseUserData {
   nome_completo: string;
   email: string;
   filial_id: string;
-  filiais: {
+  filiais: Array<{
     nome: string;
-  }[];
+  }>;
 }
 
 interface UserRole {
   perfil_id: number;
-  perfis: {
+  perfis: Array<{
     nome: string;
-  }[];
+  }>;
 }
 
 export const updatePaymentAmount = async (
@@ -335,15 +335,20 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
 
   if (!users) return [];
 
-  const formattedUsers = users.map((user: any) => {
-    // Get branch name from the nested filiais array
-    const branchName = user.filiais?.[0]?.nome || 'Sem filial';
+  const formattedUsers = users.map((rawUser: any) => {
+    const user = rawUser as SupabaseUserResponse;
+    
+    const branchName = Array.isArray(user.filiais) && user.filiais.length > 0 
+      ? user.filiais[0].nome 
+      : 'Sem filial';
 
-    // Get profiles from the nested papeis_usuarios array
-    const profiles = (user.papeis_usuarios || []).map((papel: any) => ({
-      perfil_id: papel.perfil_id,
-      perfil_nome: papel.perfis?.[0]?.nome || ''
-    }));
+    const profiles = (Array.isArray(user.papeis_usuarios) ? user.papeis_usuarios : [])
+      .map(papel => ({
+        perfil_id: papel.perfil_id,
+        perfil_nome: Array.isArray(papel.perfis) && papel.perfis.length > 0 
+          ? papel.perfis[0].nome 
+          : ''
+      }));
 
     return {
       id: user.id,
