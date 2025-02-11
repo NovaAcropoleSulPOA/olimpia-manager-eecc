@@ -308,7 +308,8 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
           nome
         )
       )
-    `);
+    `)
+    .order('nome_completo');
 
   if (usersError) {
     console.error('Error fetching users:', usersError);
@@ -318,14 +319,14 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
   console.log('Raw users data:', users);
 
   const formattedUsers = users?.map((user) => {
-    // Get branch name from the nested filiais array's first element
-    const branchName = Array.isArray(user.filiais) && user.filiais[0]?.nome || 'Sem filial';
+    // Get branch name from the nested filiais array
+    const branchName = user.filiais ? user.filiais[0]?.nome : 'Sem filial';
 
     // Get profiles from the nested papeis_usuarios array
-    const profiles = user.papeis_usuarios?.map(papel => ({
+    const profiles = (user.papeis_usuarios || []).map(papel => ({
       perfil_id: papel.perfil_id,
-      perfil_nome: Array.isArray(papel.perfis) && papel.perfis[0]?.nome || ''
-    })) || [];
+      perfil_nome: papel.perfis ? papel.perfis[0]?.nome : ''
+    }));
 
     return {
       id: user.id,
