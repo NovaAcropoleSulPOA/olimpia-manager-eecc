@@ -299,16 +299,18 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
       nome_completo,
       email,
       filial_id,
-      filiais!inner (
+      filiais (
         nome
       ),
-      papeis_usuarios!inner (
+      papeis_usuarios (
         perfil_id,
-        perfis!inner (
+        perfis (
           nome
         )
       )
-    `);
+    `)
+    .not('filial_id', 'is', null)
+    .not('papeis_usuarios', 'is', null);
 
   if (usersError) {
     console.error('Error fetching users:', usersError);
@@ -317,17 +319,38 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
 
   console.log('Raw users data:', users);
 
-  const formattedUsers = users?.map((user: SupabaseUserData) => ({
-    id: user.id,
-    nome_completo: user.nome_completo,
-    email: user.email,
-    filial_id: user.filial_id,
-    filial_nome: Array.isArray(user.filiais) ? user.filiais[0]?.nome || 'Sem filial' : 'Sem filial',
-    profiles: (user as any).papeis_usuarios?.map((profile: SupabaseUserRole) => ({
-      perfil_id: profile.perfil_id,
-      perfil_nome: Array.isArray(profile.perfis) ? profile.perfis[0]?.nome || '' : ''
-    })) || []
-  }));
+  const formattedUsers = users?.map((user: SupabaseUserData) => {
+    // Ensure we have the branch information
+    const filial = user.filiais?.[0];
+    if (!filial) {
+      console.warn(`User ${user.id} has no branch assigned`);
+    }
+
+    // Ensure we have profile information
+    const userProfiles = (user as any).papeis_usuarios;
+    if (!userProfiles?.length) {
+      console.warn(`User ${user.id} has no profiles assigned`);
+    }
+
+    return {
+      id: user.id,
+      nome_completo: user.nome_completo,
+      email: user.email,
+      filial_id: user.filial_id,
+      filial_nome: filial?.nome || 'Sem filial',
+      profiles: userProfiles?.map((profile: SupabaseUserRole) => ({
+        perfil_id: profile.perfil_id,
+        perfil_nome: profile.perfis?.[0]?.nome || ''
+      })) || []
+    };
+  }) || [];
+
+  // Log any users without profiles or branch for debugging
+  formattedUsers.forEach(user => {
+    if (!user.profiles.length || !user.filial_nome) {
+      console.warn('User with missing data:', user);
+    }
+  });
 
   console.log('Formatted users:', formattedUsers);
   return formattedUsers;
