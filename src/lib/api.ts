@@ -321,10 +321,10 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
     nome_completo: user.nome_completo,
     email: user.email,
     filial_id: user.filial_id,
-    filial_nome: user.filiais?.nome || 'Sem filial',
+    filial_nome: Array.isArray(user.filiais) ? user.filiais[0]?.nome || 'Sem filial' : user.filiais?.nome || 'Sem filial',
     profiles: user.papeis_usuarios?.map(profile => ({
       perfil_id: profile.perfil_id,
-      perfil_nome: profile.perfis?.nome || ''
+      perfil_nome: Array.isArray(profile.perfis) ? profile.perfis[0]?.nome || '' : profile.perfis?.nome || ''
     })) || []
   }));
 
