@@ -289,6 +289,8 @@ export const updateModalityStatus = async (
 };
 
 export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
+  console.log('Fetching user profiles...');
+  
   const { data: users, error: usersError } = await supabase
     .from('usuarios')
     .select(`
@@ -296,39 +298,38 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
       nome_completo,
       email,
       filial_id,
-      filiais (
+      filiais!inner (
         nome
+      ),
+      papeis_usuarios!inner (
+        perfil_id,
+        perfis!inner (
+          nome
+        )
       )
     `);
 
-  if (usersError) throw usersError;
+  if (usersError) {
+    console.error('Error fetching users:', usersError);
+    throw usersError;
+  }
 
-  const usersWithProfiles = await Promise.all(
-    (users as SupabaseUserData[]).map(async (user) => {
-      const { data: profiles, error: profilesError } = await supabase
-        .from('papeis_usuarios')
-        .select(`
-          perfil_id,
-          perfis (
-            nome
-          )
-        `)
-        .eq('usuario_id', user.id);
+  console.log('Raw users data:', users);
 
-      if (profilesError) throw profilesError;
+  const formattedUsers = users?.map(user => ({
+    id: user.id,
+    nome_completo: user.nome_completo,
+    email: user.email,
+    filial_id: user.filial_id,
+    filial_nome: user.filiais?.nome || 'Sem filial',
+    profiles: user.papeis_usuarios?.map(profile => ({
+      perfil_id: profile.perfil_id,
+      perfil_nome: profile.perfis?.nome || ''
+    })) || []
+  }));
 
-      return {
-        ...user,
-        filial_nome: user.filiais?.[0]?.nome || 'Sem filial',
-        profiles: (profiles as SupabaseUserRole[])?.map(profile => ({
-          perfil_id: profile.perfil_id,
-          perfil_nome: profile.perfis[0]?.nome || ''
-        })) || []
-      };
-    })
-  );
-
-  return usersWithProfiles;
+  console.log('Formatted users:', formattedUsers);
+  return formattedUsers;
 };
 
 export const updateUserProfiles = async (userId: string, profileIds: number[]): Promise<void> => {
