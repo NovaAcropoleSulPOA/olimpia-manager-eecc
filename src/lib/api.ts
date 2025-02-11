@@ -65,7 +65,7 @@ interface SupabaseUserRole {
   perfil_id: number;
   perfis: {
     nome: string;
-  };
+  }[];
 }
 
 interface SupabaseUserData {
@@ -73,16 +73,16 @@ interface SupabaseUserData {
   nome_completo: string;
   email: string;
   filial_id: string;
-  filiais?: {
+  filiais: {
     nome: string;
-  };
+  }[];
 }
 
 interface UserRole {
   perfil_id: number;
   perfis: {
     nome: string;
-  };
+  }[];
 }
 
 export const updatePaymentAmount = async (
@@ -319,10 +319,10 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
 
       return {
         ...user,
-        filial_nome: user.filiais?.nome || 'Sem filial',
+        filial_nome: user.filiais?.[0]?.nome || 'Sem filial',
         profiles: (profiles as SupabaseUserRole[])?.map(profile => ({
           perfil_id: profile.perfil_id,
-          perfil_nome: profile.perfis.nome
+          perfil_nome: profile.perfis[0]?.nome || ''
         })) || []
       };
     })
