@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase';
 
 export interface AthleteModality {
@@ -69,12 +68,12 @@ interface SupabaseUserResponse {
   filial_id: string;
   filiais: {
     nome: string;
-  } | null;
+  }[];
   papeis_usuarios: Array<{
     perfil_id: number;
     perfis: {
       nome: string;
-    } | null;
+    }[];
   }>;
 }
 
@@ -334,14 +333,16 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
 
   console.log('Raw users data:', users);
 
-  const formattedUsers = (users as SupabaseUserResponse[] || []).map((user) => {
-    // Get branch name from the nested filiais object
-    const branchName = user.filiais?.nome || 'Sem filial';
+  if (!users) return [];
+
+  const formattedUsers = users.map((user: any) => {
+    // Get branch name from the nested filiais array
+    const branchName = user.filiais?.[0]?.nome || 'Sem filial';
 
     // Get profiles from the nested papeis_usuarios array
-    const profiles = (user.papeis_usuarios || []).map(papel => ({
+    const profiles = (user.papeis_usuarios || []).map((papel: any) => ({
       perfil_id: papel.perfil_id,
-      perfil_nome: papel.perfis?.nome || ''
+      perfil_nome: papel.perfis?.[0]?.nome || ''
     }));
 
     return {
