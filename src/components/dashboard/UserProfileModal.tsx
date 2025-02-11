@@ -61,13 +61,20 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
 
     setIsUpdating(true);
     try {
+      console.log('Updating profiles for user:', user.id);
+      console.log('Selected profiles:', selectedProfiles);
+
       await updateUserProfiles(user.id, selectedProfiles);
+      
+      // Invalidate both queries to ensure fresh data
       await queryClient.invalidateQueries({ queryKey: ['user-profiles'] });
+      await queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      
       toast.success("Perfis atualizados com sucesso!");
       onOpenChange(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profiles:', error);
-      toast.error("Erro ao atualizar perfis");
+      toast.error(error.message || "Erro ao atualizar perfis");
     } finally {
       setIsUpdating(false);
     }

@@ -990,6 +990,13 @@ export type Database = {
       }
     }
     Functions: {
+      assign_user_profiles: {
+        Args: {
+          p_user_id: string
+          p_profile_ids: number[]
+        }
+        Returns: undefined
+      }
       atualizar_status_inscricao: {
         Args: {
           inscricao_id: number
