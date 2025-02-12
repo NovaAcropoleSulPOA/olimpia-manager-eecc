@@ -29,6 +29,9 @@ interface EventSelectionProps {
 interface UserRole {
   perfis: {
     nome: string;
+    perfil_tipo: {
+      codigo: string;
+    };
   }[];
 }
 
@@ -36,7 +39,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedRole, setSelectedRole] = useState<'Atleta' | 'Público Geral'>('Público Geral');
+  const [selectedRole, setSelectedRole] = useState<'ATL' | 'PGR'>('PGR'); // Using profile type codes
   
   const { data: events, isLoading } = useQuery({
     queryKey: ['active-events'],
@@ -70,7 +73,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       // Get user's registered events
       const { data: registeredEvents, error: registrationError } = await supabase
         .from('inscricoes_eventos')
-        .select('evento_id, selected_role')
+        .select('evento_id')
         .eq('usuario_id', user.id);
 
       if (registrationError) {
@@ -81,24 +84,15 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       const registeredEventIds = (registeredEvents || []).map(reg => reg.evento_id);
       console.log('User registered events:', registeredEventIds);
 
-      // First try to fetch all events regardless of branch to see what's available
-      const { data: allEvents, error: allEventsError } = await supabase
-        .from('eventos')
-        .select('*');
-
-      console.log('All available events before filtering:', allEvents);
-
-      // Now fetch events with proper filtering
+      // Fetch events with proper filtering
       const { data: events, error: eventsError } = await supabase
         .from('eventos')
         .select(`
           *,
-          eventos_filiais (filial_id)
+          eventos_filiais!inner (filial_id)
         `)
-        .or(
-          `data_inicio_inscricao.lte.${today},id.in.(${registeredEventIds.length > 0 ? registeredEventIds.map(id => `"${id}"`).join(',') : 'null'})`
-        )
-        .gte('data_fim_inscricao', today);
+        .eq('eventos_filiais.filial_id', userBranch.filial_id)
+        .or(`and(data_inicio_inscricao.lte.${today},data_fim_inscricao.gte.${today}),id.in.(${registeredEventIds.length > 0 ? registeredEventIds.join(',') : 'null'})`);
 
       if (eventsError) {
         console.error('Error fetching events:', eventsError);
@@ -107,24 +101,26 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
 
       console.log('Events after initial filtering:', events);
 
-      // Filter events for user's branch
-      const filteredEvents = events?.filter(event => {
-        const eventBranches = event.eventos_filiais || [];
-        return eventBranches.some(eb => eb.filial_id === userBranch.filial_id);
-      });
-
-      console.log('Events after branch filtering:', filteredEvents);
-
       // Then get user roles for each event
       const userRolesPromises = registeredEventIds.map(async (eventId) => {
         const { data: roles } = await supabase
           .from('papeis_usuarios')
-          .select('perfis:perfil_id (nome)')
+          .select(`
+            perfis:perfil_id (
+              nome,
+              perfil_tipo:perfil_tipo_id (
+                codigo
+              )
+            )
+          `)
           .eq('usuario_id', user.id)
           .eq('evento_id', eventId);
         
         const roleNames = (roles as UserRole[] || []).flatMap(role => 
-          role.perfis.map(perfil => perfil.nome)
+          role.perfis.map(perfil => ({
+            nome: perfil.nome,
+            codigo: perfil.perfil_tipo?.codigo || ''
+          }))
         );
         return { eventId, roles: roleNames };
       });
@@ -135,9 +131,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       );
       
       // Add isRegistered, roles and isOpen flags to each event
-      const eventsWithStatus = filteredEvents?.map(event => {
-        const registration = registeredEvents?.find(reg => reg.evento_id === event.id);
-        const eventRoles = userRolesMap[event.id] || [];
+      const eventsWithStatus = events?.map(event => {
         const startDate = new Date(event.data_inicio_inscricao);
         const endDate = new Date(event.data_fim_inscricao);
         const currentDate = new Date(brasiliaDate);
@@ -145,7 +139,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         const eventWithStatus = {
           ...event,
           isRegistered: registeredEventIds.includes(event.id),
-          roles: eventRoles,
+          roles: userRolesMap[event.id] || [],
           isOpen: startDate <= currentDate && currentDate <= endDate
         };
 
@@ -155,7 +149,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
           endDate: endDate.toISOString(),
           currentDate: currentDate.toISOString(),
           isRegistered: eventWithStatus.isRegistered,
-          isOpen: eventWithStatus.isOpen
+          roles: eventWithStatus.roles
         });
 
         return eventWithStatus;
@@ -169,6 +163,16 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
 
   const registerEventMutation = useMutation({
     mutationFn: async (eventId: string) => {
+      const { data: profileTypeId } = await supabase
+        .from('perfis_tipo')
+        .select('id')
+        .eq('codigo', selectedRole)
+        .single();
+
+      if (!profileTypeId) {
+        throw new Error('Profile type not found');
+      }
+
       const { data, error } = await supabase
         .from('inscricoes_eventos')
         .insert([
@@ -210,7 +214,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
   const handleExit = async () => {
     try {
       await signOut();
-      localStorage.removeItem('currentEventId'); // Clear selected event
+      localStorage.removeItem('currentEventId');
       navigate('/');
     } catch (error) {
       console.error('Error logging out:', error);
@@ -287,7 +291,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
                       <p className="text-xs uppercase font-medium mt-2">{event.tipo}</p>
                       {event.isRegistered && event.roles.length > 0 && (
                         <p className="text-xs font-medium text-olimpics-green-primary mt-1">
-                          Papéis: {event.roles.join(', ')}
+                          Papéis: {event.roles.map(role => role.nome).join(', ')}
                         </p>
                       )}
                     </div>
@@ -295,15 +299,15 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
                       <div className="mb-4">
                         <RadioGroup
                           value={selectedRole}
-                          onValueChange={(value) => setSelectedRole(value as 'Atleta' | 'Público Geral')}
+                          onValueChange={(value) => setSelectedRole(value as 'ATL' | 'PGR')}
                           className="space-y-2"
                         >
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="Atleta" id={`atleta-${event.id}`} />
+                            <RadioGroupItem value="ATL" id={`atleta-${event.id}`} />
                             <Label htmlFor={`atleta-${event.id}`}>Atleta</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="Público Geral" id={`publico-${event.id}`} />
+                            <RadioGroupItem value="PGR" id={`publico-${event.id}`} />
                             <Label htmlFor={`publico-${event.id}`}>Público Geral</Label>
                           </div>
                         </RadioGroup>
