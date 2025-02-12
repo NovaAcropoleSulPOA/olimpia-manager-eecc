@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,16 +25,7 @@ interface EventSelectionProps {
   mode: 'registration' | 'login';
 }
 
-interface ProfileType {
-  codigo: string;
-}
-
-interface Profile {
-  nome: string;
-  perfil_tipo: ProfileType;
-}
-
-interface UserRole {
+interface SupabaseUserRole {
   id: number;
   perfil_id: number;
   perfis: {
@@ -135,7 +125,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
           return { eventId, roles: [] };
         }
 
-        const transformedRoles: TransformedRole[] = (roles || []).map((role: UserRole) => ({
+        const transformedRoles: TransformedRole[] = (roles || []).map((role: any) => ({
           nome: role.perfis.nome,
           codigo: role.perfis.perfil_tipo.codigo
         }));
