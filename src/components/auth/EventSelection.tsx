@@ -161,14 +161,16 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
     mutationFn: async (eventId: string) => {
       if (!user?.id) throw new Error('No user ID available');
 
+      console.log('Fetching registration fee for event:', eventId, 'and role:', selectedRole);
+
       const { data: registrationFee, error: feeError } = await supabase
         .from('taxas_inscricao')
         .select(`
           id,
-          perfis!inner (
-            id,
+          valor,
+          perfis!fk_taxas_inscricao_perfil (
             nome,
-            perfil_tipo:perfil_tipo_id (
+            perfil_tipo!inner (
               codigo
             )
           )
@@ -185,6 +187,8 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       if (!registrationFee) {
         throw new Error('Taxa de inscrição não encontrada para o perfil selecionado');
       }
+
+      console.log('Found registration fee:', registrationFee);
 
       const { data: registration, error: registrationError } = await supabase
         .from('inscricoes_eventos')
