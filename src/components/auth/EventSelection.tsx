@@ -3,9 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Trophy } from "lucide-react";
+import { Loader2, Trophy, LogOut } from "lucide-react";
 import { format } from "date-fns";
 import { Event } from "@/lib/types/database";
+import { useNavigate } from "react-router-dom";
 
 interface EventSelectionProps {
   selectedEvents: string[];
@@ -14,17 +15,23 @@ interface EventSelectionProps {
 }
 
 export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSelectionProps) => {
+  const navigate = useNavigate();
+  
   const { data: events, isLoading } = useQuery({
     queryKey: ['active-events'],
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-      console.log('Fetching events for date:', today);
+      // Get current date in Brazil timezone
+      const brasiliaDate = new Date().toLocaleString("en-US", {
+        timeZone: "America/Sao_Paulo"
+      });
+      const today = new Date(brasiliaDate).toISOString().split('T')[0];
+      console.log('Fetching events for Brasília date:', today);
       
       const { data, error } = await supabase
         .from('eventos')
         .select('*')
-        .lte('data_inicio_inscricao', today) // Start date is before or equal to today
-        .gte('data_fim_inscricao', today)    // End date is after or equal to today
+        .lte('data_inicio_inscricao', today)
+        .gte('data_fim_inscricao', today)
         .order('data_inicio_inscricao', { ascending: true });
 
       if (error) {
@@ -37,6 +44,10 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
     },
   });
 
+  const handleExit = () => {
+    navigate('/');
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -47,10 +58,20 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
 
   if (!events?.length) {
     return (
-      <div className="text-center p-8 text-gray-500">
-        {mode === 'registration' 
-          ? 'Não há eventos com inscrições abertas no momento.'
-          : 'Você ainda não está inscrito em nenhum evento.'}
+      <div className="flex flex-col items-center justify-center p-8 space-y-4">
+        <div className="text-center text-gray-500">
+          {mode === 'registration' 
+            ? 'Não há eventos com inscrições abertas no momento.'
+            : 'Você ainda não está inscrito em nenhum evento.'}
+        </div>
+        <Button
+          onClick={handleExit}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <LogOut className="w-4 h-4" />
+          Sair
+        </Button>
       </div>
     );
   }
