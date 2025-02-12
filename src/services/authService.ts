@@ -1,3 +1,4 @@
+
 import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { AuthUser } from '@/types/auth';
 import { toast } from 'sonner';
@@ -6,10 +7,14 @@ export const fetchUserProfile = async (userId: string) => {
   try {
     console.log('Fetching user profile for ID:', userId);
     
+    // Get current event ID from localStorage since roles are now event-specific
+    const currentEventId = localStorage.getItem('currentEventId');
+    
     const { data: userRoles, error: rolesError } = await supabase
       .from('papeis_usuarios')
       .select('perfis (id, nome)')
-      .eq('usuario_id', userId);
+      .eq('usuario_id', userId)
+      .eq('evento_id', currentEventId);
 
     if (rolesError) throw rolesError;
 
@@ -59,3 +64,4 @@ export const handleAuthRedirect = (userProfile: any, pathname: string, navigate:
     navigate('/event-selection');
   }
 };
+

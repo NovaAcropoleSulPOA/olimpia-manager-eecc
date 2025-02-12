@@ -41,7 +41,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       // First, get the user's registered events
       const { data: registeredEvents, error: registrationError } = await supabase
         .from('inscricoes_eventos')
-        .select('evento_id')
+        .select('evento_id, selected_role')
         .eq('usuario_id', user?.id);
 
       if (registrationError) {
@@ -67,13 +67,17 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         throw error;
       }
       
-      // Add isRegistered and isOpen flags to each event
-      const eventsWithStatus = data?.map(event => ({
-        ...event,
-        isRegistered: registeredEventIds.includes(event.id),
-        isOpen: new Date(event.data_inicio_inscricao) <= new Date(brasiliaDate) && 
-                new Date(event.data_fim_inscricao) >= new Date(brasiliaDate)
-      }));
+      // Add isRegistered, selectedRole and isOpen flags to each event
+      const eventsWithStatus = data?.map(event => {
+        const registration = registeredEvents?.find(reg => reg.evento_id === event.id);
+        return {
+          ...event,
+          isRegistered: registeredEventIds.includes(event.id),
+          selectedRole: registration?.selected_role || 'Público Geral',
+          isOpen: new Date(event.data_inicio_inscricao) <= new Date(brasiliaDate) && 
+                  new Date(event.data_fim_inscricao) >= new Date(brasiliaDate)
+        };
+      });
       
       console.log('Retrieved events with status:', eventsWithStatus);
       return eventsWithStatus;
@@ -89,6 +93,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
           {
             evento_id: eventId,
             usuario_id: user?.id,
+            selected_role: mode === 'registration' ? 'Atleta' : 'Público Geral'
           }
         ])
         .select()
@@ -198,6 +203,11 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
                       <p>Início: {format(new Date(event.data_inicio_inscricao), 'dd/MM/yyyy')}</p>
                       <p>Término: {format(new Date(event.data_fim_inscricao), 'dd/MM/yyyy')}</p>
                       <p className="text-xs uppercase font-medium mt-2">{event.tipo}</p>
+                      {event.isRegistered && (
+                        <p className="text-xs font-medium text-olimpics-green-primary mt-1">
+                          Papel: {event.selectedRole}
+                        </p>
+                      )}
                     </div>
                     <Button
                       onClick={() => event.isRegistered ? onEventSelect(event.id) : handleEventRegistration(event.id)}

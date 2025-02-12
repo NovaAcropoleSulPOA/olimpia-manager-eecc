@@ -287,18 +287,21 @@ export type Database = {
           data_inscricao: string | null
           evento_id: string
           id: string
+          selected_role: Database["public"]["Enums"]["perfil_tipo"]
           usuario_id: string
         }
         Insert: {
           data_inscricao?: string | null
           evento_id: string
           id?: string
+          selected_role?: Database["public"]["Enums"]["perfil_tipo"]
           usuario_id: string
         }
         Update: {
           data_inscricao?: string | null
           evento_id?: string
           id?: string
+          selected_role?: Database["public"]["Enums"]["perfil_tipo"]
           usuario_id?: string
         }
         Relationships: [
