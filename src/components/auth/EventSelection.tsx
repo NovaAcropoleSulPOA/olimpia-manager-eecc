@@ -159,34 +159,63 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
 
   const registerEventMutation = useMutation({
     mutationFn: async (eventId: string) => {
-      const { data: profileTypeId } = await supabase
+      if (!user?.id) throw new Error('No user ID available');
+
+      // First get the profile type ID
+      const { data: profileTypeId, error: profileTypeError } = await supabase
         .from('perfis_tipo')
         .select('id')
         .eq('codigo', selectedRole)
         .single();
 
-      if (!profileTypeId) {
+      if (profileTypeError || !profileTypeId) {
         throw new Error('Profile type not found');
       }
 
-      const { data, error } = await supabase
+      // Then get the profile ID for this event and profile type
+      const { data: profile, error: profileError } = await supabase
+        .from('perfis')
+        .select('id')
+        .eq('evento_id', eventId)
+        .eq('perfil_tipo_id', profileTypeId.id)
+        .single();
+
+      if (profileError || !profile) {
+        throw new Error('Profile not found');
+      }
+
+      // Get the registration fee ID for this profile
+      const { data: fee, error: feeError } = await supabase
+        .from('taxas_inscricao')
+        .select('id')
+        .eq('perfil_id', profile.id)
+        .eq('evento_id', eventId)
+        .single();
+
+      if (feeError || !fee) {
+        throw new Error('Registration fee not found');
+      }
+
+      // Create the event registration with the selected role
+      const { data: registration, error: registrationError } = await supabase
         .from('inscricoes_eventos')
         .insert([
           {
             evento_id: eventId,
-            usuario_id: user?.id,
-            selected_role: selectedRole
+            usuario_id: user.id,
+            selected_role: selectedRole,
+            taxa_inscricao_id: fee.id
           }
         ])
         .select()
         .single();
 
-      if (error) {
-        console.error('Error registering for event:', error);
-        throw error;
+      if (registrationError) {
+        console.error('Error registering for event:', registrationError);
+        throw registrationError;
       }
 
-      return data;
+      return registration;
     },
     onSuccess: () => {
       toast.success('Inscrição realizada com sucesso!');
