@@ -161,42 +161,31 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
     mutationFn: async (eventId: string) => {
       if (!user?.id) throw new Error('No user ID available');
 
-      // First get the profile type ID
-      const { data: profileTypeId, error: profileTypeError } = await supabase
-        .from('perfis_tipo')
-        .select('id')
-        .eq('codigo', selectedRole)
-        .single();
-
-      if (profileTypeError || !profileTypeId) {
-        throw new Error('Profile type not found');
-      }
-
-      // Then get the profile ID for this event and profile type
-      const { data: profile, error: profileError } = await supabase
-        .from('perfis')
-        .select('id')
-        .eq('evento_id', eventId)
-        .eq('perfil_tipo_id', profileTypeId.id)
-        .single();
-
-      if (profileError || !profile) {
-        throw new Error('Profile not found');
-      }
-
-      // Get the registration fee ID for this profile
-      const { data: fee, error: feeError } = await supabase
+      const { data: registrationFee, error: feeError } = await supabase
         .from('taxas_inscricao')
-        .select('id')
-        .eq('perfil_id', profile.id)
+        .select(`
+          id,
+          perfis!inner (
+            id,
+            nome,
+            perfil_tipo:perfil_tipo_id (
+              codigo
+            )
+          )
+        `)
         .eq('evento_id', eventId)
+        .eq('perfis.perfil_tipo.codigo', selectedRole)
         .single();
 
-      if (feeError || !fee) {
-        throw new Error('Registration fee not found');
+      if (feeError) {
+        console.error('Error fetching registration fee:', feeError);
+        throw new Error('Taxa de inscrição não encontrada para o perfil selecionado');
       }
 
-      // Create the event registration with the selected role
+      if (!registrationFee) {
+        throw new Error('Taxa de inscrição não encontrada para o perfil selecionado');
+      }
+
       const { data: registration, error: registrationError } = await supabase
         .from('inscricoes_eventos')
         .insert([
@@ -204,7 +193,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
             evento_id: eventId,
             usuario_id: user.id,
             selected_role: selectedRole,
-            taxa_inscricao_id: fee.id
+            taxa_inscricao_id: registrationFee.id
           }
         ])
         .select()
