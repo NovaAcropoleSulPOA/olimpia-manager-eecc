@@ -10,7 +10,6 @@ import { fetchBranches } from '@/lib/api';
 import { PersonalInfoSection } from './form-sections/PersonalInfoSection';
 import { ContactSection } from './form-sections/ContactSection';
 import { AuthSection } from './form-sections/AuthSection';
-import { ProfileTypeSection } from './form-sections/ProfileTypeSection';
 import { registerSchema, RegisterFormData } from './types/form-types';
 import { useRegisterForm } from './hooks/useRegisterForm';
 
@@ -30,7 +29,7 @@ export const SignUpForm = () => {
       tipo_documento: 'CPF',
       numero_documento: '',
       genero: 'Masculino',
-      profile_type: 'Atleta',
+      data_nascimento: undefined,
     },
   });
 
@@ -45,8 +44,6 @@ export const SignUpForm = () => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <ProfileTypeSection form={form} />
-        
         <div className="space-y-6">
           <PersonalInfoSection form={form} />
           <ContactSection 

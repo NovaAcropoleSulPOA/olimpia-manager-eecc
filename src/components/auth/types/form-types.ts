@@ -28,9 +28,9 @@ export const registerSchema = z.object({
   genero: z.enum(['Masculino', 'Feminino'], {
     required_error: "Selecione o gênero",
   }),
-  profile_type: z.enum(['Atleta', 'Público Geral'], {
-    required_error: "Selecione o tipo de perfil",
-  }),
+  data_nascimento: z.date({
+    required_error: "Data de nascimento é obrigatória",
+  })
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
