@@ -91,6 +91,7 @@ export type Database = {
           atividade: string
           cronograma_id: number
           dia: string
+          evento_id: string
           global: boolean
           horario_fim: string
           horario_inicio: string
@@ -102,6 +103,7 @@ export type Database = {
           atividade: string
           cronograma_id: number
           dia: string
+          evento_id: string
           global?: boolean
           horario_fim: string
           horario_inicio: string
@@ -113,6 +115,7 @@ export type Database = {
           atividade?: string
           cronograma_id?: number
           dia?: string
+          evento_id?: string
           global?: boolean
           horario_fim?: string
           horario_inicio?: string
@@ -128,6 +131,13 @@ export type Database = {
             referencedRelation: "cronogramas"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cronograma_atividades_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
         ]
       }
       cronogramas: {
@@ -136,6 +146,7 @@ export type Database = {
           data_fim: string | null
           data_inicio: string | null
           descricao: string | null
+          evento_id: string
           id: number
           nome: string
           updated_at: string | null
@@ -145,6 +156,7 @@ export type Database = {
           data_fim?: string | null
           data_inicio?: string | null
           descricao?: string | null
+          evento_id: string
           id?: number
           nome: string
           updated_at?: string | null
@@ -154,11 +166,100 @@ export type Database = {
           data_fim?: string | null
           data_inicio?: string | null
           descricao?: string | null
+          evento_id?: string
           id?: number
           nome?: string
           updated_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "cronogramas_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eventos: {
+        Row: {
+          created_at: string | null
+          data_fim_inscricao: string
+          data_inicio_inscricao: string
+          descricao: string
+          foto_evento: string | null
+          id: string
+          nome: string
+          tipo: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_fim_inscricao: string
+          data_inicio_inscricao: string
+          descricao: string
+          foto_evento?: string | null
+          id?: string
+          nome: string
+          tipo: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_fim_inscricao?: string
+          data_inicio_inscricao?: string
+          descricao?: string
+          foto_evento?: string | null
+          id?: string
+          nome?: string
+          tipo?: string
+          updated_at?: string | null
+        }
         Relationships: []
+      }
+      eventos_filiais: {
+        Row: {
+          evento_id: string
+          filial_id: string
+        }
+        Insert: {
+          evento_id: string
+          filial_id: string
+        }
+        Update: {
+          evento_id?: string
+          filial_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_filiais_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_filiais_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_filiais_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["filial_id"]
+          },
+          {
+            foreignKeyName: "eventos_filiais_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "vw_inscricoes_atletas"
+            referencedColumns: ["filial_id"]
+          },
+        ]
       }
       filiais: {
         Row: {
@@ -185,6 +286,7 @@ export type Database = {
         Row: {
           atleta_id: string | null
           data_inscricao: string | null
+          evento_id: string
           id: number
           justificativa_status: string | null
           modalidade_id: number | null
@@ -193,6 +295,7 @@ export type Database = {
         Insert: {
           atleta_id?: string | null
           data_inscricao?: string | null
+          evento_id: string
           id?: number
           justificativa_status?: string | null
           modalidade_id?: number | null
@@ -201,12 +304,20 @@ export type Database = {
         Update: {
           atleta_id?: string | null
           data_inscricao?: string | null
+          evento_id?: string
           id?: number
           justificativa_status?: string | null
           modalidade_id?: number | null
           status?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "inscricoes_modalidades_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "inscricoes_modalidades_modalidade_id_fkey"
             columns: ["modalidade_id"]
@@ -226,6 +337,7 @@ export type Database = {
       modalidades: {
         Row: {
           categoria: string
+          evento_id: string
           grupo: string | null
           id: number
           limite_vagas: number
@@ -237,6 +349,7 @@ export type Database = {
         }
         Insert: {
           categoria: string
+          evento_id: string
           grupo?: string | null
           id: number
           limite_vagas?: number
@@ -248,6 +361,7 @@ export type Database = {
         }
         Update: {
           categoria?: string
+          evento_id?: string
           grupo?: string | null
           id?: number
           limite_vagas?: number
@@ -257,7 +371,15 @@ export type Database = {
           tipo_pontuacao?: string
           vagas_ocupadas?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "modalidades_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pagamentos: {
         Row: {
@@ -265,9 +387,11 @@ export type Database = {
           comprovante_url: string | null
           data_criacao: string
           data_validacao: string | null
+          evento_id: string | null
           id: number
+          numero_identificador: string
           status: string | null
-          taxa_inscricao_id: number | null
+          taxa_inscricao_id: number
           validado_sem_comprovante: boolean | null
           valor: number
         }
@@ -276,9 +400,11 @@ export type Database = {
           comprovante_url?: string | null
           data_criacao: string
           data_validacao?: string | null
+          evento_id?: string | null
           id?: number
+          numero_identificador: string
           status?: string | null
-          taxa_inscricao_id?: number | null
+          taxa_inscricao_id: number
           validado_sem_comprovante?: boolean | null
           valor?: number
         }
@@ -287,13 +413,22 @@ export type Database = {
           comprovante_url?: string | null
           data_criacao?: string
           data_validacao?: string | null
+          evento_id?: string | null
           id?: number
+          numero_identificador?: string
           status?: string | null
-          taxa_inscricao_id?: number | null
+          taxa_inscricao_id?: number
           validado_sem_comprovante?: boolean | null
           valor?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "pagamentos_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pagamentos_taxa_inscricao_fk"
             columns: ["taxa_inscricao_id"]
@@ -388,6 +523,7 @@ export type Database = {
           bateria: string | null
           criterio_id: number | null
           data_registro: string | null
+          evento_id: string
           id: number
           juiz_id: string | null
           modalidade_id: number | null
@@ -400,6 +536,7 @@ export type Database = {
           bateria?: string | null
           criterio_id?: number | null
           data_registro?: string | null
+          evento_id: string
           id?: number
           juiz_id?: string | null
           modalidade_id?: number | null
@@ -412,6 +549,7 @@ export type Database = {
           bateria?: string | null
           criterio_id?: number | null
           data_registro?: string | null
+          evento_id?: string
           id?: number
           juiz_id?: string | null
           modalidade_id?: number | null
@@ -460,6 +598,13 @@ export type Database = {
             columns: ["criterio_id"]
             isOneToOne: false
             referencedRelation: "criterios_pontuacao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pontuacoes_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
             referencedColumns: ["id"]
           },
           {
@@ -518,6 +663,7 @@ export type Database = {
           atleta_id: string | null
           categoria: string
           data_registro: string | null
+          evento_id: string
           id: number
           modalidade_id: number | null
           posicao: number
@@ -526,6 +672,7 @@ export type Database = {
           atleta_id?: string | null
           categoria: string
           data_registro?: string | null
+          evento_id: string
           id?: number
           modalidade_id?: number | null
           posicao: number
@@ -534,6 +681,7 @@ export type Database = {
           atleta_id?: string | null
           categoria?: string
           data_registro?: string | null
+          evento_id?: string
           id?: number
           modalidade_id?: number | null
           posicao?: number
@@ -575,6 +723,13 @@ export type Database = {
             referencedColumns: ["atleta_id"]
           },
           {
+            foreignKeyName: "premiacoes_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "premiacoes_modalidade_id_fkey"
             columns: ["modalidade_id"]
             isOneToOne: false
@@ -592,21 +747,31 @@ export type Database = {
       }
       ranking_filiais: {
         Row: {
+          evento_id: string
           filial_id: string | null
           id: number
           total_pontos: number
         }
         Insert: {
+          evento_id: string
           filial_id?: string | null
           id?: number
           total_pontos?: number
         }
         Update: {
+          evento_id?: string
           filial_id?: string | null
           id?: number
           total_pontos?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "ranking_filiais_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ranking_filiais_filial_id_fkey"
             columns: ["filial_id"]
@@ -635,6 +800,7 @@ export type Database = {
           contato_nome: string | null
           contato_telefone: string | null
           data_limite_inscricao: string | null
+          evento_id: string
           id: number
           isento: boolean
           perfil_id: number
@@ -647,6 +813,7 @@ export type Database = {
           contato_nome?: string | null
           contato_telefone?: string | null
           data_limite_inscricao?: string | null
+          evento_id: string
           id?: number
           isento?: boolean
           perfil_id: number
@@ -659,6 +826,7 @@ export type Database = {
           contato_nome?: string | null
           contato_telefone?: string | null
           data_limite_inscricao?: string | null
+          evento_id?: string
           id?: number
           isento?: boolean
           perfil_id?: number
@@ -680,6 +848,13 @@ export type Database = {
             columns: ["perfil_id"]
             isOneToOne: false
             referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "taxas_inscricao_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
             referencedColumns: ["id"]
           },
         ]
