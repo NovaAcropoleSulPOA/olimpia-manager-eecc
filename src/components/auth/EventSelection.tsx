@@ -163,7 +163,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
 
       console.log('Fetching registration fee for event:', eventId, 'and role:', selectedRole);
 
-      const { data: registrationFee, error: feeError } = await supabase
+      const { data: registrationFees, error: feeError } = await supabase
         .from('taxas_inscricao')
         .select(`
           id,
@@ -176,20 +176,24 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
             )
           )
         `)
-        .eq('evento_id', eventId)
-        .eq('perfis.perfis_tipo.codigo', selectedRole)
-        .single();
+        .eq('evento_id', eventId);
 
       if (feeError) {
-        console.error('Error fetching registration fee:', feeError);
+        console.error('Error fetching registration fees:', feeError);
+        throw new Error('Erro ao buscar taxa de inscrição');
+      }
+
+      // Find the matching fee by filtering in memory
+      const matchingFee = registrationFees?.find(fee => 
+        fee.perfis?.perfis_tipo?.codigo === selectedRole
+      );
+
+      if (!matchingFee) {
+        console.error('No matching registration fee found for role:', selectedRole);
         throw new Error('Taxa de inscrição não encontrada para o perfil selecionado');
       }
 
-      if (!registrationFee) {
-        throw new Error('Taxa de inscrição não encontrada para o perfil selecionado');
-      }
-
-      console.log('Found registration fee:', registrationFee);
+      console.log('Found registration fee:', matchingFee);
 
       const { data: registration, error: registrationError } = await supabase
         .from('inscricoes_eventos')
@@ -198,7 +202,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
             evento_id: eventId,
             usuario_id: user.id,
             selected_role: selectedRole,
-            taxa_inscricao_id: registrationFee.id
+            taxa_inscricao_id: matchingFee.id
           }
         ])
         .select()
