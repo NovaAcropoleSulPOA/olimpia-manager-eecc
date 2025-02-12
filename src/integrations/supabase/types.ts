@@ -582,18 +582,21 @@ export type Database = {
           evento_id: string
           id: number
           nome: string
+          perfil_tipo_id: string
         }
         Insert: {
           descricao?: string | null
           evento_id: string
           id?: number
           nome: string
+          perfil_tipo_id: string
         }
         Update: {
           descricao?: string | null
           evento_id?: string
           id?: number
           nome?: string
+          perfil_tipo_id?: string
         }
         Relationships: [
           {
@@ -603,7 +606,32 @@ export type Database = {
             referencedRelation: "eventos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "perfis_tipo_perfil_fkey"
+            columns: ["perfil_tipo_id"]
+            isOneToOne: false
+            referencedRelation: "perfis_tipo"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      perfis_tipo: {
+        Row: {
+          codigo: string
+          descricao: string | null
+          id: string
+        }
+        Insert: {
+          codigo: string
+          descricao?: string | null
+          id?: string
+        }
+        Update: {
+          codigo?: string
+          descricao?: string | null
+          id?: string
+        }
+        Relationships: []
       }
       pontuacoes: {
         Row: {
