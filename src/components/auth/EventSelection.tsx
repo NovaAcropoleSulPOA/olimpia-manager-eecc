@@ -26,6 +26,13 @@ interface EventSelectionProps {
   mode: 'registration' | 'login';
 }
 
+// Add these interfaces to properly type our data
+interface UserRole {
+  perfis: {
+    nome: string;
+  }
+}
+
 export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSelectionProps) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -75,10 +82,13 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       const userRolesPromises = registeredEventIds.map(async (eventId) => {
         const { data: roles } = await supabase
           .from('papeis_usuarios')
-          .select('perfis (nome)')
+          .select('perfis:perfil_id (nome)')
           .eq('usuario_id', user?.id)
           .eq('evento_id', eventId);
-        return { eventId, roles: roles?.map(r => r.perfis.nome) || [] };
+        
+        // Properly type and access the roles data
+        const roleNames = (roles as UserRole[] || []).map(role => role.perfis.nome);
+        return { eventId, roles: roleNames };
       });
 
       const userRoles = await Promise.all(userRolesPromises);
