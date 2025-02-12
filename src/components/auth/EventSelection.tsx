@@ -18,7 +18,7 @@ interface EventSelectionProps {
 
 export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSelectionProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
   
   const { data: events, isLoading } = useQuery({
@@ -45,15 +45,14 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       const registeredEventIds = (registeredEvents || []).map(reg => reg.evento_id);
       console.log('User registered events:', registeredEventIds);
 
-      // Then get all active events for the user's branch
+      // Get events that are either currently open OR the user is already registered for
       const { data, error } = await supabase
         .from('eventos')
         .select(`
           *,
           eventos_filiais!inner(filial_id)
         `)
-        .gte('data_inicio_inscricao', today)
-        .lte('data_fim_inscricao', today)
+        .or(`and(data_inicio_inscricao.lte.${today},data_fim_inscricao.gte.${today}),id.in.(${registeredEventIds.map(id => `"${id}"`).join(',')})`)
         .order('data_inicio_inscricao', { ascending: true });
 
       if (error) {
@@ -61,14 +60,16 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         throw error;
       }
       
-      // Add isRegistered flag to each event
-      const eventsWithRegistrationStatus = data?.map(event => ({
+      // Add isRegistered and isOpen flags to each event
+      const eventsWithStatus = data?.map(event => ({
         ...event,
-        isRegistered: registeredEventIds.includes(event.id)
+        isRegistered: registeredEventIds.includes(event.id),
+        isOpen: new Date(event.data_inicio_inscricao) <= new Date(brasiliaDate) && 
+                new Date(event.data_fim_inscricao) >= new Date(brasiliaDate)
       }));
       
-      console.log('Retrieved events with registration status:', eventsWithRegistrationStatus);
-      return eventsWithRegistrationStatus;
+      console.log('Retrieved events with status:', eventsWithStatus);
+      return eventsWithStatus;
     },
     enabled: !!user?.id,
   });
@@ -112,8 +113,15 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
     }
   };
 
-  const handleExit = () => {
-    navigate('/');
+  const handleExit = async () => {
+    try {
+      await signOut();
+      localStorage.removeItem('currentEventId'); // Clear selected event
+      navigate('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast.error('Erro ao fazer logout. Tente novamente.');
+    }
   };
 
   if (isLoading) {
@@ -179,8 +187,13 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
               onClick={() => event.isRegistered ? onEventSelect(event.id) : handleEventRegistration(event.id)}
               variant={event.isRegistered ? "default" : "outline"}
               className="w-full"
+              disabled={!event.isOpen && !event.isRegistered}
             >
-              {event.isRegistered ? 'Acessar evento' : 'Quero me cadastrar'}
+              {event.isRegistered 
+                ? 'Acessar evento' 
+                : event.isOpen 
+                  ? 'Quero me cadastrar'
+                  : 'Inscrições encerradas'}
             </Button>
           </CardContent>
         </Card>
