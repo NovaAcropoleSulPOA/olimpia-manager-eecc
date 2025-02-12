@@ -31,13 +31,18 @@ interface PerfilTipo {
   codigo: string;
 }
 
-interface Perfil {
+interface Perfis {
   nome: string;
   perfil_tipo: PerfilTipo;
 }
 
 interface RoleData {
-  perfis: Perfil;
+  perfis: {
+    nome: any;
+    perfil_tipo: {
+      codigo: any;
+    }[];
+  }[];
 }
 
 export default function AthleteProfilePage() {
@@ -83,7 +88,7 @@ export default function AthleteProfilePage() {
       console.log('Raw roles data:', rolesData);
 
       // Transform the roles data to include both nome and codigo
-      const transformedRoles = rolesData?.map((role: RoleData) => ({
+      const transformedRoles = (rolesData as any[])?.map(role => ({
         nome: role.perfis.nome,
         codigo: role.perfis.perfil_tipo.codigo
       })) || [];
