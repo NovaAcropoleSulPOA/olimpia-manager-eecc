@@ -10,7 +10,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storageKey: 'olimpics_auth_token',
     storage: localStorage,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    flowType: 'pkce'
   },
   global: {
     headers: {
@@ -56,6 +57,9 @@ export const recoverSession = async () => {
     
     if (error) {
       console.error('Error recovering session:', error);
+      // Clear any existing invalid session data
+      await supabase.auth.signOut();
+      localStorage.removeItem('olimpics_auth_token');
       throw error;
     }
     
@@ -68,6 +72,28 @@ export const recoverSession = async () => {
     return null;
   } catch (error) {
     console.error('Error in session recovery:', error);
+    // Clear any existing invalid session data
+    await supabase.auth.signOut();
+    localStorage.removeItem('olimpics_auth_token');
     return null;
   }
 };
+
+// Add initialization check
+export const initializeSupabase = async () => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error || !session) {
+      // Clear any potentially corrupted session data
+      await supabase.auth.signOut();
+      localStorage.removeItem('olimpics_auth_token');
+    }
+  } catch (error) {
+    console.error('Error initializing Supabase:', error);
+    await supabase.auth.signOut();
+    localStorage.removeItem('olimpics_auth_token');
+  }
+};
+
+// Initialize on import
+initializeSupabase();
