@@ -1321,6 +1321,7 @@ export type Database = {
         | "Atleta"
         | "Representante de Delegação"
         | "Público Geral"
+        | "PGR"
     }
     CompositeTypes: {
       [_ in never]: never

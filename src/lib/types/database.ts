@@ -36,3 +36,5 @@ export interface UserRole {
   perfil_id: number;
   evento_id: string;
 }
+
+export type PerfilTipo = 'ATL' | 'PGR';

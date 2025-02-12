@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { Loader2, Trophy, LogOut } from "lucide-react";
 import { format } from "date-fns";
-import { Event } from "@/lib/types/database";
+import { Event, PerfilTipo } from "@/lib/types/database";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,7 +25,6 @@ interface EventSelectionProps {
   mode: 'registration' | 'login';
 }
 
-// Updated interfaces to match the actual database structure
 interface ProfileType {
   codigo: string;
 }
@@ -50,7 +49,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedRole, setSelectedRole] = useState<'ATL' | 'PGR'>('PGR');
+  const [selectedRole, setSelectedRole] = useState<PerfilTipo>('PGR');
 
   const { data: events, isLoading } = useQuery({
     queryKey: ['active-events'],
@@ -60,43 +59,32 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         return [];
       }
 
-      // Get current date in Brazil timezone
       const brasiliaDate = new Date().toLocaleString("en-US", {
         timeZone: "America/Sao_Paulo"
       });
       const today = new Date(brasiliaDate).toISOString().split('T')[0];
       console.log('Current Brasília date:', today);
 
-      // First, get user's branch
-      const { data: userBranch, error: branchError } = await supabase
+      const userBranch = await supabase
         .from('usuarios')
         .select('filial_id')
         .eq('id', user.id)
         .single();
 
-      if (branchError) {
-        console.error('Error fetching user branch:', branchError);
-        throw branchError;
+      if (userBranch.error) {
+        console.error('Error fetching user branch:', userBranch.error);
+        throw userBranch.error;
       }
 
-      console.log('User branch:', userBranch);
-
-      // Get user's registered events
-      const { data: registeredEvents, error: registrationError } = await supabase
+      const registeredEvents = await supabase
         .from('inscricoes_eventos')
         .select('evento_id')
         .eq('usuario_id', user.id);
 
-      if (registrationError) {
-        console.error('Error fetching registered events:', registrationError);
-        throw registrationError;
-      }
-
-      const registeredEventIds = (registeredEvents || []).map(reg => reg.evento_id);
+      const registeredEventIds = (registeredEvents.data || []).map(reg => reg.evento_id);
       console.log('User registered events:', registeredEventIds);
 
-      // Fetch events with proper filtering
-      const { data: events, error: eventsError } = await supabase
+      const events = await supabase
         .from('eventos')
         .select(`
           *,
@@ -105,16 +93,8 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         .eq('eventos_filiais.filial_id', userBranch.filial_id)
         .or(`and(data_inicio_inscricao.lte.${today},data_fim_inscricao.gte.${today}),id.in.(${registeredEventIds.length > 0 ? registeredEventIds.join(',') : 'null'})`);
 
-      if (eventsError) {
-        console.error('Error fetching events:', eventsError);
-        throw eventsError;
-      }
-
-      console.log('Events after initial filtering:', events);
-
-      // Then get user roles for each event
       const userRolesPromises = registeredEventIds.map(async (eventId) => {
-        const { data: roles, error: rolesError } = await supabase
+        const roles = await supabase
           .from('papeis_usuarios')
           .select(`
             id,
@@ -129,24 +109,11 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
           .eq('usuario_id', user.id)
           .eq('evento_id', eventId);
 
-        if (rolesError) {
-          console.error('Error fetching roles:', rolesError);
-          return { eventId, roles: [] as TransformedRole[] };
-        }
-        
-        console.log('Raw roles data:', roles);
-        
-        // First cast to unknown, then to UserRole[] to handle the type mismatch safely
-        const typedRoles = (roles as unknown) as UserRole[];
-        
-        // Transform the roles data, using perfis.nome for display and perfil_tipo.codigo for logic
-        const transformedRoles: TransformedRole[] = typedRoles.map(role => ({
+        const transformedRoles: TransformedRole[] = roles.map(role => ({
           nome: role.perfis?.nome || '',  // Use the existing perfis.nome for display
           codigo: role.perfis?.perfil_tipo?.codigo || ''  // Use codigo for logic
         }));
 
-        console.log('Transformed roles:', transformedRoles);
-        
         return { eventId, roles: transformedRoles };
       });
 
@@ -155,8 +122,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         userRoles.map(({ eventId, roles }) => [eventId, roles])
       );
       
-      // Add isRegistered, roles and isOpen flags to each event
-      const eventsWithStatus = events?.map(event => {
+      const eventsWithStatus = events.data?.map(event => {
         const startDate = new Date(event.data_inicio_inscricao);
         const endDate = new Date(event.data_fim_inscricao);
         const currentDate = new Date(brasiliaDate);
