@@ -26,11 +26,11 @@ interface EventSelectionProps {
   mode: 'registration' | 'login';
 }
 
-// Add these interfaces to properly type our data
+// Update interface to match the actual data structure
 interface UserRole {
   perfis: {
     nome: string;
-  }
+  }[];
 }
 
 export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSelectionProps) => {
@@ -86,8 +86,10 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
           .eq('usuario_id', user?.id)
           .eq('evento_id', eventId);
         
-        // Properly type and access the roles data
-        const roleNames = (roles as UserRole[] || []).map(role => role.perfis.nome);
+        // Update the mapping to handle the array of perfis
+        const roleNames = (roles as UserRole[] || []).flatMap(role => 
+          role.perfis.map(perfil => perfil.nome)
+        );
         return { eventId, roles: roleNames };
       });
 
