@@ -26,7 +26,6 @@ interface EventSelectionProps {
   mode: 'registration' | 'login';
 }
 
-// Update interface to match the actual data structure
 interface UserRole {
   perfis: {
     nome: string;
@@ -42,18 +41,35 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
   const { data: events, isLoading } = useQuery({
     queryKey: ['active-events'],
     queryFn: async () => {
+      if (!user?.id) {
+        console.error('No user ID available');
+        return [];
+      }
+
       // Get current date in Brazil timezone
       const brasiliaDate = new Date().toLocaleString("en-US", {
         timeZone: "America/Sao_Paulo"
       });
       const today = new Date(brasiliaDate).toISOString().split('T')[0];
       console.log('Fetching events for Brasília date:', today);
-      
-      // First, get the user's registered events
+
+      // First, get user's branch
+      const { data: userBranch, error: branchError } = await supabase
+        .from('usuarios')
+        .select('filial_id')
+        .eq('id', user.id)
+        .single();
+
+      if (branchError) {
+        console.error('Error fetching user branch:', branchError);
+        throw branchError;
+      }
+
+      // Get user's registered events
       const { data: registeredEvents, error: registrationError } = await supabase
         .from('inscricoes_eventos')
         .select('evento_id, selected_role')
-        .eq('usuario_id', user?.id);
+        .eq('usuario_id', user.id);
 
       if (registrationError) {
         console.error('Error fetching registered events:', registrationError);
@@ -63,19 +79,22 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       const registeredEventIds = (registeredEvents || []).map(reg => reg.evento_id);
       console.log('User registered events:', registeredEventIds);
 
-      // Get events that are either currently open OR the user is already registered for
-      const { data, error } = await supabase
+      // Fetch events that either:
+      // 1. Are open for registration (within date range)
+      // 2. User is already registered for
+      // 3. Are available for user's branch
+      const { data: events, error: eventsError } = await supabase
         .from('eventos')
         .select(`
           *,
           eventos_filiais!inner(filial_id)
         `)
-        .or(`and(data_inicio_inscricao.lte.${today},data_fim_inscricao.gte.${today}),id.in.(${registeredEventIds.map(id => `"${id}"`).join(',')})`)
-        .order('data_inicio_inscricao', { ascending: true });
+        .or(`and(data_inicio_inscricao.lte.${today},data_fim_inscricao.gte.${today}),id.in.(${registeredEventIds.length > 0 ? registeredEventIds.map(id => `"${id}"`).join(',') : 'null'})`)
+        .eq('eventos_filiais.filial_id', userBranch.filial_id);
 
-      if (error) {
-        console.error('Error fetching events:', error);
-        throw error;
+      if (eventsError) {
+        console.error('Error fetching events:', eventsError);
+        throw eventsError;
       }
 
       // Then get user roles for each event
@@ -83,10 +102,9 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         const { data: roles } = await supabase
           .from('papeis_usuarios')
           .select('perfis:perfil_id (nome)')
-          .eq('usuario_id', user?.id)
+          .eq('usuario_id', user.id)
           .eq('evento_id', eventId);
         
-        // Update the mapping to handle the array of perfis
         const roleNames = (roles as UserRole[] || []).flatMap(role => 
           role.perfis.map(perfil => perfil.nome)
         );
@@ -99,20 +117,23 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       );
       
       // Add isRegistered, roles and isOpen flags to each event
-      const eventsWithStatus = data?.map(event => {
+      const eventsWithStatus = events?.map(event => {
         const registration = registeredEvents?.find(reg => reg.evento_id === event.id);
         const eventRoles = userRolesMap[event.id] || [];
+        const startDate = new Date(event.data_inicio_inscricao);
+        const endDate = new Date(event.data_fim_inscricao);
+        const currentDate = new Date(brasiliaDate);
+        
         return {
           ...event,
           isRegistered: registeredEventIds.includes(event.id),
           roles: eventRoles,
-          isOpen: new Date(event.data_inicio_inscricao) <= new Date(brasiliaDate) && 
-                  new Date(event.data_fim_inscricao) >= new Date(brasiliaDate)
+          isOpen: startDate <= currentDate && currentDate <= endDate
         };
       });
       
       console.log('Retrieved events with status:', eventsWithStatus);
-      return eventsWithStatus;
+      return eventsWithStatus || [];
     },
     enabled: !!user?.id,
   });
