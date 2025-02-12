@@ -1,3 +1,4 @@
+
 import { useAuth } from '@/contexts/AuthContext';
 import AthleteProfilePage from '@/components/AthleteProfilePage';
 
@@ -5,7 +6,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   console.log("Usuário carregado no dashboard:", user);
 
-  const isAthlete = user?.papeis?.includes('Atleta');
+  const isAthlete = user?.papeis?.some(role => role.codigo === 'ATL');
 
   return (
     <div className="min-h-screen bg-olimpics-background">

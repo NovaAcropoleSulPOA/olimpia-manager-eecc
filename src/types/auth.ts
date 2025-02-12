@@ -1,12 +1,18 @@
 
 import { User } from '@supabase/supabase-js';
 
+export interface UserRole {
+  nome: string;
+  codigo: string;
+  descricao: string | null;
+}
+
 export interface AuthUser extends User {
   nome_completo?: string;
   telefone?: string;
   filial_id?: string;
   confirmado?: boolean;
-  papeis?: string[];
+  papeis?: UserRole[];
   tipo_documento?: string;
   numero_documento?: string;
   genero?: string;

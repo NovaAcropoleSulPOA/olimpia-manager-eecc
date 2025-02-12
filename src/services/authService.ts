@@ -1,6 +1,6 @@
 
 import { supabase, handleSupabaseError } from '@/lib/supabase';
-import { AuthUser } from '@/types/auth';
+import { AuthUser, UserRole } from '@/types/auth';
 import { toast } from 'sonner';
 
 export const fetchUserProfile = async (userId: string) => {
@@ -40,7 +40,7 @@ export const fetchUserProfile = async (userId: string) => {
       console.log('No user profile found, returning minimal profile');
       return {
         confirmado: false,
-        papeis: [],
+        papeis: [] as UserRole[],
       };
     }
 
@@ -48,7 +48,7 @@ export const fetchUserProfile = async (userId: string) => {
       nome: ur.perfis.nome,
       codigo: ur.perfis.perfis_tipo.codigo,
       descricao: ur.perfis.perfis_tipo.descricao
-    })) || [];
+    })) as UserRole[] || [];
     
     console.log('User roles fetched:', papeis);
     
