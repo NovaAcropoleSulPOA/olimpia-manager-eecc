@@ -45,6 +45,12 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
     });
   };
 
+  // Transform the papeis array into the required format
+  const formattedRoles = profile.papeis?.map(role => ({
+    nome: role, // Use the existing role string as the nome
+    codigo: role // Keep the original code for internal logic
+  })) || [];
+
   return (
     <div className="space-y-6">
       {!isPublicUser && (
@@ -88,7 +94,7 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
 
           <div>
             <AccessProfile 
-              papeis={profile.papeis}
+              papeis={formattedRoles}
               onPasswordChange={handlePasswordChange}
             />
           </div>
