@@ -1,4 +1,3 @@
-
 import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { AuthUser } from '@/types/auth';
 import { toast } from 'sonner';
@@ -54,25 +53,9 @@ export const handleAuthRedirect = (userProfile: any, pathname: string, navigate:
     return;
   }
   
-  // Only redirect if on a public route
+  // If user is on a public route, redirect to event selection
   if (['/login', '/', '/forgot-password'].includes(pathname)) {
-    const roles = userProfile.papeis || [];
-    console.log('AuthContext - User roles for redirect:', roles);
-
-    if (roles.includes('Atleta')) {
-      console.log('AuthContext - Redirecting to athlete profile');
-      navigate('/athlete-profile');
-    } else if (roles.includes('Organizador')) {
-      console.log('AuthContext - Redirecting to organizer dashboard');
-      navigate('/organizer-dashboard');
-    } else if (roles.includes('Representante de Delegação')) {
-      console.log('AuthContext - Redirecting to delegation dashboard');
-      navigate('/delegation-dashboard');
-    } else if (roles.includes('Público Geral') || roles.length === 0) {
-      // Default redirection for Público Geral or users with no specific roles
-      console.log('AuthContext - Redirecting public user to profile');
-      navigate('/athlete-profile');
-    }
+    console.log('AuthContext - Redirecting to event selection');
+    navigate('/event-selection');
   }
 };
-
