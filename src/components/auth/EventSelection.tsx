@@ -28,7 +28,6 @@ interface EventSelectionProps {
 // Updated interfaces to match the actual database structure
 interface ProfileType {
   codigo: string;
-  descricao: string;  // Added description field
 }
 
 interface Profile {
@@ -45,7 +44,6 @@ interface UserRole {
 interface TransformedRole {
   nome: string;
   codigo: string;
-  descricao: string;  // Added to store the human-readable description
 }
 
 export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSelectionProps) => {
@@ -53,17 +51,6 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
   const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
   const [selectedRole, setSelectedRole] = useState<'ATL' | 'PGR'>('PGR');
-  
-  const getRoleDisplayText = (code: string) => {
-    switch (code) {
-      case 'ATL':
-        return 'Atleta';
-      case 'PGR':
-        return 'Público Geral';
-      default:
-        return code;
-    }
-  };
 
   const { data: events, isLoading } = useQuery({
     queryKey: ['active-events'],
@@ -135,8 +122,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
             perfis:perfil_id (
               nome,
               perfil_tipo:perfil_tipo_id (
-                codigo,
-                descricao
+                codigo
               )
             )
           `)
@@ -153,11 +139,10 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         // First cast to unknown, then to UserRole[] to handle the type mismatch safely
         const typedRoles = (roles as unknown) as UserRole[];
         
-        // Transform the roles data with proper typing, keeping descriptions
+        // Transform the roles data, using perfis.nome for display and perfil_tipo.codigo for logic
         const transformedRoles: TransformedRole[] = typedRoles.map(role => ({
-          nome: role.perfis?.nome || '',
-          codigo: role.perfis?.perfil_tipo?.codigo || '',
-          descricao: role.perfis?.perfil_tipo?.descricao || getRoleDisplayText(role.perfis?.perfil_tipo?.codigo || '')
+          nome: role.perfis?.nome || '',  // Use the existing perfis.nome for display
+          codigo: role.perfis?.perfil_tipo?.codigo || ''  // Use codigo for logic
         }));
 
         console.log('Transformed roles:', transformedRoles);
