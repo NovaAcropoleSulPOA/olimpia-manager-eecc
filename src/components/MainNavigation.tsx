@@ -113,7 +113,7 @@ export function MainNavigation() {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex flex-1 w-full">
-        <Sidebar className="bg-olimpics-green-primary text-white sticky top-16 h-[calc(100vh-4rem)]">
+        <Sidebar className="bg-olimpics-green-primary text-white fixed md:sticky top-16 h-[calc(100vh-4rem)] z-50">
           <SidebarHeader className="relative p-6 border-b border-olimpics-green-secondary">
             <h2 className="text-xl font-bold text-center">Menu</h2>
             <SidebarTrigger className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden text-white hover:text-olimpics-green-secondary">
@@ -143,8 +143,8 @@ export function MainNavigation() {
                         `}
                       >
                         <Link to={item.path} className="flex items-center gap-3 p-3">
-                          <item.icon className="h-5 w-5" />
-                          <span className="font-medium">{item.title}</span>
+                          <item.icon className="h-5 w-5 flex-shrink-0" />
+                          <span className="font-medium whitespace-nowrap">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -163,14 +163,14 @@ export function MainNavigation() {
                     transition-all duration-200 text-lg font-medium"
                   tooltip="Sair"
                 >
-                  <LogOut className="h-6 w-6" />
-                  <span>Sair</span>
+                  <LogOut className="h-6 w-6 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Sair</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
-        <main className="flex-1 p-6 bg-olimpics-background min-h-[calc(100vh-4rem-4rem)]">
+        <main className="flex-1 p-6 bg-olimpics-background min-h-[calc(100vh-4rem)]">
           <Outlet />
         </main>
       </div>
