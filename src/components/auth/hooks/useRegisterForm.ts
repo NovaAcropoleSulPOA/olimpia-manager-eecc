@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { supabase } from '@/lib/supabase';
 import { RegisterFormData } from '../types/form-types';
 
+const DEFAULT_EVENT_ID = 'e88fc492-9b35-49f9-a88e-5b7f65d10b2d'; // Default event ID
+
 export const useRegisterForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signUp } = useAuth();
@@ -91,6 +93,7 @@ export const useRegisterForm = () => {
         .from('taxas_inscricao')
         .select('valor')
         .eq('perfil_id', profileData.id)
+        .eq('evento_id', DEFAULT_EVENT_ID)
         .single();
 
       if (feeError) {
@@ -99,17 +102,22 @@ export const useRegisterForm = () => {
         return;
       }
 
+      // Generate unique identifier for this event registration
+      const identifier = await generateIdentifier();
+
       // Create payment record
       const { error: paymentError } = await supabase
         .from('pagamentos')
         .insert([{
           atleta_id: userId,
+          evento_id: DEFAULT_EVENT_ID,
           valor: feeData.valor,
           status: 'pendente',
           comprovante_url: null,
           validado_sem_comprovante: false,
           data_validacao: null,
-          data_criacao: new Date().toISOString()
+          data_criacao: new Date().toISOString(),
+          numero_identificador: identifier
         }]);
 
       if (paymentError) {
@@ -127,6 +135,17 @@ export const useRegisterForm = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Helper function to generate a unique identifier
+  const generateIdentifier = async (): Promise<string> => {
+    const { count } = await supabase
+      .from('pagamentos')
+      .select('*', { count: 'exact', head: true })
+      .eq('evento_id', DEFAULT_EVENT_ID);
+
+    const nextNumber = (count || 0) + 1;
+    return nextNumber.toString().padStart(3, '0');
   };
 
   return {
