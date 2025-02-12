@@ -45,10 +45,13 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       const registeredEventIds = (registeredEvents || []).map(reg => reg.evento_id);
       console.log('User registered events:', registeredEventIds);
 
-      // Then get all active events
+      // Then get all active events for the user's branch
       const { data, error } = await supabase
         .from('eventos')
-        .select('*')
+        .select(`
+          *,
+          eventos_filiais!inner(filial_id)
+        `)
         .gte('data_inicio_inscricao', today)
         .lte('data_fim_inscricao', today)
         .order('data_inicio_inscricao', { ascending: true });
