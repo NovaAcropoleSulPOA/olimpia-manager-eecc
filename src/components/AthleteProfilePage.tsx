@@ -52,9 +52,9 @@ export default function AthleteProfilePage() {
       const { data: rolesData, error: rolesError } = await supabase
         .from('papeis_usuarios')
         .select(`
-          perfis (
+          perfis:perfil_id (
             nome,
-            perfil_tipo (
+            perfil_tipo:perfil_tipo_id (
               codigo
             )
           )
@@ -68,8 +68,8 @@ export default function AthleteProfilePage() {
 
       // Transform the roles data to include both nome and codigo
       const transformedRoles = rolesData?.map(role => ({
-        nome: role.perfis.nome, // Use the descriptive name from perfis.nome
-        codigo: role.perfis.perfil_tipo.codigo // Keep the code for internal logic
+        nome: role.perfis.nome,
+        codigo: role.perfis.perfil_tipo.codigo
       })) || [];
 
       console.log('Profile data:', profileData);

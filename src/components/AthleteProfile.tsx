@@ -23,7 +23,7 @@ interface AthleteProfileProps {
     filial_estado: string;
     pagamento_status?: string;
     pagamento_valor?: number;
-    papeis?: string[];
+    papeis?: { nome: string; codigo: string; }[];
   };
   isPublicUser: boolean;
 }
@@ -44,12 +44,6 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
       replace: false
     });
   };
-
-  // Transform the papeis array into the required format
-  const formattedRoles = profile.papeis?.map(role => ({
-    nome: role, // Use the existing role string as the nome
-    codigo: role // Keep the original code for internal logic
-  })) || [];
 
   return (
     <div className="space-y-6">
@@ -94,7 +88,7 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
 
           <div>
             <AccessProfile 
-              papeis={formattedRoles}
+              papeis={profile.papeis}
               onPasswordChange={handlePasswordChange}
             />
           </div>
