@@ -21,7 +21,7 @@ interface AthleteProfileData {
   filial_cidade: string;
   filial_estado: string;
   status_confirmacao: boolean;
-  papeis?: string[];
+  papeis?: { nome: string; codigo: string; }[];
   pagamento_status?: string;
   pagamento_valor?: number;
 }
@@ -36,19 +36,49 @@ export default function AthleteProfilePage() {
       if (!user?.id) return null;
       console.log('Fetching athlete profile for:', user.id);
 
-      const { data, error } = await supabase
+      // First, fetch the user's profile data
+      const { data: profileData, error: profileError } = await supabase
         .from('view_perfil_atleta')
         .select('*')
         .eq('atleta_id', user.id)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-        throw error;
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        throw profileError;
       }
 
-      console.log('Profile data:', data);
-      return data as AthleteProfileData;
+      // Then, fetch the user's roles with their descriptive names
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('papeis_usuarios')
+        .select(`
+          perfis (
+            nome,
+            perfil_tipo (
+              codigo
+            )
+          )
+        `)
+        .eq('usuario_id', user.id);
+
+      if (rolesError) {
+        console.error('Error fetching roles:', rolesError);
+        throw rolesError;
+      }
+
+      // Transform the roles data to include both nome and codigo
+      const transformedRoles = rolesData?.map(role => ({
+        nome: role.perfis.nome, // Use the descriptive name from perfis.nome
+        codigo: role.perfis.perfil_tipo.codigo // Keep the code for internal logic
+      })) || [];
+
+      console.log('Profile data:', profileData);
+      console.log('Transformed roles:', transformedRoles);
+
+      return {
+        ...profileData,
+        papeis: transformedRoles
+      } as AthleteProfileData;
     },
     enabled: !!user?.id,
   });
@@ -76,10 +106,7 @@ export default function AthleteProfilePage() {
   return (
     <div className="container mx-auto py-6 space-y-8">
       <AthleteProfile 
-        profile={{
-          ...profile,
-          papeis: user?.papeis?.map(role => role.codigo) || [],
-        }}
+        profile={profile}
         isPublicUser={isPublicUser}
       />
       {isPendingPayment && <PaymentInfo key={user?.id} />}
