@@ -80,13 +80,13 @@ const LandingPage = () => {
                       className="w-full h-full object-contain animate-pulse"
                     />
                   </div>
-                  <Card className="bg-[#1A1F2C]/90 backdrop-blur p-0 w-24 h-24 md:w-32 md:h-32 flex items-center justify-center overflow-hidden">
+                  <div className="relative w-24 h-24 md:w-32 md:h-32">
                     <img 
                       src="/lovable-uploads/9a26ef1b-7684-4457-bbcc-f92d929099ba.png"
                       alt="Nova Acrópole Logo"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
-                  </Card>
+                  </div>
                   <div className="relative w-24 h-24 md:w-32 md:h-32">
                     <img 
                       src="/lovable-uploads/LOGO_COMITE_PIERRE_COUBERTIN.png"
