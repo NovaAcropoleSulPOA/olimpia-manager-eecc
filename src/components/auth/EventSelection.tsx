@@ -38,7 +38,12 @@ interface Profile {
 interface UserRole {
   id: number;
   perfil_id: number;
-  perfis: Profile;
+  perfis: {
+    nome: string;
+    perfil_tipo: {
+      codigo: string;
+    };
+  };
 }
 
 interface TransformedRole {
@@ -110,12 +115,12 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       }
 
       const userRolesPromises = registeredEventIds.map(async (eventId) => {
-        const roles = await supabase
+        const { data: roles, error } = await supabase
           .from('papeis_usuarios')
           .select(`
             id,
             perfil_id,
-            perfis:perfil_id (
+            perfis (
               nome,
               perfil_tipo:perfil_tipo_id (
                 codigo
@@ -125,14 +130,14 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
           .eq('usuario_id', user.id)
           .eq('evento_id', eventId);
 
-        if (roles.error) {
-          console.error('Error fetching user roles:', roles.error);
+        if (error) {
+          console.error('Error fetching user roles:', error);
           return { eventId, roles: [] };
         }
 
-        const transformedRoles: TransformedRole[] = (roles.data || []).map(role => ({
-          nome: role.perfis?.nome || '',
-          codigo: role.perfis?.perfil_tipo?.codigo || ''
+        const transformedRoles: TransformedRole[] = (roles || []).map((role: UserRole) => ({
+          nome: role.perfis.nome,
+          codigo: role.perfis.perfil_tipo.codigo
         }));
 
         return { eventId, roles: transformedRoles };
