@@ -12,7 +12,7 @@ export default function Administration() {
   const { user } = useAuth();
 
   // Check if user has admin profile
-  const hasAdminProfile = user?.papeis?.includes('Administração');
+  const hasAdminProfile = user?.papeis?.some(role => role.codigo === 'ADM');
 
   useEffect(() => {
     if (!hasAdminProfile) {

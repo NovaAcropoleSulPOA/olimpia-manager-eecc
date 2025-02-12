@@ -1,4 +1,3 @@
-
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Sidebar, 
@@ -25,11 +24,11 @@ export function MainNavigation() {
   const navigate = useNavigate();
 
   const userRoles = user?.papeis || [];
-  const isOrganizer = userRoles.includes('Organizador');
-  const isAthlete = userRoles.includes('Atleta');
-  const isDelegationRep = userRoles.includes('Representante de Delegação');
-  const isPublicGeral = userRoles.includes('Público Geral');
-  const isAdmin = userRoles.includes('Administração');
+  const isOrganizer = userRoles.some(role => role.codigo === 'ORE');
+  const isAthlete = userRoles.some(role => role.codigo === 'ATL');
+  const isDelegationRep = userRoles.some(role => role.codigo === 'RDD');
+  const isPublicGeral = userRoles.some(role => role.codigo === 'PGR');
+  const isAdmin = userRoles.some(role => role.codigo === 'ADM');
 
   useEffect(() => {
     if (location.pathname === '/') {
@@ -60,7 +59,7 @@ export function MainNavigation() {
   };
 
   const menuItems = [
-    ...(isAthlete || userRoles.includes('Público Geral') ? [
+    ...(isAthlete || userRoles.some(role => role.codigo === 'PGR') ? [
       {
         title: "Perfil",
         icon: User,

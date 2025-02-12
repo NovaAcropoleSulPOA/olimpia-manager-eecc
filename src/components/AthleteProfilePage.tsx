@@ -28,7 +28,7 @@ interface AthleteProfileData {
 
 export default function AthleteProfilePage() {
   const { user } = useAuth();
-  const isPublicUser = user?.papeis?.includes('Público Geral') || user?.papeis?.length === 0;
+  const isPublicUser = user?.papeis?.some(role => role.codigo === 'PGR') || user?.papeis?.length === 0;
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['athlete-profile', user?.id],
@@ -78,7 +78,7 @@ export default function AthleteProfilePage() {
       <AthleteProfile 
         profile={{
           ...profile,
-          papeis: user?.papeis,
+          papeis: user?.papeis?.map(role => role.codigo) || [],
         }}
         isPublicUser={isPublicUser}
       />

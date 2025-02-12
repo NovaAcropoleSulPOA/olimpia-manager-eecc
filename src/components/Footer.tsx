@@ -39,30 +39,31 @@ const Footer = () => {
     },
   ];
 
+  const userRoles = user?.papeis || [];
   const navigationItems = [
     {
       icon: User,
       label: "Perfil",
       path: "/athlete-profile",
-      roles: ["Atleta"],
+      roles: ["ATL"],
     },
     {
       icon: ClipboardList,
       label: "Inscrições",
       path: "/athlete-registrations",
-      roles: ["Atleta"],
+      roles: ["ATL"],
     },
     {
       icon: Settings,
       label: "Organizador(a)",
       path: "/organizer-dashboard",
-      roles: ["Organizador"],
+      roles: ["ORE"],
     },
     {
       icon: Users,
       label: "Delegação",
       path: "/delegation-dashboard",
-      roles: ["Representante de Delegação"],
+      roles: ["RDD"],
     }
   ];
 
@@ -79,20 +80,16 @@ const Footer = () => {
     }
   };
 
-  const userRoles = user?.papeis || [];
   const filteredNavItems = navigationItems.filter(item => 
-    item.roles.some(role => userRoles.includes(role))
+    item.roles.some(roleCode => userRoles.some(userRole => userRole.codigo === roleCode))
   );
 
-  // Only show mobile navigation menu if user is logged in
   const showMobileNav = user && (!isMobile || (isMobile && location.pathname !== '/'));
 
-  // Show footer on desktop or on mobile homepage only
   const showFooter = !isMobile || (isMobile && location.pathname === '/');
 
   return (
     <>
-      {/* Mobile Navigation Menu */}
       {showMobileNav && (
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t md:hidden">
           <div className="grid grid-cols-4 gap-1 px-2 py-2">
@@ -121,8 +118,6 @@ const Footer = () => {
           </div>
         </nav>
       )}
-
-      {/* Desktop Footer */}
       {showFooter && (
         <footer className="hidden md:block w-full bg-white/80 backdrop-blur-sm border-t py-4 px-4 mt-auto">
           <div className="container mx-auto flex justify-between items-center">
