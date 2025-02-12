@@ -504,21 +504,31 @@ export type Database = {
       }
       papeis_usuarios: {
         Row: {
+          evento_id: string
           id: number
           perfil_id: number
           usuario_id: string
         }
         Insert: {
+          evento_id: string
           id?: number
           perfil_id: number
           usuario_id: string
         }
         Update: {
+          evento_id?: string
           id?: number
           perfil_id?: number
           usuario_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "papeis_usuarios_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "papeis_usuarios_perfil_id_fkey"
             columns: ["perfil_id"]
@@ -566,20 +576,31 @@ export type Database = {
       perfis: {
         Row: {
           descricao: string | null
+          evento_id: string
           id: number
           nome: string
         }
         Insert: {
           descricao?: string | null
+          evento_id: string
           id?: number
           nome: string
         }
         Update: {
           descricao?: string | null
+          evento_id?: string
           id?: number
           nome?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "perfis_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pontuacoes: {
         Row: {
