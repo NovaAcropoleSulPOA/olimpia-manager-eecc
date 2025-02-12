@@ -26,16 +26,25 @@ interface EventSelectionProps {
   mode: 'registration' | 'login';
 }
 
-// Update the interface to match the actual database structure
+// Updated interfaces to match the actual database structure
+interface ProfileType {
+  codigo: string;
+}
+
+interface Profile {
+  nome: string;
+  perfil_tipo: ProfileType;
+}
+
 interface UserRole {
   id: number;
   perfil_id: number;
-  perfis: {
-    nome: string;
-    perfil_tipo: {
-      codigo: string;
-    };
-  };
+  perfis: Profile;
+}
+
+interface TransformedRole {
+  nome: string;
+  codigo: string;
 }
 
 export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSelectionProps) => {
@@ -123,16 +132,19 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
 
         if (rolesError) {
           console.error('Error fetching roles:', rolesError);
-          return { eventId, roles: [] };
+          return { eventId, roles: [] as TransformedRole[] };
         }
         
         console.log('Raw roles data:', roles);
         
-        // Safely transform the roles data
-        const transformedRoles = (roles as UserRole[])?.map(role => ({
+        // First cast to unknown, then to UserRole[] to handle the type mismatch safely
+        const typedRoles = (roles as unknown) as UserRole[];
+        
+        // Transform the roles data with proper typing
+        const transformedRoles: TransformedRole[] = typedRoles.map(role => ({
           nome: role.perfis?.nome || '',
           codigo: role.perfis?.perfil_tipo?.codigo || ''
-        })) || [];
+        }));
 
         console.log('Transformed roles:', transformedRoles);
         
