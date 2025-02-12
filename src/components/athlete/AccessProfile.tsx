@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 interface AccessProfileProps {
-  papeis?: string[];
+  // Update the type to accept full profile names instead of just codes
+  papeis?: { nome: string; codigo: string; }[];
   onPasswordChange: () => void;
 }
 
@@ -25,7 +26,7 @@ export default function AccessProfile({ papeis, onPasswordChange }: AccessProfil
                 variant="secondary" 
                 className="bg-olimpics-green-primary/10 text-olimpics-green-primary border-olimpics-green-primary/20"
               >
-                {role}
+                {role.nome} {/* Display the descriptive name from perfis.nome */}
               </Badge>
             ))}
           </div>
