@@ -26,20 +26,23 @@ interface EventSelectionProps {
   mode: 'registration' | 'login';
 }
 
+// Update the interface to match the actual database structure
 interface UserRole {
+  id: number;
+  perfil_id: number;
   perfis: {
     nome: string;
     perfil_tipo: {
       codigo: string;
     };
-  }[];
+  };
 }
 
 export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSelectionProps) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedRole, setSelectedRole] = useState<'ATL' | 'PGR'>('PGR'); // Using profile type codes
+  const [selectedRole, setSelectedRole] = useState<'ATL' | 'PGR'>('PGR');
   
   const { data: events, isLoading } = useQuery({
     queryKey: ['active-events'],
@@ -103,9 +106,11 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
 
       // Then get user roles for each event
       const userRolesPromises = registeredEventIds.map(async (eventId) => {
-        const { data: roles } = await supabase
+        const { data: roles, error: rolesError } = await supabase
           .from('papeis_usuarios')
           .select(`
+            id,
+            perfil_id,
             perfis:perfil_id (
               nome,
               perfil_tipo:perfil_tipo_id (
@@ -115,14 +120,23 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
           `)
           .eq('usuario_id', user.id)
           .eq('evento_id', eventId);
+
+        if (rolesError) {
+          console.error('Error fetching roles:', rolesError);
+          return { eventId, roles: [] };
+        }
         
-        const roleNames = (roles as UserRole[] || []).flatMap(role => 
-          role.perfis.map(perfil => ({
-            nome: perfil.nome,
-            codigo: perfil.perfil_tipo?.codigo || ''
-          }))
-        );
-        return { eventId, roles: roleNames };
+        console.log('Raw roles data:', roles);
+        
+        // Safely transform the roles data
+        const transformedRoles = (roles as UserRole[])?.map(role => ({
+          nome: role.perfis?.nome || '',
+          codigo: role.perfis?.perfil_tipo?.codigo || ''
+        })) || [];
+
+        console.log('Transformed roles:', transformedRoles);
+        
+        return { eventId, roles: transformedRoles };
       });
 
       const userRoles = await Promise.all(userRolesPromises);
