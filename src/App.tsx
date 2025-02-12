@@ -18,6 +18,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Cronograma from './pages/Cronograma';
 import Administration from './pages/Administration';
+import EventSelectionPage from './pages/EventSelectionPage';
 import React from 'react';
 
 const queryClient = new QueryClient({
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/event-selection" element={<EventSelectionPage />} />
                 <Route element={<MainNavigation />}>
                   <Route path="/athlete-profile" element={<AthleteProfilePage />} />
                   <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
