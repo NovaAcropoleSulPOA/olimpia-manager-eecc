@@ -31,7 +31,6 @@ export const SignUpForm = () => {
       numero_documento: '',
       genero: 'Masculino',
       profile_type: 'Atleta',
-      eventos: [],
     },
   });
 
