@@ -282,6 +282,70 @@ export type Database = {
         }
         Relationships: []
       }
+      inscricoes_eventos: {
+        Row: {
+          data_inscricao: string | null
+          evento_id: string
+          id: string
+          usuario_id: string
+        }
+        Insert: {
+          data_inscricao?: string | null
+          evento_id: string
+          id?: string
+          usuario_id: string
+        }
+        Update: {
+          data_inscricao?: string | null
+          evento_id?: string
+          id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inscricoes_eventos_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscricoes_eventos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscricoes_eventos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "view_perfil_atleta"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "inscricoes_eventos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_athletes_management"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "inscricoes_eventos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_inscricoes_atletas"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "inscricoes_eventos_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_pontuacoes_gerais_atletas"
+            referencedColumns: ["atleta_id"]
+          },
+        ]
+      }
       inscricoes_modalidades: {
         Row: {
           atleta_id: string | null
