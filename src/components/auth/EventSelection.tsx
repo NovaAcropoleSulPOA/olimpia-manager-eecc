@@ -18,15 +18,21 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
     queryKey: ['active-events'],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
+      console.log('Fetching events for date:', today);
       
       const { data, error } = await supabase
         .from('eventos')
         .select('*')
-        .gte('data_fim_inscricao', today)
-        .lte('data_inicio_inscricao', today)
+        .lte('data_inicio_inscricao', today) // Start date is before or equal to today
+        .gte('data_fim_inscricao', today)    // End date is after or equal to today
         .order('data_inicio_inscricao', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching events:', error);
+        throw error;
+      }
+      
+      console.log('Retrieved events:', data);
       return data as Event[];
     },
   });
