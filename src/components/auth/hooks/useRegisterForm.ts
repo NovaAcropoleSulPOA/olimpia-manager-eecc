@@ -35,7 +35,7 @@ export const useRegisterForm = () => {
         return;
       }
 
-      // Format the phone number by concatenating DDI with the cleaned number
+      // Format the phone number
       const cleanedPhoneNumber = values.telefone.replace(/\D/g, '');
       const fullPhoneNumber = `${values.ddi}${cleanedPhoneNumber}`;
 
@@ -61,16 +61,30 @@ export const useRegisterForm = () => {
         return;
       }
 
-      // Get profile ID and registration fee
+      // Get profile type ID for the selected profile type
+      const { data: profileTypeData, error: profileTypeError } = await supabase
+        .from('perfis_tipo')
+        .select('id')
+        .eq('codigo', values.profile_type === 'Atleta' ? 'ATL' : 'PGR')
+        .single();
+
+      if (profileTypeError || !profileTypeData) {
+        console.error('Error getting profile type:', profileTypeError);
+        toast.error('Erro ao obter tipo de perfil.');
+        return;
+      }
+
+      // Get profile ID for the event and profile type
       const { data: profileData, error: profileError } = await supabase
         .from('perfis')
         .select('id')
-        .eq('nome', values.profile_type)
+        .eq('evento_id', DEFAULT_EVENT_ID)
+        .eq('perfil_tipo_id', profileTypeData.id)
         .single();
 
       if (profileError || !profileData) {
-        console.error('Error getting profile ID:', profileError);
-        toast.error('Erro ao atribuir perfil ao usuário.');
+        console.error('Error getting profile:', profileError);
+        toast.error('Erro ao obter perfil.');
         return;
       }
 
@@ -79,7 +93,8 @@ export const useRegisterForm = () => {
         .from('papeis_usuarios')
         .insert([{
           usuario_id: userId,
-          perfil_id: profileData.id
+          perfil_id: profileData.id,
+          evento_id: DEFAULT_EVENT_ID
         }]);
 
       if (rolesError) {

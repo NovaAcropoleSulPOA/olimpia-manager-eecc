@@ -12,7 +12,17 @@ export const fetchUserProfile = async (userId: string) => {
     
     const { data: userRoles, error: rolesError } = await supabase
       .from('papeis_usuarios')
-      .select('perfis (id, nome)')
+      .select(`
+        perfis (
+          id,
+          nome,
+          perfil_tipo_id,
+          perfis_tipo (
+            codigo,
+            descricao
+          )
+        )
+      `)
       .eq('usuario_id', userId)
       .eq('evento_id', currentEventId);
 
@@ -34,7 +44,12 @@ export const fetchUserProfile = async (userId: string) => {
       };
     }
 
-    const papeis = userRoles?.map((ur: any) => ur.perfis.nome) || [];
+    const papeis = userRoles?.map((ur: any) => ({
+      nome: ur.perfis.nome,
+      codigo: ur.perfis.perfis_tipo.codigo,
+      descricao: ur.perfis.perfis_tipo.descricao
+    })) || [];
+    
     console.log('User roles fetched:', papeis);
     
     return {
@@ -64,4 +79,3 @@ export const handleAuthRedirect = (userProfile: any, pathname: string, navigate:
     navigate('/event-selection');
   }
 };
-
