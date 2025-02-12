@@ -51,7 +51,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         timeZone: "America/Sao_Paulo"
       });
       const today = new Date(brasiliaDate).toISOString().split('T')[0];
-      console.log('Fetching events for Brasília date:', today);
+      console.log('Current Brasília date:', today);
 
       // First, get user's branch
       const { data: userBranch, error: branchError } = await supabase
@@ -64,6 +64,8 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         console.error('Error fetching user branch:', branchError);
         throw branchError;
       }
+
+      console.log('User branch:', userBranch);
 
       // Get user's registered events
       const { data: registeredEvents, error: registrationError } = await supabase
@@ -79,23 +81,39 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       const registeredEventIds = (registeredEvents || []).map(reg => reg.evento_id);
       console.log('User registered events:', registeredEventIds);
 
-      // Fetch events that either:
-      // 1. Are open for registration (within date range)
-      // 2. User is already registered for
-      // 3. Are available for user's branch
+      // First try to fetch all events regardless of branch to see what's available
+      const { data: allEvents, error: allEventsError } = await supabase
+        .from('eventos')
+        .select('*');
+
+      console.log('All available events before filtering:', allEvents);
+
+      // Now fetch events with proper filtering
       const { data: events, error: eventsError } = await supabase
         .from('eventos')
         .select(`
           *,
-          eventos_filiais!inner(filial_id)
+          eventos_filiais (filial_id)
         `)
-        .or(`and(data_inicio_inscricao.lte.${today},data_fim_inscricao.gte.${today}),id.in.(${registeredEventIds.length > 0 ? registeredEventIds.map(id => `"${id}"`).join(',') : 'null'})`)
-        .eq('eventos_filiais.filial_id', userBranch.filial_id);
+        .or(
+          `data_inicio_inscricao.lte.${today},id.in.(${registeredEventIds.length > 0 ? registeredEventIds.map(id => `"${id}"`).join(',') : 'null'})`
+        )
+        .gte('data_fim_inscricao', today);
 
       if (eventsError) {
         console.error('Error fetching events:', eventsError);
         throw eventsError;
       }
+
+      console.log('Events after initial filtering:', events);
+
+      // Filter events for user's branch
+      const filteredEvents = events?.filter(event => {
+        const eventBranches = event.eventos_filiais || [];
+        return eventBranches.some(eb => eb.filial_id === userBranch.filial_id);
+      });
+
+      console.log('Events after branch filtering:', filteredEvents);
 
       // Then get user roles for each event
       const userRolesPromises = registeredEventIds.map(async (eventId) => {
@@ -117,22 +135,33 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       );
       
       // Add isRegistered, roles and isOpen flags to each event
-      const eventsWithStatus = events?.map(event => {
+      const eventsWithStatus = filteredEvents?.map(event => {
         const registration = registeredEvents?.find(reg => reg.evento_id === event.id);
         const eventRoles = userRolesMap[event.id] || [];
         const startDate = new Date(event.data_inicio_inscricao);
         const endDate = new Date(event.data_fim_inscricao);
         const currentDate = new Date(brasiliaDate);
         
-        return {
+        const eventWithStatus = {
           ...event,
           isRegistered: registeredEventIds.includes(event.id),
           roles: eventRoles,
           isOpen: startDate <= currentDate && currentDate <= endDate
         };
+
+        console.log(`Event ${event.id} status:`, {
+          name: event.nome,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          currentDate: currentDate.toISOString(),
+          isRegistered: eventWithStatus.isRegistered,
+          isOpen: eventWithStatus.isOpen
+        });
+
+        return eventWithStatus;
       });
       
-      console.log('Retrieved events with status:', eventsWithStatus);
+      console.log('Final events with status:', eventsWithStatus);
       return eventsWithStatus || [];
     },
     enabled: !!user?.id,
