@@ -30,8 +30,8 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       const { data, error } = await supabase
         .from('eventos')
         .select('*')
-        .lte('data_inicio_inscricao', today)
-        .gte('data_fim_inscricao', today)
+        .gte('data_inicio_inscricao', today) // Start date has not passed yet
+        .lte('data_fim_inscricao', today)    // End date hasn't arrived yet
         .order('data_inicio_inscricao', { ascending: true });
 
       if (error) {
