@@ -26,6 +26,16 @@ interface AthleteProfileData {
   pagamento_valor?: number;
 }
 
+// Define the type for the role data returned from Supabase
+interface RoleData {
+  perfis: {
+    nome: string;
+    perfil_tipo: {
+      codigo: string;
+    };
+  };
+}
+
 export default function AthleteProfilePage() {
   const { user } = useAuth();
   const isPublicUser = user?.papeis?.some(role => role.codigo === 'PGR') || user?.papeis?.length === 0;
@@ -67,7 +77,7 @@ export default function AthleteProfilePage() {
       }
 
       // Transform the roles data to include both nome and codigo
-      const transformedRoles = rolesData?.map(role => ({
+      const transformedRoles = (rolesData as RoleData[])?.map(role => ({
         nome: role.perfis.nome,
         codigo: role.perfis.perfil_tipo.codigo
       })) || [];
