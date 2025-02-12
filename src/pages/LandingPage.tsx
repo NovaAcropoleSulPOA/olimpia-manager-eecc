@@ -82,7 +82,7 @@ const LandingPage = () => {
                   </div>
                   <div className="relative w-24 h-24 md:w-32 md:h-32">
                     <img 
-                      src="/lovable-uploads/9a26ef1b-7684-4457-bbcc-f92d929099ba.png"
+                      src="/lovable-uploads/nova_acropole_logo_redondo_verde.png"
                       alt="Nova Acrópole Logo"
                       className="w-full h-full object-contain"
                     />
