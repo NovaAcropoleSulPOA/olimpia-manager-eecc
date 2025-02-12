@@ -45,6 +45,7 @@ export const useRegisterForm = () => {
         tipo_documento: values.tipo_documento,
         numero_documento: values.numero_documento.replace(/\D/g, ''),
         genero: values.genero,
+        data_nascimento: values.data_nascimento,
       });
 
       if (signUpResult.error || !signUpResult.user) {
@@ -61,11 +62,11 @@ export const useRegisterForm = () => {
         return;
       }
 
-      // Get profile type ID for the selected profile type
+      // Get profile type ID for 'Atleta' type
       const { data: profileTypeData, error: profileTypeError } = await supabase
         .from('perfis_tipo')
         .select('id')
-        .eq('codigo', values.profile_type === 'Atleta' ? 'ATL' : 'PGR')
+        .eq('codigo', 'ATL')
         .single();
 
       if (profileTypeError || !profileTypeData) {
