@@ -10,6 +10,31 @@ export const fetchUserProfile = async (userId: string) => {
     // Get current event ID from localStorage since roles are now event-specific
     const currentEventId = localStorage.getItem('currentEventId');
     
+    if (!currentEventId) {
+      console.log('No current event ID found, fetching user profile without roles');
+      const { data: userProfile, error: profileError } = await supabase
+        .from('usuarios')
+        .select('nome_completo, telefone, filial_id, confirmado')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (profileError) throw profileError;
+
+      if (!userProfile) {
+        console.log('No user profile found, returning minimal profile');
+        return {
+          confirmado: false,
+          papeis: [] as UserRole[],
+        };
+      }
+
+      return {
+        ...userProfile,
+        papeis: [] as UserRole[],
+      };
+    }
+
+    // If we have an event ID, fetch roles for that event
     const { data: userRoles, error: rolesError } = await supabase
       .from('papeis_usuarios')
       .select(`
