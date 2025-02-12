@@ -170,13 +170,14 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
           valor,
           perfis!fk_taxas_inscricao_perfil (
             nome,
-            perfil_tipo!inner (
+            perfil_tipo_id,
+            perfis_tipo:perfil_tipo_id (
               codigo
             )
           )
         `)
         .eq('evento_id', eventId)
-        .eq('perfis.perfil_tipo.codigo', selectedRole)
+        .eq('perfis.perfis_tipo.codigo', selectedRole)
         .single();
 
       if (feeError) {
