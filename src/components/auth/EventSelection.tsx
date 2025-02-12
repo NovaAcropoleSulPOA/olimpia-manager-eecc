@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +28,7 @@ interface EventSelectionProps {
 // Updated interfaces to match the actual database structure
 interface ProfileType {
   codigo: string;
+  descricao: string;  // Added description field
 }
 
 interface Profile {
@@ -45,6 +45,7 @@ interface UserRole {
 interface TransformedRole {
   nome: string;
   codigo: string;
+  descricao: string;  // Added to store the human-readable description
 }
 
 export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSelectionProps) => {
@@ -53,6 +54,17 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
   const queryClient = useQueryClient();
   const [selectedRole, setSelectedRole] = useState<'ATL' | 'PGR'>('PGR');
   
+  const getRoleDisplayText = (code: string) => {
+    switch (code) {
+      case 'ATL':
+        return 'Atleta';
+      case 'PGR':
+        return 'Público Geral';
+      default:
+        return code;
+    }
+  };
+
   const { data: events, isLoading } = useQuery({
     queryKey: ['active-events'],
     queryFn: async () => {
@@ -123,7 +135,8 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
             perfis:perfil_id (
               nome,
               perfil_tipo:perfil_tipo_id (
-                codigo
+                codigo,
+                descricao
               )
             )
           `)
@@ -140,10 +153,11 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         // First cast to unknown, then to UserRole[] to handle the type mismatch safely
         const typedRoles = (roles as unknown) as UserRole[];
         
-        // Transform the roles data with proper typing
+        // Transform the roles data with proper typing, keeping descriptions
         const transformedRoles: TransformedRole[] = typedRoles.map(role => ({
           nome: role.perfis?.nome || '',
-          codigo: role.perfis?.perfil_tipo?.codigo || ''
+          codigo: role.perfis?.perfil_tipo?.codigo || '',
+          descricao: role.perfis?.perfil_tipo?.descricao || getRoleDisplayText(role.perfis?.perfil_tipo?.codigo || '')
         }));
 
         console.log('Transformed roles:', transformedRoles);
