@@ -85,9 +85,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
               variant={selectedEvents.includes(event.id) ? "default" : "outline"}
               className="w-full"
             >
-              {mode === 'registration' 
-                ? selectedEvents.includes(event.id) ? 'Selecionado' : 'Selecionar'
-                : 'Acessar'}
+              {selectedEvents.includes(event.id) ? 'Acessar evento' : 'Quero me Inscrever'}
             </Button>
           </CardContent>
         </Card>

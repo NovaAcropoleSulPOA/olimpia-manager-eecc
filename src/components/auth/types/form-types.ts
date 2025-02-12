@@ -31,7 +31,6 @@ export const registerSchema = z.object({
   profile_type: z.enum(['Atleta', 'Público Geral'], {
     required_error: "Selecione o tipo de perfil",
   }),
-  eventos: z.array(z.string().uuid()).min(1, 'Selecione pelo menos um evento'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "As senhas não coincidem",
   path: ["confirmPassword"],
