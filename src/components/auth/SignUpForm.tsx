@@ -13,7 +13,6 @@ import { AuthSection } from './form-sections/AuthSection';
 import { ProfileTypeSection } from './form-sections/ProfileTypeSection';
 import { registerSchema, RegisterFormData } from './types/form-types';
 import { useRegisterForm } from './hooks/useRegisterForm';
-import { EventSelection } from './EventSelection';
 
 export const SignUpForm = () => {
   const { isSubmitting, handleSubmit: onSubmit } = useRegisterForm();
@@ -44,8 +43,6 @@ export const SignUpForm = () => {
     }
   });
 
-  const selectedEvents = form.watch('eventos');
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -61,34 +58,9 @@ export const SignUpForm = () => {
           <AuthSection form={form} />
         </div>
 
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Selecione os Eventos</h3>
-          <EventSelection
-            selectedEvents={selectedEvents}
-            onEventSelect={(eventId) => {
-              const currentEvents = form.getValues('eventos');
-              if (currentEvents.includes(eventId)) {
-                form.setValue(
-                  'eventos', 
-                  currentEvents.filter(id => id !== eventId)
-                );
-              } else {
-                form.setValue('eventos', [...currentEvents, eventId]);
-              }
-            }}
-            mode="registration"
-          />
-          {form.formState.errors.eventos && (
-            <p className="text-sm text-red-500">
-              {form.formState.errors.eventos.message}
-            </p>
-          )}
-        </div>
-
         <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
-          Após concluir seu cadastro, se ainda não tiver enviado o comprovante de pagamento, 
-          você poderá fazê-lo na tela de perfil. A validação do pagamento será 
-          realizada pelos organizadores.
+          Após concluir seu cadastro, você poderá se inscrever nos eventos disponíveis
+          fazendo login no sistema.
         </div>
 
         <Button
