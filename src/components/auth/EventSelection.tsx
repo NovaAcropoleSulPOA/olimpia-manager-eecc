@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Trophy, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, Trophy, LogOut } from "lucide-react";
 import { format } from "date-fns";
 import { Event } from "@/lib/types/database";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +16,9 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
 
 interface EventSelectionProps {
   selectedEvents: string[];
@@ -27,6 +30,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
+  const [selectedRole, setSelectedRole] = useState<'Atleta' | 'Público Geral'>('Público Geral');
   
   const { data: events, isLoading } = useQuery({
     queryKey: ['active-events'],
@@ -66,14 +70,30 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         console.error('Error fetching events:', error);
         throw error;
       }
+
+      // Then get user roles for each event
+      const userRolesPromises = registeredEventIds.map(async (eventId) => {
+        const { data: roles } = await supabase
+          .from('papeis_usuarios')
+          .select('perfis (nome)')
+          .eq('usuario_id', user?.id)
+          .eq('evento_id', eventId);
+        return { eventId, roles: roles?.map(r => r.perfis.nome) || [] };
+      });
+
+      const userRoles = await Promise.all(userRolesPromises);
+      const userRolesMap = Object.fromEntries(
+        userRoles.map(({ eventId, roles }) => [eventId, roles])
+      );
       
-      // Add isRegistered, selectedRole and isOpen flags to each event
+      // Add isRegistered, roles and isOpen flags to each event
       const eventsWithStatus = data?.map(event => {
         const registration = registeredEvents?.find(reg => reg.evento_id === event.id);
+        const eventRoles = userRolesMap[event.id] || [];
         return {
           ...event,
           isRegistered: registeredEventIds.includes(event.id),
-          selectedRole: registration?.selected_role || 'Público Geral',
+          roles: eventRoles,
           isOpen: new Date(event.data_inicio_inscricao) <= new Date(brasiliaDate) && 
                   new Date(event.data_fim_inscricao) >= new Date(brasiliaDate)
         };
@@ -93,7 +113,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
           {
             evento_id: eventId,
             usuario_id: user?.id,
-            selected_role: mode === 'registration' ? 'Atleta' : 'Público Geral'
+            selected_role: selectedRole
           }
         ])
         .select()
@@ -203,12 +223,30 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
                       <p>Início: {format(new Date(event.data_inicio_inscricao), 'dd/MM/yyyy')}</p>
                       <p>Término: {format(new Date(event.data_fim_inscricao), 'dd/MM/yyyy')}</p>
                       <p className="text-xs uppercase font-medium mt-2">{event.tipo}</p>
-                      {event.isRegistered && (
+                      {event.isRegistered && event.roles.length > 0 && (
                         <p className="text-xs font-medium text-olimpics-green-primary mt-1">
-                          Papel: {event.selectedRole}
+                          Papéis: {event.roles.join(', ')}
                         </p>
                       )}
                     </div>
+                    {!event.isRegistered && event.isOpen && (
+                      <div className="mb-4">
+                        <RadioGroup
+                          value={selectedRole}
+                          onValueChange={(value) => setSelectedRole(value as 'Atleta' | 'Público Geral')}
+                          className="space-y-2"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Atleta" id={`atleta-${event.id}`} />
+                            <Label htmlFor={`atleta-${event.id}`}>Atleta</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Público Geral" id={`publico-${event.id}`} />
+                            <Label htmlFor={`publico-${event.id}`}>Público Geral</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                    )}
                     <Button
                       onClick={() => event.isRegistered ? onEventSelect(event.id) : handleEventRegistration(event.id)}
                       variant={event.isRegistered ? "default" : "outline"}
