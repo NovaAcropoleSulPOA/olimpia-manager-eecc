@@ -27,13 +27,17 @@ interface AthleteProfileData {
 }
 
 // Define the type for the role data returned from Supabase
+interface PerfilTipo {
+  codigo: string;
+}
+
+interface Perfil {
+  nome: string;
+  perfil_tipo: PerfilTipo;
+}
+
 interface RoleData {
-  perfis: {
-    nome: string;
-    perfil_tipo: {
-      codigo: string;
-    };
-  };
+  perfis: Perfil;
 }
 
 export default function AthleteProfilePage() {
@@ -76,8 +80,10 @@ export default function AthleteProfilePage() {
         throw rolesError;
       }
 
+      console.log('Raw roles data:', rolesData);
+
       // Transform the roles data to include both nome and codigo
-      const transformedRoles = (rolesData as RoleData[])?.map(role => ({
+      const transformedRoles = rolesData?.map((role: RoleData) => ({
         nome: role.perfis.nome,
         codigo: role.perfis.perfil_tipo.codigo
       })) || [];
