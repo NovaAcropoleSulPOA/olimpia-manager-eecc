@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -76,12 +77,22 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         throw userBranch.error;
       }
 
+      const filialId = userBranch.data?.filial_id;
+      if (!filialId) {
+        throw new Error('User branch not found');
+      }
+
       const registeredEvents = await supabase
         .from('inscricoes_eventos')
         .select('evento_id')
         .eq('usuario_id', user.id);
 
-      const registeredEventIds = (registeredEvents.data || []).map(reg => reg.evento_id);
+      if (registeredEvents.error) {
+        console.error('Error fetching registered events:', registeredEvents.error);
+        throw registeredEvents.error;
+      }
+
+      const registeredEventIds = registeredEvents.data.map(reg => reg.evento_id);
       console.log('User registered events:', registeredEventIds);
 
       const events = await supabase
@@ -90,8 +101,13 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
           *,
           eventos_filiais!inner (filial_id)
         `)
-        .eq('eventos_filiais.filial_id', userBranch.filial_id)
+        .eq('eventos_filiais.filial_id', filialId)
         .or(`and(data_inicio_inscricao.lte.${today},data_fim_inscricao.gte.${today}),id.in.(${registeredEventIds.length > 0 ? registeredEventIds.join(',') : 'null'})`);
+
+      if (events.error) {
+        console.error('Error fetching events:', events.error);
+        throw events.error;
+      }
 
       const userRolesPromises = registeredEventIds.map(async (eventId) => {
         const roles = await supabase
@@ -109,9 +125,14 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
           .eq('usuario_id', user.id)
           .eq('evento_id', eventId);
 
-        const transformedRoles: TransformedRole[] = roles.map(role => ({
-          nome: role.perfis?.nome || '',  // Use the existing perfis.nome for display
-          codigo: role.perfis?.perfil_tipo?.codigo || ''  // Use codigo for logic
+        if (roles.error) {
+          console.error('Error fetching user roles:', roles.error);
+          return { eventId, roles: [] };
+        }
+
+        const transformedRoles: TransformedRole[] = (roles.data || []).map(role => ({
+          nome: role.perfis?.nome || '',
+          codigo: role.perfis?.perfil_tipo?.codigo || ''
         }));
 
         return { eventId, roles: transformedRoles };
@@ -127,23 +148,12 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         const endDate = new Date(event.data_fim_inscricao);
         const currentDate = new Date(brasiliaDate);
         
-        const eventWithStatus = {
+        return {
           ...event,
           isRegistered: registeredEventIds.includes(event.id),
           roles: userRolesMap[event.id] || [],
           isOpen: startDate <= currentDate && currentDate <= endDate
         };
-
-        console.log(`Event ${event.id} status:`, {
-          name: event.nome,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-          currentDate: currentDate.toISOString(),
-          isRegistered: eventWithStatus.isRegistered,
-          roles: eventWithStatus.roles
-        });
-
-        return eventWithStatus;
       });
       
       console.log('Final events with status:', eventsWithStatus);
