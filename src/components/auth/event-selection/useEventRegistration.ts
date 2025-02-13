@@ -34,36 +34,35 @@ export const useEventRegistration = (userId: string | undefined) => {
         throw new Error('Erro ao buscar tipo de perfil');
       }
 
-      // Then use this ID to find the matching registration fee, using explicit relationship alias
-      const { data: registrationFees, error: feeError } = await supabase
-        .from('taxas_inscricao')
-        .select(`
-          id,
-          valor,
-          perfis!fk_taxas_perfil (
-            nome,
-            perfil_tipo_id
-          )
-        `)
+      // Then get the profile ID for this event and profile type
+      const { data: profile, error: profileError } = await supabase
+        .from('perfis')
+        .select('id')
         .eq('evento_id', eventId)
-        .eq('perfis.perfil_tipo_id', perfilTipo.id);
+        .eq('perfil_tipo_id', perfilTipo.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        throw new Error('Erro ao buscar perfil');
+      }
+
+      // Then get the registration fee for this profile
+      const { data: registrationFee, error: feeError } = await supabase
+        .from('taxas_inscricao')
+        .select('id, valor')
+        .eq('evento_id', eventId)
+        .eq('perfil_id', profile.id)
+        .single();
 
       if (feeError) {
-        console.error('Error fetching registration fees:', feeError);
+        console.error('Error fetching registration fee:', feeError);
         throw new Error('Erro ao buscar taxa de inscrição');
       }
 
-      console.log('Found registration fees:', registrationFees);
+      console.log('Using registration fee:', registrationFee);
 
-      const matchingFee = registrationFees[0]; // Since we filtered by perfil_tipo_id, we can take the first match
-
-      if (!matchingFee) {
-        console.error('No matching registration fee found for role:', selectedRole);
-        throw new Error('Taxa de inscrição não encontrada para o perfil selecionado');
-      }
-
-      console.log('Using registration fee:', matchingFee);
-
+      // Create the event registration with the taxa_inscricao_id
       const { data: registration, error: registrationError } = await supabase
         .from('inscricoes_eventos')
         .insert([
@@ -71,7 +70,7 @@ export const useEventRegistration = (userId: string | undefined) => {
             evento_id: eventId,
             usuario_id: userId,
             selected_role: selectedRole,
-            taxa_inscricao_id: matchingFee.id
+            taxa_inscricao_id: registrationFee.id
           }
         ])
         .select()
@@ -94,3 +93,4 @@ export const useEventRegistration = (userId: string | undefined) => {
     }
   });
 };
+
