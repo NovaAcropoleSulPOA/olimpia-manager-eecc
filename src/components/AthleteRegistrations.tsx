@@ -109,6 +109,7 @@ export default function AthleteRegistrations() {
         .select(`
           id,
           status,
+          data_inscricao,
           modalidade:modalidades (
             nome,
             categoria,

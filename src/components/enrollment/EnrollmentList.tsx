@@ -39,7 +39,7 @@ export const EnrollmentList = ({
         <TableBody>
           {registeredModalities?.map((registration) => (
             <TableRow 
-              key={registration.modalidade_id}
+              key={registration.id}
               className="transition-colors hover:bg-gray-50"
             >
               <TableCell className="font-medium">{registration.modalidade?.nome}</TableCell>
@@ -52,14 +52,18 @@ export const EnrollmentList = ({
                 </div>
               </TableCell>
               <TableCell>
-                {format(new Date(registration.data_inscricao), "dd/MM/yyyy")}
+                {registration.data_inscricao ? (
+                  format(new Date(registration.data_inscricao), "dd/MM/yyyy")
+                ) : (
+                  "Data não disponível"
+                )}
               </TableCell>
               <TableCell>
                 <Button
                   variant="destructive"
                   size="sm"
                   disabled={registration.status !== 'pendente' || withdrawMutation.isPending}
-                  onClick={() => withdrawMutation.mutate(registration.modalidade_id)}
+                  onClick={() => withdrawMutation.mutate(registration.id)}
                   className="transition-all duration-200 hover:bg-red-600"
                 >
                   {withdrawMutation.isPending ? (
