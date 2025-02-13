@@ -31,22 +31,11 @@ interface Event {
   nome: string;
 }
 
-// Updated interface to match the exact Supabase response structure
-interface SupabaseRoleData {
-  perfis: {
-    nome: string;
-    perfil_tipo: {
-      codigo: string;
-    };
-  };
-}
-
 export default function AthleteProfilePage() {
   const { user } = useAuth();
   const [currentEventId, setCurrentEventId] = useState<string | null>(null);
   const isPublicUser = user?.papeis?.some(role => role.codigo === 'PGR') || user?.papeis?.length === 0;
 
-  // Get current event ID from localStorage on component mount
   useEffect(() => {
     const eventId = localStorage.getItem('currentEventId');
     if (eventId) {
@@ -55,7 +44,6 @@ export default function AthleteProfilePage() {
     console.log('Current event ID from localStorage:', eventId);
   }, []);
 
-  // Fetch event details
   const { data: eventData } = useQuery({
     queryKey: ['event', currentEventId],
     queryFn: async () => {
@@ -89,8 +77,7 @@ export default function AthleteProfilePage() {
         .select('*')
         .eq('atleta_id', user.id)
         .eq('evento_id', currentEventId)
-        .limit(1)
-        .maybeSingle();
+        .maybeSingle();  // Changed from single() to maybeSingle()
 
       if (profileError) {
         console.error('Error fetching profile:', profileError);
@@ -123,7 +110,6 @@ export default function AthleteProfilePage() {
 
       console.log('Raw roles data:', rolesData);
 
-      // Transform the roles data with proper typing
       const transformedRoles = (rolesData || []).map((roleData: any) => ({
         nome: roleData.perfis.nome,
         codigo: roleData.perfis.perfil_tipo.codigo
