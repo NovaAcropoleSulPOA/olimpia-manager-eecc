@@ -156,14 +156,12 @@ const PaymentInfo = () => {
       </div>
 
       {/* Submit button spans full width */}
-      {paymentInfo.link_formulario && (
-        <Button
-          onClick={handleFormClick}
-          className="w-full bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white mt-6"
-        >
-          Realize o envio do comprovante
-        </Button>
-      )}
+      <Button
+        onClick={handleFormClick}
+        className="w-full bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white mt-6"
+      >
+        Realize o envio do comprovante
+      </Button>
     </div>
   );
 };
