@@ -1,4 +1,3 @@
-
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Sidebar, 
@@ -14,7 +13,7 @@ import {
   SidebarGroupLabel,
   SidebarTrigger
 } from './ui/sidebar';
-import { User, BarChart3, LogOut, Menu, ClipboardList, Users, Calendar, Settings2, SwapHorizontal } from 'lucide-react';
+import { User, BarChart3, LogOut, Menu, ClipboardList, Users, Calendar, Settings2, ArrowLeftRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
@@ -205,7 +204,7 @@ export function MainNavigation() {
                           transition-all duration-200 text-lg font-medium mb-2"
                         tooltip="Trocar Evento"
                       >
-                        <SwapHorizontal className="h-6 w-6 flex-shrink-0" />
+                        <ArrowLeftRight className="h-6 w-6 flex-shrink-0" />
                         <span className="whitespace-nowrap">Trocar Evento</span>
                       </SidebarMenuButton>
                     </DropdownMenuTrigger>
