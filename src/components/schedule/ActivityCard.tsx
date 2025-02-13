@@ -19,19 +19,27 @@ export function ActivityCard({ activity }: ActivityCardProps) {
     if (activity.global) {
       return 'border-yellow-400 bg-yellow-50';
     }
-    if (!activity.modalidade_status) {
+    
+    if (!activity.modalidade_status || !activity.modalidade_nome) {
       return 'border-gray-200 bg-white';
     }
-    switch (activity.modalidade_status.toLowerCase()) {
-      case 'confirmado':
-        return 'border-green-600 bg-green-50';
-      case 'pendente':
-        return 'border-yellow-400 bg-yellow-50';
-      case 'cancelado':
-        return 'border-red-400 bg-red-50';
-      default:
-        return 'border-gray-200 bg-white';
+
+    const statuses = activity.modalidade_status.split(', ');
+    
+    // If any modality is confirmed, show green
+    if (statuses.some(status => status.toLowerCase() === 'confirmado')) {
+      return 'border-green-600 bg-green-50';
     }
+    // If any modality is pending, show yellow
+    if (statuses.some(status => status.toLowerCase() === 'pendente')) {
+      return 'border-yellow-400 bg-yellow-50';
+    }
+    // If all modalities are cancelled, show red
+    if (statuses.every(status => status.toLowerCase() === 'cancelado')) {
+      return 'border-red-400 bg-red-50';
+    }
+    
+    return 'border-gray-200 bg-white';
   };
 
   const getStatusColor = (status: string) => {
