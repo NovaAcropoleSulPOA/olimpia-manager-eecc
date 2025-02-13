@@ -31,6 +31,15 @@ interface Event {
   nome: string;
 }
 
+interface RoleData {
+  perfis: {
+    nome: string;
+    perfil_tipo: {
+      codigo: string;
+    };
+  };
+}
+
 export default function AthleteProfilePage() {
   const { user } = useAuth();
   const [currentEventId, setCurrentEventId] = useState<string | null>(null);
@@ -95,7 +104,7 @@ export default function AthleteProfilePage() {
       const { data: rolesData, error: rolesError } = await supabase
         .from('papeis_usuarios')
         .select(`
-          perfis:perfil_id (
+          perfis (
             nome,
             perfil_tipo:perfil_tipo_id (
               codigo
@@ -110,8 +119,8 @@ export default function AthleteProfilePage() {
         throw rolesError;
       }
 
-      // Transform the roles data
-      const transformedRoles = (rolesData || []).map(role => ({
+      // Transform the roles data with proper typing
+      const transformedRoles = ((rolesData || []) as RoleData[]).map(role => ({
         nome: role.perfis.nome,
         codigo: role.perfis.perfil_tipo.codigo
       }));
