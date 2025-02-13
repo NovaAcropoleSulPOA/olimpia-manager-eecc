@@ -31,8 +31,8 @@ interface Event {
   nome: string;
 }
 
-// Updated interface to match the actual Supabase response structure
-interface UserRole {
+// Updated interface to match the exact Supabase response structure
+interface SupabaseRoleData {
   perfis: {
     nome: string;
     perfil_tipo: {
@@ -123,7 +123,7 @@ export default function AthleteProfilePage() {
       console.log('Raw roles data:', rolesData);
 
       // Transform the roles data with proper typing
-      const transformedRoles = (rolesData as UserRole[]).map(roleData => ({
+      const transformedRoles = (rolesData || []).map((roleData: any) => ({
         nome: roleData.perfis.nome,
         codigo: roleData.perfis.perfil_tipo.codigo
       }));
