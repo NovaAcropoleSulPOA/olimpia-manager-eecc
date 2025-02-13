@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Clock } from "lucide-react";
 import { ActivityCard } from './ActivityCard';
@@ -40,19 +39,40 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
   const weekDays = ["Sábado", "Domingo"];
   const columnWidth = `${100 / (weekDays.length + 1)}%`;
 
-  // Helper function to group activities by category
+  // Helper function to group activities by category and handle global activities
   const groupByCategory = (activities: ScheduleActivity[]) => {
     const grouped = activities.reduce((acc, activity) => {
-      const category = activity.modalidade_nome?.split(' - ')[0] || 'Outros';
+      let category;
+      if (activity.global) {
+        category = 'Global';
+      } else {
+        // Extract category from modalidade_nome (e.g., "Atletismo - 100m" becomes "Atletismo")
+        category = activity.modalidade_nome?.split(' - ')[0] || activity.atividade;
+      }
+      
       if (!acc[category]) {
         acc[category] = [];
       }
-      acc[category].push(activity);
+      
+      // Check if this activity is already included
+      const isDuplicate = acc[category].some(
+        existing => existing.cronograma_atividade_id === activity.cronograma_atividade_id &&
+                    existing.modalidade_nome === activity.modalidade_nome
+      );
+      
+      if (!isDuplicate) {
+        acc[category].push(activity);
+      }
+      
       return acc;
     }, {} as Record<string, ScheduleActivity[]>);
 
-    // Sort categories alphabetically
-    return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+    // Sort categories alphabetically, but keep "Global" at the top if it exists
+    return Object.entries(grouped).sort(([a], [b]) => {
+      if (a === 'Global') return -1;
+      if (b === 'Global') return 1;
+      return a.localeCompare(b);
+    });
   };
 
   return (
