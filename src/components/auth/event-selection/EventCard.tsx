@@ -7,6 +7,7 @@ import { Event } from "@/lib/types/database";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
 interface EventCardProps {
   event: Event & {
@@ -43,6 +44,19 @@ export const EventCard = ({
     }
   };
 
+  const getStatusStripeColor = (status: string) => {
+    switch (status) {
+      case 'encerrado':
+        return 'bg-red-600';
+      case 'suspenso':
+        return 'bg-yellow-500';
+      case 'em_teste':
+        return 'bg-blue-500';
+      default:
+        return 'bg-olimpics-green-primary';
+    }
+  };
+
   const getButtonLabel = () => {
     if (event.isRegistered) return 'Acessar evento';
     if (isDisabled) return event.status_evento === 'encerrado' ? 'Inscrições encerradas' : 'Evento suspenso';
@@ -51,11 +65,23 @@ export const EventCard = ({
 
   return (
     <Card 
-      className={`
-        relative overflow-hidden transition-all duration-200 hover:shadow-lg mx-2
-        ${event.isRegistered ? 'ring-2 ring-olimpics-green-primary' : ''}
-      `}
+      className={cn(
+        "relative overflow-hidden transition-all duration-200 hover:shadow-lg mx-2",
+        event.isRegistered && "ring-2 ring-olimpics-green-primary"
+      )}
     >
+      {/* Status Stripe */}
+      <div
+        className={cn(
+          "absolute -right-12 top-8 w-48 -rotate-45 transform",
+          getStatusStripeColor(event.status_evento)
+        )}
+        style={{
+          height: '2rem',
+          zIndex: 10,
+        }}
+      />
+
       <CardContent className="p-6">
         {/* Status Badge */}
         <div className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(event.status_evento)}`}>
