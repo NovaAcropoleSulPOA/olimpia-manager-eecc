@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,20 @@ interface EnrollmentListProps {
   registeredModalities: any[];
   withdrawMutation: UseMutationResult<void, Error, number, unknown>;
 }
+
+const formatDate = (dateString: string | null) => {
+  if (!dateString) return "Data não disponível";
+  
+  const parsedDate = parseISO(dateString);
+  if (!isValid(parsedDate)) return "Data inválida";
+  
+  try {
+    return format(parsedDate, "dd/MM/yyyy");
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "Data inválida";
+  }
+};
 
 export const EnrollmentList = ({ 
   registeredModalities, 
@@ -52,11 +66,7 @@ export const EnrollmentList = ({
                 </div>
               </TableCell>
               <TableCell>
-                {registration.data_inscricao ? (
-                  format(new Date(registration.data_inscricao), "dd/MM/yyyy")
-                ) : (
-                  "Data não disponível"
-                )}
+                {formatDate(registration.data_inscricao)}
               </TableCell>
               <TableCell>
                 <Button
