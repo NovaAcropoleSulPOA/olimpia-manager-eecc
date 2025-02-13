@@ -28,17 +28,20 @@ export default function AthleteRegistrations() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEnrollmentsOpen, setIsEnrollmentsOpen] = React.useState(true);
+  const currentEventId = localStorage.getItem('currentEventId');
 
   const { data: athleteProfile } = useQuery({
-    queryKey: ['athlete-profile', user?.id],
+    queryKey: ['athlete-profile', user?.id, currentEventId],
     queryFn: async () => {
-      if (!user?.id) return null;
-      console.log('Fetching athlete profile for user:', user.id);
+      if (!user?.id || !currentEventId) return null;
+      console.log('Fetching athlete profile for user:', user.id, 'event:', currentEventId);
+      
       const { data, error } = await supabase
         .from('view_perfil_atleta')
         .select('*')
         .eq('atleta_id', user.id)
-        .single();
+        .eq('evento_id', currentEventId)
+        .maybeSingle();
       
       if (error) {
         console.error('Error fetching athlete profile:', error);
@@ -46,7 +49,7 @@ export default function AthleteRegistrations() {
       }
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!currentEventId,
   });
 
   const filterModalitiesByGender = (modalities: Modality[] | null | undefined) => {
@@ -273,4 +276,3 @@ export default function AthleteRegistrations() {
     </div>
   );
 }
-
