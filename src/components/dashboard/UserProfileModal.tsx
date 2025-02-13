@@ -25,10 +25,8 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
   const [selectedProfiles, setSelectedProfiles] = useState<number[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Get current event ID from localStorage
   const currentEventId = localStorage.getItem('currentEventId');
 
-  // Fetch available profiles
   const { data: availableProfiles, isLoading } = useQuery({
     queryKey: ['profiles', currentEventId],
     queryFn: async () => {
@@ -51,7 +49,6 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
     enabled: open && !!currentEventId
   });
 
-  // Fetch user's current profiles
   const { data: userProfiles } = useQuery({
     queryKey: ['user-profiles', user?.id, currentEventId],
     queryFn: async () => {
@@ -68,14 +65,15 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
         throw error;
       }
       
+      console.log('User profiles:', data);
       return data.map(p => p.perfil_id);
     },
     enabled: open && !!user?.id && !!currentEventId
   });
 
-  // Update selected profiles when user profiles are loaded
   useEffect(() => {
     if (userProfiles) {
+      console.log('Setting selected profiles:', userProfiles);
       setSelectedProfiles(userProfiles);
     }
   }, [userProfiles]);
@@ -102,7 +100,6 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
 
       await updateUserProfiles(user.id, selectedProfiles);
       
-      // Invalidate both queries to ensure fresh data
       await queryClient.invalidateQueries({ queryKey: ['user-profiles'] });
       await queryClient.invalidateQueries({ queryKey: ['profiles'] });
       

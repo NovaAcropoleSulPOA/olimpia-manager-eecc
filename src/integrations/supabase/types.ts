@@ -1320,6 +1320,7 @@ export type Database = {
           data_limite_inscricao: string | null
           evento_id: string | null
           isento: boolean | null
+          link_formulario: string | null
           perfil_nome: string | null
           pix_key: string | null
           qr_code_codigo: string | null
