@@ -19,7 +19,19 @@ export function ActivityCard({ activity }: ActivityCardProps) {
     if (activity.global) {
       return 'border-yellow-400 bg-yellow-50';
     }
-    return 'border-gray-200 bg-white';
+    if (!activity.modalidade_status) {
+      return 'border-gray-200 bg-white';
+    }
+    switch (activity.modalidade_status.toLowerCase()) {
+      case 'confirmado':
+        return 'border-green-600 bg-green-50';
+      case 'pendente':
+        return 'border-yellow-400 bg-yellow-50';
+      case 'cancelado':
+        return 'border-red-400 bg-red-50';
+      default:
+        return 'border-gray-200 bg-white';
+    }
   };
 
   const getStatusColor = (status: string) => {
