@@ -49,7 +49,7 @@ export default function AthleteSchedule() {
         .from('vw_cronograma_atividades_por_atleta')
         .select('*')
         .eq('evento_id', currentEventId)
-        .or(`atleta_id.eq.${user.id},global.eq.true,and(modalidade_status.eq.confirmado)`) // Combine conditions in a single or statement
+        .or(`global.eq.true,and(atleta_id.eq.${user.id},modalidade_status.eq.confirmado)`) // Show global activities OR confirmed activities for this user
         .order('dia')
         .order('horario_inicio');
 
