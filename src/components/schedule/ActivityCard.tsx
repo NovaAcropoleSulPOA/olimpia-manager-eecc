@@ -50,6 +50,10 @@ export function ActivityCard({ activity }: ActivityCardProps) {
     }
   };
 
+  // Extract category from modalidade_nome if it exists
+  const category = activity.modalidade_nome?.split(' - ')[0] || null;
+  const modalityName = activity.modalidade_nome?.split(' - ')[1] || activity.modalidade_nome;
+
   return (
     <div
       className={cn(
@@ -58,20 +62,25 @@ export function ActivityCard({ activity }: ActivityCardProps) {
       )}
     >
       <div className="space-y-2">
-        <h4 className="font-medium">{activity.atividade}</h4>
-        <div className="text-sm text-gray-600">
-          <span>{activity.local}</span>
-        </div>
-        {activity.modalidade_nome && activity.modalidade_status && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            <Badge 
-              variant="secondary"
-              className={cn(getStatusColor(activity.modalidade_status))}
-            >
-              {activity.modalidade_nome}
-            </Badge>
-          </div>
+        {category && (
+          <h4 className="font-medium text-olimpics-green-primary">{category}</h4>
         )}
+        <div className="pl-2">
+          <p className="text-sm font-medium">{activity.atividade}</p>
+          <div className="text-sm text-gray-600">
+            <span>{activity.local}</span>
+          </div>
+          {modalityName && activity.modalidade_status && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              <Badge 
+                variant="secondary"
+                className={cn(getStatusColor(activity.modalidade_status))}
+              >
+                {modalityName}
+              </Badge>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
