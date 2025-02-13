@@ -1023,6 +1023,7 @@ export type Database = {
           numero_identificador: string
           telefone: string
           tipo_documento: string
+          usuario_registrador_id: string | null
         }
         Insert: {
           confirmado?: boolean | null
@@ -1038,6 +1039,7 @@ export type Database = {
           numero_identificador: string
           telefone: string
           tipo_documento: string
+          usuario_registrador_id?: string | null
         }
         Update: {
           confirmado?: boolean | null
@@ -1053,6 +1055,7 @@ export type Database = {
           numero_identificador?: string
           telefone?: string
           tipo_documento?: string
+          usuario_registrador_id?: string | null
         }
         Relationships: [
           {
@@ -1082,6 +1085,41 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_inscricoes_atletas"
             referencedColumns: ["filial_id"]
+          },
+          {
+            foreignKeyName: "usuarios_registrador_fkey"
+            columns: ["usuario_registrador_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_registrador_fkey"
+            columns: ["usuario_registrador_id"]
+            isOneToOne: false
+            referencedRelation: "view_perfil_atleta"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "usuarios_registrador_fkey"
+            columns: ["usuario_registrador_id"]
+            isOneToOne: false
+            referencedRelation: "vw_athletes_management"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "usuarios_registrador_fkey"
+            columns: ["usuario_registrador_id"]
+            isOneToOne: false
+            referencedRelation: "vw_inscricoes_atletas"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "usuarios_registrador_fkey"
+            columns: ["usuario_registrador_id"]
+            isOneToOne: false
+            referencedRelation: "vw_pontuacoes_gerais_atletas"
+            referencedColumns: ["atleta_id"]
           },
         ]
       }

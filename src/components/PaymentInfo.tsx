@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -62,8 +63,9 @@ const PaymentInfo = () => {
   };
 
   const handleFormClick = () => {
+    console.log('Form link:', paymentInfo?.link_formulario);
     if (paymentInfo?.link_formulario) {
-      window.open(paymentInfo.link_formulario, "_blank");
+      window.open(paymentInfo.link_formulario, "_blank", "noopener,noreferrer");
     } else {
       toast.error("O link para envio do comprovante ainda não está disponível. Por favor, entre em contato com o suporte.");
     }
@@ -155,6 +157,7 @@ const PaymentInfo = () => {
         onClick={handleFormClick}
         className="w-full bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white mt-6"
         disabled={!paymentInfo.link_formulario}
+        type="button"
       >
         Realize o envio do comprovante
       </Button>
