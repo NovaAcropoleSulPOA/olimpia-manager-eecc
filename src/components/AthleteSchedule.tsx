@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Loader2 } from "lucide-react";
 import { ScheduleTable } from './schedule/ScheduleTable';
 import { useAuth } from "@/contexts/AuthContext";
-import { ScheduleLegend } from './schedule/ScheduleLegend';
 
 interface ScheduleActivity {
   id: number;
@@ -99,10 +98,6 @@ export default function AthleteSchedule() {
     activities?.map(activity => `${activity.horario_inicio}-${activity.horario_fim}`)
   )].sort();
 
-  console.log('Grouped activities:', groupedActivities);
-  console.log('Dates with activities:', dates);
-  console.log('Time slots:', timeSlots);
-
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -112,7 +107,6 @@ export default function AthleteSchedule() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <ScheduleLegend />
         <ScheduleTable 
           groupedActivities={groupedActivities || {}}
           dates={dates}

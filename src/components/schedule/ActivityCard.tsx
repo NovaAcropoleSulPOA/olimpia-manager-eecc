@@ -18,27 +18,24 @@ interface ActivityCardProps {
 
 export function ActivityCard({ category, activities }: ActivityCardProps) {
   const getActivityStyle = (activities: ActivityCardProps['activities']) => {
-    // Use the most severe status for the card background
-    const hasGlobal = activities.some(act => act.global);
-    if (hasGlobal) {
-      return 'border-yellow-400 bg-yellow-50';
-    }
-    
     const statuses = activities.map(act => act.modalidade_status?.toLowerCase());
-    if (statuses.includes('cancelado')) {
-      return 'border-red-400 bg-red-50';
-    }
-    if (statuses.includes('pendente')) {
-      return 'border-yellow-400 bg-yellow-50';
-    }
+    
+    // If at least one modality is confirmed, show green border
     if (statuses.includes('confirmado')) {
       return 'border-green-600 bg-green-50';
     }
+    
+    // If ALL modalities are canceled, show red border
+    if (statuses.length > 0 && statuses.every(status => status === 'cancelado')) {
+      return 'border-red-400 bg-red-50';
+    }
+    
+    // Default style for other cases (pending or mixed statuses)
     return 'border-gray-200 bg-white';
   };
 
   const getStatusColor = (status: string | null) => {
-    if (!status) return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80'; // For global activities
+    if (!status) return 'bg-gray-100 text-gray-800 hover:bg-gray-100/80'; // For global activities
     switch (status.toLowerCase()) {
       case 'confirmado':
         return 'bg-green-100 text-green-800 hover:bg-green-100/80';
@@ -69,7 +66,6 @@ export function ActivityCard({ category, activities }: ActivityCardProps) {
           </div>
           <div className="flex flex-wrap gap-2">
             {activities.map((activity) => {
-              // Use the full modality name for display
               const displayName = activity.modalidade_nome || activity.atividade;
               return (
                 <Badge 
