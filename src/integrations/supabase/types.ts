@@ -78,13 +78,6 @@ export type Database = {
             referencedColumns: ["cronograma_atividade_id"]
           },
           {
-            foreignKeyName: "cronograma_atividade_modalidades_cronograma_atividade_id_fkey"
-            columns: ["cronograma_atividade_id"]
-            isOneToOne: false
-            referencedRelation: "vw_cronograma_completo_atleta"
-            referencedColumns: ["cronograma_atividade_id"]
-          },
-          {
             foreignKeyName: "cronograma_atividade_modalidades_modalidade_id_fkey"
             columns: ["modalidade_id"]
             isOneToOne: false
@@ -1243,15 +1236,7 @@ export type Database = {
           modalidade_nome: string | null
           modalidade_status: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "cronograma_atividades_evento_id_fkey"
-            columns: ["evento_id"]
-            isOneToOne: false
-            referencedRelation: "eventos"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       vw_inscricoes_atletas: {
         Row: {
