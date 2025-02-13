@@ -73,7 +73,7 @@ export default function AthleteProfilePage() {
       if (!user?.id || !currentEventId) return null;
       console.log('Fetching athlete profile for:', user.id, 'event:', currentEventId);
 
-      // Fetch the user's profile data with event context
+      // First fetch the base profile data
       const { data: profileData, error: profileError } = await supabase
         .from('view_perfil_atleta')
         .select('*')
@@ -86,7 +86,12 @@ export default function AthleteProfilePage() {
         throw profileError;
       }
 
-      // Then, fetch the user's roles with their descriptive names for this specific event
+      if (!profileData) {
+        console.log('No profile data found for event');
+        return null;
+      }
+
+      // Then, fetch the user's roles for this event
       const { data: rolesData, error: rolesError } = await supabase
         .from('papeis_usuarios')
         .select(`
@@ -105,13 +110,11 @@ export default function AthleteProfilePage() {
         throw rolesError;
       }
 
-      console.log('Raw roles data:', rolesData);
-
-      // Transform the roles data to include both nome and codigo
-      const transformedRoles = (rolesData as any[])?.map(role => ({
+      // Transform the roles data
+      const transformedRoles = (rolesData || []).map(role => ({
         nome: role.perfis.nome,
         codigo: role.perfis.perfil_tipo.codigo
-      })) || [];
+      }));
 
       console.log('Profile data:', profileData);
       console.log('Transformed roles:', transformedRoles);
