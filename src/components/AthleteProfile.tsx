@@ -24,6 +24,7 @@ interface AthleteProfileProps {
     pagamento_status?: string;
     pagamento_valor?: number;
     papeis?: { nome: string; codigo: string; }[];
+    data_nascimento?: string | null;
   };
   isPublicUser: boolean;
 }
@@ -73,6 +74,7 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
               numero_documento={profile.numero_documento}
               telefone={profile.telefone}
               email={profile.email}
+              data_nascimento={profile.data_nascimento}
             />
           </div>
 

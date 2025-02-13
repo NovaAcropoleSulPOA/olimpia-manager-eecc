@@ -428,6 +428,7 @@ export type Database = {
         Row: {
           categoria: string
           evento_id: string
+          faixa_etaria: string
           grupo: string | null
           id: number
           limite_vagas: number
@@ -440,6 +441,7 @@ export type Database = {
         Insert: {
           categoria: string
           evento_id: string
+          faixa_etaria?: string
           grupo?: string | null
           id: number
           limite_vagas?: number
@@ -452,6 +454,7 @@ export type Database = {
         Update: {
           categoria?: string
           evento_id?: string
+          faixa_etaria?: string
           grupo?: string | null
           id?: number
           limite_vagas?: number

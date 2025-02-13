@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { User, FileText, Phone, Mail } from "lucide-react";
+import { User, FileText, Phone, Mail, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface PersonalInfoProps {
   nome_completo: string;
@@ -9,6 +10,7 @@ interface PersonalInfoProps {
   numero_documento: string;
   telefone: string;
   email: string;
+  data_nascimento?: string | null;
 }
 
 export default function PersonalInfo({ 
@@ -16,8 +18,18 @@ export default function PersonalInfo({
   tipo_documento, 
   numero_documento, 
   telefone, 
-  email 
+  email,
+  data_nascimento 
 }: PersonalInfoProps) {
+  const formatBirthDate = (date: string) => {
+    try {
+      return format(new Date(date), 'dd/MM/yyyy');
+    } catch (error) {
+      console.error('Error formatting birth date:', error);
+      return null;
+    }
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold flex items-center gap-2 text-olimpics-green-primary">
@@ -59,6 +71,15 @@ export default function PersonalInfo({
             !email && "text-muted-foreground italic"
           )}>
             {email || 'Email não informado'}
+          </span>
+        </p>
+        <p className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <span className={cn(
+            "text-sm",
+            !data_nascimento && "text-muted-foreground italic"
+          )}>
+            {data_nascimento ? formatBirthDate(data_nascimento) : 'Data de nascimento não informada'}
           </span>
         </p>
       </div>
