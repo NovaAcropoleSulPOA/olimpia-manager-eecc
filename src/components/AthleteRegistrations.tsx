@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -20,6 +21,7 @@ interface Modality {
   vagas_ocupadas: number;
   limite_vagas: number;
   grupo?: string;
+  faixa_etaria: string;
 }
 
 export default function AthleteRegistrations() {
@@ -51,25 +53,48 @@ export default function AthleteRegistrations() {
     enabled: !!user?.id && !!currentEventId,
   });
 
+  const getAgeGroup = (birthDate: string | null): 'infantil' | 'adulto' | 'all' => {
+    if (!birthDate) return 'all';
+    
+    const today = new Date();
+    const birth = new Date(birthDate);
+    const age = today.getFullYear() - birth.getFullYear();
+    
+    // Adjust age if birthday hasn't occurred this year
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      return age - 1 < 15 ? 'infantil' : 'adulto';
+    }
+    
+    return age < 15 ? 'infantil' : 'adulto';
+  };
+
   const filterModalitiesByGender = (modalities: Modality[] | null | undefined) => {
     const gender = athleteProfile?.genero?.toLowerCase();
     if (!gender || !Array.isArray(modalities)) return [];
 
+    // Get age group based on birth date
+    const ageGroup = getAgeGroup(athleteProfile?.data_nascimento);
+    console.log('User age group:', ageGroup);
+
     return modalities.filter(modality => {
+      // First filter by gender
       const category = modality.categoria?.toLowerCase();
-      switch (gender) {
-        case 'masculino':
-          return category === 'masculino' || category === 'misto';
-        case 'feminino':
-          return category === 'feminino' || category === 'misto';
-        default:
-          return true;
-      }
+      const genderMatch = gender === 'masculino' ? 
+        (category === 'masculino' || category === 'misto') :
+        gender === 'feminino' ? 
+          (category === 'feminino' || category === 'misto') : 
+          true;
+
+      // Then filter by age group
+      const ageMatch = ageGroup === 'all' ? true : modality.faixa_etaria === ageGroup;
+
+      return genderMatch && ageMatch;
     });
   };
 
   const { data: allModalities, isLoading: modalitiesLoading } = useQuery({
-    queryKey: ['modalities', athleteProfile?.genero],
+    queryKey: ['modalities', athleteProfile?.genero, athleteProfile?.data_nascimento],
     queryFn: async () => {
       console.log('Fetching modalities');
       const { data, error } = await supabase
