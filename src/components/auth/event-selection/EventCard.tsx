@@ -1,17 +1,19 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trophy } from "lucide-react";
+import { Trophy, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { Event } from "@/lib/types/database";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface EventCardProps {
   event: Event & {
     isRegistered: boolean;
     roles: Array<{ nome: string; codigo: string }>;
     isOpen: boolean;
+    isAdmin: boolean;
   };
   selectedRole: 'ATL' | 'PGR';
   onRoleChange: (value: 'ATL' | 'PGR') => void;
@@ -24,6 +26,29 @@ export const EventCard = ({
   onRoleChange, 
   onEventAction 
 }: EventCardProps) => {
+  const isDisabled = (event.status_evento === 'encerrado' || event.status_evento === 'suspenso') 
+    && !event.isRegistered 
+    && !event.isAdmin;
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'ativo':
+        return 'bg-green-100 text-green-800';
+      case 'encerrado':
+        return 'bg-red-100 text-red-800';
+      case 'suspenso':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getButtonLabel = () => {
+    if (event.isRegistered) return 'Acessar evento';
+    if (isDisabled) return event.status_evento === 'encerrado' ? 'Inscrições encerradas' : 'Evento suspenso';
+    return 'Quero me cadastrar';
+  };
+
   return (
     <Card 
       className={`
@@ -32,6 +57,23 @@ export const EventCard = ({
       `}
     >
       <CardContent className="p-6">
+        {/* Status Badge */}
+        <div className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(event.status_evento)}`}>
+          {event.status_evento.charAt(0).toUpperCase() + event.status_evento.slice(1)}
+        </div>
+
+        {/* Status Alert */}
+        {(event.status_evento === 'encerrado' || event.status_evento === 'suspenso') && !event.isRegistered && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {event.status_evento === 'encerrado' 
+                ? 'Este evento está encerrado para novas inscrições.' 
+                : 'Este evento está temporariamente suspenso.'}
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="aspect-square rounded-lg mb-4 relative overflow-hidden bg-olimpics-green-primary/10">
           {event.foto_evento ? (
             <img
@@ -57,7 +99,7 @@ export const EventCard = ({
             </p>
           )}
         </div>
-        {!event.isRegistered && event.isOpen && (
+        {!event.isRegistered && !isDisabled && (
           <div className="mb-4">
             <RadioGroup
               value={selectedRole}
@@ -79,13 +121,9 @@ export const EventCard = ({
           onClick={onEventAction}
           variant={event.isRegistered ? "default" : "outline"}
           className="w-full"
-          disabled={!event.isOpen && !event.isRegistered}
+          disabled={isDisabled}
         >
-          {event.isRegistered 
-            ? 'Acessar evento' 
-            : event.isOpen 
-              ? 'Quero me cadastrar'
-              : 'Inscrições encerradas'}
+          {getButtonLabel()}
         </Button>
       </CardContent>
     </Card>

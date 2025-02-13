@@ -66,6 +66,20 @@ export const useEventQuery = (userId: string | undefined) => {
         throw events.error;
       }
 
+      // Fetch admin status for each event
+      const adminStatusPromises = events.data?.map(async (event) => {
+        const { data: isAdmin } = await supabase.rpc('is_event_admin', {
+          user_id: userId,
+          event_id: event.id
+        });
+        return { eventId: event.id, isAdmin: isAdmin || false };
+      }) || [];
+
+      const adminStatuses = await Promise.all(adminStatusPromises);
+      const adminStatusMap = Object.fromEntries(
+        adminStatuses.map(({ eventId, isAdmin }) => [eventId, isAdmin])
+      );
+
       const userRolesPromises = registeredEventIds.map(async (eventId) => {
         const { data: roles, error } = await supabase
           .from('papeis_usuarios')
@@ -74,7 +88,7 @@ export const useEventQuery = (userId: string | undefined) => {
             perfil_id,
             perfis (
               nome,
-              perfil_tipo:perfil_tipo_id (
+              perfil_tipo (
                 codigo
               )
             )
@@ -108,6 +122,7 @@ export const useEventQuery = (userId: string | undefined) => {
         return {
           ...event,
           isRegistered: registeredEventIds.includes(event.id),
+          isAdmin: adminStatusMap[event.id] || false,
           roles: userRolesMap[event.id] || [],
           isOpen: startDate <= currentDate && currentDate <= endDate
         };

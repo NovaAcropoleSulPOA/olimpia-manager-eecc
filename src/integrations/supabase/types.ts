@@ -1362,6 +1362,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_event_admin: {
+        Args: {
+          user_id: string
+          event_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       perfil_tipo:
