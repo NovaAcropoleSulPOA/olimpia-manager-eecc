@@ -73,11 +73,12 @@ export default function AthleteProfilePage() {
       if (!user?.id || !currentEventId) return null;
       console.log('Fetching athlete profile for:', user.id, 'event:', currentEventId);
 
-      // First, fetch the user's profile data
+      // Fetch the user's profile data with event context
       const { data: profileData, error: profileError } = await supabase
         .from('view_perfil_atleta')
         .select('*')
         .eq('atleta_id', user.id)
+        .eq('evento_id', currentEventId)
         .maybeSingle();
 
       if (profileError) {
