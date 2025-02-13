@@ -88,7 +88,7 @@ export const useEventQuery = (userId: string | undefined) => {
             perfil_id,
             perfis (
               nome,
-              perfil_tipo (
+              perfis_tipo:perfil_tipo_id (
                 codigo
               )
             )
@@ -103,7 +103,7 @@ export const useEventQuery = (userId: string | undefined) => {
 
         const transformedRoles: TransformedRole[] = (roles || []).map((role: any) => ({
           nome: role.perfis.nome,
-          codigo: role.perfis.perfil_tipo.codigo
+          codigo: role.perfis.perfis_tipo?.codigo || ''
         }));
 
         return { eventId, roles: transformedRoles };

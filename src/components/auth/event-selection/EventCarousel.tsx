@@ -14,6 +14,7 @@ interface EventCarouselProps {
     isRegistered: boolean;
     roles: Array<{ nome: string; codigo: string }>;
     isOpen: boolean;
+    isAdmin: boolean;
   }>;
   selectedRole: 'ATL' | 'PGR';
   onRoleChange: (value: 'ATL' | 'PGR') => void;

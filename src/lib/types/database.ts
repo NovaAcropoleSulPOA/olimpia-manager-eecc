@@ -9,6 +9,7 @@ export interface Event {
   tipo: 'estadual' | 'nacional' | 'internacional' | 'regional';
   created_at: string | null;
   updated_at: string | null;
+  status_evento: 'ativo' | 'encerrado' | 'suspenso';
 }
 
 export interface EventBranch {
@@ -38,3 +39,4 @@ export interface UserRole {
 }
 
 export type PerfilTipo = 'ATL' | 'PGR';
+
