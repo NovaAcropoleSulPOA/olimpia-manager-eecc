@@ -41,6 +41,18 @@ interface TransformedRole {
   codigo: string;
 }
 
+interface RegistrationFee {
+  id: number;
+  valor: number;
+  perfis: {
+    nome: string;
+    perfil_tipo_id: string;
+    perfis_tipo: {
+      codigo: string;
+    };
+  };
+}
+
 export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSelectionProps) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
@@ -184,7 +196,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
       }
 
       // Find the matching fee by filtering in memory
-      const matchingFee = registrationFees?.find(fee => 
+      const matchingFee = (registrationFees as RegistrationFee[])?.find(fee => 
         fee.perfis?.perfis_tipo?.codigo === selectedRole
       );
 
@@ -259,7 +271,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         <div className="text-center text-gray-500">
           {mode === 'registration' 
             ? 'Não há eventos com inscrições abertas no momento.'
-            : 'Você ainda não está inscrito em nenhum evento.'}
+            : 'Você ainda não est�� inscrito em nenhum evento.'}
         </div>
         <Button
           onClick={handleExit}
