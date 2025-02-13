@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Clock } from "lucide-react";
 import { ActivityCard } from './ActivityCard';
@@ -46,8 +47,8 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
       if (activity.global) {
         category = 'Global';
       } else {
-        // Extract category from modalidade_nome (e.g., "Atletismo - 100m" becomes "Atletismo")
-        category = activity.modalidade_nome?.split(' - ')[0] || activity.atividade;
+        // Extract base category (e.g., "Atletismo" from "Atletismo - 100m")
+        category = activity.atividade;
       }
       
       if (!acc[category]) {

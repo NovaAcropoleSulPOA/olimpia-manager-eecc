@@ -68,6 +68,7 @@ export function ActivityCard({ category, activities }: ActivityCardProps) {
           </div>
           <div className="flex flex-wrap gap-2">
             {activities.map((activity) => {
+              // Extract just the modality name (e.g., "100m" from "Atletismo - 100m")
               const modalityName = activity.modalidade_nome?.split(' - ')[1] || activity.modalidade_nome;
               return (
                 <Badge 
