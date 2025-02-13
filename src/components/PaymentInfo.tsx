@@ -65,7 +65,12 @@ const PaymentInfo = () => {
   const handleFormClick = () => {
     console.log('Form link:', paymentInfo?.link_formulario);
     if (paymentInfo?.link_formulario) {
-      window.open(paymentInfo.link_formulario, "_blank", "noopener,noreferrer");
+      // Ensure the URL is properly formatted
+      const url = paymentInfo.link_formulario.startsWith('http') 
+        ? paymentInfo.link_formulario 
+        : `https://${paymentInfo.link_formulario}`;
+        
+      window.open(url, "_blank", "noopener,noreferrer");
     } else {
       toast.error("O link para envio do comprovante ainda não está disponível. Por favor, entre em contato com o suporte.");
     }
@@ -156,10 +161,12 @@ const PaymentInfo = () => {
       <Button
         onClick={handleFormClick}
         className="w-full bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white mt-6"
-        disabled={!paymentInfo.link_formulario}
         type="button"
       >
-        Realize o envio do comprovante
+        {paymentInfo.link_formulario 
+          ? 'Realize o envio do comprovante'
+          : 'Link para envio indisponível no momento'
+        }
       </Button>
     </div>
   );
