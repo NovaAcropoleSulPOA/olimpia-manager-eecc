@@ -190,8 +190,10 @@ export type Database = {
           foto_evento: string | null
           id: string
           nome: string
+          status_evento: string
           tipo: string
           updated_at: string | null
+          visibilidade_publica: boolean
         }
         Insert: {
           created_at?: string | null
@@ -201,8 +203,10 @@ export type Database = {
           foto_evento?: string | null
           id?: string
           nome: string
+          status_evento?: string
           tipo: string
           updated_at?: string | null
+          visibilidade_publica?: boolean
         }
         Update: {
           created_at?: string | null
@@ -212,8 +216,10 @@ export type Database = {
           foto_evento?: string | null
           id?: string
           nome?: string
+          status_evento?: string
           tipo?: string
           updated_at?: string | null
+          visibilidade_publica?: boolean
         }
         Relationships: []
       }
