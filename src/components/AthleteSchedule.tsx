@@ -47,10 +47,12 @@ export default function AthleteSchedule() {
       console.log('Fetching schedule activities for user:', user.id, 'event:', currentEventId);
 
       const { data, error } = await supabase
-        .from('vw_cronograma_completo_atleta')
+        .from('vw_cronograma_atividades_por_atleta')
         .select('*')
         .eq('atleta_id', user.id)
-        .eq('evento_id', currentEventId);
+        .eq('evento_id', currentEventId)
+        .order('dia')
+        .order('horario_inicio');
 
       if (error) {
         console.error('Error fetching activities:', error);
@@ -84,14 +86,11 @@ export default function AthleteSchedule() {
       groups[date][time] = [];
     }
     
-    // Check if activity already exists to avoid duplicates
-    const activityExists = groups[date][time].some(
-      existingActivity => existingActivity.cronograma_atividade_id === activity.cronograma_atividade_id
-    );
-    
-    if (!activityExists) {
-      groups[date][time].push(activity);
-    }
+    // Add the activity without checking for duplicates since we want all entries
+    groups[date][time].push({
+      ...activity,
+      id: activity.cronograma_atividade_id // Ensure id is set for React key
+    });
     
     return groups;
   }, {});

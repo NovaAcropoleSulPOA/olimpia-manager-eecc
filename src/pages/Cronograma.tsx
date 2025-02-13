@@ -16,6 +16,7 @@ import {
 
 interface ScheduleActivity {
   id: number;
+  cronograma_atividade_id: number;
   atividade: string;
   horario_inicio: string;
   horario_fim: string;
@@ -34,14 +35,16 @@ interface GroupedActivities {
 
 export default function Cronograma() {
   const [isVideoVisible, setIsVideoVisible] = useState(true);
+  const currentEventId = localStorage.getItem('currentEventId');
 
   const { data: activities, isLoading } = useQuery({
-    queryKey: ['cronograma-activities'],
+    queryKey: ['cronograma-activities', currentEventId],
     queryFn: async () => {
       console.log('Fetching cronograma activities');
       const { data, error } = await supabase
         .from('vw_cronograma_atividades')
         .select('*')
+        .eq('evento_id', currentEventId)
         .order('dia')
         .order('horario_inicio');
 
@@ -53,10 +56,11 @@ export default function Cronograma() {
       console.log('Retrieved cronograma activities:', data);
       return data as ScheduleActivity[];
     },
+    enabled: !!currentEventId,
   });
 
   // Group activities by date and time
-  const groupedActivities = activities?.reduce((groups, activity) => {
+  const groupedActivities = activities?.reduce((groups: GroupedActivities, activity) => {
     const date = activity.dia;
     const time = `${activity.horario_inicio}-${activity.horario_fim}`;
     
@@ -68,13 +72,16 @@ export default function Cronograma() {
       groups[date][time] = [];
     }
     
-    groups[date][time].push(activity);
+    groups[date][time].push({
+      ...activity,
+      id: activity.cronograma_atividade_id
+    });
     
     return groups;
-  }, {} as GroupedActivities) || {};
+  }, {});
 
   // Get unique dates
-  const dates = Object.keys(groupedActivities).sort();
+  const dates = Object.keys(groupedActivities || {}).sort();
 
   // Get unique time slots
   const timeSlots = [...new Set(
@@ -141,7 +148,7 @@ export default function Cronograma() {
         </CardHeader>
         <CardContent>
           <ScheduleTable 
-            groupedActivities={groupedActivities}
+            groupedActivities={groupedActivities || {}}
             dates={dates}
             timeSlots={timeSlots}
           />
