@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -6,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import CopyableCode from "@/components/CopyableCode";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface PaymentFeeInfo {
   valor: number | null;
@@ -31,7 +31,6 @@ const PaymentInfo = () => {
     }
   }, []);
 
-  // This query uses the view that returns only the highest fee profile
   const { data: paymentInfo, isLoading } = useQuery({
     queryKey: ['payment-info', user?.id, currentEventId],
     queryFn: async () => {
@@ -65,6 +64,8 @@ const PaymentInfo = () => {
   const handleFormClick = () => {
     if (paymentInfo?.link_formulario) {
       window.open(paymentInfo.link_formulario, "_blank");
+    } else {
+      toast.error("O link para envio do comprovante ainda não está disponível. Por favor, entre em contato com o suporte.");
     }
   };
 
@@ -99,9 +100,7 @@ const PaymentInfo = () => {
         Informações de Pagamento
       </h3>
       
-      {/* Two-column layout using CSS Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Left column: Payment details */}
         <div className="space-y-4 text-olimpics-text text-left">
           {paymentInfo.perfil_nome && (
             <p className="flex items-center gap-2">
@@ -132,10 +131,9 @@ const PaymentInfo = () => {
           )}
         </div>
 
-        {/* Right column: QR Code and copy functionality */}
         <div className="flex flex-col items-center justify-center gap-4">
           <h3 className="text-lg font-semibold text-olimpics-green-primary text-center">
-          Aponte a câmera do celular para o Código QR e obtenha todos os detalhes do pagamento
+            Aponte a câmera do celular para o Código QR e obtenha todos os detalhes do pagamento
           </h3>
           {paymentInfo.qr_code_image && (
             <img
@@ -145,20 +143,18 @@ const PaymentInfo = () => {
             />
           )}
           <h3 className="text-lg font-semibold text-olimpics-green-primary text-center">
-          ... ou copie o código abaixo:
+            ... ou copie o código abaixo:
           </h3>
-          
-          {/* QR Code copy functionality */}
           {paymentInfo.qr_code_codigo && (
             <CopyableCode code={paymentInfo.qr_code_codigo} />
           )}
         </div>
       </div>
 
-      {/* Submit button spans full width */}
       <Button
         onClick={handleFormClick}
         className="w-full bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white mt-6"
+        disabled={!paymentInfo.link_formulario}
       >
         Realize o envio do comprovante
       </Button>
