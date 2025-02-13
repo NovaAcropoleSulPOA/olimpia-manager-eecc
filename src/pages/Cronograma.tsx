@@ -32,9 +32,15 @@ function GeneralScheduleActivityCard({ category, activities }: {
   activities: ScheduleActivity[];
 }) {
   const location = activities[0]?.local || '';
+  const isGlobal = activities.some(activity => activity.global);
 
   return (
-    <div className="p-3 rounded-lg border border-green-600 bg-green-50">
+    <div className={cn(
+      "p-3 rounded-lg border",
+      isGlobal 
+        ? "border-yellow-400 bg-yellow-50" 
+        : "border-green-600 bg-green-50"
+    )}>
       <div className="space-y-2">
         <h4 className="font-medium text-olimpics-green-primary">{activities[0].atividade}</h4>
         <div className="pl-2 space-y-3">
@@ -48,7 +54,12 @@ function GeneralScheduleActivityCard({ category, activities }: {
                 <Badge 
                   key={`${activity.cronograma_atividade_id}-${activity.modalidade_nome}`}
                   variant="secondary"
-                  className="bg-green-100 text-green-800 hover:bg-green-100/80 whitespace-nowrap"
+                  className={cn(
+                    "whitespace-nowrap",
+                    activity.global
+                      ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80"
+                      : "bg-green-100 text-green-800 hover:bg-green-100/80"
+                  )}
                 >
                   {displayName}
                   {activity.global && ' (Global)'}
