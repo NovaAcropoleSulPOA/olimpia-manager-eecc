@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -100,25 +99,34 @@ export default function AthleteRegistrations() {
   });
 
   const { data: registeredModalities, isLoading: registrationsLoading } = useQuery({
-    queryKey: ['athlete-modalities', user?.id],
+    queryKey: ['athlete-modalities', user?.id, currentEventId],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!user?.id || !currentEventId) return [];
+      console.log('Fetching modalities for athlete:', user.id, 'event:', currentEventId);
+      
       const { data, error } = await supabase
         .from('inscricoes_modalidades')
         .select(`
-          *,
+          id,
+          status,
           modalidade:modalidades (
             nome,
             categoria,
             tipo_modalidade
           )
         `)
-        .eq('atleta_id', user.id);
+        .eq('atleta_id', user.id)
+        .eq('evento_id', currentEventId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching athlete modalities:', error);
+        throw error;
+      }
+
+      console.log('Retrieved athlete modalities:', data);
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!currentEventId,
   });
 
   const withdrawMutation = useMutation({
