@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import CopyableCode from "@/components/CopyableCode";
+import { useEffect, useState } from "react";
 
 interface PaymentFeeInfo {
   valor: number | null;
@@ -20,18 +21,27 @@ interface PaymentFeeInfo {
 
 const PaymentInfo = () => {
   const { user } = useAuth();
+  const [currentEventId, setCurrentEventId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const eventId = localStorage.getItem('currentEventId');
+    if (eventId) {
+      setCurrentEventId(eventId);
+    }
+  }, []);
 
   // This query uses the view that returns only the highest fee profile
   const { data: paymentInfo, isLoading } = useQuery({
-    queryKey: ['payment-info', user?.id],
+    queryKey: ['payment-info', user?.id, currentEventId],
     queryFn: async () => {
-      if (!user?.id) return null;
-      console.log('Fetching payment info for user:', user.id);
+      if (!user?.id || !currentEventId) return null;
+      console.log('Fetching payment info for user:', user.id, 'event:', currentEventId);
       
       const { data, error } = await supabase
         .from('vw_taxas_inscricao_usuarios')
         .select('*')
         .eq('usuario_id', user.id)
+        .eq('evento_id', currentEventId)
         .maybeSingle();
 
       if (error) {
@@ -39,10 +49,10 @@ const PaymentInfo = () => {
         throw error;
       }
 
-      console.log('Payment info for highest fee profile:', data);
+      console.log('Payment info for user:', data);
       return data as PaymentFeeInfo;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!currentEventId,
   });
 
   const handleWhatsAppClick = () => {
@@ -128,7 +138,7 @@ const PaymentInfo = () => {
             <img
               src={paymentInfo.qr_code_image}
               alt="QR Code do PIX"
-              className="w-64 h-64 object-contain" // Increased size for better visibility
+              className="w-64 h-64 object-contain"
             />
           )}
           <h3 className="text-lg font-semibold text-olimpics-green-primary text-center">
