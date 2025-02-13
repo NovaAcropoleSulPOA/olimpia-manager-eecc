@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,10 +30,20 @@ interface GroupedActivities {
 export default function AthleteSchedule() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [currentEventId, setCurrentEventId] = useState<string | null>(null);
+
+  // Get current event ID from localStorage on component mount
+  useEffect(() => {
+    const eventId = localStorage.getItem('currentEventId');
+    if (eventId) {
+      setCurrentEventId(eventId);
+    }
+    console.log('Current event ID from localStorage:', eventId);
+  }, []);
 
   // Set up real-time subscription
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !currentEventId) return;
 
     console.log('Setting up real-time subscription for athlete schedule');
     
@@ -42,16 +52,15 @@ export default function AthleteSchedule() {
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen to all changes (INSERT, UPDATE, DELETE)
+          event: '*',
           schema: 'public',
           table: 'inscricoes_modalidades',
           filter: `atleta_id=eq.${user.id}`,
         },
         (payload) => {
           console.log('Received real-time update:', payload);
-          // Invalidate and refetch the schedule data
           queryClient.invalidateQueries({
-            queryKey: ['personal-schedule-activities', user.id]
+            queryKey: ['personal-schedule-activities', user.id, currentEventId]
           });
         }
       )
@@ -59,21 +68,21 @@ export default function AthleteSchedule() {
         console.log('Subscription status:', status);
       });
 
-    // Cleanup subscription on unmount
     return () => {
       console.log('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
-  }, [user?.id, queryClient]);
+  }, [user?.id, currentEventId, queryClient]);
 
   const { data: activities, isLoading } = useQuery({
-    queryKey: ['personal-schedule-activities', user?.id],
+    queryKey: ['personal-schedule-activities', user?.id, currentEventId],
     queryFn: async () => {
-      console.log('Fetching personal schedule activities for user:', user?.id);
+      console.log('Fetching personal schedule activities for user:', user?.id, 'event:', currentEventId);
       const { data, error } = await supabase
         .from('vw_cronograma_atividades_por_atleta')
         .select('*')
         .eq('atleta_id', user?.id)
+        .eq('evento_id', currentEventId)
         .order('dia')
         .order('horario_inicio');
 
@@ -85,7 +94,7 @@ export default function AthleteSchedule() {
       console.log('Retrieved personal schedule activities:', data);
       return data as ScheduleActivity[];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!currentEventId,
   });
 
   if (isLoading) {
@@ -116,10 +125,7 @@ export default function AthleteSchedule() {
     return groups;
   }, {} as GroupedActivities) || {};
 
-  // Get unique dates
   const dates = Object.keys(groupedActivities).sort();
-
-  // Get unique time slots from activities that have actual data
   const timeSlots = [...new Set(
     activities?.map(activity => `${activity.horario_inicio}-${activity.horario_fim}`)
   )].sort();

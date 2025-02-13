@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,34 +26,52 @@ interface AthleteProfileData {
   pagamento_valor?: number;
 }
 
-// Define the type for the role data returned from Supabase
-interface PerfilTipo {
-  codigo: string;
-}
-
-interface Perfis {
+interface Event {
+  id: string;
   nome: string;
-  perfil_tipo: PerfilTipo;
-}
-
-interface RoleData {
-  perfis: {
-    nome: any;
-    perfil_tipo: {
-      codigo: any;
-    }[];
-  }[];
 }
 
 export default function AthleteProfilePage() {
   const { user } = useAuth();
+  const [currentEventId, setCurrentEventId] = useState<string | null>(null);
   const isPublicUser = user?.papeis?.some(role => role.codigo === 'PGR') || user?.papeis?.length === 0;
 
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ['athlete-profile', user?.id],
+  // Get current event ID from localStorage on component mount
+  useEffect(() => {
+    const eventId = localStorage.getItem('currentEventId');
+    if (eventId) {
+      setCurrentEventId(eventId);
+    }
+    console.log('Current event ID from localStorage:', eventId);
+  }, []);
+
+  // Fetch event details
+  const { data: eventData } = useQuery({
+    queryKey: ['event', currentEventId],
     queryFn: async () => {
-      if (!user?.id) return null;
-      console.log('Fetching athlete profile for:', user.id);
+      if (!currentEventId) return null;
+      
+      const { data, error } = await supabase
+        .from('eventos')
+        .select('id, nome')
+        .eq('id', currentEventId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching event:', error);
+        return null;
+      }
+
+      return data as Event;
+    },
+    enabled: !!currentEventId,
+  });
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['athlete-profile', user?.id, currentEventId],
+    queryFn: async () => {
+      if (!user?.id || !currentEventId) return null;
+      console.log('Fetching athlete profile for:', user.id, 'event:', currentEventId);
 
       // First, fetch the user's profile data
       const { data: profileData, error: profileError } = await supabase
@@ -67,7 +85,7 @@ export default function AthleteProfilePage() {
         throw profileError;
       }
 
-      // Then, fetch the user's roles with their descriptive names
+      // Then, fetch the user's roles with their descriptive names for this specific event
       const { data: rolesData, error: rolesError } = await supabase
         .from('papeis_usuarios')
         .select(`
@@ -78,7 +96,8 @@ export default function AthleteProfilePage() {
             )
           )
         `)
-        .eq('usuario_id', user.id);
+        .eq('usuario_id', user.id)
+        .eq('evento_id', currentEventId);
 
       if (rolesError) {
         console.error('Error fetching roles:', rolesError);
@@ -101,7 +120,7 @@ export default function AthleteProfilePage() {
         papeis: transformedRoles
       } as AthleteProfileData;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!currentEventId,
   });
 
   if (isLoading) {
@@ -126,6 +145,11 @@ export default function AthleteProfilePage() {
 
   return (
     <div className="container mx-auto py-6 space-y-8">
+      {eventData && (
+        <h1 className="text-2xl font-bold text-olimpics-green-primary mb-6">
+          {eventData.nome}
+        </h1>
+      )}
       <AthleteProfile 
         profile={profile}
         isPublicUser={isPublicUser}
