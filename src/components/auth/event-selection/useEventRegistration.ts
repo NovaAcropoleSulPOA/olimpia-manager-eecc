@@ -10,9 +10,9 @@ interface RegistrationFee {
   perfis: Array<{
     nome: string;
     perfil_tipo_id: string;
-    perfis_tipo: Array<{
+    perfis_tipo: {
       codigo: string;
-    }>;
+    };
   }>;
 }
 
@@ -25,36 +25,47 @@ export const useEventRegistration = (userId: string | undefined) => {
 
       console.log('Fetching registration fee for event:', eventId, 'and role:', selectedRole);
 
+      // First, get the perfil_tipo_id for the selected role
+      const { data: perfilTipo, error: perfilTipoError } = await supabase
+        .from('perfis_tipo')
+        .select('id')
+        .eq('codigo', selectedRole)
+        .single();
+
+      if (perfilTipoError) {
+        console.error('Error fetching perfil_tipo:', perfilTipoError);
+        throw new Error('Erro ao buscar tipo de perfil');
+      }
+
+      // Then use this ID to find the matching registration fee
       const { data: registrationFees, error: feeError } = await supabase
         .from('taxas_inscricao')
         .select(`
           id,
           valor,
-          perfis!fk_taxas_inscricao_perfil (
+          perfis!inner (
             nome,
-            perfil_tipo_id,
-            perfis_tipo:perfil_tipo_id (
-              codigo
-            )
+            perfil_tipo_id
           )
         `)
-        .eq('evento_id', eventId);
+        .eq('evento_id', eventId)
+        .eq('perfis.perfil_tipo_id', perfilTipo.id);
 
       if (feeError) {
         console.error('Error fetching registration fees:', feeError);
         throw new Error('Erro ao buscar taxa de inscrição');
       }
 
-      const matchingFee = (registrationFees as RegistrationFee[])?.find(fee => 
-        fee.perfis?.[0]?.perfis_tipo?.[0]?.codigo === selectedRole
-      );
+      console.log('Found registration fees:', registrationFees);
+
+      const matchingFee = registrationFees[0]; // Since we filtered by perfil_tipo_id, we can take the first match
 
       if (!matchingFee) {
         console.error('No matching registration fee found for role:', selectedRole);
         throw new Error('Taxa de inscrição não encontrada para o perfil selecionado');
       }
 
-      console.log('Found registration fee:', matchingFee);
+      console.log('Using registration fee:', matchingFee);
 
       const { data: registration, error: registrationError } = await supabase
         .from('inscricoes_eventos')
