@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -40,7 +39,18 @@ const PaymentInfo = () => {
       
       const { data, error } = await supabase
         .from('vw_taxas_inscricao_usuarios')
-        .select('*')
+        .select(`
+          valor,
+          pix_key,
+          data_limite_inscricao,
+          contato_nome,
+          contato_telefone,
+          isento,
+          perfil_nome,
+          qr_code_image,
+          qr_code_codigo,
+          link_formulario
+        `)
         .eq('usuario_id', user.id)
         .eq('evento_id', currentEventId)
         .maybeSingle();
@@ -50,7 +60,9 @@ const PaymentInfo = () => {
         throw error;
       }
 
-      console.log('Payment info for user:', data);
+      console.log('Payment info response:', data);
+      console.log('Form link from response:', data?.link_formulario);
+
       return data as PaymentFeeInfo;
     },
     enabled: !!user?.id && !!currentEventId,
@@ -65,7 +77,6 @@ const PaymentInfo = () => {
   const handleFormClick = () => {
     console.log('Form link:', paymentInfo?.link_formulario);
     if (paymentInfo?.link_formulario) {
-      // Ensure the URL is properly formatted
       const url = paymentInfo.link_formulario.startsWith('http') 
         ? paymentInfo.link_formulario 
         : `https://${paymentInfo.link_formulario}`;
