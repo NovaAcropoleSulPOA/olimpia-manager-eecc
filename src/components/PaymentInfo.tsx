@@ -17,6 +17,7 @@ interface PaymentFeeInfo {
   perfil_nome: string | null;
   qr_code_image: string | null;
   qr_code_codigo: string | null;
+  link_formulario: string | null;
 }
 
 const PaymentInfo = () => {
@@ -62,7 +63,9 @@ const PaymentInfo = () => {
   };
 
   const handleFormClick = () => {
-    window.open("https://forms.gle/doAci87XFFWgVXXs7", "_blank");
+    if (paymentInfo?.link_formulario) {
+      window.open(paymentInfo.link_formulario, "_blank");
+    }
   };
 
   if (isLoading) {
@@ -153,12 +156,14 @@ const PaymentInfo = () => {
       </div>
 
       {/* Submit button spans full width */}
-      <Button
-        onClick={handleFormClick}
-        className="w-full bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white mt-6"
-      >
-        Realize o envio do comprovante
-      </Button>
+      {paymentInfo.link_formulario && (
+        <Button
+          onClick={handleFormClick}
+          className="w-full bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white mt-6"
+        >
+          Realize o envio do comprovante
+        </Button>
+      )}
     </div>
   );
 };

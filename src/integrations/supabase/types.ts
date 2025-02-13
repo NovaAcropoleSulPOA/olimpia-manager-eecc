@@ -949,6 +949,7 @@ export type Database = {
           evento_id: string
           id: number
           isento: boolean
+          link_formulario: string | null
           perfil_id: number
           pix_key: string | null
           qr_code_codigo: string | null
@@ -962,6 +963,7 @@ export type Database = {
           evento_id: string
           id?: number
           isento?: boolean
+          link_formulario?: string | null
           perfil_id: number
           pix_key?: string | null
           qr_code_codigo?: string | null
@@ -975,6 +977,7 @@ export type Database = {
           evento_id?: string
           id?: number
           isento?: boolean
+          link_formulario?: string | null
           perfil_id?: number
           pix_key?: string | null
           qr_code_codigo?: string | null
