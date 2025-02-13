@@ -19,6 +19,7 @@ import ResetPassword from './pages/ResetPassword';
 import Cronograma from './pages/Cronograma';
 import Administration from './pages/Administration';
 import EventSelectionPage from './pages/EventSelectionPage';
+import WhatsAppButton from './components/WhatsAppButton';
 import React from 'react';
 
 const queryClient = new QueryClient({
@@ -57,6 +58,7 @@ function App() {
               </Routes>
             </div>
             <Footer />
+            <WhatsAppButton />
             <Toaster />
           </div>
         </AuthProvider>
