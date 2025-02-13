@@ -31,13 +31,14 @@ interface Event {
   nome: string;
 }
 
-interface RoleData {
+// Updated interface to match Supabase response structure
+interface SupabaseRoleResponse {
   perfis: {
     nome: string;
     perfil_tipo: {
       codigo: string;
     };
-  }
+  };
 }
 
 export default function AthleteProfilePage() {
@@ -119,10 +120,12 @@ export default function AthleteProfilePage() {
         throw rolesError;
       }
 
+      console.log('Raw roles data:', rolesData);
+
       // Transform the roles data with proper typing
-      const transformedRoles = (rolesData || []).map((role: RoleData) => ({
-        nome: role.perfis.nome,
-        codigo: role.perfis.perfil_tipo.codigo
+      const transformedRoles = (rolesData || []).map((roleData: SupabaseRoleResponse) => ({
+        nome: roleData.perfis.nome,
+        codigo: roleData.perfis.perfil_tipo.codigo
       }));
 
       console.log('Profile data:', profileData);
