@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 interface ActivityCardProps {
   activity: {
     id: number;
+    cronograma_atividade_id: number;
     atividade: string;
     local: string;
     modalidade_nome: string | null;
@@ -24,22 +25,16 @@ export function ActivityCard({ activity }: ActivityCardProps) {
       return 'border-gray-200 bg-white';
     }
 
-    const statuses = activity.modalidade_status.split(', ');
-    
-    // If any modality is confirmed, show green
-    if (statuses.some(status => status.toLowerCase() === 'confirmado')) {
-      return 'border-green-600 bg-green-50';
+    switch (activity.modalidade_status.toLowerCase()) {
+      case 'confirmado':
+        return 'border-green-600 bg-green-50';
+      case 'pendente':
+        return 'border-yellow-400 bg-yellow-50';
+      case 'cancelado':
+        return 'border-red-400 bg-red-50';
+      default:
+        return 'border-gray-200 bg-white';
     }
-    // If any modality is pending, show yellow
-    if (statuses.some(status => status.toLowerCase() === 'pendente')) {
-      return 'border-yellow-400 bg-yellow-50';
-    }
-    // If all modalities are cancelled, show red
-    if (statuses.every(status => status.toLowerCase() === 'cancelado')) {
-      return 'border-red-400 bg-red-50';
-    }
-    
-    return 'border-gray-200 bg-white';
   };
 
   const getStatusColor = (status: string) => {
@@ -53,18 +48,6 @@ export function ActivityCard({ activity }: ActivityCardProps) {
       default:
         return 'bg-gray-100 text-gray-800 hover:bg-gray-100/80';
     }
-  };
-
-  const renderModalityWithStatus = (modalityName: string, status: string) => {
-    return (
-      <Badge 
-        key={`${modalityName}-${status}`}
-        variant="secondary"
-        className={cn(getStatusColor(status))}
-      >
-        {modalityName}
-      </Badge>
-    );
   };
 
   return (
@@ -81,11 +64,12 @@ export function ActivityCard({ activity }: ActivityCardProps) {
         </div>
         {activity.modalidade_nome && activity.modalidade_status && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {activity.modalidade_nome.split(', ').map((modalidade, idx) => {
-              const statuses = activity.modalidade_status?.split(', ') || [];
-              const status = statuses[idx] || 'pendente';
-              return renderModalityWithStatus(modalidade, status);
-            })}
+            <Badge 
+              variant="secondary"
+              className={cn(getStatusColor(activity.modalidade_status))}
+            >
+              {activity.modalidade_nome}
+            </Badge>
           </div>
         )}
       </div>

@@ -5,6 +5,7 @@ import { ActivityCard } from './ActivityCard';
 
 interface ScheduleActivity {
   id: number;
+  cronograma_atividade_id: number;
   atividade: string;
   horario_inicio: string;
   horario_fim: string;
@@ -74,7 +75,7 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
                     </span>
                   </div>
                 </td>
-                {dates.map((date, index) => (
+                {dates.map((date) => (
                   <td 
                     key={`${date}-${timeSlot}`} 
                     className="p-4 align-top"
@@ -83,7 +84,7 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
                     <div className="space-y-2">
                       {groupedActivities[date]?.[timeSlot]?.map((activity) => (
                         <ActivityCard 
-                          key={activity.id}
+                          key={`${activity.cronograma_atividade_id}-${activity.modalidade_nome || 'global'}`}
                           activity={activity}
                         />
                       ))}
