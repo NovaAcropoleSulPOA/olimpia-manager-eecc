@@ -1189,6 +1189,7 @@ export type Database = {
         Row: {
           atividade: string | null
           dia: string | null
+          evento_id: string | null
           global: boolean | null
           horario_fim: string | null
           horario_inicio: string | null
@@ -1196,7 +1197,15 @@ export type Database = {
           local: string | null
           modalidade_nome: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cronograma_atividades_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vw_cronograma_atividades_por_atleta: {
         Row: {

@@ -40,9 +40,10 @@ export default function Cronograma() {
   const { data: activities, isLoading } = useQuery({
     queryKey: ['cronograma-activities', currentEventId],
     queryFn: async () => {
-      console.log('Fetching cronograma activities');
+      console.log('Fetching cronograma activities for event:', currentEventId);
+      
       const { data, error } = await supabase
-        .from('vw_cronograma_atividades')
+        .from('vw_cronograma_atividades_por_atleta')
         .select('*')
         .eq('evento_id', currentEventId)
         .order('dia')
