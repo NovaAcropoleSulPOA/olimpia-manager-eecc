@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, ChevronUp, ChevronDown } from "lucide-react";
@@ -13,24 +12,162 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { Clock } from "lucide-react";
 
-interface ScheduleActivity {
-  id: number;
-  cronograma_atividade_id: number;
-  atividade: string;
-  horario_inicio: string;
-  horario_fim: string;
-  dia: string;
-  local: string;
-  global: boolean;
-  modalidade_nome: string | null;
-  modalidade_status: string | null;
+// Custom ActivityCard for the general schedule that always shows green status
+function GeneralScheduleActivityCard({ category, activities }: {
+  category: string;
+  activities: Array<{
+    id: number;
+    cronograma_atividade_id: number;
+    atividade: string;
+    local: string;
+    modalidade_nome: string | null;
+    modalidade_status: string | null;
+    global: boolean;
+  }>;
+}) {
+  const location = activities[0]?.local || '';
+
+  return (
+    <div className="p-3 rounded-lg border border-green-600 bg-green-50">
+      <div className="space-y-2">
+        <h4 className="font-medium text-olimpics-green-primary">{activities[0].atividade}</h4>
+        <div className="pl-2 space-y-3">
+          <div className="text-sm text-gray-600">
+            <span>{location}</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {activities.map((activity) => {
+              const displayName = activity.modalidade_nome || activity.atividade;
+              return (
+                <Badge 
+                  key={`${activity.cronograma_atividade_id}-${activity.modalidade_nome}`}
+                  variant="secondary"
+                  className="bg-green-100 text-green-800 hover:bg-green-100/80 whitespace-nowrap"
+                >
+                  {displayName}
+                  {activity.global && ' (Global)'}
+                </Badge>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
-interface GroupedActivities {
-  [key: string]: {
-    [key: string]: ScheduleActivity[];
+// Custom ScheduleTable component for the general schedule
+function GeneralScheduleTable({ groupedActivities, dates, timeSlots }: {
+  groupedActivities: {
+    [key: string]: {
+      [key: string]: any[];
+    };
   };
+  dates: string[];
+  timeSlots: string[];
+}) {
+  if (!dates.length) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        Nenhuma atividade encontrada no cronograma.
+      </div>
+    );
+  }
+
+  const weekDays = ["Sábado", "Domingo"];
+  const columnWidth = `${100 / (weekDays.length + 1)}%`;
+
+  const groupByCategory = (activities: any[]) => {
+    const grouped = activities.reduce((acc, activity) => {
+      const category = activity.atividade;
+      
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      
+      const isDuplicate = acc[category].some(
+        (existing: any) => existing.cronograma_atividade_id === activity.cronograma_atividade_id &&
+                    existing.modalidade_nome === activity.modalidade_nome
+      );
+      
+      if (!isDuplicate) {
+        acc[category].push(activity);
+      }
+      
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    return Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
+  };
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr>
+            <th 
+              className="border-b p-4 text-left font-semibold text-olimpics-green-primary"
+              style={{ width: columnWidth }}
+            >
+              Horário
+            </th>
+            {weekDays.map((day) => (
+              <th 
+                key={day} 
+                className="border-b p-4 text-left font-semibold text-olimpics-green-primary"
+                style={{ width: columnWidth }}
+              >
+                {day}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {timeSlots.map(timeSlot => {
+            const [start, end] = timeSlot.split('-');
+            return (
+              <tr key={timeSlot} className="border-b last:border-b-0">
+                <td className="p-4 align-top" style={{ width: columnWidth }}>
+                  <div className="flex items-center gap-1 text-sm text-gray-600">
+                    <Clock className="h-4 w-4 shrink-0" />
+                    <span className="whitespace-nowrap">
+                      {start.slice(0, 5)} - {end.slice(0, 5)}
+                    </span>
+                  </div>
+                </td>
+                {dates.map((date) => {
+                  const activitiesForSlot = groupedActivities[date]?.[timeSlot] || [];
+                  const groupedByCategory = groupByCategory(activitiesForSlot);
+
+                  return (
+                    <td 
+                      key={`${date}-${timeSlot}`} 
+                      className="p-4 align-top"
+                      style={{ width: columnWidth }}
+                    >
+                      <div className="space-y-2">
+                        {groupedByCategory.map(([category, activities]) => (
+                          <GeneralScheduleActivityCard 
+                            key={category}
+                            category={category}
+                            activities={activities}
+                          />
+                        ))}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 export default function Cronograma() {
@@ -55,13 +192,13 @@ export default function Cronograma() {
       }
 
       console.log('Retrieved cronograma activities:', data);
-      return data as ScheduleActivity[];
+      return data;
     },
     enabled: !!currentEventId,
   });
 
   // Group activities by date and time
-  const groupedActivities = activities?.reduce((groups: GroupedActivities, activity) => {
+  const groupedActivities = activities?.reduce((groups: any, activity) => {
     const date = activity.dia;
     const time = `${activity.horario_inicio}-${activity.horario_fim}`;
     
@@ -86,7 +223,7 @@ export default function Cronograma() {
 
   // Get unique time slots
   const timeSlots = [...new Set(
-    activities?.map(activity => `${activity.horario_inicio}-${activity.horario_fim}`)
+    activities?.map((activity: any) => `${activity.horario_inicio}-${activity.horario_fim}`)
   )].sort();
 
   if (isLoading) {
@@ -148,7 +285,7 @@ export default function Cronograma() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ScheduleTable 
+          <GeneralScheduleTable 
             groupedActivities={groupedActivities || {}}
             dates={dates}
             timeSlots={timeSlots}
