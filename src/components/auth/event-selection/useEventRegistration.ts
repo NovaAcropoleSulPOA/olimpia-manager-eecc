@@ -7,13 +7,10 @@ import { PerfilTipo } from "@/lib/types/database";
 interface RegistrationFee {
   id: number;
   valor: number;
-  perfis: Array<{
+  perfis: {
     nome: string;
     perfil_tipo_id: string;
-    perfis_tipo: {
-      codigo: string;
-    };
-  }>;
+  };
 }
 
 export const useEventRegistration = (userId: string | undefined) => {
@@ -37,13 +34,13 @@ export const useEventRegistration = (userId: string | undefined) => {
         throw new Error('Erro ao buscar tipo de perfil');
       }
 
-      // Then use this ID to find the matching registration fee
+      // Then use this ID to find the matching registration fee, using explicit relationship alias
       const { data: registrationFees, error: feeError } = await supabase
         .from('taxas_inscricao')
         .select(`
           id,
           valor,
-          perfis!inner (
+          perfis!fk_taxas_perfil (
             nome,
             perfil_tipo_id
           )
