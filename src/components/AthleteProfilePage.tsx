@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -8,6 +7,7 @@ import AthleteProfile from './AthleteProfile';
 import PaymentInfo from './PaymentInfo';
 import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface AthleteProfileData {
   atleta_id: string;
@@ -30,7 +30,7 @@ interface AthleteProfileData {
 interface Event {
   id: string;
   nome: string;
-  status_evento: 'ativo' | 'encerrado' | 'suspenso';
+  status_evento: 'ativo' | 'encerrado' | 'suspenso' | 'em_teste';
 }
 
 export default function AthleteProfilePage() {
@@ -45,6 +45,19 @@ export default function AthleteProfilePage() {
     }
     console.log('Current event ID from localStorage:', eventId);
   }, []);
+
+  const getEventHeaderColor = (status: string) => {
+    switch (status) {
+      case 'encerrado':
+        return 'bg-red-600';
+      case 'suspenso':
+        return 'bg-yellow-500';
+      case 'em_teste':
+        return 'bg-blue-500';
+      default:
+        return 'bg-olimpics-green-primary';
+    }
+  };
 
   const { data: eventData } = useQuery({
     queryKey: ['event', currentEventId],
@@ -164,7 +177,10 @@ export default function AthleteProfilePage() {
   return (
     <div className="container mx-auto py-6 space-y-8">
       {eventData && (
-        <div className="flex items-center gap-3 bg-olimpics-green-primary text-white p-4 rounded-lg shadow-md">
+        <div className={cn(
+          "flex items-center gap-3 text-white p-4 rounded-lg shadow-md",
+          getEventHeaderColor(eventData.status_evento)
+        )}>
           <h1 className="text-2xl font-bold">
             {eventData.nome}
           </h1>
