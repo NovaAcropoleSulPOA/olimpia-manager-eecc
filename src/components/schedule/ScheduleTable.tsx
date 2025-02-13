@@ -102,14 +102,11 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
                     >
                       <div className="space-y-2">
                         {groupedByCategory.map(([category, activities]) => (
-                          <div key={category} className="space-y-1">
-                            {activities.map((activity) => (
-                              <ActivityCard 
-                                key={`${activity.cronograma_atividade_id}-${activity.modalidade_nome || 'global'}`}
-                                activity={activity}
-                              />
-                            ))}
-                          </div>
+                          <ActivityCard 
+                            key={category}
+                            category={category}
+                            activities={activities}
+                          />
                         ))}
                       </div>
                     </td>
