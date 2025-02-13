@@ -40,16 +40,10 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
   const weekDays = ["Sábado", "Domingo"];
   const columnWidth = `${100 / (weekDays.length + 1)}%`;
 
-  // Helper function to group activities by category and handle global activities
+  // Helper function to group activities by category
   const groupByCategory = (activities: ScheduleActivity[]) => {
     const grouped = activities.reduce((acc, activity) => {
-      let category;
-      if (activity.global) {
-        category = 'Global';
-      } else {
-        // Extract base category (e.g., "Atletismo" from "Atletismo - 100m")
-        category = activity.atividade;
-      }
+      const category = activity.atividade;
       
       if (!acc[category]) {
         acc[category] = [];
@@ -68,12 +62,7 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
       return acc;
     }, {} as Record<string, ScheduleActivity[]>);
 
-    // Sort categories alphabetically, but keep "Global" at the top if it exists
-    return Object.entries(grouped).sort(([a], [b]) => {
-      if (a === 'Global') return -1;
-      if (b === 'Global') return 1;
-      return a.localeCompare(b);
-    });
+    return Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
   };
 
   return (

@@ -37,7 +37,8 @@ export function ActivityCard({ category, activities }: ActivityCardProps) {
     return 'border-gray-200 bg-white';
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
+    if (!status) return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80'; // For global activities
     switch (status.toLowerCase()) {
       case 'confirmado':
         return 'bg-green-100 text-green-800 hover:bg-green-100/80';
@@ -61,25 +62,26 @@ export function ActivityCard({ category, activities }: ActivityCardProps) {
       )}
     >
       <div className="space-y-2">
-        <h4 className="font-medium text-olimpics-green-primary">{category}</h4>
+        <h4 className="font-medium text-olimpics-green-primary">{activities[0].atividade}</h4>
         <div className="pl-2 space-y-3">
           <div className="text-sm text-gray-600">
             <span>{location}</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {activities.map((activity) => {
-              // Extract just the modality name (e.g., "100m" from "Atletismo - 100m")
-              const modalityName = activity.modalidade_nome?.split(' - ')[1] || activity.modalidade_nome;
+              // Use the full modality name for display
+              const displayName = activity.modalidade_nome || activity.atividade;
               return (
                 <Badge 
                   key={`${activity.cronograma_atividade_id}-${activity.modalidade_nome}`}
                   variant="secondary"
                   className={cn(
-                    getStatusColor(activity.modalidade_status || ''),
+                    getStatusColor(activity.modalidade_status),
                     'whitespace-nowrap'
                   )}
                 >
-                  {modalityName}
+                  {displayName}
+                  {activity.global && ' (Global)'}
                 </Badge>
               );
             })}
