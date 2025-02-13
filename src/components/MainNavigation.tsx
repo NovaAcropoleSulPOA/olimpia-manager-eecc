@@ -17,6 +17,14 @@ import { User, BarChart3, LogOut, Menu, ClipboardList, Users, Calendar, Settings
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
+import { useQuery } from "@tanstack/react-query";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { SwitchHorizontal } from "lucide-react";
 
 export function MainNavigation() {
   const { user, signOut } = useAuth();
@@ -101,6 +109,38 @@ export function MainNavigation() {
     ] : [])
   ];
 
+  const { data: userEvents } = useQuery({
+    queryKey: ['user-events', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('inscricoes_eventos')
+        .select(`
+          evento_id,
+          eventos (
+            id,
+            nome,
+            status_evento
+          )
+        `)
+        .eq('usuario_id', user.id);
+
+      if (error) {
+        console.error('Error fetching user events:', error);
+        throw error;
+      }
+
+      return data.map(item => item.eventos);
+    },
+    enabled: !!user?.id
+  });
+
+  const handleEventSwitch = (eventId: string) => {
+    localStorage.setItem('currentEventId', eventId);
+    window.location.reload(); // Reload to refresh all queries with new event
+  };
+
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -155,6 +195,32 @@ export function MainNavigation() {
           <SidebarFooter className="mt-auto border-t border-olimpics-green-secondary p-4">
             <SidebarMenu>
               <SidebarMenuItem>
+                {userEvents && userEvents.length > 1 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <SidebarMenuButton
+                        className="w-full rounded-lg p-4 flex items-center gap-3 
+                          text-white hover:bg-olimpics-green-secondary/20 
+                          transition-all duration-200 text-lg font-medium mb-2"
+                        tooltip="Trocar Evento"
+                      >
+                        <SwitchHorizontal className="h-6 w-6 flex-shrink-0" />
+                        <span className="whitespace-nowrap">Trocar Evento</span>
+                      </SidebarMenuButton>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      {userEvents.map((event: any) => (
+                        <DropdownMenuItem
+                          key={event.id}
+                          onClick={() => handleEventSwitch(event.id)}
+                          className="cursor-pointer"
+                        >
+                          {event.nome}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
                 <SidebarMenuButton
                   onClick={handleLogout}
                   className="w-full rounded-lg p-4 flex items-center gap-3 

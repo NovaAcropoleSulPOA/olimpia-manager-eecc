@@ -7,6 +7,7 @@ import AthleteScoresSection from './AthleteScoresSection';
 import AthleteProfile from './AthleteProfile';
 import PaymentInfo from './PaymentInfo';
 import { Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface AthleteProfileData {
   atleta_id: string;
@@ -29,6 +30,7 @@ interface AthleteProfileData {
 interface Event {
   id: string;
   nome: string;
+  status_evento: 'ativo' | 'encerrado' | 'suspenso';
 }
 
 export default function AthleteProfilePage() {
@@ -51,7 +53,7 @@ export default function AthleteProfilePage() {
       
       const { data, error } = await supabase
         .from('eventos')
-        .select('id, nome')
+        .select('id, nome, status_evento')
         .eq('id', currentEventId)
         .single();
 
@@ -144,14 +146,32 @@ export default function AthleteProfilePage() {
     );
   }
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'ativo':
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
+      case 'encerrado':
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
+      case 'suspenso':
+        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
+      default:
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+    }
+  };
+
   const isPendingPayment = profile.pagamento_status?.toLowerCase() === 'pendente';
 
   return (
     <div className="container mx-auto py-6 space-y-8">
       {eventData && (
-        <h1 className="text-2xl font-bold text-olimpics-green-primary mb-6">
-          {eventData.nome}
-        </h1>
+        <div className="flex items-center gap-3 bg-olimpics-green-primary text-white p-4 rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold">
+            {eventData.nome}
+          </h1>
+          <Badge className={`${getStatusColor(eventData.status_evento)} ml-2`}>
+            {eventData.status_evento.charAt(0).toUpperCase() + eventData.status_evento.slice(1)}
+          </Badge>
+        </div>
       )}
       <AthleteProfile 
         profile={profile}
