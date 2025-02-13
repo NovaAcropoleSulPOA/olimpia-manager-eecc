@@ -18,6 +18,11 @@ interface ActivityCardProps {
 
 export function ActivityCard({ category, activities }: ActivityCardProps) {
   const getActivityStyle = (activities: ActivityCardProps['activities']) => {
+    const isGlobal = activities.some(act => act.global);
+    if (isGlobal) {
+      return 'border-yellow-400 bg-yellow-50';
+    }
+    
     const statuses = activities.map(act => act.modalidade_status?.toLowerCase());
     
     // If at least one modality is confirmed, show green border
@@ -34,8 +39,10 @@ export function ActivityCard({ category, activities }: ActivityCardProps) {
     return 'border-gray-200 bg-white';
   };
 
-  const getStatusColor = (status: string | null) => {
-    if (!status) return 'bg-gray-100 text-gray-800 hover:bg-gray-100/80'; // For global activities
+  const getStatusColor = (status: string | null, isGlobal: boolean) => {
+    if (isGlobal) return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80';
+    if (!status) return 'bg-gray-100 text-gray-800 hover:bg-gray-100/80';
+    
     switch (status.toLowerCase()) {
       case 'confirmado':
         return 'bg-green-100 text-green-800 hover:bg-green-100/80';
@@ -72,7 +79,7 @@ export function ActivityCard({ category, activities }: ActivityCardProps) {
                   key={`${activity.cronograma_atividade_id}-${activity.modalidade_nome}`}
                   variant="secondary"
                   className={cn(
-                    getStatusColor(activity.modalidade_status),
+                    getStatusColor(activity.modalidade_status, activity.global),
                     'whitespace-nowrap'
                   )}
                 >
