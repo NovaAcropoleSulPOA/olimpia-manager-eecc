@@ -1,3 +1,4 @@
+
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Sidebar, 
@@ -13,18 +14,18 @@ import {
   SidebarGroupLabel,
   SidebarTrigger
 } from './ui/sidebar';
-import { User, BarChart3, LogOut, Menu, ClipboardList, Users, Calendar, Settings2 } from 'lucide-react';
+import { User, BarChart3, LogOut, Menu, ClipboardList, Users, Calendar, Settings2, SwapHorizontal } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useEffect } from 'react';
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SwitchHorizontal } from "lucide-react";
 
 export function MainNavigation() {
   const { user, signOut } = useAuth();
@@ -204,7 +205,7 @@ export function MainNavigation() {
                           transition-all duration-200 text-lg font-medium mb-2"
                         tooltip="Trocar Evento"
                       >
-                        <SwitchHorizontal className="h-6 w-6 flex-shrink-0" />
+                        <SwapHorizontal className="h-6 w-6 flex-shrink-0" />
                         <span className="whitespace-nowrap">Trocar Evento</span>
                       </SidebarMenuButton>
                     </DropdownMenuTrigger>
