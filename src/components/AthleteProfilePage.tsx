@@ -89,6 +89,7 @@ export default function AthleteProfilePage() {
         .select('*')
         .eq('atleta_id', user.id)
         .eq('evento_id', currentEventId)
+        .limit(1)
         .maybeSingle();
 
       if (profileError) {
