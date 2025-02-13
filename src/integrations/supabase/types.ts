@@ -1062,6 +1062,7 @@ export type Database = {
           atleta_id: string | null
           data_validacao: string | null
           email: string | null
+          evento_id: string | null
           filial_cidade: string | null
           filial_estado: string | null
           filial_id: string | null
@@ -1074,12 +1075,18 @@ export type Database = {
           pagamento_data_criacao: string | null
           pagamento_status: string | null
           pagamento_valor: number | null
-          papeis: string[] | null
           status_confirmacao: boolean | null
           telefone: string | null
           tipo_documento: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pagamentos_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "usuarios_filial_id_fkey"
             columns: ["filial_id"]
