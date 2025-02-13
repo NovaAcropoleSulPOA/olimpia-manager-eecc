@@ -1,9 +1,9 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, ChevronUp, ChevronDown } from "lucide-react";
+import { Calendar, ChevronUp, ChevronDown, Clock } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { ScheduleTable } from '@/components/schedule/ScheduleTable';
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,20 +14,22 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Clock } from "lucide-react";
+
+// Define the activity type
+interface ScheduleActivity {
+  id: number;
+  cronograma_atividade_id: number;
+  atividade: string;
+  local: string;
+  modalidade_nome: string | null;
+  modalidade_status: string | null;
+  global: boolean;
+}
 
 // Custom ActivityCard for the general schedule that always shows green status
 function GeneralScheduleActivityCard({ category, activities }: {
   category: string;
-  activities: Array<{
-    id: number;
-    cronograma_atividade_id: number;
-    atividade: string;
-    local: string;
-    modalidade_nome: string | null;
-    modalidade_status: string | null;
-    global: boolean;
-  }>;
+  activities: ScheduleActivity[];
 }) {
   const location = activities[0]?.local || '';
 
@@ -64,7 +66,7 @@ function GeneralScheduleActivityCard({ category, activities }: {
 function GeneralScheduleTable({ groupedActivities, dates, timeSlots }: {
   groupedActivities: {
     [key: string]: {
-      [key: string]: any[];
+      [key: string]: ScheduleActivity[];
     };
   };
   dates: string[];
@@ -81,7 +83,7 @@ function GeneralScheduleTable({ groupedActivities, dates, timeSlots }: {
   const weekDays = ["Sábado", "Domingo"];
   const columnWidth = `${100 / (weekDays.length + 1)}%`;
 
-  const groupByCategory = (activities: any[]) => {
+  const groupByCategory = (activities: ScheduleActivity[]) => {
     const grouped = activities.reduce((acc, activity) => {
       const category = activity.atividade;
       
@@ -90,7 +92,7 @@ function GeneralScheduleTable({ groupedActivities, dates, timeSlots }: {
       }
       
       const isDuplicate = acc[category].some(
-        (existing: any) => existing.cronograma_atividade_id === activity.cronograma_atividade_id &&
+        existing => existing.cronograma_atividade_id === activity.cronograma_atividade_id &&
                     existing.modalidade_nome === activity.modalidade_nome
       );
       
@@ -99,7 +101,7 @@ function GeneralScheduleTable({ groupedActivities, dates, timeSlots }: {
       }
       
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {} as Record<string, ScheduleActivity[]>);
 
     return Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
   };
@@ -192,7 +194,7 @@ export default function Cronograma() {
       }
 
       console.log('Retrieved cronograma activities:', data);
-      return data;
+      return data || [];  // Ensure we always return an array
     },
     enabled: !!currentEventId,
   });
