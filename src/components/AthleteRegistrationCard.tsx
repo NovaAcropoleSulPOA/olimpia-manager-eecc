@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,10 +35,16 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [isUpdatingAmount, setIsUpdatingAmount] = React.useState(false);
   
-  const validModalities = registration?.modalidades?.filter(m => m.modalidade) || [];
+  const uniqueModalities = registration?.modalidades?.reduce((acc, current) => {
+    if (!acc.has(current.modalidade)) {
+      acc.set(current.modalidade, current);
+    }
+    return acc;
+  }, new Map());
+  
+  const validModalities = Array.from(uniqueModalities?.values() || []).filter(m => m.modalidade);
   const hasModalities = validModalities.length > 0;
 
-  // Fetch payment information
   const { data: paymentData, refetch: refetchPayment } = useQuery({
     queryKey: ['payment-amount', registration.id],
     queryFn: async () => {
@@ -65,7 +70,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
 
   const [paymentAmount, setPaymentAmount] = React.useState<number>(paymentData?.valor || 0);
 
-  // Update paymentAmount when paymentData changes
   React.useEffect(() => {
     if (paymentData?.valor) {
       setPaymentAmount(paymentData.valor);
@@ -270,7 +274,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               <div className="col-span-2 flex flex-wrap gap-2 mt-2">
                 {validModalities.map((modality, index) => (
                   <Badge 
-                    key={index}
+                    key={`${modality.id}-${index}`}
                     variant="secondary"
                     className={cn(getStatusBadgeStyle(modality.status))}
                   >
