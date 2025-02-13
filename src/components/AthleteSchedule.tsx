@@ -50,6 +50,7 @@ export default function AthleteSchedule() {
         .select('*')
         .eq('evento_id', currentEventId)
         .or(`atleta_id.eq.${user.id},global.eq.true`)
+        .and(`or(modalidade_status.eq.confirmado,global.eq.true)`) // Only confirmed modalities or global activities
         .order('dia')
         .order('horario_inicio');
 
