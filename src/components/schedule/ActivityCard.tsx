@@ -62,22 +62,27 @@ export function ActivityCard({ category, activities }: ActivityCardProps) {
     >
       <div className="space-y-2">
         <h4 className="font-medium text-olimpics-green-primary">{category}</h4>
-        <div className="text-sm text-gray-600">
-          <span>{location}</span>
-        </div>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {activities.map((activity) => (
-            <Badge 
-              key={`${activity.cronograma_atividade_id}-${activity.atividade}`}
-              variant="secondary"
-              className={cn(
-                getStatusColor(activity.modalidade_status || ''),
-                'whitespace-nowrap'
-              )}
-            >
-              {activity.atividade}
-            </Badge>
-          ))}
+        <div className="pl-2 space-y-3">
+          <div className="text-sm text-gray-600">
+            <span>{location}</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {activities.map((activity) => {
+              const modalityName = activity.modalidade_nome?.split(' - ')[1] || activity.modalidade_nome;
+              return (
+                <Badge 
+                  key={`${activity.cronograma_atividade_id}-${activity.modalidade_nome}`}
+                  variant="secondary"
+                  className={cn(
+                    getStatusColor(activity.modalidade_status || ''),
+                    'whitespace-nowrap'
+                  )}
+                >
+                  {modalityName}
+                </Badge>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

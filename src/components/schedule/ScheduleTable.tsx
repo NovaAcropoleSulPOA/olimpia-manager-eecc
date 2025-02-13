@@ -43,7 +43,7 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
   // Helper function to group activities by category
   const groupByCategory = (activities: ScheduleActivity[]) => {
     const grouped = activities.reduce((acc, activity) => {
-      const category = activity.modalidade_nome?.split(' - ')[0] || 'Geral';
+      const category = activity.modalidade_nome?.split(' - ')[0] || 'Outros';
       if (!acc[category]) {
         acc[category] = [];
       }
