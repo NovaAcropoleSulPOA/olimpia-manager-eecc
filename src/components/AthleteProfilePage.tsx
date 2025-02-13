@@ -37,7 +37,7 @@ interface RoleData {
     perfil_tipo: {
       codigo: string;
     };
-  };
+  }
 }
 
 export default function AthleteProfilePage() {
@@ -120,7 +120,7 @@ export default function AthleteProfilePage() {
       }
 
       // Transform the roles data with proper typing
-      const transformedRoles = ((rolesData || []) as RoleData[]).map(role => ({
+      const transformedRoles = (rolesData || []).map((role: RoleData) => ({
         nome: role.perfis.nome,
         codigo: role.perfis.perfil_tipo.codigo
       }));
