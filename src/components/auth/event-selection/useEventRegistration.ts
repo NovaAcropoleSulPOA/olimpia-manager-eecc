@@ -84,7 +84,7 @@ export const useEventRegistration = (userId: string | undefined) => {
           {
             evento_id: eventId,
             usuario_id: userId,
-            selected_role: selectedRole,
+            selected_role: selectedRole.toString(), // Convert enum to string
             taxa_inscricao_id: registrationFee.id
           }
         ])

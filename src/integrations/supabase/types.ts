@@ -1423,6 +1423,7 @@ export type Database = {
         | "Representante de Delegação"
         | "Público Geral"
         | "PGR"
+        | "ATL"
     }
     CompositeTypes: {
       [_ in never]: never
