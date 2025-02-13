@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -93,36 +92,6 @@ export default function AthleteRegistrations() {
     });
   };
 
-  const { data: allModalities, isLoading: modalitiesLoading } = useQuery({
-    queryKey: ['modalities', athleteProfile?.genero, athleteProfile?.data_nascimento],
-    queryFn: async () => {
-      console.log('Fetching modalities');
-      const { data, error } = await supabase
-        .from('modalidades')
-        .select('*')
-        .in('status', ['Ativa', 'Em análise']);
-      
-      if (error) {
-        console.error('Error fetching modalities:', error);
-        throw error;
-      }
-      
-      const filteredByVacancies = data.filter(modality => 
-        modality.vagas_ocupadas < modality.limite_vagas
-      );
-
-      const filteredModalities = filterModalitiesByGender(filteredByVacancies);
-      
-      return filteredModalities.sort((a, b) => {
-        if (a.grupo === b.grupo) {
-          return a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
-        }
-        return (a.grupo || '').localeCompare(b.grupo || '', 'pt-BR', { sensitivity: 'base' });
-      });
-    },
-    enabled: !!athleteProfile,
-  });
-
   const { data: registeredModalities, isLoading: registrationsLoading } = useQuery({
     queryKey: ['athlete-modalities', user?.id, currentEventId],
     queryFn: async () => {
@@ -153,6 +122,45 @@ export default function AthleteRegistrations() {
       return data;
     },
     enabled: !!user?.id && !!currentEventId,
+  });
+
+  const { data: allModalities, isLoading: modalitiesLoading } = useQuery({
+    queryKey: ['modalities', athleteProfile?.genero, athleteProfile?.data_nascimento],
+    queryFn: async () => {
+      console.log('Fetching modalities');
+      const { data, error } = await supabase
+        .from('modalidades')
+        .select('id, nome, categoria, tipo_modalidade, vagas_ocupadas, limite_vagas, grupo, faixa_etaria, status')
+        .eq('evento_id', currentEventId)
+        .in('status', ['Ativa', 'Em análise']);
+      
+      if (error) {
+        console.error('Error fetching modalities:', error);
+        throw error;
+      }
+      
+      // Remove any duplicates by ID
+      const uniqueModalities = Array.from(
+        new Map(data.map(item => [item.id, item])).values()
+      );
+      
+      console.log('Total modalities before filtering:', uniqueModalities.length);
+      
+      const filteredByVacancies = uniqueModalities.filter(modality => 
+        modality.vagas_ocupadas < modality.limite_vagas
+      );
+
+      const filteredModalities = filterModalitiesByGender(filteredByVacancies);
+      console.log('Total modalities after filtering:', filteredModalities.length);
+      
+      return filteredModalities.sort((a, b) => {
+        if (a.grupo === b.grupo) {
+          return a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
+        }
+        return (a.grupo || '').localeCompare(b.grupo || '', 'pt-BR', { sensitivity: 'base' });
+      });
+    },
+    enabled: !!athleteProfile && !!currentEventId,
   });
 
   const withdrawMutation = useMutation({
