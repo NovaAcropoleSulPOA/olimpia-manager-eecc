@@ -31,19 +31,6 @@ export const EventCard = ({
     && !event.isRegistered 
     && !event.isAdmin;
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ativo':
-        return 'bg-green-100 text-green-800';
-      case 'encerrado':
-        return 'bg-red-100 text-red-800';
-      case 'suspenso':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const getStatusStripeColor = (status: string) => {
     switch (status) {
       case 'encerrado':
@@ -73,21 +60,18 @@ export const EventCard = ({
       {/* Status Stripe */}
       <div
         className={cn(
-          "absolute -right-12 top-8 w-48 -rotate-45 transform",
-          getStatusStripeColor(event.status_evento)
+          "absolute -right-12 top-8 w-48 -rotate-45 transform text-center",
+          getStatusStripeColor(event.status_evento),
+          "text-white font-medium py-1 shadow-md"
         )}
         style={{
-          height: '2rem',
           zIndex: 10,
         }}
-      />
+      >
+        {event.status_evento.charAt(0).toUpperCase() + event.status_evento.slice(1)}
+      </div>
 
       <CardContent className="p-6">
-        {/* Status Badge */}
-        <div className={`absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(event.status_evento)}`}>
-          {event.status_evento.charAt(0).toUpperCase() + event.status_evento.slice(1)}
-        </div>
-
         {/* Status Alert */}
         {(event.status_evento === 'encerrado' || event.status_evento === 'suspenso') && !event.isRegistered && (
           <Alert variant="destructive" className="mb-4">

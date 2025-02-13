@@ -24,7 +24,7 @@ export default function EventSelectionPage() {
       }}
     >
       <div className="container mx-auto py-8">
-        <h1 className="text-3xl font-bold text-center mb-8 text-olimpics-green-primary">
+        <h1 className="text-3xl font-bold text-center mb-8 bg-olimpics-green-primary text-white py-2 px-4 rounded-lg inline-block mx-auto">
           Selecione um Evento
         </h1>
         <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
