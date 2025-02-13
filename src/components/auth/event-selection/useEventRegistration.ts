@@ -20,7 +20,7 @@ export const useEventRegistration = (userId: string | undefined) => {
     mutationFn: async ({ eventId, selectedRole }: { eventId: string; selectedRole: PerfilTipo }) => {
       if (!userId) throw new Error('No user ID available');
 
-      console.log('Fetching registration fee for event:', eventId, 'and role:', selectedRole);
+      console.log('Starting event registration process for event:', eventId, 'role:', selectedRole);
 
       // First, get the perfil_tipo_id for the selected role
       const { data: perfilTipo, error: perfilTipoError } = await supabase
@@ -47,7 +47,7 @@ export const useEventRegistration = (userId: string | undefined) => {
         throw new Error('Erro ao buscar perfil');
       }
 
-      // Then get the registration fee for this profile
+      // Get the registration fee for this profile
       const { data: registrationFee, error: feeError } = await supabase
         .from('taxas_inscricao')
         .select('id, valor')
@@ -62,7 +62,7 @@ export const useEventRegistration = (userId: string | undefined) => {
 
       console.log('Using registration fee:', registrationFee);
 
-      // Create the event registration with the taxa_inscricao_id
+      // Start a transaction by creating the event registration
       const { data: registration, error: registrationError } = await supabase
         .from('inscricoes_eventos')
         .insert([
@@ -81,6 +81,25 @@ export const useEventRegistration = (userId: string | undefined) => {
         throw registrationError;
       }
 
+      // Create the user role record
+      const { error: roleError } = await supabase
+        .from('papeis_usuarios')
+        .insert([
+          {
+            usuario_id: userId,
+            perfil_id: profile.id,
+            evento_id: eventId
+          }
+        ]);
+
+      if (roleError) {
+        console.error('Error creating user role:', roleError);
+        throw roleError;
+      }
+
+      // Store the current event ID in localStorage
+      localStorage.setItem('currentEventId', eventId);
+
       return registration;
     },
     onSuccess: () => {
@@ -93,4 +112,3 @@ export const useEventRegistration = (userId: string | undefined) => {
     }
   });
 };
-

@@ -288,15 +288,15 @@ export type Database = {
           evento_id: string
           id: string
           selected_role: Database["public"]["Enums"]["perfil_tipo"]
-          taxa_inscricao_id: number | null
+          taxa_inscricao_id: number
           usuario_id: string
         }
         Insert: {
           data_inscricao?: string | null
           evento_id: string
           id?: string
-          selected_role?: Database["public"]["Enums"]["perfil_tipo"]
-          taxa_inscricao_id?: number | null
+          selected_role: Database["public"]["Enums"]["perfil_tipo"]
+          taxa_inscricao_id: number
           usuario_id: string
         }
         Update: {
@@ -304,7 +304,7 @@ export type Database = {
           evento_id?: string
           id?: string
           selected_role?: Database["public"]["Enums"]["perfil_tipo"]
-          taxa_inscricao_id?: number | null
+          taxa_inscricao_id?: number
           usuario_id?: string
         }
         Relationships: [

@@ -27,9 +27,16 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
   const handleEventRegistration = async (eventId: string) => {
     try {
       await registerEventMutation.mutateAsync({ eventId, selectedRole });
-      onEventSelect(eventId);
+      navigate('/athlete-profile');
     } catch (error) {
       console.error('Error in handleEventRegistration:', error);
+    }
+  };
+
+  const handleEventSelect = (eventId: string, isRegistered: boolean) => {
+    localStorage.setItem('currentEventId', eventId);
+    if (isRegistered) {
+      navigate('/athlete-profile');
     }
   };
 
@@ -81,7 +88,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
         onEventAction={(eventId) => {
           const event = events.find(e => e.id === eventId);
           if (event?.isRegistered) {
-            onEventSelect(eventId);
+            handleEventSelect(eventId, true);
           } else {
             handleEventRegistration(eventId);
           }
