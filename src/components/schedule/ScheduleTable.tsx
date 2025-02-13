@@ -40,21 +40,6 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
   const weekDays = ["Sábado", "Domingo"];
   const columnWidth = `${100 / (weekDays.length + 1)}%`;
 
-  // Helper function to group activities by category
-  const groupByCategory = (activities: ScheduleActivity[]) => {
-    const grouped = activities.reduce((acc, activity) => {
-      const category = activity.modalidade_nome?.split(' - ')[0] || 'Outros';
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(activity);
-      return acc;
-    }, {} as Record<string, ScheduleActivity[]>);
-
-    // Sort categories alphabetically
-    return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
-  };
-
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
@@ -90,28 +75,22 @@ export function ScheduleTable({ groupedActivities, dates, timeSlots }: ScheduleT
                     </span>
                   </div>
                 </td>
-                {dates.map((date) => {
-                  const activitiesForSlot = groupedActivities[date]?.[timeSlot] || [];
-                  const groupedByCategory = groupByCategory(activitiesForSlot);
-
-                  return (
-                    <td 
-                      key={`${date}-${timeSlot}`} 
-                      className="p-4 align-top"
-                      style={{ width: columnWidth }}
-                    >
-                      <div className="space-y-2">
-                        {groupedByCategory.map(([category, activities]) => (
-                          <ActivityCard 
-                            key={category}
-                            category={category}
-                            activities={activities}
-                          />
-                        ))}
-                      </div>
-                    </td>
-                  );
-                })}
+                {dates.map((date) => (
+                  <td 
+                    key={`${date}-${timeSlot}`} 
+                    className="p-4 align-top"
+                    style={{ width: columnWidth }}
+                  >
+                    <div className="space-y-2">
+                      {groupedActivities[date]?.[timeSlot]?.map((activity) => (
+                        <ActivityCard 
+                          key={`${activity.cronograma_atividade_id}-${activity.modalidade_nome || 'global'}`}
+                          activity={activity}
+                        />
+                      ))}
+                    </div>
+                  </td>
+                ))}
               </tr>
             );
           })}

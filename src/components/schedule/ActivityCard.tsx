@@ -4,8 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface ActivityCardProps {
-  category: string;
-  activities: Array<{
+  activity: {
     id: number;
     cronograma_atividade_id: number;
     atividade: string;
@@ -13,28 +12,29 @@ interface ActivityCardProps {
     modalidade_nome: string | null;
     modalidade_status: string | null;
     global: boolean;
-  }>;
+  };
 }
 
-export function ActivityCard({ category, activities }: ActivityCardProps) {
-  const getActivityStyle = (activities: ActivityCardProps['activities']) => {
-    // Use the most severe status for the card background
-    const hasGlobal = activities.some(act => act.global);
-    if (hasGlobal) {
+export function ActivityCard({ activity }: ActivityCardProps) {
+  const getActivityStyle = (activity: ActivityCardProps['activity']) => {
+    if (activity.global) {
       return 'border-yellow-400 bg-yellow-50';
     }
     
-    const statuses = activities.map(act => act.modalidade_status?.toLowerCase());
-    if (statuses.includes('cancelado')) {
-      return 'border-red-400 bg-red-50';
+    if (!activity.modalidade_status || !activity.modalidade_nome) {
+      return 'border-gray-200 bg-white';
     }
-    if (statuses.includes('pendente')) {
-      return 'border-yellow-400 bg-yellow-50';
+
+    switch (activity.modalidade_status.toLowerCase()) {
+      case 'confirmado':
+        return 'border-green-600 bg-green-50';
+      case 'pendente':
+        return 'border-yellow-400 bg-yellow-50';
+      case 'cancelado':
+        return 'border-red-400 bg-red-50';
+      default:
+        return 'border-gray-200 bg-white';
     }
-    if (statuses.includes('confirmado')) {
-      return 'border-green-600 bg-green-50';
-    }
-    return 'border-gray-200 bg-white';
   };
 
   const getStatusColor = (status: string) => {
@@ -50,40 +50,28 @@ export function ActivityCard({ category, activities }: ActivityCardProps) {
     }
   };
 
-  // Get unique location from activities
-  const location = activities[0]?.local || '';
-
   return (
     <div
       className={cn(
         'p-3 rounded-lg border',
-        getActivityStyle(activities)
+        getActivityStyle(activity)
       )}
     >
       <div className="space-y-2">
-        <h4 className="font-medium text-olimpics-green-primary">{category}</h4>
-        <div className="pl-2 space-y-3">
-          <div className="text-sm text-gray-600">
-            <span>{location}</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {activities.map((activity) => {
-              const modalityName = activity.modalidade_nome?.split(' - ')[1] || activity.modalidade_nome;
-              return (
-                <Badge 
-                  key={`${activity.cronograma_atividade_id}-${activity.modalidade_nome}`}
-                  variant="secondary"
-                  className={cn(
-                    getStatusColor(activity.modalidade_status || ''),
-                    'whitespace-nowrap'
-                  )}
-                >
-                  {modalityName}
-                </Badge>
-              );
-            })}
-          </div>
+        <h4 className="font-medium">{activity.atividade}</h4>
+        <div className="text-sm text-gray-600">
+          <span>{activity.local}</span>
         </div>
+        {activity.modalidade_nome && activity.modalidade_status && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            <Badge 
+              variant="secondary"
+              className={cn(getStatusColor(activity.modalidade_status))}
+            >
+              {activity.modalidade_nome}
+            </Badge>
+          </div>
+        )}
       </div>
     </div>
   );
