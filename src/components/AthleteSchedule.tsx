@@ -49,8 +49,7 @@ export default function AthleteSchedule() {
         .from('vw_cronograma_atividades_por_atleta')
         .select('*')
         .eq('evento_id', currentEventId)
-        .or(`atleta_id.eq.${user.id},global.eq.true`)
-        .and(`or(modalidade_status.eq.confirmado,global.eq.true)`) // Only confirmed modalities or global activities
+        .or(`atleta_id.eq.${user.id},global.eq.true,and(modalidade_status.eq.confirmado)`) // Combine conditions in a single or statement
         .order('dia')
         .order('horario_inicio');
 
@@ -60,7 +59,7 @@ export default function AthleteSchedule() {
       }
 
       console.log('Retrieved activities:', data);
-      return data || [];
+      return (data || []) as ScheduleActivity[];
     },
     enabled: !!user?.id && !!currentEventId,
   });
@@ -96,7 +95,7 @@ export default function AthleteSchedule() {
 
   const dates = Object.keys(groupedActivities || {}).sort();
   const timeSlots = [...new Set(
-    activities?.map(activity => `${activity.horario_inicio}-${activity.horario_fim}`)
+    (activities || []).map(activity => `${activity.horario_inicio}-${activity.horario_fim}`)
   )].sort();
 
   return (
