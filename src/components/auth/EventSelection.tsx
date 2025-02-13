@@ -44,13 +44,13 @@ interface TransformedRole {
 interface RegistrationFee {
   id: number;
   valor: number;
-  perfis: {
+  perfis: Array<{
     nome: string;
     perfil_tipo_id: string;
-    perfis_tipo: {
+    perfis_tipo: Array<{
       codigo: string;
-    };
-  };
+    }>;
+  }>;
 }
 
 export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSelectionProps) => {
@@ -197,7 +197,7 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
 
       // Find the matching fee by filtering in memory
       const matchingFee = (registrationFees as RegistrationFee[])?.find(fee => 
-        fee.perfis?.perfis_tipo?.codigo === selectedRole
+        fee.perfis?.[0]?.perfis_tipo?.[0]?.codigo === selectedRole
       );
 
       if (!matchingFee) {
