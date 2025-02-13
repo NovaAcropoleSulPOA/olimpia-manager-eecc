@@ -28,6 +28,7 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
   // Get current event ID from localStorage
   const currentEventId = localStorage.getItem('currentEventId');
 
+  // Fetch available profiles
   const { data: availableProfiles, isLoading } = useQuery({
     queryKey: ['profiles', currentEventId],
     queryFn: async () => {
@@ -50,15 +51,34 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
     enabled: open && !!currentEventId
   });
 
+  // Fetch user's current profiles
+  const { data: userProfiles } = useQuery({
+    queryKey: ['user-profiles', user?.id, currentEventId],
+    queryFn: async () => {
+      if (!user?.id || !currentEventId) return [];
+      
+      const { data, error } = await supabase
+        .from('papeis_usuarios')
+        .select('perfil_id')
+        .eq('usuario_id', user.id)
+        .eq('evento_id', currentEventId);
+        
+      if (error) {
+        console.error('Error fetching user profiles:', error);
+        throw error;
+      }
+      
+      return data.map(p => p.perfil_id);
+    },
+    enabled: open && !!user?.id && !!currentEventId
+  });
+
+  // Update selected profiles when user profiles are loaded
   useEffect(() => {
-    if (user?.profiles) {
-      // Filter profiles to only include those from the current event
-      const eventProfiles = user.profiles
-        .filter((p: any) => p.evento_id === currentEventId)
-        .map((p: any) => p.perfil_id);
-      setSelectedProfiles(eventProfiles);
+    if (userProfiles) {
+      setSelectedProfiles(userProfiles);
     }
-  }, [user, currentEventId]);
+  }, [userProfiles]);
 
   const handleProfileToggle = (profileId: number) => {
     setSelectedProfiles(current =>
