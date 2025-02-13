@@ -46,51 +46,19 @@ export default function AthleteSchedule() {
       if (!user?.id || !currentEventId) return [];
       console.log('Fetching schedule activities for user:', user.id, 'event:', currentEventId);
 
-      // First, get all global activities
-      const { data: globalActivities, error: globalError } = await supabase
-        .from('cronograma_atividades')
-        .select(`
-          id,
-          atividade,
-          horario_inicio,
-          horario_fim,
-          dia,
-          local,
-          global
-        `)
-        .eq('evento_id', currentEventId)
-        .eq('global', true);
-
-      if (globalError) {
-        console.error('Error fetching global activities:', globalError);
-        throw globalError;
-      }
-
-      // Then, get athlete-specific activities
-      const { data: athleteActivities, error: athleteError } = await supabase
-        .from('vw_cronograma_atividades_por_atleta')
+      const { data, error } = await supabase
+        .from('vw_cronograma_completo_atleta')
         .select('*')
         .eq('atleta_id', user.id)
         .eq('evento_id', currentEventId);
 
-      if (athleteError) {
-        console.error('Error fetching athlete activities:', athleteError);
-        throw athleteError;
+      if (error) {
+        console.error('Error fetching activities:', error);
+        throw error;
       }
 
-      // Combine and format activities
-      const formattedGlobalActivities = globalActivities.map(activity => ({
-        ...activity,
-        modalidade_nome: null,
-        modalidade_status: null,
-        cronograma_atividade_id: activity.id,
-        atleta_id: user.id
-      }));
-
-      const allActivities = [...formattedGlobalActivities, ...(athleteActivities || [])];
-      console.log('Combined activities:', allActivities);
-      
-      return allActivities;
+      console.log('Fetched activities:', data);
+      return data || [];
     },
     enabled: !!user?.id && !!currentEventId,
   });

@@ -1222,6 +1222,22 @@ export type Database = {
           },
         ]
       }
+      vw_cronograma_completo_atleta: {
+        Row: {
+          atividade: string | null
+          atleta_id: string | null
+          cronograma_atividade_id: number | null
+          dia: string | null
+          evento_id: string | null
+          global: boolean | null
+          horario_fim: string | null
+          horario_inicio: string | null
+          local: string | null
+          modalidade_nome: string | null
+          modalidade_status: string | null
+        }
+        Relationships: []
+      }
       vw_inscricoes_atletas: {
         Row: {
           atleta_id: string | null
