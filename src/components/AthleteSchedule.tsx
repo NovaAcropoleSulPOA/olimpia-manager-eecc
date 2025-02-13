@@ -46,21 +46,44 @@ export default function AthleteSchedule() {
       if (!user?.id || !currentEventId) return [];
       console.log('Fetching schedule activities for user:', user.id, 'event:', currentEventId);
 
-      const { data, error } = await supabase
+      // First, get personal activities
+      const { data: personalActivities, error: personalError } = await supabase
         .from('vw_cronograma_atividades_por_atleta')
         .select('*')
         .eq('atleta_id', user.id)
-        .eq('evento_id', currentEventId)
-        .order('dia')
-        .order('horario_inicio');
+        .eq('evento_id', currentEventId);
 
-      if (error) {
-        console.error('Error fetching activities:', error);
-        throw error;
+      if (personalError) {
+        console.error('Error fetching personal activities:', personalError);
+        throw personalError;
       }
 
-      console.log('Fetched activities:', data);
-      return data || [];
+      // Then, get global activities
+      const { data: globalActivities, error: globalError } = await supabase
+        .from('vw_cronograma_atividades_por_atleta')
+        .select('*')
+        .eq('evento_id', currentEventId)
+        .eq('global', true);
+
+      if (globalError) {
+        console.error('Error fetching global activities:', globalError);
+        throw globalError;
+      }
+
+      // Combine both sets of activities
+      const allActivities = [
+        ...(personalActivities || []),
+        ...(globalActivities || [])
+      ].filter((activity, index, self) => 
+        // Remove duplicates based on cronograma_atividade_id and modalidade_nome
+        index === self.findIndex(a => 
+          a.cronograma_atividade_id === activity.cronograma_atividade_id &&
+          a.modalidade_nome === activity.modalidade_nome
+        )
+      );
+
+      console.log('Combined activities:', allActivities);
+      return allActivities || [];
     },
     enabled: !!user?.id && !!currentEventId,
   });
@@ -86,7 +109,7 @@ export default function AthleteSchedule() {
       groups[date][time] = [];
     }
     
-    // Add the activity without checking for duplicates since we want all entries
+    // Add the activity without checking for duplicates since we already filtered them
     groups[date][time].push({
       ...activity,
       id: activity.cronograma_atividade_id // Ensure id is set for React key
