@@ -27,11 +27,16 @@ export const useEventRegistration = (userId: string | undefined) => {
         .from('perfis_tipo')
         .select('id')
         .eq('codigo', selectedRole)
-        .single();
+        .maybeSingle();
 
       if (perfilTipoError) {
         console.error('Error fetching perfil_tipo:', perfilTipoError);
         throw new Error('Erro ao buscar tipo de perfil');
+      }
+
+      if (!perfilTipo) {
+        console.error('No perfil_tipo found for role:', selectedRole);
+        throw new Error('Tipo de perfil não encontrado');
       }
 
       // Then get the profile ID for this event and profile type
@@ -40,11 +45,16 @@ export const useEventRegistration = (userId: string | undefined) => {
         .select('id')
         .eq('evento_id', eventId)
         .eq('perfil_tipo_id', perfilTipo.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         console.error('Error fetching profile:', profileError);
         throw new Error('Erro ao buscar perfil');
+      }
+
+      if (!profile) {
+        console.error('No profile found for event:', eventId, 'and perfil_tipo:', perfilTipo.id);
+        throw new Error('Perfil não encontrado para este evento');
       }
 
       // Get the registration fee for this profile
@@ -53,11 +63,16 @@ export const useEventRegistration = (userId: string | undefined) => {
         .select('id, valor')
         .eq('evento_id', eventId)
         .eq('perfil_id', profile.id)
-        .single();
+        .maybeSingle();
 
       if (feeError) {
         console.error('Error fetching registration fee:', feeError);
         throw new Error('Erro ao buscar taxa de inscrição');
+      }
+
+      if (!registrationFee) {
+        console.error('No registration fee found for profile:', profile.id);
+        throw new Error('Taxa de inscrição não encontrada');
       }
 
       console.log('Using registration fee:', registrationFee);
@@ -74,11 +89,15 @@ export const useEventRegistration = (userId: string | undefined) => {
           }
         ])
         .select()
-        .single();
+        .maybeSingle();
 
       if (registrationError) {
         console.error('Error registering for event:', registrationError);
         throw registrationError;
+      }
+
+      if (!registration) {
+        throw new Error('Erro ao criar inscrição no evento');
       }
 
       // Create the user role record
@@ -106,9 +125,9 @@ export const useEventRegistration = (userId: string | undefined) => {
       toast.success('Inscrição realizada com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['active-events'] });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Registration error:', error);
-      toast.error('Erro ao realizar inscrição. Tente novamente.');
+      toast.error(error.message || 'Erro ao realizar inscrição. Tente novamente.');
     }
   });
 };
