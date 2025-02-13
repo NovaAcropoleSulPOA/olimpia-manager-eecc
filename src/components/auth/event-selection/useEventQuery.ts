@@ -52,14 +52,25 @@ export const useEventQuery = (userId: string | undefined) => {
       const registeredEventIds = registeredEvents.data.map(reg => reg.evento_id);
       console.log('User registered events:', registeredEventIds);
 
-      const events = await supabase
+      let query = supabase
         .from('eventos')
         .select(`
           *,
           eventos_filiais!inner (filial_id)
         `)
-        .eq('eventos_filiais.filial_id', filialId)
-        .or(`and(data_inicio_inscricao.lte.${today},data_fim_inscricao.gte.${today}),id.in.(${registeredEventIds.length > 0 ? registeredEventIds.join(',') : 'null'})`);
+        .eq('eventos_filiais.filial_id', filialId);
+
+      // Add date range filter
+      query = query.or(
+        `data_inicio_inscricao.lte.${today},and(data_fim_inscricao.gte.${today})`
+      );
+
+      // If there are registered events, include them in the query
+      if (registeredEventIds.length > 0) {
+        query = query.or(`id.in.(${registeredEventIds.join(',')})`);
+      }
+
+      const events = await query;
 
       if (events.error) {
         console.error('Error fetching events:', events.error);
