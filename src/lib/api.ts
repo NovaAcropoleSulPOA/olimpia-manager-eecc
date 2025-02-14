@@ -304,9 +304,14 @@ export const updateModalityStatus = async (
   return Promise.resolve();
 };
 
-export const fetchUserProfiles = async () => {
-  console.log('Fetching user profiles...');
+export const fetchUserProfiles = async (eventId: string | null) => {
+  console.log('Fetching user profiles for event:', eventId);
   
+  if (!eventId) {
+    console.warn('No event ID provided for fetching user profiles');
+    return [];
+  }
+
   const { data: users, error: usersError } = await supabase
     .from('usuarios')
     .select(`
@@ -317,13 +322,15 @@ export const fetchUserProfiles = async () => {
       filiais:filial_id (
         nome
       ),
-      papeis_usuarios (
+      papeis_usuarios!inner (
         perfil_id,
+        evento_id,
         perfis:perfil_id (
           nome
         )
       )
     `)
+    .eq('papeis_usuarios.evento_id', eventId)
     .order('nome_completo');
 
   if (usersError) {

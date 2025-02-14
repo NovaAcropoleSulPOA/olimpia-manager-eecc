@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 export default function Administration() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const currentEventId = localStorage.getItem('currentEventId');
 
   // Check if user has admin profile
   const hasAdminProfile = user?.papeis?.some(role => role.codigo === 'ADM');
@@ -19,15 +20,20 @@ export default function Administration() {
       toast.error('Acesso restrito a administradores');
       navigate('/');
     }
-  }, [hasAdminProfile, navigate]);
+
+    if (!currentEventId) {
+      toast.error('Nenhum evento selecionado');
+      navigate('/event-selection');
+    }
+  }, [hasAdminProfile, navigate, currentEventId]);
 
   const { 
     data: userProfiles,
     isLoading: isLoadingProfiles
   } = useQuery({
-    queryKey: ['user-profiles'],
-    queryFn: fetchUserProfiles,
-    enabled: hasAdminProfile
+    queryKey: ['user-profiles', currentEventId],
+    queryFn: () => fetchUserProfiles(currentEventId),
+    enabled: hasAdminProfile && !!currentEventId
   });
 
   const { 
@@ -38,7 +44,7 @@ export default function Administration() {
     enabled: hasAdminProfile
   });
 
-  if (!hasAdminProfile) {
+  if (!hasAdminProfile || !currentEventId) {
     return null;
   }
 
