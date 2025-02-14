@@ -91,14 +91,12 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
       if (!data) return [];
 
       console.log('User profiles data:', data);
-      const typedData = data as Array<{
-        perfil_id: number;
-        perfis: { id: number; nome: string } | null;
-      }>;
-      
-      return typedData.map(item => ({
+      return data.map(item => ({
         perfil_id: item.perfil_id,
-        perfis: item.perfis || { id: 0, nome: '' }
+        perfis: {
+          id: item.perfis?.id || 0,
+          nome: item.perfis?.nome || ''
+        }
       }));
     },
     enabled: open && !!user?.id && !!currentEventId
