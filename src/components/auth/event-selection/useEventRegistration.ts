@@ -71,27 +71,39 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Error fetching registration fees');
         }
 
-        // Prepare registration records
-        const registrations = profiles.map(profile => ({
-          usuario_id: userId,
-          evento_id: eventId,
-          taxa_inscricao_id: fees.find(f => f.perfil_id === profile.id)?.id,
-          selected_role: profileTypes.find(pt => pt.id === profile.perfil_tipo_id)?.codigo
-        })).filter(reg => reg.taxa_inscricao_id); // Only include registrations with valid fees
+        // Create single event registration with the main role (ATL/PGR)
+        const mainProfile = profiles.find(p => 
+          profileTypes.find(pt => pt.id === p.perfil_tipo_id)?.codigo === selectedRole
+        );
 
-        // Create event registrations
+        if (!mainProfile) {
+          throw new Error('Main profile not found');
+        }
+
+        const mainFee = fees.find(f => f.perfil_id === mainProfile.id);
+
+        if (!mainFee) {
+          throw new Error('Registration fee not found');
+        }
+
+        // Create main event registration
         const { error: registrationError } = await supabase
           .from('inscricoes_eventos')
-          .upsert(registrations, {
+          .upsert({
+            usuario_id: userId,
+            evento_id: eventId,
+            taxa_inscricao_id: mainFee.id,
+            selected_role: selectedRole
+          }, {
             onConflict: 'usuario_id,evento_id,selected_role'
           });
 
         if (registrationError) {
-          console.error('Error creating registrations:', registrationError);
-          throw new Error('Error creating registrations');
+          console.error('Error creating registration:', registrationError);
+          throw new Error('Error creating registration');
         }
 
-        // Create user roles
+        // Create user roles (including child profile if applicable)
         const userRoles = profiles.map(profile => ({
           usuario_id: userId,
           perfil_id: profile.id,
