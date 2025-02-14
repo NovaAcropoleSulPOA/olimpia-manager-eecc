@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { RegisterFormData } from '../types/form-types';
 import { format } from 'date-fns';
 
-const DEFAULT_EVENT_ID = 'e88fc492-9b35-49f9-a88e-5b7f65d10b2d'; // Default event ID
+const DEFAULT_EVENT_ID = 'e88fc492-9b35-49f9-a88e-5b7f65d10b2d';
 
 export const useRegisterForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,6 +19,20 @@ export const useRegisterForm = () => {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
 
+      // Format the birth date first
+      const formattedBirthDate = values.data_nascimento 
+        ? format(new Date(values.data_nascimento), 'yyyy-MM-dd')
+        : null;
+
+      if (!formattedBirthDate) {
+        console.error('Birth date is missing or invalid');
+        toast.error('Data de nascimento é obrigatória');
+        return;
+      }
+
+      console.log('Formatted birth date:', formattedBirthDate);
+
+      // Check for existing user
       const { data: existingUser, error: checkError } = await supabase
         .from('usuarios')
         .select('id')
@@ -40,43 +54,44 @@ export const useRegisterForm = () => {
       const cleanedPhoneNumber = values.telefone.replace(/\D/g, '');
       const fullPhoneNumber = `${values.ddi}${cleanedPhoneNumber}`;
 
-      // Format the birth date to ISO string for the database
-      const formattedBirthDate = values.data_nascimento ? format(values.data_nascimento, 'yyyy-MM-dd') : null;
-
-      if (!formattedBirthDate) {
-        toast.error('Data de nascimento é obrigatória');
-        return;
-      }
-
-      const signUpResult = await signUp({
+      // Prepare the signup metadata
+      const signupData = {
         email: values.email,
         password: values.password,
         options: {
           data: {
             nome_completo: values.nome,
             telefone: fullPhoneNumber,
-            filial_id: values.branchId,
+            filial_id: values.branchId || null,
             tipo_documento: values.tipo_documento,
             numero_documento: values.numero_documento.replace(/\D/g, ''),
             genero: values.genero,
             data_nascimento: formattedBirthDate
           }
         }
+      };
+
+      console.log('Attempting signup with data:', {
+        ...signupData,
+        password: '[REDACTED]'
       });
 
-      if (signUpResult.error || !signUpResult.user) {
-        console.error('Registration error:', signUpResult.error);
+      const signUpResult = await signUp(signupData);
+
+      if (signUpResult.error) {
+        console.error('Signup error details:', signUpResult.error);
         toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
         return;
       }
 
-      const userId = signUpResult.user.id;
-      console.log(`User registered successfully with ID: ${userId}`);
-
-      if (!userId) {
-        toast.error("Erro ao obter ID do usuário.");
+      if (!signUpResult.user) {
+        console.error('No user returned from signup');
+        toast.error('Erro ao criar usuário. Por favor, tente novamente.');
         return;
       }
+
+      const userId = signUpResult.user.id;
+      console.log('User registered successfully with ID:', userId);
 
       // Get profile type ID for 'Atleta' type
       const { data: profileTypeData, error: profileTypeError } = await supabase
