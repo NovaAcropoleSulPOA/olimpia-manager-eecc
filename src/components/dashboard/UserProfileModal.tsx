@@ -20,8 +20,6 @@ interface UserProfileModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const MUTUALLY_EXCLUSIVE_PROFILES = ['Atleta', 'Público Geral'];
-
 export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalProps) => {
   const queryClient = useQueryClient();
   const [selectedProfiles, setSelectedProfiles] = useState<number[]>([]);
@@ -58,7 +56,7 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
       
       const { data, error } = await supabase
         .from('papeis_usuarios')
-        .select('perfil_id, perfis(nome)')
+        .select('perfil_id')
         .eq('usuario_id', user.id)
         .eq('evento_id', currentEventId);
         
@@ -68,10 +66,7 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
       }
       
       console.log('User profiles:', data);
-      return data.map(p => ({
-        perfil_id: p.perfil_id,
-        nome: p.perfis?.nome
-      }));
+      return data.map(p => p.perfil_id);
     },
     enabled: open && !!user?.id && !!currentEventId
   });
@@ -79,53 +74,16 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
   useEffect(() => {
     if (userProfiles) {
       console.log('Setting selected profiles:', userProfiles);
-      setSelectedProfiles(userProfiles.map(p => p.perfil_id));
+      setSelectedProfiles(userProfiles);
     }
   }, [userProfiles]);
 
-  const getFilteredAvailableProfiles = () => {
-    if (!availableProfiles) return [];
-
-    // Find if user has any mutually exclusive profile
-    const hasExclusiveProfile = userProfiles?.some(profile => 
-      MUTUALLY_EXCLUSIVE_PROFILES.includes(profile.nome)
-    );
-
-    if (!hasExclusiveProfile) return availableProfiles;
-
-    // If user has an exclusive profile, filter out the other exclusive profiles
-    const currentExclusiveProfile = userProfiles?.find(profile => 
-      MUTUALLY_EXCLUSIVE_PROFILES.includes(profile.nome)
-    );
-
-    return availableProfiles.filter(profile => 
-      !MUTUALLY_EXCLUSIVE_PROFILES.includes(profile.nome) || 
-      profile.nome === currentExclusiveProfile?.nome
-    );
-  };
-
   const handleProfileToggle = (profileId: number) => {
-    const profileToToggle = availableProfiles?.find(p => p.id === profileId);
-    const isExclusiveProfile = profileToToggle && 
-      MUTUALLY_EXCLUSIVE_PROFILES.includes(profileToToggle.nome);
-
-    setSelectedProfiles(current => {
-      if (current.includes(profileId)) {
-        // Removing a profile
-        return current.filter(id => id !== profileId);
-      } else {
-        // Adding a profile
-        if (isExclusiveProfile) {
-          // If adding an exclusive profile, remove any other exclusive profiles
-          const nonExclusiveProfiles = current.filter(id => {
-            const profile = availableProfiles?.find(p => p.id === id);
-            return profile && !MUTUALLY_EXCLUSIVE_PROFILES.includes(profile.nome);
-          });
-          return [...nonExclusiveProfiles, profileId];
-        }
-        return [...current, profileId];
-      }
-    });
+    setSelectedProfiles(current =>
+      current.includes(profileId)
+        ? current.filter(id => id !== profileId)
+        : [...current, profileId]
+    );
   };
 
   const handleSave = async () => {
@@ -169,7 +127,7 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
         ) : (
           <div className="space-y-4">
             <div className="space-y-2">
-              {getFilteredAvailableProfiles().map((profile) => (
+              {availableProfiles?.map((profile) => (
                 <div key={profile.id} className="flex items-center space-x-2">
                   <Checkbox
                     id={`profile-${profile.id}`}
