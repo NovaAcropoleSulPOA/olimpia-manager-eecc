@@ -30,6 +30,31 @@ interface UserRole {
   } | null;
 }
 
+interface SupabaseBranchEvent {
+  evento_id: string;
+  eventos: {
+    id: string;
+    nome: string;
+    descricao: string | null;
+    data_inicio_inscricao: string;
+    data_fim_inscricao: string;
+    foto_evento: string | null;
+    tipo: 'estadual' | 'nacional' | 'internacional' | 'regional';
+    created_at: string | null;
+    updated_at: string | null;
+    status_evento: 'ativo' | 'encerrado' | 'suspenso';
+    modalidades: Modality[];
+  };
+}
+
+interface SupabaseUserRole {
+  evento_id: string;
+  perfis: {
+    nome: string;
+    codigo: string;
+  };
+}
+
 export const useEventQuery = (userId: string | undefined) => {
   return useQuery({
     queryKey: ['active-events', userId],
@@ -109,8 +134,16 @@ export const useEventQuery = (userId: string | undefined) => {
         throw rolesError;
       }
 
-      const typedBranchEvents = branchEvents as BranchEvent[];
-      const typedUserRoles = userRoles as UserRole[];
+      // Type assertions with intermediate interfaces
+      const typedBranchEvents = (branchEvents as SupabaseBranchEvent[]).map(be => ({
+        evento_id: be.evento_id,
+        eventos: be.eventos as EventWithModalities
+      }));
+
+      const typedUserRoles = (userRoles as SupabaseUserRole[]).map(role => ({
+        evento_id: role.evento_id,
+        perfis: role.perfis
+      }));
 
       // Process and filter events
       const events = typedBranchEvents
