@@ -90,10 +90,7 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
 
       return data.map(item => ({
         perfil_id: item.perfil_id,
-        perfis: {
-          id: item.perfis.id,
-          nome: item.perfis.nome
-        }
+        perfis: item.perfis as { id: number; nome: string }
       }));
     },
     enabled: open && !!user?.id && !!currentEventId
