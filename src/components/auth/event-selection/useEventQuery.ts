@@ -6,41 +6,118 @@ export const useEventQuery = (userId: string | undefined) => {
   return useQuery({
     queryKey: ['active-events', userId],
     queryFn: async () => {
-      // First get all active events
-      const { data: events, error: eventsError } = await supabase
-        .from('eventos')
+      if (!userId) {
+        console.log('No user ID provided');
+        return [];
+      }
+
+      // First get the user's branch ID
+      const { data: userData, error: userError } = await supabase
+        .from('usuarios')
+        .select('filial_id')
+        .eq('id', userId)
+        .single();
+
+      if (userError) {
+        console.error('Error fetching user branch:', userError);
+        throw userError;
+      }
+
+      if (!userData?.filial_id) {
+        console.log('User has no branch assigned');
+        return [];
+      }
+
+      // Get all events where the user's branch is permitted
+      const { data: branchEvents, error: branchEventsError } = await supabase
+        .from('eventos_filiais')
         .select(`
-          *,
-          modalidades (
-            id,
-            nome,
-            categoria,
-            tipo_modalidade,
-            faixa_etaria,
-            limite_vagas,
-            vagas_ocupadas
+          evento_id,
+          eventos (
+            *,
+            modalidades (
+              id,
+              nome,
+              categoria,
+              tipo_modalidade,
+              faixa_etaria,
+              limite_vagas,
+              vagas_ocupadas
+            )
           )
         `)
-        .eq('status_evento', 'ativo');
+        .eq('filial_id', userData.filial_id);
 
-      if (eventsError) throw eventsError;
+      if (branchEventsError) {
+        console.error('Error fetching branch events:', branchEventsError);
+        throw branchEventsError;
+      }
 
-      if (!userId) return events || [];
-
-      // Then get user's registered events
+      // Get user's registered events
       const { data: registeredEvents, error: registeredError } = await supabase
         .from('inscricoes_eventos')
         .select('evento_id')
         .eq('usuario_id', userId);
 
-      if (registeredError) throw registeredError;
+      if (registeredError) {
+        console.error('Error fetching registered events:', registeredError);
+        throw registeredError;
+      }
 
-      // Mark events as registered or not
-      return events?.map(event => ({
-        ...event,
-        isRegistered: registeredEvents?.some(reg => reg.evento_id === event.id) || false
-      })) || [];
+      // Get user's roles for each event
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('papeis_usuarios')
+        .select(`
+          evento_id,
+          perfis (
+            nome,
+            codigo
+          )
+        `)
+        .eq('usuario_id', userId);
+
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError);
+        throw rolesError;
+      }
+
+      // Process and filter events
+      const events = branchEvents
+        .map(be => be.eventos)
+        .filter(event => {
+          if (!event) return false;
+
+          const isRegistered = registeredEvents?.some(reg => reg.evento_id === event.id);
+          const userRolesForEvent = userRoles?.filter(role => role.evento_id === event.id)
+            .map(role => ({
+              nome: role.perfis?.nome,
+              codigo: role.perfis?.codigo
+            }));
+
+          // Include event if:
+          // 1. It's active, OR
+          // 2. User is registered in it (regardless of status)
+          return event.status_evento === 'ativo' || 
+                 (isRegistered && ['encerrado', 'suspenso'].includes(event.status_evento));
+        })
+        .map(event => ({
+          ...event,
+          isRegistered: registeredEvents?.some(reg => reg.evento_id === event.id) || false,
+          roles: userRoles?.filter(role => role.evento_id === event.id)
+            .map(role => ({
+              nome: role.perfis?.nome,
+              codigo: role.perfis?.codigo
+            })) || [],
+          isOpen: event?.status_evento === 'ativo',
+          isAdmin: userRoles?.some(role => 
+            role.evento_id === event?.id && 
+            role.perfis?.nome === 'Administrador'
+          ) || false
+        }));
+
+      console.log('Processed events:', events);
+      return events || [];
     },
-    enabled: true
+    enabled: !!userId
   });
 };
