@@ -18,8 +18,15 @@ interface Perfil {
   perfis_tipo: PerfilTipo;
 }
 
-interface UserProfile {
-  perfis: Perfil;
+interface UserProfileResponse {
+  perfis: {
+    id: number;
+    perfil_tipo_id: string;
+    perfis_tipo: {
+      id: string;
+      codigo: string;
+    };
+  };
 }
 
 export default function EventSelectionPage() {
