@@ -1,6 +1,34 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { Event } from "@/lib/types/database";
+
+interface Modality {
+  id: number;
+  nome: string;
+  categoria: string;
+  tipo_modalidade: string;
+  faixa_etaria: string;
+  limite_vagas: number;
+  vagas_ocupadas: number;
+}
+
+interface EventWithModalities extends Event {
+  modalidades: Modality[];
+}
+
+interface BranchEvent {
+  evento_id: string;
+  eventos: EventWithModalities;
+}
+
+interface UserRole {
+  evento_id: string;
+  perfis: {
+    nome: string;
+    codigo: string;
+  } | null;
+}
 
 export const useEventQuery = (userId: string | undefined) => {
   return useQuery({
@@ -81,42 +109,41 @@ export const useEventQuery = (userId: string | undefined) => {
         throw rolesError;
       }
 
-      // Process and filter events
-      const events = branchEvents
-        .map(be => be.eventos)
-        .filter(event => {
-          if (!event) return false;
+      const typedBranchEvents = branchEvents as BranchEvent[];
+      const typedUserRoles = userRoles as UserRole[];
 
+      // Process and filter events
+      const events = typedBranchEvents
+        .filter(be => be.eventos !== null)
+        .map(be => {
+          const event = be.eventos;
           const isRegistered = registeredEvents?.some(reg => reg.evento_id === event.id);
-          const userRolesForEvent = userRoles?.filter(role => role.evento_id === event.id)
+          const eventRoles = typedUserRoles
+            .filter(role => role.evento_id === event.id)
             .map(role => ({
-              nome: role.perfis?.nome,
-              codigo: role.perfis?.codigo
+              nome: role.perfis?.nome || '',
+              codigo: role.perfis?.codigo || ''
             }));
 
-          // Include event if:
-          // 1. It's active, OR
-          // 2. User is registered in it (regardless of status)
-          return event.status_evento === 'ativo' || 
-                 (isRegistered && ['encerrado', 'suspenso'].includes(event.status_evento));
+          const isAdmin = eventRoles.some(role => role.nome === 'Administrador');
+          const isOpen = event.status_evento === 'ativo';
+
+          return {
+            ...event,
+            modalities: event.modalidades || [],
+            isRegistered,
+            roles: eventRoles,
+            isOpen,
+            isAdmin
+          };
         })
-        .map(event => ({
-          ...event,
-          isRegistered: registeredEvents?.some(reg => reg.evento_id === event.id) || false,
-          roles: userRoles?.filter(role => role.evento_id === event.id)
-            .map(role => ({
-              nome: role.perfis?.nome,
-              codigo: role.perfis?.codigo
-            })) || [],
-          isOpen: event?.status_evento === 'ativo',
-          isAdmin: userRoles?.some(role => 
-            role.evento_id === event?.id && 
-            role.perfis?.nome === 'Administrador'
-          ) || false
-        }));
+        .filter(event => 
+          event.status_evento === 'ativo' || 
+          (event.isRegistered && ['encerrado', 'suspenso'].includes(event.status_evento))
+        );
 
       console.log('Processed events:', events);
-      return events || [];
+      return events;
     },
     enabled: !!userId
   });
