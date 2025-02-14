@@ -31,6 +31,20 @@ interface UserProfileModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface Profile {
+  id: number;
+  nome: string;
+  evento_id: string;
+}
+
+interface UserProfile {
+  perfil_id: number;
+  perfis: {
+    id: number;
+    nome: string;
+  };
+}
+
 const EXCLUSIVE_PROFILES = ['Atleta', 'Público Geral'];
 
 export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalProps) => {
@@ -45,7 +59,7 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
 
   const currentEventId = localStorage.getItem('currentEventId');
 
-  const { data: availableProfiles, isLoading } = useQuery({
+  const { data: availableProfiles, isLoading } = useQuery<Profile[]>({
     queryKey: ['profiles', currentEventId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -60,7 +74,7 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
     enabled: open && !!currentEventId
   });
 
-  const { data: userProfiles } = useQuery({
+  const { data: userProfiles } = useQuery<UserProfile[]>({
     queryKey: ['user-profiles', user?.id, currentEventId],
     queryFn: async () => {
       if (!user?.id || !currentEventId) return [];
