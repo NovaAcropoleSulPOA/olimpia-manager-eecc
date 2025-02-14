@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEventQuery } from '@/components/auth/event-selection/useEventQuery';
 
 interface PerfilTipo {
   id: string;
@@ -25,6 +26,7 @@ interface PapeisUsuarios {
 export default function EventSelectionPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { data: events = [] } = useEventQuery(user?.id);
 
   // Get user's profile type to determine if they are a child
   const { data: userProfileType } = useQuery({
@@ -63,13 +65,11 @@ export default function EventSelectionPage() {
 
       const profileData = data as PapeisUsuarios;
       
-      // Check if we have any profiles and profile types
       if (!profileData?.perfis?.length || !profileData.perfis[0]?.perfis_tipo?.length) {
         console.log('No profile type code found for user');
         return null;
       }
 
-      // Return the first profile type code
       return profileData.perfis[0].perfis_tipo[0].codigo;
     },
     enabled: !!user?.id
@@ -97,7 +97,7 @@ export default function EventSelectionPage() {
         </h1>
         <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
           <EventSelection
-            selectedEvents={[]}
+            selectedEvents={events}
             onEventSelect={handleEventSelect}
             mode="login"
             userProfileType={userProfileType}
