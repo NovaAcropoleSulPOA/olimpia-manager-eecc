@@ -7,6 +7,15 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
+interface UserProfileResponse {
+  perfis: {
+    perfil_tipo_id: string;
+    perfis_tipo: {
+      codigo: string;
+    };
+  };
+}
+
 export default function EventSelectionPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -20,9 +29,9 @@ export default function EventSelectionPage() {
       const { data, error } = await supabase
         .from('papeis_usuarios')
         .select(`
-          perfis (
+          perfis:perfil_id (
             perfil_tipo_id,
-            perfis_tipo (
+            perfis_tipo:perfil_tipo_id (
               codigo
             )
           )
@@ -35,7 +44,8 @@ export default function EventSelectionPage() {
         throw error;
       }
 
-      return data?.perfis?.perfis_tipo?.codigo || null;
+      // Handle the nested data structure correctly
+      return (data as UserProfileResponse)?.perfis?.perfis_tipo?.codigo || null;
     },
     enabled: !!user?.id
   });
