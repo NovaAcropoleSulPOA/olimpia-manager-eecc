@@ -12,14 +12,11 @@ interface PerfilTipo {
   codigo: string;
 }
 
-interface PapeisUsuarios {
+interface PapelUsuario {
   perfis: {
     id: number;
     perfil_tipo_id: string;
-    perfis_tipo: {
-      id: string;
-      codigo: string;
-    };
+    perfis_tipo: PerfilTipo;
   }
 }
 
@@ -61,18 +58,19 @@ export default function EventSelectionPage() {
         return null;
       }
 
-      // Type assertion to help TypeScript understand the data structure
-      const profiles = data as PapeisUsuarios[];
+      // Cast data to the correct type
+      const userProfiles = data as unknown as PapelUsuario[];
+      console.log('Parsed profiles:', userProfiles);
 
       // Find child profile if it exists
-      const childProfile = profiles.find(profile => {
+      const childProfile = userProfiles.find(profile => {
         const codigo = profile.perfis?.perfis_tipo?.codigo;
         return codigo === 'C+7' || codigo === 'C-6';
       });
 
       // Return child profile code if found, otherwise return the first profile code
       const profileCode = childProfile?.perfis?.perfis_tipo?.codigo || 
-                         profiles[0]?.perfis?.perfis_tipo?.codigo || 
+                         userProfiles[0]?.perfis?.perfis_tipo?.codigo || 
                          null;
 
       console.log('Selected profile code:', profileCode);
