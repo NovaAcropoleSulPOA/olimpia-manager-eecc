@@ -18,8 +18,12 @@ interface Perfil {
   perfis_tipo: PerfilTipo;
 }
 
-interface UserProfileResponse {
-  perfis: Perfil;
+interface PapeisUsuarios {
+  perfis: {
+    id: number;
+    perfil_tipo_id: string;
+    perfis_tipo: PerfilTipo;
+  };
 }
 
 export default function EventSelectionPage() {
@@ -60,8 +64,9 @@ export default function EventSelectionPage() {
         return null;
       }
 
-      // Return the first profile type code found
-      const firstProfile = data[0]?.perfis?.perfis_tipo?.codigo || null;
+      // Type assertion to match the response structure
+      const typedData = data as PapeisUsuarios[];
+      const firstProfile = typedData[0]?.perfis?.perfis_tipo?.codigo || null;
       console.log('First profile:', firstProfile);
       return firstProfile;
     },
