@@ -19,6 +19,7 @@ interface Perfil {
 }
 
 interface UserProfileResponse {
+  perfil_id: number;
   perfis: Perfil;
 }
 
@@ -34,6 +35,7 @@ export default function EventSelectionPage() {
 
       console.log('Fetching profile type for user:', user.id);
 
+      // Remove single() and handle the array of profiles
       const { data, error } = await supabase
         .from('papeis_usuarios')
         .select(`
@@ -46,8 +48,7 @@ export default function EventSelectionPage() {
             )
           )
         `)
-        .eq('usuario_id', user.id)
-        .single();
+        .eq('usuario_id', user.id);
 
       if (error) {
         console.error('Error fetching user profile type:', error);
@@ -56,13 +57,21 @@ export default function EventSelectionPage() {
 
       console.log('Received profile data:', data);
 
-      if (!data?.perfis) {
+      if (!data || data.length === 0) {
         console.log('No profile found for user');
         return null;
       }
 
-      // Return just the profile type code
-      return data.perfis.perfis_tipo.codigo;
+      // Find child profile if it exists
+      const childProfile = data.find(profile => 
+        profile.perfis?.perfis_tipo?.codigo === 'C+7' || 
+        profile.perfis?.perfis_tipo?.codigo === 'C-6'
+      );
+
+      // Return child profile code if found, otherwise return the first profile code
+      return childProfile?.perfis?.perfis_tipo?.codigo || 
+             data[0]?.perfis?.perfis_tipo?.codigo || 
+             null;
     },
     enabled: !!user?.id
   });
