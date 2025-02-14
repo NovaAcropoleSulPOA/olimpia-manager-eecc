@@ -17,27 +17,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { UseMutationResult } from "@tanstack/react-query";
-
-interface RegisteredModality {
-  id: number;
-  status: string;
-  modalidade: {
-    id: number;
-    nome: string;
-    categoria: string;
-    tipo_modalidade: string;
-  };
-}
-
-interface Modality {
-  id: number;
-  nome: string;
-  categoria?: string;
-  tipo_modalidade: string;
-  vagas_ocupadas: number;
-  limite_vagas: number;
-  grupo?: string;
-}
+import { Modality, RegisteredModality } from "@/types/modality";
 
 interface AvailableModalitiesProps {
   groupedModalities: Record<string, Modality[]>;
@@ -50,7 +30,7 @@ export const AvailableModalities = ({
   registeredModalities,
   registerMutation,
 }: AvailableModalitiesProps) => {
-  // Improved function to check if a modality is registered by comparing modalidade.id
+  // Improved function to check if a modality is registered
   const isModalityRegistered = (modalityId: number): boolean => {
     return registeredModalities.some(
       registration => registration.modalidade.id === modalityId
@@ -60,7 +40,7 @@ export const AvailableModalities = ({
   // Filter and process modalities
   const processedGroups = Object.entries(groupedModalities).reduce<Record<string, Modality[]>>(
     (acc, [grupo, modalities]) => {
-      // Filter out registered modalities
+      // Filter out modalities that are already registered
       const availableModalities = modalities.filter(
         modality => !isModalityRegistered(modality.id)
       );
