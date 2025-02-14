@@ -19,6 +19,7 @@ interface EventCarouselProps {
   selectedRole: 'ATL' | 'PGR';
   onRoleChange: (value: 'ATL' | 'PGR') => void;
   onEventAction: (eventId: string) => void;
+  isUnderAge?: boolean;
 }
 
 export const EventCarousel = ({
@@ -26,6 +27,7 @@ export const EventCarousel = ({
   selectedRole,
   onRoleChange,
   onEventAction,
+  isUnderAge = false,
 }: EventCarouselProps) => {
   return (
     <div className="relative w-full">
@@ -44,6 +46,7 @@ export const EventCarousel = ({
                 selectedRole={selectedRole}
                 onRoleChange={onRoleChange}
                 onEventAction={() => onEventAction(event.id)}
+                isUnderAge={isUnderAge}
               />
             </CarouselItem>
           ))}

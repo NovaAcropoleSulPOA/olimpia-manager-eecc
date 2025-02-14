@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Loader2, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -85,15 +86,7 @@ export const EventSelection = ({
   }
 
   // Filter events based on user's profile type if they are a child
-  const filteredEvents = events.map(event => ({
-    ...event,
-    modalities: event.modalities?.filter(modality => {
-      if (userProfileType && ['C+7', 'C-6'].includes(userProfileType)) {
-        return modality.faixa_etaria === 'infantil';
-      }
-      return true;
-    })
-  }));
+  const filteredEvents = events;
 
   return (
     <div className="space-y-6">
@@ -101,7 +94,6 @@ export const EventSelection = ({
         events={filteredEvents}
         selectedRole={selectedRole}
         onRoleChange={setSelectedRole}
-        isUnderAge={isUnderAge}
         onEventAction={(eventId) => {
           const event = events.find(e => e.id === eventId);
           if (event?.isRegistered) {
@@ -110,6 +102,7 @@ export const EventSelection = ({
             handleEventRegistration(eventId);
           }
         }}
+        isUnderAge={isUnderAge}
       />
       <div className="flex justify-center">
         <Button
