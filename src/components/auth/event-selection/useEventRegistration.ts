@@ -36,7 +36,7 @@ export const useEventRegistration = (userId: string | undefined) => {
         const isMinor = age !== null && age < 13;
         const childProfileCode = age !== null && age <= 6 ? 'C-6' : 'C+7';
 
-        // Get profile types
+        // Get profile types we'll need
         const { data: profileTypes, error: profileTypesError } = await supabase
           .from('perfis_tipo')
           .select('id, codigo')
@@ -47,103 +47,19 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Error fetching profile types');
         }
 
-        // Get profiles for each profile type
-        const { data: profiles, error: profilesError } = await supabase
-          .from('perfis')
-          .select('id, perfil_tipo_id')
-          .eq('evento_id', eventId)
-          .in('perfil_tipo_id', profileTypes.map(pt => pt.id));
-
-        if (profilesError) {
-          console.error('Error fetching profiles:', profilesError);
-          throw new Error('Error fetching profiles');
-        }
-
-        // Get registration fees for each profile
-        const { data: fees, error: feesError } = await supabase
-          .from('taxas_inscricao')
-          .select('id, perfil_id')
-          .eq('evento_id', eventId)
-          .in('perfil_id', profiles.map(p => p.id));
-
-        if (feesError) {
-          console.error('Error fetching registration fees:', feesError);
-          throw new Error('Error fetching registration fees');
-        }
-
-        // Create single event registration with the main role (ATL/PGR)
-        const mainProfile = profiles.find(p => 
-          profileTypes.find(pt => pt.id === p.perfil_tipo_id)?.codigo === selectedRole
-        );
-
-        if (!mainProfile) {
-          throw new Error('Main profile not found');
-        }
-
-        const mainFee = fees.find(f => f.perfil_id === mainProfile.id);
-
-        if (!mainFee) {
-          throw new Error('Registration fee not found');
-        }
-
-        // Delete any existing registration for this user, event, and role combination
-        const { error: deleteError } = await supabase
-          .from('inscricoes_eventos')
-          .delete()
-          .match({
-            usuario_id: userId,
-            evento_id: eventId,
-            selected_role: selectedRole
-          });
-
-        if (deleteError) {
-          console.error('Error deleting existing registration:', deleteError);
-          throw new Error('Error deleting existing registration');
-        }
-
-        // Create new event registration
+        // At this point, we just want to store the initial registration.
+        // Profiles and roles will be created after event selection.
         const { error: registrationError } = await supabase
           .from('inscricoes_eventos')
           .insert({
             usuario_id: userId,
             evento_id: eventId,
-            taxa_inscricao_id: mainFee.id,
             selected_role: selectedRole
           });
 
         if (registrationError) {
           console.error('Error creating registration:', registrationError);
           throw new Error('Error creating registration');
-        }
-
-        // Delete any existing roles for this user and event
-        const { error: deleteRolesError } = await supabase
-          .from('papeis_usuarios')
-          .delete()
-          .match({
-            usuario_id: userId,
-            evento_id: eventId
-          });
-
-        if (deleteRolesError) {
-          console.error('Error deleting existing roles:', deleteRolesError);
-          throw new Error('Error deleting existing roles');
-        }
-
-        // Create user roles (including child profile if applicable)
-        const userRoles = profiles.map(profile => ({
-          usuario_id: userId,
-          perfil_id: profile.id,
-          evento_id: eventId
-        }));
-
-        const { error: roleError } = await supabase
-          .from('papeis_usuarios')
-          .insert(userRoles);
-
-        if (roleError) {
-          console.error('Error assigning roles:', roleError);
-          throw new Error('Error assigning roles');
         }
 
         return { success: true };
