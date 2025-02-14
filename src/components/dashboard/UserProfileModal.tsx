@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -52,6 +53,14 @@ interface DatabaseUserProfile {
   } | null;
 }
 
+interface SupabaseResponse {
+  perfil_id: number;
+  perfis: {
+    id: number;
+    nome: string;
+  } | null;
+}
+
 const EXCLUSIVE_PROFILES = ['Atleta', 'Público Geral'];
 
 export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalProps) => {
@@ -95,9 +104,11 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
       if (error) throw error;
       if (!data) return [];
 
-      return (data as DatabaseUserProfile[]).map(item => ({
+      const typedData = data as SupabaseResponse[];
+      
+      return typedData.map(item => ({
         perfil_id: item.perfil_id,
-        perfis: item.perfis || { id: 0, nome: '' } // Provide a default value if perfis is null
+        perfis: item.perfis || { id: 0, nome: '' }
       }));
     },
     enabled: open && !!user?.id && !!currentEventId
