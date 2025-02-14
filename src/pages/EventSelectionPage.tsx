@@ -3,75 +3,11 @@ import React from 'react';
 import { EventSelection } from '@/components/auth/EventSelection';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface PerfilTipo {
-  id: string;
-  codigo: string;
-}
-
-interface Perfil {
-  id: number;
-  perfil_tipo_id: string;
-  perfis_tipo: PerfilTipo;
-}
-
-interface PapeisUsuarios {
-  perfis: {
-    id: number;
-    perfil_tipo_id: string;
-    perfis_tipo: PerfilTipo;
-  };
-}
 
 export default function EventSelectionPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-
-  // Get user's profile type to determine if they are a child
-  const { data: userProfileType } = useQuery({
-    queryKey: ['user-profile-type', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-
-      console.log('Fetching profile type for user:', user.id);
-
-      const { data, error } = await supabase
-        .from('papeis_usuarios')
-        .select(`
-          perfis:perfil_id (
-            id,
-            perfil_tipo_id,
-            perfis_tipo:perfil_tipo_id (
-              id,
-              codigo
-            )
-          )
-        `)
-        .eq('usuario_id', user.id);
-
-      if (error) {
-        console.error('Error fetching user profile type:', error);
-        throw error;
-      }
-
-      console.log('Received profile data:', data);
-
-      if (!data?.length) {
-        console.log('No profile found for user');
-        return null;
-      }
-
-      // Type assertion to match the response structure
-      const typedData = data as PapeisUsuarios[];
-      const firstProfile = typedData[0]?.perfis?.perfis_tipo?.codigo || null;
-      console.log('First profile:', firstProfile);
-      return firstProfile;
-    },
-    enabled: !!user?.id
-  });
 
   const handleEventSelect = (eventId: string) => {
     localStorage.setItem('currentEventId', eventId);
@@ -98,7 +34,7 @@ export default function EventSelectionPage() {
             selectedEvents={[]}
             onEventSelect={handleEventSelect}
             mode="login"
-            userProfileType={userProfileType}
+            userProfileType={null} // Set to null since we don't need profile type at this stage
           />
         </div>
       </div>
