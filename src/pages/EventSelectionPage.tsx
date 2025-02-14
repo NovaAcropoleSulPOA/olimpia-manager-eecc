@@ -46,8 +46,7 @@ export default function EventSelectionPage() {
             )
           )
         `)
-        .eq('usuario_id', user.id)
-        .single();
+        .eq('usuario_id', user.id);
 
       if (error) {
         console.error('Error fetching user profile type:', error);
@@ -56,13 +55,14 @@ export default function EventSelectionPage() {
 
       console.log('Received profile data:', data);
 
-      if (!data?.perfis) {
+      if (!data?.length) {
         console.log('No profile found for user');
         return null;
       }
 
-      // Return just the profile type code
-      return data.perfis.perfis_tipo.codigo;
+      // Return the first profile type code found
+      const firstProfile = data[0]?.perfis?.perfis_tipo?.codigo || null;
+      return firstProfile;
     },
     enabled: !!user?.id
   });

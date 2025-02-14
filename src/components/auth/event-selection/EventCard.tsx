@@ -57,7 +57,6 @@ export const EventCard = ({
         event.isRegistered && "ring-2 ring-olimpics-green-primary"
       )}
     >
-      {/* Status Stripe */}
       <div
         className={cn(
           "absolute -right-12 top-8 w-48 -rotate-45 transform text-center",
@@ -72,7 +71,6 @@ export const EventCard = ({
       </div>
 
       <CardContent className="p-6">
-        {/* Status Alert */}
         {(event.status_evento === 'encerrado' || event.status_evento === 'suspenso') && !event.isRegistered && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -103,7 +101,7 @@ export const EventCard = ({
           <p>Início: {format(new Date(event.data_inicio_inscricao), 'dd/MM/yyyy')}</p>
           <p>Término: {format(new Date(event.data_fim_inscricao), 'dd/MM/yyyy')}</p>
           <p className="text-xs uppercase font-medium mt-2">{event.tipo}</p>
-          {event.isRegistered && event.roles.length > 0 && (
+          {event.isRegistered && event.roles?.length > 0 && (
             <p className="text-xs font-medium text-olimpics-green-primary mt-1">
               Papéis: {event.roles.map(role => role.nome).join(', ')}
             </p>
