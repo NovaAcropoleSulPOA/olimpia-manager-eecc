@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -104,7 +103,11 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
       if (error) throw error;
       if (!data) return [];
 
-      const typedData = data as SupabaseResponse[];
+      const rawData = data as unknown;
+      const typedData = rawData as Array<{
+        perfil_id: number;
+        perfis: { id: number; nome: string } | null;
+      }>;
       
       return typedData.map(item => ({
         perfil_id: item.perfil_id,
@@ -128,7 +131,6 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
 
     if (profileToToggle && EXCLUSIVE_PROFILES.includes(profileToToggle.nome)) {
       if (currentExclusiveProfile && currentExclusiveProfile.perfil_id !== profileId) {
-        // Initiate swap process
         setPendingSwap({
           oldProfileId: currentExclusiveProfile.perfil_id,
           newProfileId: profileId
