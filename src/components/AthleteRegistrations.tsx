@@ -1,11 +1,13 @@
 
 import React from 'react';
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { supabase } from "@/lib/supabase";
 import AthleteSchedule from "@/components/AthleteSchedule";
 import { EnrollmentList } from "./enrollment/EnrollmentList";
 import { AvailableModalities } from "./enrollment/AvailableModalities";
@@ -13,6 +15,7 @@ import { EnrollmentHeader } from "./enrollment/EnrollmentHeader";
 import { useAthleteProfile } from "@/hooks/useAthleteProfile";
 import { useRegisteredModalities } from "@/hooks/useRegisteredModalities";
 import { useModalityMutations } from "@/hooks/useModalityMutations";
+import { Modality } from "@/types/modality";
 
 export default function AthleteRegistrations() {
   const { user } = useAuth();
@@ -23,13 +26,38 @@ export default function AthleteRegistrations() {
   const { data: registeredModalities, isLoading: registrationsLoading } = useRegisteredModalities(user?.id, currentEventId);
   const { withdrawMutation, registerMutation } = useModalityMutations(user?.id, currentEventId);
 
-  if (registrationsLoading) {
+  const { data: allModalities, isLoading: modalitiesLoading } = useQuery({
+    queryKey: ['modalities', currentEventId],
+    queryFn: async () => {
+      if (!currentEventId) return [];
+      const { data, error } = await supabase
+        .from('modalidades')
+        .select('*')
+        .eq('evento_id', currentEventId)
+        .eq('status', 'Ativa');
+
+      if (error) throw error;
+      return data as Modality[];
+    },
+    enabled: !!currentEventId,
+  });
+
+  if (modalitiesLoading || registrationsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <Loader2 className="h-8 w-8 animate-spin text-olimpics-green-primary" />
       </div>
     );
   }
+
+  const groupedModalities = allModalities?.reduce((groups: Record<string, Modality[]>, modality) => {
+    const grupo = modality.grupo || 'Outras Modalidades';
+    if (!groups[grupo]) {
+      groups[grupo] = [];
+    }
+    groups[grupo].push(modality);
+    return groups;
+  }, {});
 
   return (
     <div className="container mx-auto py-6 space-y-6 max-w-7xl">
