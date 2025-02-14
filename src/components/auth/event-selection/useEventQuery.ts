@@ -26,33 +26,7 @@ interface UserRole {
   evento_id: string;
   perfis: {
     nome: string;
-    codigo: string;
   } | null;
-}
-
-interface SupabaseBranchEvent {
-  evento_id: string;
-  eventos: {
-    id: string;
-    nome: string;
-    descricao: string | null;
-    data_inicio_inscricao: string;
-    data_fim_inscricao: string;
-    foto_evento: string | null;
-    tipo: 'estadual' | 'nacional' | 'internacional' | 'regional';
-    created_at: string | null;
-    updated_at: string | null;
-    status_evento: 'ativo' | 'encerrado' | 'suspenso';
-    modalidades: Modality[];
-  };
-}
-
-interface SupabaseUserRole {
-  evento_id: string;
-  perfis: {
-    nome: string;
-    codigo: string;
-  };
 }
 
 export const useEventQuery = (userId: string | undefined) => {
@@ -87,7 +61,16 @@ export const useEventQuery = (userId: string | undefined) => {
         .select(`
           evento_id,
           eventos (
-            *,
+            id,
+            nome,
+            descricao,
+            data_inicio_inscricao,
+            data_fim_inscricao,
+            foto_evento,
+            tipo,
+            created_at,
+            updated_at,
+            status_evento,
             modalidades (
               id,
               nome,
@@ -122,9 +105,9 @@ export const useEventQuery = (userId: string | undefined) => {
         .from('papeis_usuarios')
         .select(`
           evento_id,
-          perfis (
-            nome,
-            codigo
+          perfil_id,
+          perfis:perfil_id (
+            nome
           )
         `)
         .eq('usuario_id', userId);
@@ -134,28 +117,16 @@ export const useEventQuery = (userId: string | undefined) => {
         throw rolesError;
       }
 
-      // Type assertions with intermediate interfaces
-      const typedBranchEvents = (branchEvents as SupabaseBranchEvent[]).map(be => ({
-        evento_id: be.evento_id,
-        eventos: be.eventos as EventWithModalities
-      }));
-
-      const typedUserRoles = (userRoles as SupabaseUserRole[]).map(role => ({
-        evento_id: role.evento_id,
-        perfis: role.perfis
-      }));
-
       // Process and filter events
-      const events = typedBranchEvents
+      const events = (branchEvents || [])
         .filter(be => be.eventos !== null)
         .map(be => {
           const event = be.eventos;
           const isRegistered = registeredEvents?.some(reg => reg.evento_id === event.id);
-          const eventRoles = typedUserRoles
+          const eventRoles = (userRoles || [])
             .filter(role => role.evento_id === event.id)
             .map(role => ({
-              nome: role.perfis?.nome || '',
-              codigo: role.perfis?.codigo || ''
+              nome: role.perfis?.nome || ''
             }));
 
           const isAdmin = eventRoles.some(role => role.nome === 'Administrador');
