@@ -86,21 +86,48 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Registration fee not found');
         }
 
-        // Create main event registration
+        // Delete any existing registration for this user, event, and role combination
+        const { error: deleteError } = await supabase
+          .from('inscricoes_eventos')
+          .delete()
+          .match({
+            usuario_id: userId,
+            evento_id: eventId,
+            selected_role: selectedRole
+          });
+
+        if (deleteError) {
+          console.error('Error deleting existing registration:', deleteError);
+          throw new Error('Error deleting existing registration');
+        }
+
+        // Create new event registration
         const { error: registrationError } = await supabase
           .from('inscricoes_eventos')
-          .upsert({
+          .insert({
             usuario_id: userId,
             evento_id: eventId,
             taxa_inscricao_id: mainFee.id,
             selected_role: selectedRole
-          }, {
-            onConflict: 'usuario_id,evento_id,selected_role'
           });
 
         if (registrationError) {
           console.error('Error creating registration:', registrationError);
           throw new Error('Error creating registration');
+        }
+
+        // Delete any existing roles for this user and event
+        const { error: deleteRolesError } = await supabase
+          .from('papeis_usuarios')
+          .delete()
+          .match({
+            usuario_id: userId,
+            evento_id: eventId
+          });
+
+        if (deleteRolesError) {
+          console.error('Error deleting existing roles:', deleteRolesError);
+          throw new Error('Error deleting existing roles');
         }
 
         // Create user roles (including child profile if applicable)
@@ -112,9 +139,7 @@ export const useEventRegistration = (userId: string | undefined) => {
 
         const { error: roleError } = await supabase
           .from('papeis_usuarios')
-          .upsert(userRoles, {
-            onConflict: 'usuario_id,perfil_id,evento_id'
-          });
+          .insert(userRoles);
 
         if (roleError) {
           console.error('Error assigning roles:', roleError);
