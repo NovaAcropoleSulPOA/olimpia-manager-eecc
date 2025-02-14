@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import { supabase } from '@/lib/supabase';
 import { RegisterFormData } from '../types/form-types';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 
 const DEFAULT_EVENT_ID = 'e88fc492-9b35-49f9-a88e-5b7f65d10b2d';
 
@@ -19,18 +19,20 @@ export const useRegisterForm = () => {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
 
-      // Format the birth date first
-      const formattedBirthDate = values.data_nascimento 
-        ? format(values.data_nascimento, 'yyyy-MM-dd')
-        : null;
-
-      if (!formattedBirthDate) {
-        console.error('Birth date is missing or invalid');
-        toast.error('Data de nascimento é obrigatória');
+      // Validate and format birth date
+      if (!values.data_nascimento || !isValid(values.data_nascimento)) {
+        console.error('Invalid birth date:', values.data_nascimento);
+        toast.error('Data de nascimento inválida');
         return;
       }
 
+      // Format birth date to YYYY-MM-DD
+      const formattedBirthDate = format(values.data_nascimento, 'yyyy-MM-dd');
       console.log('Formatted birth date:', formattedBirthDate);
+
+      // Format phone number
+      const cleanedPhoneNumber = values.telefone ? values.telefone.replace(/\D/g, '') : '';
+      const fullPhoneNumber = `${values.ddi}${cleanedPhoneNumber}`;
 
       // Check for existing user
       const { data: existingUser, error: checkError } = await supabase
@@ -50,33 +52,27 @@ export const useRegisterForm = () => {
         return;
       }
 
-      // Format the phone number
-      const cleanedPhoneNumber = values.telefone.replace(/\D/g, '');
-      const fullPhoneNumber = `${values.ddi}${cleanedPhoneNumber}`;
+      // Prepare user metadata
+      const userMetadata = {
+        nome_completo: values.nome,
+        telefone: fullPhoneNumber,
+        filial_id: values.branchId || null,
+        tipo_documento: values.tipo_documento,
+        numero_documento: values.numero_documento ? values.numero_documento.replace(/\D/g, '') : '',
+        genero: values.genero,
+        data_nascimento: formattedBirthDate
+      };
 
-      // Prepare the signup metadata
-      const signupData = {
+      console.log('Prepared user metadata:', { ...userMetadata, numero_documento: '[REDACTED]' });
+
+      // Attempt signup
+      const signUpResult = await signUp({
         email: values.email,
         password: values.password,
         options: {
-          data: {
-            nome_completo: values.nome,
-            telefone: fullPhoneNumber,
-            filial_id: values.branchId || null,
-            tipo_documento: values.tipo_documento,
-            numero_documento: values.numero_documento.replace(/\D/g, ''),
-            genero: values.genero,
-            data_nascimento: formattedBirthDate
-          }
+          data: userMetadata
         }
-      };
-
-      console.log('Attempting signup with data:', {
-        ...signupData,
-        password: '[REDACTED]'
       });
-
-      const signUpResult = await signUp(signupData);
 
       if (signUpResult.error) {
         console.error('Signup error details:', signUpResult.error);
