@@ -43,13 +43,25 @@ export const useRegisterForm = () => {
       // Format the birth date to ISO string for the database
       const formattedBirthDate = values.data_nascimento ? format(values.data_nascimento, 'yyyy-MM-dd') : null;
 
+      if (!formattedBirthDate) {
+        toast.error('Data de nascimento é obrigatória');
+        return;
+      }
+
       const signUpResult = await signUp({
-        ...values,
-        telefone: fullPhoneNumber,
-        tipo_documento: values.tipo_documento,
-        numero_documento: values.numero_documento.replace(/\D/g, ''),
-        genero: values.genero,
-        data_nascimento: formattedBirthDate,
+        email: values.email,
+        password: values.password,
+        options: {
+          data: {
+            nome_completo: values.nome,
+            telefone: fullPhoneNumber,
+            filial_id: values.branchId,
+            tipo_documento: values.tipo_documento,
+            numero_documento: values.numero_documento.replace(/\D/g, ''),
+            genero: values.genero,
+            data_nascimento: formattedBirthDate
+          }
+        }
       });
 
       if (signUpResult.error || !signUpResult.user) {

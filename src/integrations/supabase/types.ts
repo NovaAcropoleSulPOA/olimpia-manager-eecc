@@ -1001,7 +1001,7 @@ export type Database = {
         Row: {
           confirmado: boolean | null
           data_criacao: string | null
-          data_nascimento: string | null
+          data_nascimento: string
           email: string
           filial_id: string | null
           foto_perfil: string | null
@@ -1017,7 +1017,7 @@ export type Database = {
         Insert: {
           confirmado?: boolean | null
           data_criacao?: string | null
-          data_nascimento?: string | null
+          data_nascimento: string
           email: string
           filial_id?: string | null
           foto_perfil?: string | null
@@ -1033,7 +1033,7 @@ export type Database = {
         Update: {
           confirmado?: boolean | null
           data_criacao?: string | null
-          data_nascimento?: string | null
+          data_nascimento?: string
           email?: string
           filial_id?: string | null
           foto_perfil?: string | null
