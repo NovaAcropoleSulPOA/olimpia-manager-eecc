@@ -14,9 +14,15 @@ interface EventSelectionProps {
   selectedEvents: string[];
   onEventSelect: (eventId: string) => void;
   mode: 'registration' | 'login';
+  userProfileType?: string | null;
 }
 
-export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSelectionProps) => {
+export const EventSelection = ({ 
+  selectedEvents, 
+  onEventSelect, 
+  mode,
+  userProfileType
+}: EventSelectionProps) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [selectedRole, setSelectedRole] = useState<PerfilTipo>('PGR');
@@ -79,10 +85,21 @@ export const EventSelection = ({ selectedEvents, onEventSelect, mode }: EventSel
     );
   }
 
+  // Filter events based on user's profile type if they are a child
+  const filteredEvents = events.map(event => ({
+    ...event,
+    modalities: event.modalities?.filter(modality => {
+      if (userProfileType && ['C+7', 'C-6'].includes(userProfileType)) {
+        return modality.faixa_etaria === 'infantil';
+      }
+      return true;
+    })
+  }));
+
   return (
     <div className="space-y-6">
       <EventCarousel
-        events={events}
+        events={filteredEvents}
         selectedRole={selectedRole}
         onRoleChange={setSelectedRole}
         onEventAction={(eventId) => {

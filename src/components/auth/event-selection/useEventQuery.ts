@@ -1,147 +1,46 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { Event } from "@/lib/types/database";
-
-interface TransformedRole {
-  nome: string;
-  codigo: string;
-}
 
 export const useEventQuery = (userId: string | undefined) => {
   return useQuery({
-    queryKey: ['active-events'],
+    queryKey: ['active-events', userId],
     queryFn: async () => {
-      if (!userId) {
-        console.error('No user ID available');
-        return [];
-      }
+      // First get all active events
+      const { data: events, error: eventsError } = await supabase
+        .from('eventos')
+        .select(`
+          *,
+          modalidades (
+            id,
+            nome,
+            categoria,
+            tipo_modalidade,
+            faixa_etaria,
+            limite_vagas,
+            vagas_ocupadas
+          )
+        `)
+        .eq('status_evento', 'ativo');
 
-      const brasiliaDate = new Date().toLocaleString("en-US", {
-        timeZone: "America/Sao_Paulo"
-      });
-      const today = new Date(brasiliaDate).toISOString().split('T')[0];
-      console.log('Current Brasília date:', today);
+      if (eventsError) throw eventsError;
 
-      const userBranch = await supabase
-        .from('usuarios')
-        .select('filial_id')
-        .eq('id', userId)
-        .single();
+      if (!userId) return events || [];
 
-      if (userBranch.error) {
-        console.error('Error fetching user branch:', userBranch.error);
-        throw userBranch.error;
-      }
-
-      const filialId = userBranch.data?.filial_id;
-      if (!filialId) {
-        throw new Error('User branch not found');
-      }
-
-      const registeredEvents = await supabase
+      // Then get user's registered events
+      const { data: registeredEvents, error: registeredError } = await supabase
         .from('inscricoes_eventos')
         .select('evento_id')
         .eq('usuario_id', userId);
 
-      if (registeredEvents.error) {
-        console.error('Error fetching registered events:', registeredEvents.error);
-        throw registeredEvents.error;
-      }
+      if (registeredError) throw registeredError;
 
-      const registeredEventIds = registeredEvents.data.map(reg => reg.evento_id);
-      console.log('User registered events:', registeredEventIds);
-
-      let query = supabase
-        .from('eventos')
-        .select(`
-          *,
-          eventos_filiais!inner (filial_id)
-        `)
-        .eq('eventos_filiais.filial_id', filialId);
-
-      // Add date range filter
-      query = query.or(
-        `data_inicio_inscricao.lte.${today},and(data_fim_inscricao.gte.${today})`
-      );
-
-      // If there are registered events, include them in the query
-      if (registeredEventIds.length > 0) {
-        query = query.or(`id.in.(${registeredEventIds.join(',')})`);
-      }
-
-      const events = await query;
-
-      if (events.error) {
-        console.error('Error fetching events:', events.error);
-        throw events.error;
-      }
-
-      // Fetch admin status for each event
-      const adminStatusPromises = events.data?.map(async (event) => {
-        const { data: isAdmin } = await supabase.rpc('is_event_admin', {
-          user_id: userId,
-          event_id: event.id
-        });
-        return { eventId: event.id, isAdmin: isAdmin || false };
-      }) || [];
-
-      const adminStatuses = await Promise.all(adminStatusPromises);
-      const adminStatusMap = Object.fromEntries(
-        adminStatuses.map(({ eventId, isAdmin }) => [eventId, isAdmin])
-      );
-
-      const userRolesPromises = registeredEventIds.map(async (eventId) => {
-        const { data: roles, error } = await supabase
-          .from('papeis_usuarios')
-          .select(`
-            id,
-            perfil_id,
-            perfis (
-              nome,
-              perfis_tipo:perfil_tipo_id (
-                codigo
-              )
-            )
-          `)
-          .eq('usuario_id', userId)
-          .eq('evento_id', eventId);
-
-        if (error) {
-          console.error('Error fetching user roles:', error);
-          return { eventId, roles: [] };
-        }
-
-        const transformedRoles: TransformedRole[] = (roles || []).map((role: any) => ({
-          nome: role.perfis.nome,
-          codigo: role.perfis.perfis_tipo?.codigo || ''
-        }));
-
-        return { eventId, roles: transformedRoles };
-      });
-
-      const userRoles = await Promise.all(userRolesPromises);
-      const userRolesMap = Object.fromEntries(
-        userRoles.map(({ eventId, roles }) => [eventId, roles])
-      );
-      
-      const eventsWithStatus = events.data?.map(event => {
-        const startDate = new Date(event.data_inicio_inscricao);
-        const endDate = new Date(event.data_fim_inscricao);
-        const currentDate = new Date(brasiliaDate);
-        
-        return {
-          ...event,
-          isRegistered: registeredEventIds.includes(event.id),
-          isAdmin: adminStatusMap[event.id] || false,
-          roles: userRolesMap[event.id] || [],
-          isOpen: startDate <= currentDate && currentDate <= endDate
-        };
-      });
-      
-      console.log('Final events with status:', eventsWithStatus);
-      return eventsWithStatus || [];
+      // Mark events as registered or not
+      return events?.map(event => ({
+        ...event,
+        isRegistered: registeredEvents?.some(reg => reg.evento_id === event.id) || false
+      })) || [];
     },
-    enabled: !!userId,
+    enabled: true
   });
 };

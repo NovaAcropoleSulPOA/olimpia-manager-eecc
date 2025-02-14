@@ -1384,6 +1384,13 @@ export type Database = {
       }
     }
     Functions: {
+      assign_age_based_profile: {
+        Args: {
+          p_user_id: string
+          p_event_id: string
+        }
+        Returns: undefined
+      }
       assign_user_profiles:
         | {
             Args: {
