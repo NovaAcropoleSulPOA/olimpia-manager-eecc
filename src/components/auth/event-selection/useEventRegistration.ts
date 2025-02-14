@@ -2,6 +2,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { differenceInYears } from "date-fns";
 
 interface EventRegistrationParams {
   eventId: string;
@@ -16,104 +17,96 @@ export const useEventRegistration = (userId: string | undefined) => {
       }
 
       try {
-        // First, check if user is already registered for this event
-        const { data: existingRegistration, error: checkError } = await supabase
-          .from('inscricoes_eventos')
-          .select('id')
-          .eq('usuario_id', userId)
-          .eq('evento_id', eventId)
-          .maybeSingle();
+        // Get user's age
+        const { data: userData, error: userError } = await supabase
+          .from('usuarios')
+          .select('data_nascimento')
+          .eq('id', userId)
+          .single();
 
-        if (checkError) {
-          console.error('Error checking existing registration:', checkError);
-          throw new Error('Error checking existing registration');
+        if (userError) {
+          console.error('Error fetching user data:', userError);
+          throw new Error('Error fetching user data');
         }
 
-        if (existingRegistration) {
-          console.log('User already registered for this event');
-          return { success: true }; // Return success since user is already registered
-        }
+        const age = userData.data_nascimento 
+          ? differenceInYears(new Date(), new Date(userData.data_nascimento))
+          : null;
 
-        // First, get the profile type ID
-        const { data: profileType, error: profileTypeError } = await supabase
+        const isMinor = age !== null && age < 13;
+        const childProfileCode = age !== null && age <= 6 ? 'C-6' : 'C+7';
+
+        // Get profile types
+        const { data: profileTypes, error: profileTypesError } = await supabase
           .from('perfis_tipo')
-          .select('id')
-          .eq('codigo', selectedRole)
-          .maybeSingle();
+          .select('id, codigo')
+          .in('codigo', isMinor ? [selectedRole, childProfileCode] : [selectedRole]);
 
-        if (profileTypeError) {
-          console.error('Error fetching profile type:', profileTypeError);
-          throw new Error('Error fetching profile type');
+        if (profileTypesError) {
+          console.error('Error fetching profile types:', profileTypesError);
+          throw new Error('Error fetching profile types');
         }
 
-        if (!profileType) {
-          throw new Error('Profile type not found');
-        }
-
-        // Then, get the profile ID
-        const { data: profile, error: profileError } = await supabase
+        // Get profiles for each profile type
+        const { data: profiles, error: profilesError } = await supabase
           .from('perfis')
-          .select('id')
+          .select('id, perfil_tipo_id')
           .eq('evento_id', eventId)
-          .eq('perfil_tipo_id', profileType.id)
-          .maybeSingle();
+          .in('perfil_tipo_id', profileTypes.map(pt => pt.id));
 
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-          throw new Error('Error fetching profile');
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError);
+          throw new Error('Error fetching profiles');
         }
 
-        if (!profile) {
-          console.error('No profile found for the given event and profile type');
-          throw new Error('Profile not found for this event');
-        }
-
-        // Get registration fee ID
-        const { data: feeData, error: feeError } = await supabase
+        // Get registration fees for each profile
+        const { data: fees, error: feesError } = await supabase
           .from('taxas_inscricao')
-          .select('id, valor')
+          .select('id, perfil_id')
           .eq('evento_id', eventId)
-          .eq('perfil_id', profile.id)
-          .maybeSingle();
+          .in('perfil_id', profiles.map(p => p.id));
 
-        if (feeError) {
-          console.error('Error fetching registration fee:', feeError);
-          throw new Error('Error fetching registration fee');
+        if (feesError) {
+          console.error('Error fetching registration fees:', feesError);
+          throw new Error('Error fetching registration fees');
         }
 
-        if (!feeData) {
-          throw new Error('Registration fee not found for this event');
-        }
+        // Prepare registration records
+        const registrations = profiles.map(profile => ({
+          usuario_id: userId,
+          evento_id: eventId,
+          taxa_inscricao_id: fees.find(f => f.perfil_id === profile.id)?.id,
+          selected_role: profileTypes.find(pt => pt.id === profile.perfil_tipo_id)?.codigo
+        })).filter(reg => reg.taxa_inscricao_id); // Only include registrations with valid fees
 
-        // Create event registration
+        // Create event registrations
         const { error: registrationError } = await supabase
           .from('inscricoes_eventos')
-          .insert([{
-            usuario_id: userId,
-            evento_id: eventId,
-            taxa_inscricao_id: feeData.id,
-            selected_role: selectedRole
-          }]);
+          .upsert(registrations, {
+            onConflict: 'usuario_id,evento_id,selected_role'
+          });
 
         if (registrationError) {
-          console.error('Error creating registration:', registrationError);
-          throw new Error('Error creating registration');
+          console.error('Error creating registrations:', registrationError);
+          throw new Error('Error creating registrations');
         }
 
-        // Create user role
+        // Create user roles
+        const userRoles = profiles.map(profile => ({
+          usuario_id: userId,
+          perfil_id: profile.id,
+          evento_id: eventId
+        }));
+
         const { error: roleError } = await supabase
           .from('papeis_usuarios')
-          .upsert([{
-            usuario_id: userId,
-            perfil_id: profile.id,
-            evento_id: eventId
-          }], {
+          .upsert(userRoles, {
             onConflict: 'usuario_id,perfil_id,evento_id'
           });
 
         if (roleError) {
-          console.error('Error assigning role:', roleError);
-          throw new Error('Error assigning role');
+          console.error('Error assigning roles:', roleError);
+          throw new Error('Error assigning roles');
         }
 
         return { success: true };
