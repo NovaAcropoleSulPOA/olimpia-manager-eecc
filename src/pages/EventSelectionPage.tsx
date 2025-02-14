@@ -18,7 +18,7 @@ interface Perfil {
   perfis_tipo: PerfilTipo;
 }
 
-interface UserProfileResponse {
+interface PapeisUsuarios {
   perfis: Perfil;
 }
 
@@ -56,13 +56,14 @@ export default function EventSelectionPage() {
 
       console.log('Received profile data:', data);
 
-      if (!data?.perfis) {
-        console.log('No profile found for user');
+      const profileData = data as PapeisUsuarios;
+      if (!profileData?.perfis?.perfis_tipo?.codigo) {
+        console.log('No profile type code found for user');
         return null;
       }
 
-      // Return just the profile type code
-      return data.perfis.perfis_tipo.codigo;
+      // Return the profile type code
+      return profileData.perfis.perfis_tipo.codigo;
     },
     enabled: !!user?.id
   });
