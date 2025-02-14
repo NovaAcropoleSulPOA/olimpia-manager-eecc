@@ -265,13 +265,6 @@ export type Database = {
             referencedRelation: "vw_analytics_inscricoes"
             referencedColumns: ["filial_id"]
           },
-          {
-            foreignKeyName: "eventos_filiais_filial_id_fkey"
-            columns: ["filial_id"]
-            isOneToOne: false
-            referencedRelation: "vw_inscricoes_atletas"
-            referencedColumns: ["filial_id"]
-          },
         ]
       }
       filiais: {
@@ -935,13 +928,6 @@ export type Database = {
             referencedRelation: "vw_analytics_inscricoes"
             referencedColumns: ["filial_id"]
           },
-          {
-            foreignKeyName: "ranking_filiais_filial_id_fkey"
-            columns: ["filial_id"]
-            isOneToOne: false
-            referencedRelation: "vw_inscricoes_atletas"
-            referencedColumns: ["filial_id"]
-          },
         ]
       }
       taxas_inscricao: {
@@ -1083,13 +1069,6 @@ export type Database = {
             referencedColumns: ["filial_id"]
           },
           {
-            foreignKeyName: "usuarios_filial_id_fkey"
-            columns: ["filial_id"]
-            isOneToOne: false
-            referencedRelation: "vw_inscricoes_atletas"
-            referencedColumns: ["filial_id"]
-          },
-          {
             foreignKeyName: "usuarios_registrador_fkey"
             columns: ["usuario_registrador_id"]
             isOneToOne: false
@@ -1163,14 +1142,11 @@ export type Database = {
       }
       vw_analytics_inscricoes: {
         Row: {
+          evento_id: string | null
           filial: string | null
           filial_id: string | null
           inscritos_por_status_pagamento: Json | null
-          media_pontuacao_por_modalidade: Json | null
           modalidades_populares: Json | null
-          top_modalidades_feminino: Json | null
-          top_modalidades_masculino: Json | null
-          top_modalidades_misto: Json | null
           total_atletas_pendentes_pagamento: number | null
           total_inscritos: number | null
           valor_total_pago: number | null
@@ -1182,6 +1158,7 @@ export type Database = {
         Row: {
           atleta_id: string | null
           email: string | null
+          evento_id: string | null
           filial_id: string | null
           filial_nome: string | null
           genero: string | null
@@ -1198,6 +1175,13 @@ export type Database = {
           tipo_documento: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "inscricoes_modalidades_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "usuarios_filial_id_fkey"
             columns: ["filial_id"]
@@ -1217,13 +1201,6 @@ export type Database = {
             columns: ["filial_id"]
             isOneToOne: false
             referencedRelation: "vw_analytics_inscricoes"
-            referencedColumns: ["filial_id"]
-          },
-          {
-            foreignKeyName: "usuarios_filial_id_fkey"
-            columns: ["filial_id"]
-            isOneToOne: false
-            referencedRelation: "vw_inscricoes_atletas"
             referencedColumns: ["filial_id"]
           },
         ]
@@ -1270,6 +1247,7 @@ export type Database = {
         Row: {
           atleta_id: string | null
           email: string | null
+          evento_id: string | null
           filial: string | null
           filial_id: string | null
           genero: string | null
@@ -1287,6 +1265,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "inscricoes_modalidades_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "inscricoes_modalidades_modalidade_id_fkey"
             columns: ["modalidade_id"]
             isOneToOne: false
@@ -1299,6 +1284,27 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_pontuacoes_gerais_atletas"
             referencedColumns: ["modalidade_id"]
+          },
+          {
+            foreignKeyName: "usuarios_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "filiais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "view_perfil_atleta"
+            referencedColumns: ["filial_id"]
+          },
+          {
+            foreignKeyName: "usuarios_filial_id_fkey"
+            columns: ["filial_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["filial_id"]
           },
         ]
       }
