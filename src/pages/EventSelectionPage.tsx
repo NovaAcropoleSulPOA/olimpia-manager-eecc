@@ -62,6 +62,7 @@ export default function EventSelectionPage() {
 
       // Return the first profile type code found
       const firstProfile = data[0]?.perfis?.perfis_tipo?.codigo || null;
+      console.log('First profile:', firstProfile);
       return firstProfile;
     },
     enabled: !!user?.id
