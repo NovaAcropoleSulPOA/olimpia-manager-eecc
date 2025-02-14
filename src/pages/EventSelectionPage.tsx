@@ -12,12 +12,14 @@ interface PerfilTipo {
   codigo: string;
 }
 
-interface PapelUsuario {
-  perfis: {
-    id: number;
-    perfil_tipo_id: string;
-    perfis_tipo: PerfilTipo;
-  }
+interface Perfil {
+  id: number;
+  perfil_tipo_id: string;
+  perfis_tipo: PerfilTipo;
+}
+
+interface UserProfileResponse {
+  perfis: Perfil;
 }
 
 export default function EventSelectionPage() {
@@ -44,7 +46,8 @@ export default function EventSelectionPage() {
             )
           )
         `)
-        .eq('usuario_id', user.id);
+        .eq('usuario_id', user.id)
+        .single();
 
       if (error) {
         console.error('Error fetching user profile type:', error);
@@ -53,28 +56,13 @@ export default function EventSelectionPage() {
 
       console.log('Received profile data:', data);
 
-      if (!data || data.length === 0) {
+      if (!data?.perfis) {
         console.log('No profile found for user');
         return null;
       }
 
-      // Cast data to the correct type
-      const userProfiles = data as unknown as PapelUsuario[];
-      console.log('Parsed profiles:', userProfiles);
-
-      // Find child profile if it exists
-      const childProfile = userProfiles.find(profile => {
-        const codigo = profile.perfis?.perfis_tipo?.codigo;
-        return codigo === 'C+7' || codigo === 'C-6';
-      });
-
-      // Return child profile code if found, otherwise return the first profile code
-      const profileCode = childProfile?.perfis?.perfis_tipo?.codigo || 
-                         userProfiles[0]?.perfis?.perfis_tipo?.codigo || 
-                         null;
-
-      console.log('Selected profile code:', profileCode);
-      return profileCode;
+      // Return just the profile type code
+      return data.perfis.perfis_tipo.codigo;
     },
     enabled: !!user?.id
   });

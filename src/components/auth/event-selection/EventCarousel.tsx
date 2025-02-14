@@ -9,26 +9,13 @@ import {
 import { Event } from "@/lib/types/database";
 import { EventCard } from "./EventCard";
 
-interface Modality {
-  id: number;
-  nome: string;
-  categoria: string;
-  tipo_modalidade: string;
-  faixa_etaria: string;
-  limite_vagas: number;
-  vagas_ocupadas: number;
-}
-
-interface EventWithExtras extends Event {
-  modalidades: Modality[];
-  isRegistered: boolean;
-  roles: Array<{ nome: string }>;
-  isOpen: boolean;
-  isAdmin: boolean;
-}
-
 interface EventCarouselProps {
-  events: EventWithExtras[];
+  events: Array<Event & {
+    isRegistered: boolean;
+    roles: Array<{ nome: string; codigo: string }>;
+    isOpen: boolean;
+    isAdmin: boolean;
+  }>;
   selectedRole: 'ATL' | 'PGR';
   onRoleChange: (value: 'ATL' | 'PGR') => void;
   onEventAction: (eventId: string) => void;
