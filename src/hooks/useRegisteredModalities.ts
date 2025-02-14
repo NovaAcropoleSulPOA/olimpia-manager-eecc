@@ -15,6 +15,7 @@ export const useRegisteredModalities = (userId: string | undefined, eventId: str
         .select(`
           id,
           status,
+          data_inscricao,
           modalidade:modalidades!inner (
             id,
             nome,
@@ -33,6 +34,7 @@ export const useRegisteredModalities = (userId: string | undefined, eventId: str
       const transformedData = (data || []).map((item: any) => ({
         id: item.id,
         status: item.status,
+        data_inscricao: item.data_inscricao,
         modalidade: {
           id: item.modalidade.id,
           nome: item.modalidade.nome,

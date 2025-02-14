@@ -13,6 +13,7 @@ export interface Modality {
 export interface RegisteredModality {
   id: number;
   status: string;
+  data_inscricao: string | null;
   modalidade: {
     id: number;
     nome: string;
