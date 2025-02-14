@@ -16,6 +16,24 @@ export const useEventRegistration = (userId: string | undefined) => {
       }
 
       try {
+        // First, check if user is already registered for this event
+        const { data: existingRegistration, error: checkError } = await supabase
+          .from('inscricoes_eventos')
+          .select('id')
+          .eq('usuario_id', userId)
+          .eq('evento_id', eventId)
+          .maybeSingle();
+
+        if (checkError) {
+          console.error('Error checking existing registration:', checkError);
+          throw new Error('Error checking existing registration');
+        }
+
+        if (existingRegistration) {
+          console.log('User already registered for this event');
+          return { success: true }; // Return success since user is already registered
+        }
+
         // First, get the profile type ID
         const { data: profileType, error: profileTypeError } = await supabase
           .from('perfis_tipo')
@@ -85,11 +103,13 @@ export const useEventRegistration = (userId: string | undefined) => {
         // Create user role
         const { error: roleError } = await supabase
           .from('papeis_usuarios')
-          .insert([{
+          .upsert([{
             usuario_id: userId,
             perfil_id: profile.id,
             evento_id: eventId
-          }]);
+          }], {
+            onConflict: 'usuario_id,perfil_id,evento_id'
+          });
 
         if (roleError) {
           console.error('Error assigning role:', roleError);
