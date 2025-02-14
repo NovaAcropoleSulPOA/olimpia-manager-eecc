@@ -359,10 +359,17 @@ export const fetchUserProfiles = async (eventId: string | null) => {
 };
 
 export const updateUserProfiles = async (userId: string, profileIds: number[]): Promise<void> => {
+  const currentEventId = localStorage.getItem('currentEventId');
+  
+  if (!currentEventId) {
+    throw new Error('No event selected');
+  }
+
   const { error } = await supabase
     .rpc('assign_user_profiles', {
       p_user_id: userId,
-      p_profile_ids: profileIds
+      p_profile_ids: profileIds,
+      p_event_id: currentEventId
     });
 
   if (error) throw error;
