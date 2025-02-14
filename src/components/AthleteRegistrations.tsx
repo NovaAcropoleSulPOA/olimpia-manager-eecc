@@ -22,7 +22,7 @@ export default function AthleteRegistrations() {
   const [isEnrollmentsOpen, setIsEnrollmentsOpen] = React.useState(true);
   const currentEventId = localStorage.getItem('currentEventId');
 
-  const { data: athleteProfile } = useAthleteProfile(user?.id, currentEventId);
+  const { data: athleteProfile, isLoading: profileLoading } = useAthleteProfile(user?.id, currentEventId);
   const { data: registeredModalities, isLoading: registrationsLoading } = useRegisteredModalities(user?.id, currentEventId);
   const { withdrawMutation, registerMutation } = useModalityMutations(user?.id, currentEventId);
 
@@ -42,7 +42,7 @@ export default function AthleteRegistrations() {
     enabled: !!currentEventId,
   });
 
-  if (modalitiesLoading || registrationsLoading) {
+  if (modalitiesLoading || registrationsLoading || profileLoading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <Loader2 className="h-8 w-8 animate-spin text-olimpics-green-primary" />
@@ -100,6 +100,7 @@ export default function AthleteRegistrations() {
                   groupedModalities={groupedModalities || {}}
                   registeredModalities={registeredModalities || []}
                   registerMutation={registerMutation}
+                  userGender={athleteProfile?.genero?.toLowerCase() || ''}
                 />
               </CardContent>
             </CollapsibleContent>

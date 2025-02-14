@@ -23,12 +23,14 @@ interface AvailableModalitiesProps {
   groupedModalities: Record<string, Modality[]>;
   registeredModalities: RegisteredModality[];
   registerMutation: UseMutationResult<void, Error, number, unknown>;
+  userGender: string;
 }
 
 export const AvailableModalities = ({
   groupedModalities,
   registeredModalities,
   registerMutation,
+  userGender,
 }: AvailableModalitiesProps) => {
   // Improved function to check if a modality is registered
   const isModalityRegistered = (modalityId: number): boolean => {
@@ -37,12 +39,30 @@ export const AvailableModalities = ({
     );
   };
 
+  // Check if modality category matches user gender
+  const isModalityAllowedForGender = (modalityCategory: string): boolean => {
+    const category = modalityCategory?.toLowerCase() || '';
+    const gender = userGender?.toLowerCase() || '';
+
+    if (!category || !gender) return false;
+
+    if (gender === 'masculino') {
+      return category === 'masculino' || category === 'misto';
+    } else if (gender === 'feminino') {
+      return category === 'feminino' || category === 'misto';
+    }
+
+    return false;
+  };
+
   // Filter and process modalities
   const processedGroups = Object.entries(groupedModalities).reduce<Record<string, Modality[]>>(
     (acc, [grupo, modalities]) => {
-      // Filter out modalities that are already registered
+      // Filter out modalities that are already registered or don't match gender
       const availableModalities = modalities.filter(
-        modality => !isModalityRegistered(modality.id)
+        modality => 
+          !isModalityRegistered(modality.id) && 
+          isModalityAllowedForGender(modality.categoria || '')
       );
 
       // Only include groups that have available modalities
