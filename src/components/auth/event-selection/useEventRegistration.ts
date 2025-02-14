@@ -22,104 +22,21 @@ export const useEventRegistration = (userId: string | undefined) => {
 
       console.log('Starting event registration process for event:', eventId, 'role:', selectedRole);
 
-      // First, get the perfil_tipo_id for the selected role
-      const { data: perfilTipo, error: perfilTipoError } = await supabase
-        .from('perfis_tipo')
-        .select('id')
-        .eq('codigo', selectedRole)
-        .maybeSingle();
-
-      if (perfilTipoError) {
-        console.error('Error fetching perfil_tipo:', perfilTipoError);
-        throw new Error('Erro ao buscar tipo de perfil');
-      }
-
-      if (!perfilTipo) {
-        console.error('No perfil_tipo found for role:', selectedRole);
-        throw new Error('Tipo de perfil não encontrado');
-      }
-
-      // Then get the profile ID for this event and profile type
-      const { data: profile, error: profileError } = await supabase
-        .from('perfis')
-        .select('id')
-        .eq('evento_id', eventId)
-        .eq('perfil_tipo_id', perfilTipo.id)
-        .maybeSingle();
+      // Call the assign_age_based_profile function
+      const { error: profileError } = await supabase
+        .rpc('assign_age_based_profile', {
+          p_user_id: userId,
+          p_event_id: eventId
+        });
 
       if (profileError) {
-        console.error('Error fetching profile:', profileError);
-        throw new Error('Erro ao buscar perfil');
+        console.error('Error assigning age-based profile:', profileError);
+        throw new Error('Erro ao atribuir perfil baseado na idade');
       }
 
-      if (!profile) {
-        console.error('No profile found for event:', eventId, 'and perfil_tipo:', perfilTipo.id);
-        throw new Error('Perfil não encontrado para este evento');
-      }
-
-      // Get the registration fee for this profile
-      const { data: registrationFee, error: feeError } = await supabase
-        .from('taxas_inscricao')
-        .select('id, valor')
-        .eq('evento_id', eventId)
-        .eq('perfil_id', profile.id)
-        .maybeSingle();
-
-      if (feeError) {
-        console.error('Error fetching registration fee:', feeError);
-        throw new Error('Erro ao buscar taxa de inscrição');
-      }
-
-      if (!registrationFee) {
-        console.error('No registration fee found for profile:', profile.id);
-        throw new Error('Taxa de inscrição não encontrada');
-      }
-
-      console.log('Using registration fee:', registrationFee);
-
-      // Start a transaction by creating the event registration
-      const { data: registration, error: registrationError } = await supabase
-        .from('inscricoes_eventos')
-        .insert([
-          {
-            evento_id: eventId,
-            usuario_id: userId,
-            selected_role: selectedRole.toString(), // Convert enum to string
-            taxa_inscricao_id: registrationFee.id
-          }
-        ])
-        .select()
-        .maybeSingle();
-
-      if (registrationError) {
-        console.error('Error registering for event:', registrationError);
-        throw registrationError;
-      }
-
-      if (!registration) {
-        throw new Error('Erro ao criar inscrição no evento');
-      }
-
-      // Create the user role record
-      const { error: roleError } = await supabase
-        .from('papeis_usuarios')
-        .insert([
-          {
-            usuario_id: userId,
-            perfil_id: profile.id,
-            evento_id: eventId
-          }
-        ]);
-
-      if (roleError) {
-        console.error('Error creating user role:', roleError);
-        throw roleError;
-      }
-
-      // Store the current event ID in localStorage
-      localStorage.setItem('currentEventId', eventId);
-
-      return registration;
+      // The rest of the event registration process will be handled by the database trigger
+      // which will use the newly created profile
+      return { success: true };
     },
     onSuccess: () => {
       toast.success('Inscrição realizada com sucesso!');

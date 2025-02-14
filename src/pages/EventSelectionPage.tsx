@@ -9,8 +9,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface UserProfileResponse {
   perfis: {
+    id: number;
     perfil_tipo_id: string;
     perfis_tipo: {
+      id: string;
       codigo: string;
     };
   };
@@ -26,12 +28,16 @@ export default function EventSelectionPage() {
     queryFn: async () => {
       if (!user?.id) return null;
 
+      console.log('Fetching profile type for user:', user.id);
+
       const { data, error } = await supabase
         .from('papeis_usuarios')
         .select(`
           perfis:perfil_id (
+            id,
             perfil_tipo_id,
             perfis_tipo:perfil_tipo_id (
+              id,
               codigo
             )
           )
@@ -44,8 +50,26 @@ export default function EventSelectionPage() {
         throw error;
       }
 
-      // Handle the nested data structure correctly
-      return (data as UserProfileResponse)?.perfis?.perfis_tipo?.codigo || null;
+      console.log('Received profile data:', data);
+
+      if (!data?.perfis) {
+        console.log('No profile found for user');
+        return null;
+      }
+
+      // Ensure we're dealing with the correct data structure
+      const typedData = {
+        perfis: {
+          id: data.perfis.id,
+          perfil_tipo_id: data.perfis.perfil_tipo_id,
+          perfis_tipo: {
+            id: data.perfis.perfis_tipo.id,
+            codigo: data.perfis.perfis_tipo.codigo
+          }
+        }
+      } as UserProfileResponse;
+
+      return typedData.perfis.perfis_tipo.codigo;
     },
     enabled: !!user?.id
   });
