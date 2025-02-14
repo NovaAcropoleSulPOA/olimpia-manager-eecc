@@ -21,7 +21,7 @@ export const useRegisterForm = () => {
 
       // Format the birth date first
       const formattedBirthDate = values.data_nascimento 
-        ? format(new Date(values.data_nascimento), 'yyyy-MM-dd')
+        ? format(values.data_nascimento, 'yyyy-MM-dd')
         : null;
 
       if (!formattedBirthDate) {
