@@ -44,22 +44,6 @@ interface UserProfile {
   };
 }
 
-interface DatabaseUserProfile {
-  perfil_id: number;
-  perfis: {
-    id: number;
-    nome: string;
-  } | null;
-}
-
-interface SupabaseResponse {
-  perfil_id: number;
-  perfis: {
-    id: number;
-    nome: string;
-  } | null;
-}
-
 const EXCLUSIVE_PROFILES = ['Atleta', 'Público Geral'];
 
 export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalProps) => {
@@ -77,6 +61,7 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
   const { data: availableProfiles, isLoading } = useQuery<Profile[]>({
     queryKey: ['profiles', currentEventId],
     queryFn: async () => {
+      console.log('Fetching available profiles for event:', currentEventId);
       const { data, error } = await supabase
         .from('perfis')
         .select('*')
@@ -84,16 +69,18 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
         .order('nome');
       
       if (error) throw error;
+      console.log('Available profiles:', data);
       return data || [];
     },
     enabled: open && !!currentEventId
   });
 
-  const { data: userProfiles = [] } = useQuery<UserProfile[]>({
+  const { data: userProfiles = [], refetch: refetchUserProfiles } = useQuery<UserProfile[]>({
     queryKey: ['user-profiles', user?.id, currentEventId],
     queryFn: async () => {
       if (!user?.id || !currentEventId) return [];
       
+      console.log('Fetching user profiles for:', { userId: user.id, eventId: currentEventId });
       const { data, error } = await supabase
         .from('papeis_usuarios')
         .select('perfil_id, perfis:perfil_id(id, nome)')
@@ -103,8 +90,8 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
       if (error) throw error;
       if (!data) return [];
 
-      const rawData = data as unknown;
-      const typedData = rawData as Array<{
+      console.log('User profiles data:', data);
+      const typedData = data as Array<{
         perfil_id: number;
         perfis: { id: number; nome: string } | null;
       }>;
@@ -166,8 +153,13 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
         pendingSwap.oldProfileId
       );
 
-      await queryClient.invalidateQueries({ queryKey: ['user-profiles'] });
-      await queryClient.invalidateQueries({ queryKey: ['payment-info'] });
+      // Force refetch of relevant queries
+      await Promise.all([
+        refetchUserProfiles(),
+        queryClient.invalidateQueries({ queryKey: ['user-profiles'] }),
+        queryClient.invalidateQueries({ queryKey: ['payment-info'] }),
+        queryClient.invalidateQueries({ queryKey: ['active-events'] })
+      ]);
       
       toast.success("Perfil trocado com sucesso!");
       onOpenChange(false);
