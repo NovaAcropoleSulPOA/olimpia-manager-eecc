@@ -15,11 +15,11 @@ interface PerfilTipo {
 interface Perfil {
   id: number;
   perfil_tipo_id: string;
-  perfis_tipo: PerfilTipo;
+  perfis_tipo: PerfilTipo[];
 }
 
 interface PapeisUsuarios {
-  perfis: Perfil;
+  perfis: Perfil[];
 }
 
 export default function EventSelectionPage() {
@@ -57,13 +57,15 @@ export default function EventSelectionPage() {
       console.log('Received profile data:', data);
 
       const profileData = data as PapeisUsuarios;
-      if (!profileData?.perfis?.perfis_tipo?.codigo) {
+      
+      // Check if we have any profiles and profile types
+      if (!profileData?.perfis?.length || !profileData.perfis[0]?.perfis_tipo?.length) {
         console.log('No profile type code found for user');
         return null;
       }
 
-      // Return the profile type code
-      return profileData.perfis.perfis_tipo.codigo;
+      // Return the first profile type code
+      return profileData.perfis[0].perfis_tipo[0].codigo;
     },
     enabled: !!user?.id
   });
