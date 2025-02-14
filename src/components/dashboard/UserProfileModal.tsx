@@ -69,24 +69,32 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
         .order('nome');
       
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: open && !!currentEventId
   });
 
-  const { data: userProfiles } = useQuery<UserProfile[]>({
+  const { data: userProfiles = [] } = useQuery<UserProfile[]>({
     queryKey: ['user-profiles', user?.id, currentEventId],
     queryFn: async () => {
       if (!user?.id || !currentEventId) return [];
       
       const { data, error } = await supabase
         .from('papeis_usuarios')
-        .select('perfil_id, perfis(id, nome)')
+        .select('perfil_id, perfis:perfil_id(id, nome)')
         .eq('usuario_id', user.id)
         .eq('evento_id', currentEventId);
         
       if (error) throw error;
-      return data;
+      if (!data) return [];
+
+      return data.map(item => ({
+        perfil_id: item.perfil_id,
+        perfis: {
+          id: item.perfis.id,
+          nome: item.perfis.nome
+        }
+      }));
     },
     enabled: open && !!user?.id && !!currentEventId
   });
@@ -99,7 +107,7 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
 
   const handleProfileToggle = async (profileId: number) => {
     const profileToToggle = availableProfiles?.find(p => p.id === profileId);
-    const currentExclusiveProfile = userProfiles?.find(p => 
+    const currentExclusiveProfile = userProfiles.find(p => 
       EXCLUSIVE_PROFILES.includes(p.perfis.nome)
     );
 
