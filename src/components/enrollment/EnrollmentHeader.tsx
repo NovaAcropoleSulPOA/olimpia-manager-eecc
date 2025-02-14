@@ -21,7 +21,7 @@ export const EnrollmentHeader = ({
       </CardTitle>
     </div>
     <CollapsibleTrigger asChild>
-      <Button variant="ghost" size="sm" className="w-9 p-0 text-green-950 bg-green-900 hover:bg-green-800">
+      <Button variant="ghost" size="sm" className="absolute top-2 right-2 gap-2 bg-olimpics-green-primary text-white hover:bg-olimpics-green-secondary transition-colors font-medium">
         {isOpen ? <ChevronUp className="h-4 w-4 text-olimpics-text" /> : <ChevronDown className="h-4 w-4 text-olimpics-text" />}
       </Button>
     </CollapsibleTrigger>
