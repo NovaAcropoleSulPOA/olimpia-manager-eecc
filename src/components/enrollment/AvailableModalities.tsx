@@ -39,6 +39,13 @@ export const AvailableModalities = ({
   registeredModalities,
   registerMutation,
 }: AvailableModalitiesProps) => {
+  // Function to check if a modality is already registered
+  const isModalityRegistered = (modalityId: number): boolean => {
+    return registeredModalities.some(
+      registration => registration.modalidade.id === modalityId
+    );
+  };
+
   return (
     <div className="mt-8 space-y-4">
       <h2 className="text-xl font-bold text-olimpics-text">
@@ -46,12 +53,12 @@ export const AvailableModalities = ({
       </h2>
       <Accordion type="single" collapsible className="space-y-4">
         {groupedModalities && Object.entries(groupedModalities).map(([grupo, modalities]) => {
+          // Filter out already registered modalities before checking if there are available ones
           const availableModalities = modalities.filter(
-            modality => !registeredModalities?.some(
-              reg => reg.modalidade_id === modality.id
-            )
+            modality => !isModalityRegistered(modality.id)
           );
 
+          // Don't show the group if there are no available modalities
           if (availableModalities.length === 0) return null;
 
           return (
