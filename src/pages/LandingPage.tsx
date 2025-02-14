@@ -43,14 +43,14 @@ const socialLinks = [
 const LandingPage = () => {
   const handleLocationClick = () => {
     const address = "Av. Ipiranga, 6690 - Partenon, Porto Alegre, RS - Brasil";
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+    const mapsUrl = `https://www.google.com.br/maps/place/Parque+Esportivo+PUCRS/@-30.055444,-51.174819,17z/data=!3m1!4b1!4m5!3m4!1s0x951977fb8c202e69:0xb8d86f72e1ffeea!8m2!3d-30.055444!4d-51.172625`;
     window.open(mapsUrl, '_blank');
   };
 
   const handleCalendarSync = () => {
-    const startDate = '2025-04-11';
+    const startDate = '2025-04-12';
     const endDate = '2025-04-13';
-    const title = 'Olimpíadas Estaduais da Nova Acrópole 2025 - Porto Alegre';
+    const title = 'Olimpíadas Estaduais da Escola do Esporte com Coração - 2025 - Porto Alegre';
   
     const latitude = -30.0553489;
     const longitude = -51.1723835;
@@ -168,7 +168,7 @@ const LandingPage = () => {
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-olimpics-green-primary mb-2">Data</h3>
-                      <p className="text-olimpics-text text-lg mb-2">11, 12 e 13 de Abril</p>
+                      <p className="text-olimpics-text text-lg mb-2">12 e 13 de Abril</p>
                       <p className="text-sm text-gray-600 italic">
                         Clique para adicionar ao calendário
                       </p>
