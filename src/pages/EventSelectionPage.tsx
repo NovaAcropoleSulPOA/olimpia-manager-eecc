@@ -7,15 +7,19 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 
+interface PerfilTipo {
+  id: string;
+  codigo: string;
+}
+
+interface Perfil {
+  id: number;
+  perfil_tipo_id: string;
+  perfis_tipo: PerfilTipo;
+}
+
 interface UserProfileResponse {
-  perfis: {
-    id: number;
-    perfil_tipo_id: string;
-    perfis_tipo: {
-      id: string;
-      codigo: string;
-    };
-  };
+  perfis: Perfil;
 }
 
 export default function EventSelectionPage() {
@@ -57,19 +61,8 @@ export default function EventSelectionPage() {
         return null;
       }
 
-      // Ensure we're dealing with the correct data structure
-      const typedData = {
-        perfis: {
-          id: data.perfis.id,
-          perfil_tipo_id: data.perfis.perfil_tipo_id,
-          perfis_tipo: {
-            id: data.perfis.perfis_tipo.id,
-            codigo: data.perfis.perfis_tipo.codigo
-          }
-        }
-      } as UserProfileResponse;
-
-      return typedData.perfis.perfis_tipo.codigo;
+      // Return just the profile type code
+      return data.perfis.perfis_tipo.codigo;
     },
     enabled: !!user?.id
   });
