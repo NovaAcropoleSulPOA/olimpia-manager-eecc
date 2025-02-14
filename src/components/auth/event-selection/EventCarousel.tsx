@@ -19,7 +19,6 @@ interface EventCarouselProps {
   selectedRole: 'ATL' | 'PGR';
   onRoleChange: (value: 'ATL' | 'PGR') => void;
   onEventAction: (eventId: string) => void;
-  userProfileType?: string | null;
 }
 
 export const EventCarousel = ({
@@ -27,14 +26,7 @@ export const EventCarousel = ({
   selectedRole,
   onRoleChange,
   onEventAction,
-  userProfileType,
 }: EventCarouselProps) => {
-  // If user is a minor (C+7 or C-6), we force the role to be 'ATL'
-  const isMinor = userProfileType && ['C+7', 'C-6'].includes(userProfileType);
-  if (isMinor && selectedRole !== 'ATL') {
-    onRoleChange('ATL');
-  }
-
   return (
     <div className="relative w-full">
       <Carousel
@@ -50,9 +42,8 @@ export const EventCarousel = ({
               <EventCard
                 event={event}
                 selectedRole={selectedRole}
-                onRoleChange={isMinor ? undefined : onRoleChange}
+                onRoleChange={onRoleChange}
                 onEventAction={() => onEventAction(event.id)}
-                forceAthleteRole={isMinor}
               />
             </CarouselItem>
           ))}

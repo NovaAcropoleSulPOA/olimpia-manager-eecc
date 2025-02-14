@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEventQuery } from '@/components/auth/event-selection/useEventQuery';
 
 interface PerfilTipo {
   id: string;
@@ -16,17 +15,16 @@ interface PerfilTipo {
 interface Perfil {
   id: number;
   perfil_tipo_id: string;
-  perfis_tipo: PerfilTipo[];
+  perfis_tipo: PerfilTipo;
 }
 
-interface PapeisUsuarios {
-  perfis: Perfil[];
+interface UserProfileResponse {
+  perfis: Perfil;
 }
 
 export default function EventSelectionPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: events = [] } = useEventQuery(user?.id);
 
   // Get user's profile type to determine if they are a child
   const { data: userProfileType } = useQuery({
@@ -49,7 +47,7 @@ export default function EventSelectionPage() {
           )
         `)
         .eq('usuario_id', user.id)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error('Error fetching user profile type:', error);
@@ -58,19 +56,13 @@ export default function EventSelectionPage() {
 
       console.log('Received profile data:', data);
 
-      if (!data) {
+      if (!data?.perfis) {
         console.log('No profile found for user');
         return null;
       }
 
-      const profileData = data as PapeisUsuarios;
-      
-      if (!profileData?.perfis?.length || !profileData.perfis[0]?.perfis_tipo?.length) {
-        console.log('No profile type code found for user');
-        return null;
-      }
-
-      return profileData.perfis[0].perfis_tipo[0].codigo;
+      // Return just the profile type code
+      return data.perfis.perfis_tipo.codigo;
     },
     enabled: !!user?.id
   });
@@ -97,7 +89,7 @@ export default function EventSelectionPage() {
         </h1>
         <div className="bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-6">
           <EventSelection
-            selectedEvents={events}
+            selectedEvents={[]}
             onEventSelect={handleEventSelect}
             mode="login"
             userProfileType={userProfileType}

@@ -11,7 +11,7 @@ import { useEventQuery } from "./event-selection/useEventQuery";
 import { useEventRegistration } from "./event-selection/useEventRegistration";
 
 interface EventSelectionProps {
-  selectedEvents: any[];
+  selectedEvents: string[];
   onEventSelect: (eventId: string) => void;
   mode: 'registration' | 'login';
   userProfileType?: string | null;
@@ -25,9 +25,9 @@ export const EventSelection = ({
 }: EventSelectionProps) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const [selectedRole, setSelectedRole] = useState<PerfilTipo>('ATL');
+  const [selectedRole, setSelectedRole] = useState<PerfilTipo>('PGR');
   
-  const { data: events = [], isLoading } = useEventQuery(user?.id);
+  const { data: events, isLoading } = useEventQuery(user?.id);
   const registerEventMutation = useEventRegistration(user?.id);
 
   const handleEventRegistration = async (eventId: string) => {
@@ -86,13 +86,15 @@ export const EventSelection = ({
   }
 
   // Filter events based on user's profile type if they are a child
-  const filteredEvents = events.filter(event => {
-    if (userProfileType && ['C+7', 'C-6'].includes(userProfileType)) {
-      // For children, only show events with at least one infantile modality
-      return event.modalidades?.some(modality => modality.faixa_etaria === 'infantil');
-    }
-    return true;
-  });
+  const filteredEvents = events.map(event => ({
+    ...event,
+    modalities: event.modalities?.filter(modality => {
+      if (userProfileType && ['C+7', 'C-6'].includes(userProfileType)) {
+        return modality.faixa_etaria === 'infantil';
+      }
+      return true;
+    })
+  }));
 
   return (
     <div className="space-y-6">
@@ -108,7 +110,6 @@ export const EventSelection = ({
             handleEventRegistration(eventId);
           }
         }}
-        userProfileType={userProfileType}
       />
       <div className="flex justify-center">
         <Button
