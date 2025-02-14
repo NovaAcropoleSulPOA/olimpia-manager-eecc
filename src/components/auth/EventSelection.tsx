@@ -27,7 +27,7 @@ export const EventSelection = ({
   const { user, signOut } = useAuth();
   const [selectedRole, setSelectedRole] = useState<PerfilTipo>('PGR');
   
-  const { data: events, isLoading } = useEventQuery(user?.id);
+  const { data: events = [], isLoading } = useEventQuery(user?.id);
   const registerEventMutation = useEventRegistration(user?.id);
 
   const handleEventRegistration = async (eventId: string) => {
@@ -88,12 +88,12 @@ export const EventSelection = ({
   // Filter events based on user's profile type if they are a child
   const filteredEvents = events.map(event => ({
     ...event,
-    modalities: event.modalities?.filter(modality => {
+    modalities: event.modalidades?.filter(modality => {
       if (userProfileType && ['C+7', 'C-6'].includes(userProfileType)) {
         return modality.faixa_etaria === 'infantil';
       }
       return true;
-    })
+    }) || []
   }));
 
   return (

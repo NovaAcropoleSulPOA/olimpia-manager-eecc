@@ -13,24 +13,35 @@ interface Modality {
   vagas_ocupadas: number;
 }
 
-interface EventWithModalities extends Event {
+interface EventWithExtras extends Event {
   modalidades: Modality[];
-}
-
-interface BranchEvent {
-  evento_id: string;
-  eventos: EventWithModalities;
-}
-
-interface UserRole {
-  evento_id: string;
-  perfis: {
+  isRegistered: boolean;
+  roles: Array<{
     nome: string;
-  } | null;
+  }>;
+  isOpen: boolean;
+  isAdmin: boolean;
+}
+
+interface BranchEventResponse {
+  evento_id: string;
+  eventos: {
+    id: string;
+    nome: string;
+    descricao: string;
+    data_inicio_inscricao: string;
+    data_fim_inscricao: string;
+    foto_evento: string | null;
+    tipo: 'estadual' | 'nacional' | 'internacional' | 'regional';
+    created_at: string | null;
+    updated_at: string | null;
+    status_evento: 'ativo' | 'encerrado' | 'suspenso';
+    modalidades: Modality[];
+  };
 }
 
 export const useEventQuery = (userId: string | undefined) => {
-  return useQuery({
+  return useQuery<EventWithExtras[]>({
     queryKey: ['active-events', userId],
     queryFn: async () => {
       if (!userId) {
@@ -117,14 +128,16 @@ export const useEventQuery = (userId: string | undefined) => {
         throw rolesError;
       }
 
+      const typedBranchEvents = branchEvents as BranchEventResponse[];
+
       // Process and filter events
-      const events = (branchEvents || [])
+      const events = typedBranchEvents
         .filter(be => be.eventos !== null)
         .map(be => {
           const event = be.eventos;
-          const isRegistered = registeredEvents?.some(reg => reg.evento_id === event.id);
+          const isRegistered = registeredEvents?.some(reg => reg.evento_id === event.id) || false;
           const eventRoles = (userRoles || [])
-            .filter(role => role.evento_id === event.id)
+            .filter(role => role.evento_id === be.evento_id)
             .map(role => ({
               nome: role.perfis?.nome || ''
             }));
@@ -134,7 +147,7 @@ export const useEventQuery = (userId: string | undefined) => {
 
           return {
             ...event,
-            modalities: event.modalidades || [],
+            modalidades: event.modalidades || [],
             isRegistered,
             roles: eventRoles,
             isOpen,
@@ -146,7 +159,6 @@ export const useEventQuery = (userId: string | undefined) => {
           (event.isRegistered && ['encerrado', 'suspenso'].includes(event.status_evento))
         );
 
-      console.log('Processed events:', events);
       return events;
     },
     enabled: !!userId
