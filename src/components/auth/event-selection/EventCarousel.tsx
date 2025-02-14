@@ -9,16 +9,18 @@ import {
 import { Event } from "@/lib/types/database";
 import { EventCard } from "./EventCard";
 
+interface Modality {
+  id: number;
+  nome: string;
+  categoria: string;
+  tipo_modalidade: string;
+  faixa_etaria: string;
+  limite_vagas: number;
+  vagas_ocupadas: number;
+}
+
 interface EventWithExtras extends Event {
-  modalidades: Array<{
-    id: number;
-    nome: string;
-    categoria: string;
-    tipo_modalidade: string;
-    faixa_etaria: string;
-    limite_vagas: number;
-    vagas_ocupadas: number;
-  }>;
+  modalidades: Modality[];
   isRegistered: boolean;
   roles: Array<{ nome: string }>;
   isOpen: boolean;

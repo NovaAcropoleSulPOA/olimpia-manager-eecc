@@ -9,13 +9,26 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
+interface Modality {
+  id: number;
+  nome: string;
+  categoria: string;
+  tipo_modalidade: string;
+  faixa_etaria: string;
+  limite_vagas: number;
+  vagas_ocupadas: number;
+}
+
+interface EventWithExtras extends Event {
+  modalidades: Modality[];
+  isRegistered: boolean;
+  roles: Array<{ nome: string }>;
+  isOpen: boolean;
+  isAdmin: boolean;
+}
+
 interface EventCardProps {
-  event: Event & {
-    isRegistered: boolean;
-    roles?: Array<{ nome: string; codigo: string }>;
-    isOpen: boolean;
-    isAdmin: boolean;
-  };
+  event: EventWithExtras;
   selectedRole: 'ATL' | 'PGR';
   onRoleChange: (value: 'ATL' | 'PGR') => void;
   onEventAction: () => void;
@@ -57,7 +70,6 @@ export const EventCard = ({
         event.isRegistered && "ring-2 ring-olimpics-green-primary"
       )}
     >
-      {/* Status Stripe */}
       <div
         className={cn(
           "absolute -right-12 top-8 w-48 -rotate-45 transform text-center",
@@ -72,7 +84,6 @@ export const EventCard = ({
       </div>
 
       <CardContent className="p-6">
-        {/* Status Alert */}
         {(event.status_evento === 'encerrado' || event.status_evento === 'suspenso') && !event.isRegistered && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
