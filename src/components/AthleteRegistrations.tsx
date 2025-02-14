@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -196,13 +197,14 @@ export default function AthleteRegistrations() {
 
   const registerMutation = useMutation({
     mutationFn: async (modalityId: number) => {
-      if (!user?.id) throw new Error('User not authenticated');
+      if (!user?.id || !currentEventId) throw new Error('User not authenticated or no event selected');
       
       const { error } = await supabase
         .from('inscricoes_modalidades')
         .insert([{
           atleta_id: user.id,
           modalidade_id: modalityId,
+          evento_id: currentEventId, // Add the event_id here
           status: 'pendente',
           data_inscricao: new Date().toISOString()
         }]);
