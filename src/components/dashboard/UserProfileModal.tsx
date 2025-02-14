@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -42,6 +43,15 @@ interface UserProfile {
     id: number;
     nome: string;
   };
+}
+
+// Define the type for the data returned from Supabase
+interface SupabaseUserProfile {
+  perfil_id: number;
+  perfis: {
+    id: number;
+    nome: string;
+  } | null;
 }
 
 const EXCLUSIVE_PROFILES = ['Atleta', 'Público Geral'];
@@ -91,11 +101,13 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
       if (!data) return [];
 
       console.log('User profiles data:', data);
-      return data.map(item => ({
+      
+      // Cast the data to the correct type and transform it
+      return (data as SupabaseUserProfile[]).map(item => ({
         perfil_id: item.perfil_id,
         perfis: {
-          id: item.perfis?.id || 0,
-          nome: item.perfis?.nome || ''
+          id: item.perfis?.id ?? 0,
+          nome: item.perfis?.nome ?? ''
         }
       }));
     },
