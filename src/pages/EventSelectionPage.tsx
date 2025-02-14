@@ -18,8 +18,7 @@ interface Perfil {
   perfis_tipo: PerfilTipo;
 }
 
-interface UserProfileResponse {
-  perfil_id: number;
+interface UserProfile {
   perfis: Perfil;
 }
 
@@ -35,7 +34,6 @@ export default function EventSelectionPage() {
 
       console.log('Fetching profile type for user:', user.id);
 
-      // Remove single() and handle the array of profiles
       const { data, error } = await supabase
         .from('papeis_usuarios')
         .select(`
