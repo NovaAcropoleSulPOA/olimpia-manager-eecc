@@ -85,6 +85,6 @@ export const useEventQuery = (userId: string | undefined) => {
     },
     enabled: !!userId,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    cacheTime: 1000 * 60 * 10 // Keep in cache for 10 minutes
+    gcTime: 1000 * 60 * 10 // Keep in garbage collection for 10 minutes (formerly cacheTime)
   });
 };
