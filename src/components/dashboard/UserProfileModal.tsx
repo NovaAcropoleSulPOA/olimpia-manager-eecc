@@ -152,6 +152,13 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
 
     setIsUpdating(true);
     try {
+      console.log('Starting profile swap process...', {
+        userId: user.id,
+        eventId: currentEventId,
+        newProfileId: pendingSwap.newProfileId,
+        oldProfileId: pendingSwap.oldProfileId
+      });
+
       await swapUserProfile(
         user.id,
         currentEventId,
@@ -160,6 +167,8 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
       );
 
       await queryClient.invalidateQueries({ queryKey: ['user-profiles'] });
+      await queryClient.invalidateQueries({ queryKey: ['payment-info'] });
+      
       toast.success("Perfil trocado com sucesso!");
       onOpenChange(false);
     } catch (error: any) {

@@ -374,12 +374,23 @@ export const swapUserProfile = async (
   newProfileId: number,
   oldProfileId: number
 ): Promise<void> => {
-  const { error } = await supabase.rpc('swap_user_profile', {
-    p_user_id: userId,
-    p_event_id: eventId,
-    p_new_profile_id: newProfileId,
-    p_old_profile_id: oldProfileId
+  console.log('Calling swapUserProfile function...', {
+    userId,
+    eventId,
+    newProfileId,
+    oldProfileId
   });
 
-  if (error) throw error;
+  const { error } = await supabase
+    .rpc('swap_user_profile', {
+      p_user_id: userId,
+      p_event_id: eventId,
+      p_new_profile_id: newProfileId,
+      p_old_profile_id: oldProfileId
+    });
+
+  if (error) {
+    console.error('Error in swapUserProfile:', error);
+    throw error;
+  }
 };
