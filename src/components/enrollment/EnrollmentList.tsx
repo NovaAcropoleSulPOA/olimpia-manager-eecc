@@ -13,9 +13,10 @@ import {
 } from "@/components/ui/table";
 import { StatusIndicator } from "./StatusIndicator";
 import { UseMutationResult } from "@tanstack/react-query";
+import { RegisteredModality } from "@/types/modality";
 
 interface EnrollmentListProps {
-  registeredModalities: any[];
+  registeredModalities: RegisteredModality[];
   withdrawMutation: UseMutationResult<void, Error, number, unknown>;
 }
 

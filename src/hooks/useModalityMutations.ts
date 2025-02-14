@@ -8,14 +8,14 @@ export const useModalityMutations = (userId: string | undefined, eventId: string
   const queryClient = useQueryClient();
 
   const withdrawMutation = useMutation({
-    mutationFn: async (modalityId: number) => {
+    mutationFn: async (inscricaoId: number) => {
       if (!userId) throw new Error('User not authenticated');
+      console.log('Withdrawing from modality inscription:', inscricaoId);
       
       const { error } = await supabase
         .from('inscricoes_modalidades')
         .delete()
-        .eq('modalidade_id', modalityId)
-        .eq('atleta_id', userId);
+        .eq('id', inscricaoId);
       
       if (error) throw error;
     },
@@ -41,6 +41,7 @@ export const useModalityMutations = (userId: string | undefined, eventId: string
   const registerMutation = useMutation({
     mutationFn: async (modalityId: number) => {
       if (!userId || !eventId) throw new Error('User not authenticated or no event selected');
+      console.log('Registering for modality:', modalityId);
       
       const { error } = await supabase
         .from('inscricoes_modalidades')
