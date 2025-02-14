@@ -91,19 +91,24 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
       if (!user?.id || !currentEventId) return [];
       
       console.log('Fetching user profiles for:', { userId: user.id, eventId: currentEventId });
-      const { data, error } = await supabase
+      const { data: rawData, error } = await supabase
         .from('papeis_usuarios')
         .select('perfil_id, perfis:perfil_id(id, nome)')
         .eq('usuario_id', user.id)
         .eq('evento_id', currentEventId);
         
       if (error) throw error;
-      if (!data) return [];
+      if (!rawData) return [];
 
-      console.log('User profiles data:', data);
+      console.log('User profiles data:', rawData);
       
-      // Cast the data to the correct type and transform it
-      return (data as SupabaseUserProfile[]).map(item => ({
+      // First cast to unknown, then to our expected type
+      const typedData = rawData as unknown as Array<{
+        perfil_id: number;
+        perfis: { id: number; nome: string } | null;
+      }>;
+      
+      return typedData.map(item => ({
         perfil_id: item.perfil_id,
         perfis: {
           id: item.perfis?.id ?? 0,
