@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBranchAnalytics, fetchAthleteManagement, updateModalityStatus, updatePaymentStatus } from "@/lib/api";
@@ -35,6 +36,7 @@ export default function OrganizerDashboard() {
   const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { user } = useAuth();
+  const currentEventId = localStorage.getItem('currentEventId');
   
   // Filter states
   const [nameFilter, setNameFilter] = useState("");
@@ -43,8 +45,9 @@ export default function OrganizerDashboard() {
 
   // Fetch branches for filter dropdown
   const { data: branches } = useQuery({
-    queryKey: ['branches'],
+    queryKey: ['branches', currentEventId],
     queryFn: async () => {
+      if (!currentEventId) return [];
       const { data, error } = await supabase
         .from('filiais')
         .select('id, nome')
@@ -52,7 +55,8 @@ export default function OrganizerDashboard() {
       
       if (error) throw error;
       return data || [];
-    }
+    },
+    enabled: !!currentEventId
   });
 
   // Fetch analytics data
@@ -62,10 +66,11 @@ export default function OrganizerDashboard() {
     error: analyticsError, 
     refetch: refetchAnalytics 
   } = useQuery({
-    queryKey: ['branch-analytics'],
-    queryFn: fetchBranchAnalytics,
+    queryKey: ['branch-analytics', currentEventId],
+    queryFn: () => fetchBranchAnalytics(currentEventId),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
+    enabled: !!currentEventId
   });
 
   // Fetch athlete registrations
@@ -75,34 +80,56 @@ export default function OrganizerDashboard() {
     error: athletesError,
     refetch: refetchAthletes
   } = useQuery({
-    queryKey: ['athlete-management'],
-    queryFn: () => fetchAthleteManagement(false),
+    queryKey: ['athlete-management', currentEventId],
+    queryFn: () => fetchAthleteManagement(false, currentEventId),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
+    enabled: !!currentEventId
   });
 
   // Fetch confirmed enrollments
   const { data: confirmedEnrollments } = useQuery({
-    queryKey: ['confirmed-enrollments'],
+    queryKey: ['confirmed-enrollments', currentEventId],
     queryFn: async () => {
+      if (!currentEventId) return [];
       const { data, error } = await supabase
         .from('vw_inscricoes_atletas')
         .select('*')
         .eq('status_inscricao', 'confirmado')
+        .eq('evento_id', currentEventId)
         .order('modalidade_nome');
       
       if (error) throw error;
       return data || [];
-    }
+    },
+    enabled: !!currentEventId
   });
+
+  if (!currentEventId) {
+    return (
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="text-center py-8">
+          <p className="text-muted-foreground mb-2">Nenhum evento selecionado</p>
+          <Button
+            variant="outline"
+            onClick={() => {
+              window.location.href = '/event-selection';
+            }}
+          >
+            Selecionar Evento
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     console.log('Refreshing dashboard data...');
     try {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
-        queryClient.invalidateQueries({ queryKey: ['athlete-management'] }),
+        queryClient.invalidateQueries({ queryKey: ['branch-analytics', currentEventId] }),
+        queryClient.invalidateQueries({ queryKey: ['athlete-management', currentEventId] }),
         refetchAnalytics(),
         refetchAthletes()
       ]);
@@ -168,8 +195,8 @@ export default function OrganizerDashboard() {
       toast.success("Status atualizado com sucesso!");
       
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
-        queryClient.invalidateQueries({ queryKey: ['athlete-management'] })
+        queryClient.invalidateQueries({ queryKey: ['branch-analytics', currentEventId] }),
+        queryClient.invalidateQueries({ queryKey: ['athlete-management', currentEventId] })
       ]);
       console.log('Queries invalidated and refetched');
     } catch (error) {
@@ -187,8 +214,8 @@ export default function OrganizerDashboard() {
       toast.success("Status de pagamento atualizado com sucesso!");
       
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['branch-analytics'] }),
-        queryClient.invalidateQueries({ queryKey: ['athlete-management'] })
+        queryClient.invalidateQueries({ queryKey: ['branch-analytics', currentEventId] }),
+        queryClient.invalidateQueries({ queryKey: ['athlete-management', currentEventId] })
       ]);
       console.log('Queries invalidated and refetched after payment status update');
     } catch (error) {
@@ -268,16 +295,16 @@ export default function OrganizerDashboard() {
               branches={branches || []}
             />
 
-          <div className="mt-4">
-            <PaginatedAthleteList
-              athletes={filteredAthletes || []}
-              onStatusChange={handleStatusChange}
-              onPaymentStatusChange={handlePaymentStatusChange}
-              currentUserId={user?.id}
-            />
+            <div className="mt-4">
+              <PaginatedAthleteList
+                athletes={filteredAthletes || []}
+                onStatusChange={handleStatusChange}
+                onPaymentStatusChange={handlePaymentStatusChange}
+                currentUserId={user?.id}
+              />
+            </div>
           </div>
-        </div>
-      </TabsContent>
+        </TabsContent>
 
         <TabsContent value="enrollments" className="mt-6">
           <div className="mt-4">

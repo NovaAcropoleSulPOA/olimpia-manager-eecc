@@ -139,12 +139,15 @@ export const fetchBranches = async (): Promise<Branch[]> => {
   return data || [];
 };
 
-export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
-  console.log('Fetching branch analytics from view...');
+export const fetchBranchAnalytics = async (eventId: string | null): Promise<BranchAnalytics[]> => {
+  console.log('Fetching branch analytics from view for event:', eventId);
   try {
+    if (!eventId) return [];
+    
     const { data, error } = await supabase
       .from('vw_analytics_inscricoes')
-      .select('*');
+      .select('*')
+      .eq('evento_id', eventId);
 
     if (error) {
       console.error('Error fetching analytics:', error);
@@ -164,10 +167,12 @@ export const fetchBranchAnalytics = async (): Promise<BranchAnalytics[]> => {
   }
 };
 
-export const fetchAthleteManagement = async (filterByBranch: boolean = false): Promise<AthleteManagement[]> => {
-  console.log('Starting fetchAthleteManagement with filterByBranch:', filterByBranch);
+export const fetchAthleteManagement = async (filterByBranch: boolean = false, eventId: string | null): Promise<AthleteManagement[]> => {
+  console.log('Starting fetchAthleteManagement with filterByBranch:', filterByBranch, 'eventId:', eventId);
   
   try {
+    if (!eventId) return [];
+
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
@@ -191,7 +196,8 @@ export const fetchAthleteManagement = async (filterByBranch: boolean = false): P
 
     let query = supabase
       .from('vw_athletes_management')
-      .select('*');
+      .select('*')
+      .eq('evento_id', eventId);
 
     if (filterByBranch && userBranchId) {
       query = query.eq('filial_id', userBranchId);
