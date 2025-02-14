@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -117,7 +116,6 @@ export const AvailableModalities = ({
                       <TableHead className="font-semibold">Modalidade</TableHead>
                       <TableHead className="font-semibold">Tipo</TableHead>
                       <TableHead className="font-semibold">Categoria</TableHead>
-                      <TableHead className="font-semibold">Vagas</TableHead>
                       <TableHead className="font-semibold">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -135,9 +133,6 @@ export const AvailableModalities = ({
                         </TableCell>
                         <TableCell className="capitalize">
                           {modality.categoria}
-                        </TableCell>
-                        <TableCell>
-                          {modality.vagas_ocupadas}/{modality.limite_vagas}
                         </TableCell>
                         <TableCell>
                           <Button
