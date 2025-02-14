@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Loader2, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -14,18 +13,18 @@ interface EventSelectionProps {
   selectedEvents: string[];
   onEventSelect: (eventId: string) => void;
   mode: 'registration' | 'login';
-  userProfileType?: string | null;
+  isUnderAge?: boolean;
 }
 
 export const EventSelection = ({ 
   selectedEvents, 
   onEventSelect, 
   mode,
-  userProfileType
+  isUnderAge = false
 }: EventSelectionProps) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const [selectedRole, setSelectedRole] = useState<PerfilTipo>('PGR');
+  const [selectedRole, setSelectedRole] = useState<PerfilTipo>('ATL');
   
   const { data: events, isLoading } = useEventQuery(user?.id);
   const registerEventMutation = useEventRegistration(user?.id);
@@ -102,6 +101,7 @@ export const EventSelection = ({
         events={filteredEvents}
         selectedRole={selectedRole}
         onRoleChange={setSelectedRole}
+        isUnderAge={isUnderAge}
         onEventAction={(eventId) => {
           const event = events.find(e => e.id === eventId);
           if (event?.isRegistered) {

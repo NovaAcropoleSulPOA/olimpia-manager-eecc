@@ -4,16 +4,48 @@ import { EventSelection } from '@/components/auth/EventSelection';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { differenceInYears } from 'date-fns';
 
 export default function EventSelectionPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  const { data: userAge } = useQuery({
+    queryKey: ['user-age', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+
+      const { data: userData, error } = await supabase
+        .from('usuarios')
+        .select('data_nascimento')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user birth date:', error);
+        return null;
+      }
+
+      if (!userData?.data_nascimento) {
+        return null;
+      }
+
+      const age = differenceInYears(new Date(), new Date(userData.data_nascimento));
+      console.log('Calculated user age:', age);
+      return age;
+    },
+    enabled: !!user?.id
+  });
 
   const handleEventSelect = (eventId: string) => {
     localStorage.setItem('currentEventId', eventId);
     toast.success('Evento selecionado com sucesso!');
     navigate('/athlete-profile');
   };
+
+  const isUnder13 = userAge !== null && userAge < 13;
 
   return (
     <div 
@@ -34,7 +66,7 @@ export default function EventSelectionPage() {
             selectedEvents={[]}
             onEventSelect={handleEventSelect}
             mode="login"
-            userProfileType={null} // Set to null since we don't need profile type at this stage
+            isUnderAge={isUnder13}
           />
         </div>
       </div>

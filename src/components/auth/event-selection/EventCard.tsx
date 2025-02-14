@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trophy, AlertCircle } from "lucide-react";
@@ -19,13 +18,15 @@ interface EventCardProps {
   selectedRole: 'ATL' | 'PGR';
   onRoleChange: (value: 'ATL' | 'PGR') => void;
   onEventAction: () => void;
+  isUnderAge?: boolean;
 }
 
 export const EventCard = ({ 
   event, 
   selectedRole, 
   onRoleChange, 
-  onEventAction 
+  onEventAction,
+  isUnderAge = false
 }: EventCardProps) => {
   const isDisabled = (event.status_evento === 'encerrado' || event.status_evento === 'suspenso') 
     && !event.isRegistered 
@@ -118,10 +119,12 @@ export const EventCard = ({
                 <RadioGroupItem value="ATL" id={`atleta-${event.id}`} />
                 <Label htmlFor={`atleta-${event.id}`}>Atleta</Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="PGR" id={`publico-${event.id}`} />
-                <Label htmlFor={`publico-${event.id}`}>Público Geral</Label>
-              </div>
+              {!isUnderAge && (
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="PGR" id={`publico-${event.id}`} />
+                  <Label htmlFor={`publico-${event.id}`}>Público Geral</Label>
+                </div>
+              )}
             </RadioGroup>
           </div>
         )}
