@@ -47,7 +47,7 @@ export default function EventSelectionPage() {
           )
         `)
         .eq('usuario_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching user profile type:', error);
@@ -55,6 +55,11 @@ export default function EventSelectionPage() {
       }
 
       console.log('Received profile data:', data);
+
+      if (!data) {
+        console.log('No profile found for user');
+        return null;
+      }
 
       const profileData = data as PapeisUsuarios;
       
