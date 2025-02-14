@@ -35,6 +35,9 @@ export default function DelegationDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
   
+  // Get current event ID
+  const currentEventId = localStorage.getItem('currentEventId');
+  
   const { data: userProfile } = useQuery({
     queryKey: ['user-profile', user?.id],
     queryFn: async () => {
@@ -57,19 +60,19 @@ export default function DelegationDashboard() {
     error: analyticsError,
     refetch: refetchAnalytics 
   } = useQuery({
-    queryKey: ['branch-analytics', userProfile?.filial_id],
+    queryKey: ['branch-analytics', userProfile?.filial_id, currentEventId],
     queryFn: async () => {
-      console.log('Fetching branch analytics for filial:', userProfile?.filial_id);
+      console.log('Fetching branch analytics for filial:', userProfile?.filial_id, 'and event:', currentEventId);
       const { data, error } = await supabase
         .from('vw_analytics_inscricoes')
         .select('*')
         .eq('filial_id', userProfile?.filial_id)
-        .single();
+        .eq('evento_id', currentEventId);
       
       if (error) throw error;
-      return data ? [data] : [];
+      return data || [];
     },
-    enabled: !!userProfile?.filial_id,
+    enabled: !!userProfile?.filial_id && !!currentEventId,
   });
 
   const { 
@@ -78,13 +81,14 @@ export default function DelegationDashboard() {
     error: athletesError,
     refetch: refetchAthletes
   } = useQuery({
-    queryKey: ['branch-athletes', userProfile?.filial_id],
+    queryKey: ['branch-athletes', userProfile?.filial_id, currentEventId],
     queryFn: async () => {
-      console.log('Fetching athletes for filial:', userProfile?.filial_id);
+      console.log('Fetching athletes for filial:', userProfile?.filial_id, 'and event:', currentEventId);
       const { data, error } = await supabase
         .from('vw_athletes_management')
         .select('*')
-        .eq('filial_id', userProfile?.filial_id);
+        .eq('filial_id', userProfile?.filial_id)
+        .eq('evento_id', currentEventId);
       
       if (error) {
         console.error('Error fetching athletes:', error);
@@ -135,23 +139,24 @@ export default function DelegationDashboard() {
         return a.nome_atleta.localeCompare(b.nome_atleta, 'pt-BR', { sensitivity: 'base' });
       });
     },
-    enabled: !!userProfile?.filial_id,
+    enabled: !!userProfile?.filial_id && !!currentEventId,
   });
 
   const { data: confirmedEnrollments } = useQuery({
-    queryKey: ['confirmed-enrollments', userProfile?.filial_id],
+    queryKey: ['confirmed-enrollments', userProfile?.filial_id, currentEventId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('vw_inscricoes_atletas')
         .select('*')
         .eq('filial_id', userProfile?.filial_id)
+        .eq('evento_id', currentEventId)
         .eq('status_inscricao', 'confirmado')
         .order('modalidade_nome');
       
       if (error) throw error;
       return data || [];
     },
-    enabled: !!userProfile?.filial_id
+    enabled: !!userProfile?.filial_id && !!currentEventId
   });
 
   const handleRefresh = async () => {
