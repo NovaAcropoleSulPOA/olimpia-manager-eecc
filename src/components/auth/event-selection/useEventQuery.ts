@@ -38,6 +38,14 @@ interface BranchEventResponse {
   };
 }
 
+interface UserRole {
+  evento_id: string;
+  perfil_id: number;
+  perfis: {
+    nome: string;
+  } | null;
+}
+
 export const useEventQuery = (userId: string | undefined) => {
   return useQuery<EventWithExtras[]>({
     queryKey: ['active-events', userId],
@@ -127,6 +135,7 @@ export const useEventQuery = (userId: string | undefined) => {
       }
 
       const typedBranchEvents = (branchEvents || []) as unknown as BranchEventResponse[];
+      const typedUserRoles = (userRoles || []) as UserRole[];
 
       // Process and filter events
       const events = typedBranchEvents
@@ -134,7 +143,7 @@ export const useEventQuery = (userId: string | undefined) => {
         .map(be => {
           const event = be.eventos;
           const isRegistered = registeredEvents?.some(reg => reg.evento_id === event.id) || false;
-          const eventRoles = (userRoles || [])
+          const eventRoles = typedUserRoles
             .filter(role => role.evento_id === be.evento_id)
             .map(role => ({
               nome: role.perfis?.nome || ''
