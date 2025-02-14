@@ -16,9 +16,7 @@ interface Modality {
 interface EventWithExtras extends Event {
   modalidades: Modality[];
   isRegistered: boolean;
-  roles: Array<{
-    nome: string;
-  }>;
+  roles: Array<{ nome: string }>;
   isOpen: boolean;
   isAdmin: boolean;
 }
@@ -128,7 +126,7 @@ export const useEventQuery = (userId: string | undefined) => {
         throw rolesError;
       }
 
-      const typedBranchEvents = branchEvents as BranchEventResponse[];
+      const typedBranchEvents = (branchEvents || []) as unknown as BranchEventResponse[];
 
       // Process and filter events
       const events = typedBranchEvents
