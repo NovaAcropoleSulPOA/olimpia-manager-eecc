@@ -1176,7 +1176,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "inscricoes_modalidades_evento_id_fkey"
+            foreignKeyName: "inscricoes_eventos_evento_id_fkey"
             columns: ["evento_id"]
             isOneToOne: false
             referencedRelation: "eventos"
