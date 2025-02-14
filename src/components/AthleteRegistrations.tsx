@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -22,6 +21,17 @@ interface Modality {
   limite_vagas: number;
   grupo?: string;
   faixa_etaria: string;
+}
+
+interface RegisteredModality {
+  id: number;
+  status: string;
+  modalidade: {
+    id: number;
+    nome: string;
+    categoria: string;
+    tipo_modalidade: string;
+  };
 }
 
 export default function AthleteRegistrations() {
@@ -49,6 +59,38 @@ export default function AthleteRegistrations() {
         throw error;
       }
       return data;
+    },
+    enabled: !!user?.id && !!currentEventId,
+  });
+
+  const { data: registeredModalities, isLoading: registrationsLoading } = useQuery({
+    queryKey: ['athlete-modalities', user?.id, currentEventId],
+    queryFn: async () => {
+      if (!user?.id || !currentEventId) return [];
+      console.log('Fetching modalities for athlete:', user.id, 'event:', currentEventId);
+      
+      const { data, error } = await supabase
+        .from('inscricoes_modalidades')
+        .select(`
+          id,
+          status,
+          modalidade:modalidades (
+            id,
+            nome,
+            categoria,
+            tipo_modalidade
+          )
+        `)
+        .eq('atleta_id', user.id)
+        .eq('evento_id', currentEventId);
+      
+      if (error) {
+        console.error('Error fetching athlete modalities:', error);
+        throw error;
+      }
+
+      console.log('Retrieved athlete modalities:', data);
+      return data as RegisteredModality[];
     },
     enabled: !!user?.id && !!currentEventId,
   });
@@ -92,38 +134,6 @@ export default function AthleteRegistrations() {
       return genderMatch && ageMatch;
     });
   };
-
-  const { data: registeredModalities, isLoading: registrationsLoading } = useQuery({
-    queryKey: ['athlete-modalities', user?.id, currentEventId],
-    queryFn: async () => {
-      if (!user?.id || !currentEventId) return [];
-      console.log('Fetching modalities for athlete:', user.id, 'event:', currentEventId);
-      
-      const { data, error } = await supabase
-        .from('inscricoes_modalidades')
-        .select(`
-          id,
-          status,
-          data_inscricao,
-          modalidade:modalidades (
-            nome,
-            categoria,
-            tipo_modalidade
-          )
-        `)
-        .eq('atleta_id', user.id)
-        .eq('evento_id', currentEventId);
-      
-      if (error) {
-        console.error('Error fetching athlete modalities:', error);
-        throw error;
-      }
-
-      console.log('Retrieved athlete modalities:', data);
-      return data;
-    },
-    enabled: !!user?.id && !!currentEventId,
-  });
 
   const { data: allModalities, isLoading: modalitiesLoading } = useQuery({
     queryKey: ['modalities', athleteProfile?.genero, athleteProfile?.data_nascimento],
