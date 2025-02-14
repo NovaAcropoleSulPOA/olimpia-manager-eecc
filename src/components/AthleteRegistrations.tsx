@@ -74,7 +74,7 @@ export default function AthleteRegistrations() {
         .select(`
           id,
           status,
-          modalidade:modalidades (
+          modalidade:modalidades!inner (
             id,
             nome,
             categoria,
@@ -89,8 +89,20 @@ export default function AthleteRegistrations() {
         throw error;
       }
 
-      console.log('Retrieved athlete modalities:', data);
-      return data as RegisteredModality[];
+      // Transform the data to match our interface
+      const transformedData = (data || []).map((item: any) => ({
+        id: item.id,
+        status: item.status,
+        modalidade: {
+          id: item.modalidade.id,
+          nome: item.modalidade.nome,
+          categoria: item.modalidade.categoria,
+          tipo_modalidade: item.modalidade.tipo_modalidade
+        }
+      }));
+
+      console.log('Retrieved athlete modalities:', transformedData);
+      return transformedData;
     },
     enabled: !!user?.id && !!currentEventId,
   });
