@@ -25,12 +25,12 @@ export const useEventQuery = (userId: string | undefined) => {
 
       const filialId = userData?.filial_id;
 
-      // Get events available for user's branch
+      // Get events available for user's branch without inner join to show all available events
       const { data: events, error: eventsError } = await supabase
         .from('eventos')
         .select(`
           *,
-          eventos_filiais!inner (
+          eventos_filiais!left (
             filial_id
           ),
           modalidades (
@@ -45,7 +45,8 @@ export const useEventQuery = (userId: string | undefined) => {
           )
         `)
         .eq('eventos_filiais.filial_id', filialId)
-        .eq('status_evento', 'ativo');
+        .eq('status_evento', 'ativo')
+        .eq('visibilidade_publica', true);
 
       if (eventsError) {
         console.error('Error fetching events:', eventsError);
@@ -56,6 +57,8 @@ export const useEventQuery = (userId: string | undefined) => {
         console.log('No events found');
         return [];
       }
+
+      console.log('Found events:', events); // Debug log
 
       // Get user's registered events
       const { data: registeredEvents, error: registeredError } = await supabase
@@ -73,13 +76,15 @@ export const useEventQuery = (userId: string | undefined) => {
         ...event,
         isRegistered: registeredEvents?.some(reg => reg.evento_id === event.id) || false,
         isOpen: new Date(event.data_fim_inscricao) > new Date(),
-        isAdmin: false, // This will be handled by the role system if needed
+        isAdmin: false,
         roles: [
           { nome: 'Atleta', codigo: 'ATL' },
           { nome: 'Público Geral', codigo: 'PGR' }
         ]
       }));
     },
-    enabled: !!userId
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    cacheTime: 1000 * 60 * 10 // Keep in cache for 10 minutes
   });
 };
