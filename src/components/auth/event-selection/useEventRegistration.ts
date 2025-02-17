@@ -50,73 +50,24 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw checkError;
         }
 
-        let registration;
-        if (existingRegistration) {
-          // Update existing registration
-          const { data: updatedReg, error: updateError } = await supabase
-            .from('inscricoes_eventos')
-            .update({
-              taxa_inscricao_id: registrationInfo.taxaInscricaoId,
-              selected_role: registrationInfo.perfilId
-            })
-            .eq('id', existingRegistration.id)
-            .select()
-            .single();
+        // Insert or update registration
+        const { data: registration, error: registrationError } = await supabase
+          .from('inscricoes_eventos')
+          .upsert({
+            usuario_id: userId,
+            evento_id: eventId,
+            selected_role: registrationInfo.perfilId,
+            taxa_inscricao_id: registrationInfo.taxaInscricaoId
+          })
+          .select()
+          .single();
 
-          if (updateError) {
-            console.error('Error updating registration:', updateError);
-            throw updateError;
-          }
-          registration = updatedReg;
-        } else {
-          // Create new registration
-          const { data: newReg, error: insertError } = await supabase
-            .from('inscricoes_eventos')
-            .upsert({
-              usuario_id: userId,
-              evento_id: eventId,
-              selected_role: registrationInfo.perfilId,
-              taxa_inscricao_id: registrationInfo.taxaInscricaoId
-            })
-            .select()
-            .single();
-
-          if (insertError) {
-            console.error('Error creating registration:', insertError);
-            throw insertError;
-          }
-          registration = newReg;
+        if (registrationError) {
+          console.error('Error creating/updating registration:', registrationError);
+          throw registrationError;
         }
 
-        // Check if a payment record already exists
-        const { data: existingPayment } = await supabase
-          .from('pagamentos')
-          .select('id')
-          .eq('atleta_id', userId)
-          .eq('evento_id', eventId)
-          .maybeSingle();
-
-        if (!existingPayment) {
-          // Create payment record only if it doesn't exist
-          const { error: paymentError } = await supabase
-            .from('pagamentos')
-            .insert({
-              atleta_id: userId,
-              evento_id: eventId,
-              taxa_inscricao_id: registrationInfo.taxaInscricaoId,
-              valor: registrationInfo.valor,
-              status: 'pendente',
-              data_criacao: new Date().toISOString(),
-              numero_identificador: registrationInfo.numeroIdentificador
-            });
-
-          if (paymentError) {
-            console.error('Error creating payment record:', paymentError);
-            throw paymentError;
-          }
-        }
-
-        console.log('Successfully created/updated registration and payment record');
+        console.log('Successfully created/updated registration');
         return { success: true, isExisting: !!existingRegistration };
       } catch (error: any) {
         console.error('Registration error:', error);
