@@ -17,24 +17,6 @@ export const useEventRegistration = (userId: string | undefined) => {
       }
 
       try {
-        // Check if user is already registered for this event
-        const { data: existingRegistration, error: checkError } = await supabase
-          .from('inscricoes_eventos')
-          .select('id')
-          .eq('usuario_id', userId)
-          .eq('evento_id', eventId)
-          .maybeSingle();
-
-        if (checkError) {
-          console.error('Error checking existing registration:', checkError);
-          throw new Error('Error checking existing registration');
-        }
-
-        if (existingRegistration) {
-          console.log('User already registered for this event');
-          return { success: true };
-        }
-
         // Get user's age
         const { data: userData, error: userError } = await supabase
           .from('usuarios')
@@ -92,17 +74,28 @@ export const useEventRegistration = (userId: string | undefined) => {
         }
 
         // Create the event registration with the fee
-        const { error: registrationError } = await supabase
+        const { data: registration, error: registrationError } = await supabase
           .from('inscricoes_eventos')
-          .insert([{
-            usuario_id: userId,
-            evento_id: eventId,
-            taxa_inscricao_id: registrationFee.id,
-            selected_role: selectedRole
-          }]);
+          .upsert(
+            {
+              usuario_id: userId,
+              evento_id: eventId,
+              taxa_inscricao_id: registrationFee.id,
+              selected_role: selectedRole
+            },
+            {
+              onConflict: 'usuario_id,evento_id',
+              ignoreDuplicates: true
+            }
+          )
+          .select()
+          .maybeSingle();
 
         if (registrationError) {
           console.error('Error creating registration:', registrationError);
+          if (registrationError.code === '23505') { // Unique violation code
+            return { success: true }; // User is already registered
+          }
           throw new Error('Error creating registration');
         }
 
