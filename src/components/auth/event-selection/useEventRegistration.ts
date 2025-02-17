@@ -47,13 +47,39 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Error fetching profile types');
         }
 
-        // At this point, we just want to store the initial registration.
-        // Profiles and roles will be created after event selection.
+        // Get profile for the selected role
+        const { data: profiles, error: profilesError } = await supabase
+          .from('perfis')
+          .select('id')
+          .eq('evento_id', eventId)
+          .eq('perfil_tipo_id', profileTypes[0].id)
+          .single();
+
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError);
+          throw new Error('Error fetching profiles');
+        }
+
+        // Get registration fee for the profile
+        const { data: registrationFee, error: feeError } = await supabase
+          .from('taxas_inscricao')
+          .select('id')
+          .eq('evento_id', eventId)
+          .eq('perfil_id', profiles.id)
+          .single();
+
+        if (feeError) {
+          console.error('Error fetching registration fee:', feeError);
+          throw new Error('Error fetching registration fee');
+        }
+
+        // Create the event registration with the fee
         const { error: registrationError } = await supabase
           .from('inscricoes_eventos')
           .insert({
             usuario_id: userId,
             evento_id: eventId,
+            taxa_inscricao_id: registrationFee.id,
             selected_role: selectedRole
           });
 
