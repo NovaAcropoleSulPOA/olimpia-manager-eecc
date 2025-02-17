@@ -89,33 +89,29 @@ async function getProfileAndFeeInfo(
   selectedRole: PerfilTipo
 ): Promise<ProfileAndFeeInfo | null> {
   try {
-    // First get user age info
+    // Get profile ID based on selected role
+    const { data: profileData, error: profileError } = await supabase
+      .from('perfis')
+      .select('id')
+      .eq('evento_id', eventId)
+      .eq('nome', selectedRole === 'ATL' ? 'Atleta' : 'Público Geral')
+      .single();
+
+    if (profileError || !profileData) {
+      console.error('Error fetching profile:', profileError);
+      throw new Error('Could not determine user profile');
+    }
+
+    // Get user identifier
     const { data: userData, error: userError } = await supabase
       .from('usuarios')
-      .select('data_nascimento, numero_identificador')
+      .select('numero_identificador')
       .eq('id', userId)
       .single();
 
     if (userError || !userData) {
       console.error('Error fetching user data:', userError);
       throw new Error('Could not fetch user information');
-    }
-
-    // Calculate age
-    const age = calculateAge(userData.data_nascimento);
-    const profileType = getProfileTypeByAge(age);
-
-    // Get profile ID based on age/role
-    const { data: profileData, error: profileError } = await supabase
-      .from('perfis')
-      .select('id')
-      .eq('evento_id', eventId)
-      .eq('nome', profileType === 'ATL' ? 'Atleta' : 'Público Geral')
-      .single();
-
-    if (profileError || !profileData) {
-      console.error('Error fetching profile:', profileError);
-      throw new Error('Could not determine user profile');
     }
 
     // Get registration fee information
@@ -141,24 +137,4 @@ async function getProfileAndFeeInfo(
     console.error('Error in getProfileAndFeeInfo:', error);
     return null;
   }
-}
-
-function calculateAge(birthDate: string): number {
-  const today = new Date();
-  const birth = new Date(birthDate);
-  let age = today.getFullYear() - birth.getFullYear();
-  const monthDiff = today.getMonth() - birth.getMonth();
-  
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-    age--;
-  }
-  
-  return age;
-}
-
-function getProfileTypeByAge(age: number): PerfilTipo {
-  if (age <= 12) {
-    return 'ATL';
-  }
-  return 'ATL'; // Default to ATL, allow selection in UI for adults
 }
