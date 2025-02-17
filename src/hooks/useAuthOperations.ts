@@ -76,29 +76,44 @@ export function useAuthOperations({ setUser, navigate, location }: UseAuthOperat
     }
   };
 
-  const signUp = async (userData: any) => {
+  const signUp = async (userData: {
+    email: string;
+    password: string;
+    options?: {
+      data?: {
+        nome_completo?: string;
+        telefone?: string;
+        filial_id?: string | null;
+        tipo_documento?: string;
+        numero_documento?: string;
+        genero?: string;
+        data_nascimento?: string;
+      };
+    };
+  }) => {
     try {
       console.log('Starting new user registration.');
       
-      const { data, error: authError } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
           data: {
-            nome_completo: userData.nome,
-            telefone: userData.telefone.replace(/\D/g, ''),
-            filial_id: userData.branchId,
-            tipo_documento: userData.tipo_documento,
-            numero_documento: userData.numero_documento.replace(/\D/g, ''),
-            genero: userData.genero
+            nome_completo: userData.options?.data?.nome_completo,
+            telefone: userData.options?.data?.telefone,
+            filial_id: userData.options?.data?.filial_id,
+            tipo_documento: userData.options?.data?.tipo_documento,
+            numero_documento: userData.options?.data?.numero_documento,
+            genero: userData.options?.data?.genero,
+            data_nascimento: userData.options?.data?.data_nascimento
           }
         }
       });
   
-      if (authError) {
-        console.error('Auth Error:', authError.message);
+      if (error) {
+        console.error('Auth Error:', error.message);
         toast.error('Erro ao criar conta. Tente novamente.');
-        return { user: null, error: authError };
+        return { user: null, error };
       }
   
       if (!data.user) {
