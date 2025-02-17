@@ -109,19 +109,17 @@ export const useEventRegistration = (userId: string | undefined) => {
 
         console.log('Attempting to insert registration with data:', registrationData);
 
-        // Perform the insert operation without any ON CONFLICT clause
-        const { data: newRegistration, error: registrationError } = await supabase
+        // Perform a simple insert without trying to return the inserted record
+        const { error: registrationError } = await supabase
           .from('inscricoes_eventos')
-          .insert(registrationData)
-          .select('id')
-          .single();
+          .insert(registrationData);
 
         if (registrationError) {
           console.error('Error creating registration:', registrationError);
           throw new Error('Error creating registration');
         }
 
-        console.log('Successfully created registration:', newRegistration);
+        console.log('Successfully created registration');
         return { success: true };
       } catch (error: any) {
         console.error('Registration error:', error);
