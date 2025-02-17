@@ -99,20 +99,12 @@ export const useEventRegistration = (userId: string | undefined) => {
           return { success: true };
         }
 
-        // Prepare the registration data
-        const registrationData = {
-          usuario_id: userId,
-          evento_id: eventId,
-          taxa_inscricao_id: registrationFee.id,
-          selected_role: selectedRole
-        };
-
-        console.log('Attempting to insert registration with data:', registrationData);
-
-        // Perform a simple insert without trying to return the inserted record
-        const { error: registrationError } = await supabase
-          .from('inscricoes_eventos')
-          .insert(registrationData);
+        // Call the create_event_registration function instead of direct insert
+        const { error: registrationError } = await supabase.rpc('create_event_registration', {
+          p_user_id: userId,
+          p_event_id: eventId,
+          p_role: selectedRole
+        });
 
         if (registrationError) {
           console.error('Error creating registration:', registrationError);
