@@ -1,3 +1,4 @@
+
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -28,21 +29,50 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Could not determine profile and registration fee information');
         }
 
-        // Create event registration with ON CONFLICT handling
-        const { data: registration, error: registrationError } = await supabase
+        // First, check if registration exists
+        const { data: existingRegistration } = await supabase
           .from('inscricoes_eventos')
-          .upsert({
-            usuario_id: userId,
-            evento_id: eventId,
-            selected_role: selectedRole,
-            taxa_inscricao_id: registrationInfo.taxaInscricaoId
-          })
-          .select()
-          .single();
+          .select('id')
+          .eq('usuario_id', userId)
+          .eq('evento_id', eventId)
+          .eq('selected_role', selectedRole)
+          .maybeSingle();
 
-        if (registrationError) {
-          console.error('Error creating registration:', registrationError);
-          throw new Error(registrationError.message);
+        let registration;
+        if (existingRegistration) {
+          // Update existing registration
+          const { data: updatedReg, error: updateError } = await supabase
+            .from('inscricoes_eventos')
+            .update({
+              taxa_inscricao_id: registrationInfo.taxaInscricaoId
+            })
+            .eq('id', existingRegistration.id)
+            .select()
+            .single();
+
+          if (updateError) {
+            console.error('Error updating registration:', updateError);
+            throw new Error(updateError.message);
+          }
+          registration = updatedReg;
+        } else {
+          // Create new registration
+          const { data: newReg, error: insertError } = await supabase
+            .from('inscricoes_eventos')
+            .insert({
+              usuario_id: userId,
+              evento_id: eventId,
+              selected_role: selectedRole,
+              taxa_inscricao_id: registrationInfo.taxaInscricaoId
+            })
+            .select()
+            .single();
+
+          if (insertError) {
+            console.error('Error creating registration:', insertError);
+            throw new Error(insertError.message);
+          }
+          registration = newReg;
         }
 
         // Check if a payment record already exists
@@ -74,7 +104,7 @@ export const useEventRegistration = (userId: string | undefined) => {
         }
 
         console.log('Successfully created/updated registration and payment record');
-        return { success: true, isExisting: !!existingPayment };
+        return { success: true, isExisting: !!existingRegistration };
       } catch (error: any) {
         console.error('Registration error:', error);
         toast.error(error.message || 'Erro ao realizar inscrição');
