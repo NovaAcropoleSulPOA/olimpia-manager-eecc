@@ -29,14 +29,19 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Could not determine profile and registration fee information');
         }
 
-        // First, check if registration exists
-        const { data: existingRegistration } = await supabase
+        // First, check if registration exists using a type-safe query
+        const { data: existingRegistration, error: checkError } = await supabase
           .from('inscricoes_eventos')
           .select('id')
           .eq('usuario_id', userId)
           .eq('evento_id', eventId)
-          .eq('selected_role', selectedRole)
+          .eq('selected_role', selectedRole as 'ATL' | 'PGR')
           .maybeSingle();
+
+        if (checkError) {
+          console.error('Error checking registration:', checkError);
+          throw checkError;
+        }
 
         let registration;
         if (existingRegistration) {
@@ -52,17 +57,17 @@ export const useEventRegistration = (userId: string | undefined) => {
 
           if (updateError) {
             console.error('Error updating registration:', updateError);
-            throw new Error(updateError.message);
+            throw updateError;
           }
           registration = updatedReg;
         } else {
-          // Create new registration
+          // Create new registration ensuring type safety for selected_role
           const { data: newReg, error: insertError } = await supabase
             .from('inscricoes_eventos')
             .insert({
               usuario_id: userId,
               evento_id: eventId,
-              selected_role: selectedRole,
+              selected_role: selectedRole as 'ATL' | 'PGR',
               taxa_inscricao_id: registrationInfo.taxaInscricaoId
             })
             .select()
@@ -70,7 +75,7 @@ export const useEventRegistration = (userId: string | undefined) => {
 
           if (insertError) {
             console.error('Error creating registration:', insertError);
-            throw new Error(insertError.message);
+            throw insertError;
           }
           registration = newReg;
         }
@@ -99,7 +104,7 @@ export const useEventRegistration = (userId: string | undefined) => {
 
           if (paymentError) {
             console.error('Error creating payment record:', paymentError);
-            throw new Error(paymentError.message);
+            throw paymentError;
           }
         }
 
