@@ -1,4 +1,3 @@
-
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -29,7 +28,7 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Could not determine profile and registration fee information');
         }
 
-        // Create event registration using the correct constraint name
+        // Create event registration with ON CONFLICT handling
         const { data: registration, error: registrationError } = await supabase
           .from('inscricoes_eventos')
           .upsert({
@@ -37,8 +36,6 @@ export const useEventRegistration = (userId: string | undefined) => {
             evento_id: eventId,
             selected_role: selectedRole,
             taxa_inscricao_id: registrationInfo.taxaInscricaoId
-          }, {
-            onConflict: 'inscricoes_eventos_usuario_evento_role_unique'
           })
           .select()
           .single();
