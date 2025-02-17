@@ -37,13 +37,12 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Could not determine profile and registration fee information');
         }
 
-        // First, check if registration exists using profile ID
+        // First, check if registration exists
         const { data: existingRegistration, error: checkError } = await supabase
           .from('inscricoes_eventos')
           .select('id')
           .eq('usuario_id', userId)
           .eq('evento_id', eventId)
-          .eq('selected_role', registrationInfo.perfilId)
           .maybeSingle();
 
         if (checkError) {
@@ -57,7 +56,8 @@ export const useEventRegistration = (userId: string | undefined) => {
           const { data: updatedReg, error: updateError } = await supabase
             .from('inscricoes_eventos')
             .update({
-              taxa_inscricao_id: registrationInfo.taxaInscricaoId
+              taxa_inscricao_id: registrationInfo.taxaInscricaoId,
+              selected_role: registrationInfo.perfilId
             })
             .eq('id', existingRegistration.id)
             .select()
@@ -69,10 +69,10 @@ export const useEventRegistration = (userId: string | undefined) => {
           }
           registration = updatedReg;
         } else {
-          // Create new registration with profile ID as selected_role
+          // Create new registration
           const { data: newReg, error: insertError } = await supabase
             .from('inscricoes_eventos')
-            .insert({
+            .upsert({
               usuario_id: userId,
               evento_id: eventId,
               selected_role: registrationInfo.perfilId,
