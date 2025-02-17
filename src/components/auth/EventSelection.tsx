@@ -32,8 +32,21 @@ export const EventSelection = ({
 
   const handleEventRegistration = async (eventId: string) => {
     try {
-      await registerEventMutation.mutateAsync({ eventId, selectedRole });
+      const result = await registerEventMutation.mutateAsync({ 
+        eventId, 
+        selectedRole 
+      });
+
+      // Store the current event ID and redirect regardless of whether it's a new or existing registration
+      localStorage.setItem('currentEventId', eventId);
       navigate('/athlete-profile');
+
+      // Show appropriate message
+      if (result.isExisting) {
+        toast.success('Bem-vindo de volta ao evento!');
+      } else {
+        toast.success('Inscrição realizada com sucesso!');
+      }
     } catch (error) {
       console.error('Error in handleEventRegistration:', error);
     }
@@ -85,13 +98,10 @@ export const EventSelection = ({
     );
   }
 
-  // Filter events based on user's profile type if they are a child
-  const filteredEvents = events;
-
   return (
     <div className="space-y-6">
       <EventCarousel
-        events={filteredEvents}
+        events={events}
         selectedRole={selectedRole}
         onRoleChange={setSelectedRole}
         onEventAction={(eventId) => {
