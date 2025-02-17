@@ -76,7 +76,7 @@ export const useEventRegistration = (userId: string | undefined) => {
         // First check if registration exists
         const { data: existingRegistration, error: checkError } = await supabase
           .from('inscricoes_eventos')
-          .select()
+          .select('id')
           .eq('usuario_id', userId)
           .eq('evento_id', eventId)
           .maybeSingle();
@@ -91,15 +91,15 @@ export const useEventRegistration = (userId: string | undefined) => {
           return { success: true };
         }
 
-        // If no existing registration, create new one
+        // If no existing registration, create new one using a simple insert
         const { error: registrationError } = await supabase
           .from('inscricoes_eventos')
-          .insert({
+          .insert([{
             usuario_id: userId,
             evento_id: eventId,
             taxa_inscricao_id: registrationFee.id,
             selected_role: selectedRole
-          });
+          }]);
 
         if (registrationError) {
           console.error('Error creating registration:', registrationError);
