@@ -17,6 +17,24 @@ export const useEventRegistration = (userId: string | undefined) => {
       }
 
       try {
+        // Check if user is already registered for this event
+        const { data: existingRegistration, error: checkError } = await supabase
+          .from('inscricoes_eventos')
+          .select('id')
+          .eq('usuario_id', userId)
+          .eq('evento_id', eventId)
+          .single();
+
+        if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "not found" error
+          console.error('Error checking existing registration:', checkError);
+          throw new Error('Error checking existing registration');
+        }
+
+        if (existingRegistration) {
+          console.log('User already registered for this event');
+          return { success: true };
+        }
+
         // Get user's age
         const { data: userData, error: userError } = await supabase
           .from('usuarios')
