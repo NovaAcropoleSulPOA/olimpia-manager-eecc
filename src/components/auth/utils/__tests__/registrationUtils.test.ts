@@ -11,13 +11,13 @@ import { supabase } from '@/lib/supabase';
 // Mock Supabase client
 vi.mock('@/lib/supabase', () => ({
   supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          maybeSingle: vi.fn()
-        }))
-      }))
-    }))
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          maybeSingle: vi.fn().mockResolvedValue(null)
+        })
+      })
+    })
   }
 }));
 
@@ -67,8 +67,8 @@ describe('checkExistingUser', () => {
     await checkExistingUser(email);
 
     expect(supabase.from).toHaveBeenCalledWith('usuarios');
-    expect(supabase.from().select).toHaveBeenCalledWith('id');
-    expect(supabase.from().select().eq).toHaveBeenCalledWith('email', email);
+    expect(supabase.from('usuarios').select).toHaveBeenCalledWith('id');
+    expect(supabase.from('usuarios').select().eq).toHaveBeenCalledWith('email', email);
   });
 });
 
@@ -79,12 +79,12 @@ describe('prepareUserMetadata', () => {
       ddi: '+55',
       telefone: '11999887766',
       branchId: 'branch-123',
-      tipo_documento: 'CPF',
+      tipo_documento: 'CPF' as const,
       numero_documento: '123.456.789-00',
-      genero: 'M',
+      genero: 'Masculino' as const,
       email: 'test@example.com',
       password: 'password123',
-      data_nascimento: '01/01/1990'
+      data_nascimento: new Date('1990-01-01')
     };
 
     const formattedBirthDate = '1990-01-01';
@@ -97,7 +97,7 @@ describe('prepareUserMetadata', () => {
       filial_id: 'branch-123',
       tipo_documento: 'CPF',
       numero_documento: '12345678900',
-      genero: 'M',
+      genero: 'Masculino',
       data_nascimento: '1990-01-01'
     });
   });
@@ -108,12 +108,12 @@ describe('prepareUserMetadata', () => {
       ddi: '+55',
       telefone: undefined,
       branchId: null,
-      tipo_documento: 'CPF',
+      tipo_documento: 'CPF' as const,
       numero_documento: undefined,
-      genero: 'M',
+      genero: 'Masculino' as const,
       email: 'test@example.com',
       password: 'password123',
-      data_nascimento: '01/01/1990'
+      data_nascimento: new Date('1990-01-01')
     };
 
     const formattedBirthDate = '1990-01-01';
@@ -126,7 +126,7 @@ describe('prepareUserMetadata', () => {
       filial_id: null,
       tipo_documento: 'CPF',
       numero_documento: '',
-      genero: 'M',
+      genero: 'Masculino',
       data_nascimento: '1990-01-01'
     });
   });
