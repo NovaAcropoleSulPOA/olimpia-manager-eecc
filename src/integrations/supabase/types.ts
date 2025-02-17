@@ -1422,14 +1422,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      create_event_registration: {
-        Args: {
-          p_user_id: string
-          p_event_id: string
-          p_role: string
-        }
-        Returns: undefined
-      }
       has_profile: {
         Args: {
           user_id: string

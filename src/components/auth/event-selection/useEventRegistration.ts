@@ -21,25 +21,6 @@ export const useEventRegistration = (userId: string | undefined) => {
       }
 
       try {
-        // Check if registration exists
-        const { data: existingRegistration, error: checkError } = await supabase
-          .from('inscricoes_eventos')
-          .select('id')
-          .eq('usuario_id', userId)
-          .eq('evento_id', eventId)
-          .maybeSingle();
-
-        if (checkError) {
-          console.error('Error checking existing registration:', checkError);
-          throw new Error('Error checking registration status');
-        }
-
-        // If registration exists, return success with isExisting flag
-        if (existingRegistration) {
-          console.log('User already registered for this event');
-          return { success: true, isExisting: true };
-        }
-
         // Get correct profile and registration fee information
         const registrationInfo = await getProfileAndFeeInfo(userId, eventId, selectedRole);
         console.log('Retrieved registration info:', registrationInfo);
@@ -48,41 +29,55 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Could not determine profile and registration fee information');
         }
 
-        // Create event registration
-        const { error: registrationError } = await supabase
+        // Create event registration with ON CONFLICT handling
+        const { data: registration, error: registrationError } = await supabase
           .from('inscricoes_eventos')
-          .insert({
+          .upsert({
             usuario_id: userId,
             evento_id: eventId,
             selected_role: selectedRole,
             taxa_inscricao_id: registrationInfo.taxaInscricaoId
-          });
+          }, {
+            onConflict: 'usuario_id,evento_id,selected_role'
+          })
+          .select()
+          .single();
 
         if (registrationError) {
           console.error('Error creating registration:', registrationError);
           throw new Error(registrationError.message);
         }
 
-        // Create payment record
-        const { error: paymentError } = await supabase
+        // Check if a payment record already exists
+        const { data: existingPayment } = await supabase
           .from('pagamentos')
-          .insert({
-            atleta_id: userId,
-            evento_id: eventId,
-            taxa_inscricao_id: registrationInfo.taxaInscricaoId,
-            valor: registrationInfo.valor,
-            status: 'pendente',
-            data_criacao: new Date().toISOString(),
-            numero_identificador: registrationInfo.numeroIdentificador
-          });
+          .select('id')
+          .eq('atleta_id', userId)
+          .eq('evento_id', eventId)
+          .maybeSingle();
 
-        if (paymentError) {
-          console.error('Error creating payment record:', paymentError);
-          throw new Error(paymentError.message);
+        if (!existingPayment) {
+          // Create payment record only if it doesn't exist
+          const { error: paymentError } = await supabase
+            .from('pagamentos')
+            .insert({
+              atleta_id: userId,
+              evento_id: eventId,
+              taxa_inscricao_id: registrationInfo.taxaInscricaoId,
+              valor: registrationInfo.valor,
+              status: 'pendente',
+              data_criacao: new Date().toISOString(),
+              numero_identificador: registrationInfo.numeroIdentificador
+            });
+
+          if (paymentError) {
+            console.error('Error creating payment record:', paymentError);
+            throw new Error(paymentError.message);
+          }
         }
 
-        console.log('Successfully created registration and payment record');
-        return { success: true, isExisting: false };
+        console.log('Successfully created/updated registration and payment record');
+        return { success: true, isExisting: !!existingPayment };
       } catch (error: any) {
         console.error('Registration error:', error);
         toast.error(error.message || 'Erro ao realizar inscrição');
