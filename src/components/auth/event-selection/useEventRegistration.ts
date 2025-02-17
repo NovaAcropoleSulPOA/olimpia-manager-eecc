@@ -73,29 +73,36 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Error fetching registration fee');
         }
 
-        // Create the event registration with the fee
-        const { data: registration, error: registrationError } = await supabase
+        // First check if registration exists
+        const { data: existingRegistration, error: checkError } = await supabase
           .from('inscricoes_eventos')
-          .upsert(
-            {
-              usuario_id: userId,
-              evento_id: eventId,
-              taxa_inscricao_id: registrationFee.id,
-              selected_role: selectedRole
-            },
-            {
-              onConflict: 'usuario_id,evento_id',
-              ignoreDuplicates: true
-            }
-          )
           .select()
+          .eq('usuario_id', userId)
+          .eq('evento_id', eventId)
           .maybeSingle();
+
+        if (checkError) {
+          console.error('Error checking registration:', checkError);
+          throw new Error('Error checking registration');
+        }
+
+        if (existingRegistration) {
+          console.log('User already registered for this event');
+          return { success: true };
+        }
+
+        // If no existing registration, create new one
+        const { error: registrationError } = await supabase
+          .from('inscricoes_eventos')
+          .insert({
+            usuario_id: userId,
+            evento_id: eventId,
+            taxa_inscricao_id: registrationFee.id,
+            selected_role: selectedRole
+          });
 
         if (registrationError) {
           console.error('Error creating registration:', registrationError);
-          if (registrationError.code === '23505') { // Unique violation code
-            return { success: true }; // User is already registered
-          }
           throw new Error('Error creating registration');
         }
 
