@@ -2,15 +2,23 @@
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { PerfilTipo } from "@/lib/types/database";
 
 interface EventRegistrationParams {
   eventId: string;
-  selectedRole: 'ATL' | 'PGR';
+  selectedRole: PerfilTipo;
 }
 
 interface RegistrationResult {
   success: boolean;
   isExisting: boolean;
+}
+
+interface ProfileAndFeeInfo {
+  taxaInscricaoId: number;
+  perfilId: number;
+  valor: number;
+  numeroIdentificador: string;
 }
 
 export const useEventRegistration = (userId: string | undefined) => {
@@ -29,13 +37,13 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Could not determine profile and registration fee information');
         }
 
-        // First, check if registration exists using a type-safe query
+        // First, check if registration exists using profile ID
         const { data: existingRegistration, error: checkError } = await supabase
           .from('inscricoes_eventos')
           .select('id')
           .eq('usuario_id', userId)
           .eq('evento_id', eventId)
-          .eq('selected_role', selectedRole as 'ATL' | 'PGR')
+          .eq('selected_role', registrationInfo.perfilId)
           .maybeSingle();
 
         if (checkError) {
@@ -61,13 +69,13 @@ export const useEventRegistration = (userId: string | undefined) => {
           }
           registration = updatedReg;
         } else {
-          // Create new registration ensuring type safety for selected_role
+          // Create new registration with profile ID as selected_role
           const { data: newReg, error: insertError } = await supabase
             .from('inscricoes_eventos')
             .insert({
               usuario_id: userId,
               evento_id: eventId,
-              selected_role: selectedRole as 'ATL' | 'PGR',
+              selected_role: registrationInfo.perfilId,
               taxa_inscricao_id: registrationInfo.taxaInscricaoId
             })
             .select()
@@ -119,17 +127,10 @@ export const useEventRegistration = (userId: string | undefined) => {
   });
 };
 
-interface ProfileAndFeeInfo {
-  taxaInscricaoId: number;
-  perfilId: number;
-  valor: number;
-  numeroIdentificador: string;
-}
-
 async function getProfileAndFeeInfo(
   userId: string,
   eventId: string,
-  selectedRole: string
+  selectedRole: PerfilTipo
 ): Promise<ProfileAndFeeInfo | null> {
   try {
     // First get user age info
@@ -199,7 +200,7 @@ function calculateAge(birthDate: string): number {
   return age;
 }
 
-function getProfileTypeByAge(age: number): 'ATL' | 'PGR' {
+function getProfileTypeByAge(age: number): PerfilTipo {
   if (age <= 12) {
     return 'ATL';
   }
