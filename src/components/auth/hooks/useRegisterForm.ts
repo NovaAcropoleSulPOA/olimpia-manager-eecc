@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import { supabase } from '@/lib/supabase';
 import { RegisterFormData } from '../types/form-types';
-import { format, isValid } from 'date-fns';
+import { format, isValid, parse } from 'date-fns';
 
 const DEFAULT_EVENT_ID = 'e88fc492-9b35-49f9-a88e-5b7f65d10b2d';
 
@@ -19,15 +19,31 @@ export const useRegisterForm = () => {
       console.log('Starting registration process with values:', values);
       setIsSubmitting(true);
 
-      // Validate and format birth date
-      if (!values.data_nascimento || !isValid(values.data_nascimento)) {
+      // Validate birth date
+      if (!values.data_nascimento) {
+        console.error('Birth date is missing');
+        toast.error('Data de nascimento é obrigatória');
+        return;
+      }
+
+      let birthDate: Date;
+      
+      // Handle birth date - it could be a Date object (from calendar) or string (from input)
+      if (typeof values.data_nascimento === 'string') {
+        // Parse DD/MM/YYYY format to Date object
+        birthDate = parse(values.data_nascimento, 'dd/MM/yyyy', new Date());
+      } else {
+        birthDate = values.data_nascimento;
+      }
+
+      if (!isValid(birthDate)) {
         console.error('Invalid birth date:', values.data_nascimento);
         toast.error('Data de nascimento inválida');
         return;
       }
 
       // Format birth date to YYYY-MM-DD
-      const formattedBirthDate = format(values.data_nascimento, 'yyyy-MM-dd');
+      const formattedBirthDate = format(birthDate, 'yyyy-MM-dd');
       console.log('Formatted birth date:', formattedBirthDate);
 
       // Format phone number
