@@ -23,9 +23,9 @@ export const useEventRegistration = (userId: string | undefined) => {
           .select('id')
           .eq('usuario_id', userId)
           .eq('evento_id', eventId)
-          .single();
+          .maybeSingle();
 
-        if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "not found" error
+        if (checkError) {
           console.error('Error checking existing registration:', checkError);
           throw new Error('Error checking existing registration');
         }
@@ -40,9 +40,9 @@ export const useEventRegistration = (userId: string | undefined) => {
           .from('usuarios')
           .select('data_nascimento')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
-        if (userError) {
+        if (userError || !userData) {
           console.error('Error fetching user data:', userError);
           throw new Error('Error fetching user data');
         }
@@ -60,20 +60,20 @@ export const useEventRegistration = (userId: string | undefined) => {
           .select('id, codigo')
           .in('codigo', isMinor ? [selectedRole, childProfileCode] : [selectedRole]);
 
-        if (profileTypesError) {
+        if (profileTypesError || !profileTypes?.length) {
           console.error('Error fetching profile types:', profileTypesError);
           throw new Error('Error fetching profile types');
         }
 
         // Get profile for the selected role
-        const { data: profiles, error: profilesError } = await supabase
+        const { data: profile, error: profilesError } = await supabase
           .from('perfis')
           .select('id')
           .eq('evento_id', eventId)
           .eq('perfil_tipo_id', profileTypes[0].id)
-          .single();
+          .maybeSingle();
 
-        if (profilesError) {
+        if (profilesError || !profile) {
           console.error('Error fetching profiles:', profilesError);
           throw new Error('Error fetching profiles');
         }
@@ -83,10 +83,10 @@ export const useEventRegistration = (userId: string | undefined) => {
           .from('taxas_inscricao')
           .select('id')
           .eq('evento_id', eventId)
-          .eq('perfil_id', profiles.id)
-          .single();
+          .eq('perfil_id', profile.id)
+          .maybeSingle();
 
-        if (feeError) {
+        if (feeError || !registrationFee) {
           console.error('Error fetching registration fee:', feeError);
           throw new Error('Error fetching registration fee');
         }
@@ -94,12 +94,12 @@ export const useEventRegistration = (userId: string | undefined) => {
         // Create the event registration with the fee
         const { error: registrationError } = await supabase
           .from('inscricoes_eventos')
-          .insert({
+          .insert([{
             usuario_id: userId,
             evento_id: eventId,
             taxa_inscricao_id: registrationFee.id,
             selected_role: selectedRole
-          });
+          }]);
 
         if (registrationError) {
           console.error('Error creating registration:', registrationError);
