@@ -21,7 +21,7 @@ export const useEventRegistration = (userId: string | undefined) => {
       }
 
       try {
-        // First check if registration exists - using maybeSingle() instead of single()
+        // Check if registration exists
         const { data: existingRegistration, error: checkError } = await supabase
           .from('inscricoes_eventos')
           .select('id')
@@ -40,28 +40,48 @@ export const useEventRegistration = (userId: string | undefined) => {
           return { success: true, isExisting: true };
         }
 
-        // Get taxa_inscricao_id first
-        const taxaInscricaoId = await getTaxaInscricaoId(eventId, selectedRole);
-        console.log('Retrieved taxa_inscricao_id:', taxaInscricaoId);
+        // Get correct profile and registration fee information
+        const registrationInfo = await getProfileAndFeeInfo(userId, eventId, selectedRole);
+        console.log('Retrieved registration info:', registrationInfo);
 
-        // If no existing registration, create new one
-        const { data, error: insertError } = await supabase
+        if (!registrationInfo) {
+          throw new Error('Could not determine profile and registration fee information');
+        }
+
+        // Create event registration
+        const { error: registrationError } = await supabase
           .from('inscricoes_eventos')
           .insert({
             usuario_id: userId,
             evento_id: eventId,
             selected_role: selectedRole,
-            taxa_inscricao_id: taxaInscricaoId
-          })
-          .select()
-          .single();
+            taxa_inscricao_id: registrationInfo.taxaInscricaoId
+          });
 
-        if (insertError) {
-          console.error('Error creating registration:', insertError);
-          throw new Error(insertError.message);
+        if (registrationError) {
+          console.error('Error creating registration:', registrationError);
+          throw new Error(registrationError.message);
         }
 
-        console.log('Successfully created new registration');
+        // Create payment record
+        const { error: paymentError } = await supabase
+          .from('pagamentos')
+          .insert({
+            atleta_id: userId,
+            evento_id: eventId,
+            taxa_inscricao_id: registrationInfo.taxaInscricaoId,
+            valor: registrationInfo.valor,
+            status: 'pendente',
+            data_criacao: new Date().toISOString(),
+            numero_identificador: registrationInfo.numeroIdentificador
+          });
+
+        if (paymentError) {
+          console.error('Error creating payment record:', paymentError);
+          throw new Error(paymentError.message);
+        }
+
+        console.log('Successfully created registration and payment record');
         return { success: true, isExisting: false };
       } catch (error: any) {
         console.error('Registration error:', error);
@@ -72,31 +92,89 @@ export const useEventRegistration = (userId: string | undefined) => {
   });
 };
 
-// Updated helper function with correct foreign key relationship
-async function getTaxaInscricaoId(eventId: string, role: string): Promise<number> {
-  console.log('Getting taxa_inscricao_id for event:', eventId, 'and role:', role);
+interface ProfileAndFeeInfo {
+  taxaInscricaoId: number;
+  perfilId: number;
+  valor: number;
+  numeroIdentificador: string;
+}
+
+async function getProfileAndFeeInfo(
+  userId: string,
+  eventId: string,
+  selectedRole: string
+): Promise<ProfileAndFeeInfo | null> {
+  try {
+    // First get user age info
+    const { data: userData, error: userError } = await supabase
+      .from('usuarios')
+      .select('data_nascimento, numero_identificador')
+      .eq('id', userId)
+      .single();
+
+    if (userError || !userData) {
+      console.error('Error fetching user data:', userError);
+      throw new Error('Could not fetch user information');
+    }
+
+    // Calculate age
+    const age = calculateAge(userData.data_nascimento);
+    const profileType = getProfileTypeByAge(age);
+
+    // Get profile ID based on age/role
+    const { data: profileData, error: profileError } = await supabase
+      .from('perfis')
+      .select('id')
+      .eq('evento_id', eventId)
+      .eq('nome', profileType === 'ATL' ? 'Atleta' : 'Público Geral')
+      .single();
+
+    if (profileError || !profileData) {
+      console.error('Error fetching profile:', profileError);
+      throw new Error('Could not determine user profile');
+    }
+
+    // Get registration fee information
+    const { data: feeData, error: feeError } = await supabase
+      .from('taxas_inscricao')
+      .select('id, valor')
+      .eq('evento_id', eventId)
+      .eq('perfil_id', profileData.id)
+      .single();
+
+    if (feeError || !feeData) {
+      console.error('Error fetching registration fee:', feeError);
+      throw new Error('Could not determine registration fee');
+    }
+
+    return {
+      taxaInscricaoId: feeData.id,
+      perfilId: profileData.id,
+      valor: feeData.valor,
+      numeroIdentificador: userData.numero_identificador
+    };
+  } catch (error) {
+    console.error('Error in getProfileAndFeeInfo:', error);
+    return null;
+  }
+}
+
+function calculateAge(birthDate: string): number {
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
   
-  const { data, error } = await supabase
-    .from('taxas_inscricao')
-    .select(`
-      id,
-      perfil:perfis!fk_taxas_inscricao_perfil (
-        perfil_tipo:perfis_tipo (codigo)
-      )
-    `)
-    .eq('evento_id', eventId)
-    .maybeSingle();
-
-  if (error) {
-    console.error('Error fetching taxa_inscricao:', error);
-    throw new Error('Could not determine registration fee');
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
   }
+  
+  return age;
+}
 
-  if (!data) {
-    console.error('No taxa_inscricao found for event:', eventId);
-    throw new Error('No registration fee found for this event');
+function getProfileTypeByAge(age: number): 'ATL' | 'PGR' {
+  if (age <= 12) {
+    return 'ATL';
   }
-
-  console.log('Retrieved taxa_inscricao data:', data);
-  return data.id;
+  return 'ATL'; // Default to ATL, allow selection in UI for adults
 }
