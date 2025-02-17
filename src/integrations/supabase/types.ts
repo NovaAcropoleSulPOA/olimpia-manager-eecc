@@ -293,7 +293,7 @@ export type Database = {
           data_inscricao: string | null
           evento_id: string
           id: string
-          selected_role: Database["public"]["Enums"]["perfil_tipo"]
+          selected_role: number
           taxa_inscricao_id: number
           usuario_id: string
         }
@@ -301,7 +301,7 @@ export type Database = {
           data_inscricao?: string | null
           evento_id: string
           id?: string
-          selected_role: Database["public"]["Enums"]["perfil_tipo"]
+          selected_role: number
           taxa_inscricao_id: number
           usuario_id: string
         }
@@ -309,11 +309,18 @@ export type Database = {
           data_inscricao?: string | null
           evento_id?: string
           id?: string
-          selected_role?: Database["public"]["Enums"]["perfil_tipo"]
+          selected_role?: number
           taxa_inscricao_id?: number
           usuario_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_inscricoes_eventos_perfil"
+            columns: ["selected_role"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fk_inscricoes_eventos_taxa_inscricao"
             columns: ["taxa_inscricao_id"]
