@@ -5,13 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import { RegisterFormData } from '../types/form-types';
 import { formatBirthDate, checkExistingUser, prepareUserMetadata } from '../utils/registrationUtils';
-import { useProfileSetup } from './useProfileSetup';
 
 export const useRegisterForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
-  const { setupProfile } = useProfileSetup();
 
   const handleSubmit = async (values: RegisterFormData) => {
     try {
@@ -67,15 +65,8 @@ export const useRegisterForm = () => {
         return;
       }
 
-      // Setup user profile and payment
-      const profileSetupSuccess = await setupProfile(signUpResult.user.id);
-      if (!profileSetupSuccess) {
-        toast.error('Erro ao configurar perfil do usuário.');
-        return;
-      }
-
-      toast.success('Cadastro realizado com sucesso!');
-      navigate('/');
+      toast.success('Cadastro realizado com sucesso! Por favor, selecione um evento para continuar.');
+      navigate('/event-selection');
 
     } catch (error) {
       console.error('Registration process error:', error);

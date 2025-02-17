@@ -9,7 +9,7 @@ vi.mock('@/lib/supabase', () => ({
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
-          head: vi.fn().mockResolvedValue({ count: 42 })
+          head: vi.fn().mockResolvedValue({ data: null, count: 42 })
         })
       })
     })
@@ -27,14 +27,26 @@ describe('generateIdentifier', () => {
   });
 
   it('should handle zero count', async () => {
-    vi.mocked(supabase.from('pagamentos').select().eq().head).mockResolvedValueOnce({ count: 0 });
+    vi.mocked(supabase.from).mockReturnValueOnce({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          head: vi.fn().mockResolvedValue({ data: null, count: 0 })
+        })
+      })
+    });
     
     const identifier = await generateIdentifier();
     expect(identifier).toBe('001');
   });
 
   it('should handle large numbers', async () => {
-    vi.mocked(supabase.from('pagamentos').select().eq().head).mockResolvedValueOnce({ count: 999 });
+    vi.mocked(supabase.from).mockReturnValueOnce({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          head: vi.fn().mockResolvedValue({ data: null, count: 999 })
+        })
+      })
+    });
     
     const identifier = await generateIdentifier();
     expect(identifier).toBe('1000');
