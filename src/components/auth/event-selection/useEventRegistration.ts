@@ -2,7 +2,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { differenceInYears } from "date-fns";
 
 interface EventRegistrationParams {
   eventId: string;
