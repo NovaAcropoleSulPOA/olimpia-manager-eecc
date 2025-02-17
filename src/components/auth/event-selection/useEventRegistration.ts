@@ -57,7 +57,7 @@ export const useEventRegistration = (userId: string | undefined) => {
             {
               usuario_id: userId,
               evento_id: eventId,
-              selected_role: registrationInfo.perfilId,
+              selected_role: registrationInfo.perfilId, // Store the perfis.id value
               taxa_inscricao_id: registrationInfo.taxaInscricaoId
             },
             {
@@ -72,7 +72,24 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw registrationError;
         }
 
-        console.log('Successfully created/updated registration');
+        // Also ensure the user has the correct role in papeis_usuarios
+        const { error: roleError } = await supabase
+          .from('papeis_usuarios')
+          .upsert({
+            usuario_id: userId,
+            perfil_id: registrationInfo.perfilId,
+            evento_id: eventId
+          }, {
+            onConflict: 'usuario_id,evento_id',
+            ignoreDuplicates: false
+          });
+
+        if (roleError) {
+          console.error('Error assigning user role:', roleError);
+          throw roleError;
+        }
+
+        console.log('Successfully created/updated registration with profile ID:', registrationInfo.perfilId);
         return { success: true, isExisting: !!existingRegistration };
       } catch (error: any) {
         console.error('Registration error:', error);
