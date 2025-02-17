@@ -50,17 +50,22 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw checkError;
         }
 
-        // Insert or update registration
+        // Insert or update registration with explicit conflict handling
         const { data: registration, error: registrationError } = await supabase
           .from('inscricoes_eventos')
-          .upsert({
-            usuario_id: userId,
-            evento_id: eventId,
-            selected_role: registrationInfo.perfilId,
-            taxa_inscricao_id: registrationInfo.taxaInscricaoId
-          })
-          .select()
-          .single();
+          .upsert(
+            {
+              usuario_id: userId,
+              evento_id: eventId,
+              selected_role: registrationInfo.perfilId,
+              taxa_inscricao_id: registrationInfo.taxaInscricaoId
+            },
+            {
+              onConflict: 'usuario_id,evento_id',
+              ignoreDuplicates: false
+            }
+          )
+          .select();
 
         if (registrationError) {
           console.error('Error creating/updating registration:', registrationError);
