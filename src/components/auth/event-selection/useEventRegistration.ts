@@ -21,15 +21,15 @@ export const useEventRegistration = (userId: string | undefined) => {
       }
 
       try {
-        // First check if registration exists
+        // First check if registration exists - using maybeSingle() instead of single()
         const { data: existingRegistration, error: checkError } = await supabase
           .from('inscricoes_eventos')
           .select('id')
           .eq('usuario_id', userId)
           .eq('evento_id', eventId)
-          .single();
+          .maybeSingle();
 
-        if (checkError && checkError.code !== 'PGRST116') { // Not found error code
+        if (checkError) {
           console.error('Error checking existing registration:', checkError);
           throw new Error('Error checking registration status');
         }
@@ -40,14 +40,18 @@ export const useEventRegistration = (userId: string | undefined) => {
           return { success: true, isExisting: true };
         }
 
-        // If no existing registration, create new one directly
+        // Get taxa_inscricao_id first
+        const taxaInscricaoId = await getTaxaInscricaoId(eventId, selectedRole);
+        console.log('Retrieved taxa_inscricao_id:', taxaInscricaoId);
+
+        // If no existing registration, create new one
         const { data, error: insertError } = await supabase
           .from('inscricoes_eventos')
           .insert({
             usuario_id: userId,
             evento_id: eventId,
             selected_role: selectedRole,
-            taxa_inscricao_id: await getTaxaInscricaoId(eventId, selectedRole)
+            taxa_inscricao_id: taxaInscricaoId
           })
           .select()
           .single();
@@ -68,18 +72,31 @@ export const useEventRegistration = (userId: string | undefined) => {
   });
 };
 
-// Helper function to get the correct taxa_inscricao_id
+// Updated helper function with correct foreign key relationship
 async function getTaxaInscricaoId(eventId: string, role: string): Promise<number> {
+  console.log('Getting taxa_inscricao_id for event:', eventId, 'and role:', role);
+  
   const { data, error } = await supabase
     .from('taxas_inscricao')
-    .select('id, perfil:perfis(perfil_tipo:perfis_tipo(codigo))')
+    .select(`
+      id,
+      perfil:perfis!fk_taxas_inscricao_perfil (
+        perfil_tipo:perfis_tipo (codigo)
+      )
+    `)
     .eq('evento_id', eventId)
-    .single();
+    .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
     console.error('Error fetching taxa_inscricao:', error);
     throw new Error('Could not determine registration fee');
   }
 
+  if (!data) {
+    console.error('No taxa_inscricao found for event:', eventId);
+    throw new Error('No registration fee found for this event');
+  }
+
+  console.log('Retrieved taxa_inscricao data:', data);
   return data.id;
 }
