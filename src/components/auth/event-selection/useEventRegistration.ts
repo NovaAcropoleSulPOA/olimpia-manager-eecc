@@ -50,6 +50,22 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw checkError;
         }
 
+        // Create or update user role for the event
+        const { error: roleError } = await supabase
+          .from('papeis_usuarios')
+          .upsert({
+            usuario_id: userId,
+            perfil_id: registrationInfo.perfilId,
+            evento_id: eventId
+          }, {
+            onConflict: 'usuario_id,evento_id'
+          });
+
+        if (roleError) {
+          console.error('Error assigning user role:', roleError);
+          throw roleError;
+        }
+
         // Insert or update registration with explicit conflict handling
         const { data: registration, error: registrationError } = await supabase
           .from('inscricoes_eventos')
@@ -57,7 +73,7 @@ export const useEventRegistration = (userId: string | undefined) => {
             {
               usuario_id: userId,
               evento_id: eventId,
-              selected_role: registrationInfo.perfilId,
+              selected_role: selectedRole, // Store the actual role type (ATL or PGR)
               taxa_inscricao_id: registrationInfo.taxaInscricaoId
             },
             {
@@ -72,7 +88,7 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw registrationError;
         }
 
-        console.log('Successfully created/updated registration');
+        console.log('Successfully created/updated registration with role:', selectedRole);
         return { success: true, isExisting: !!existingRegistration };
       } catch (error: any) {
         console.error('Registration error:', error);
@@ -91,12 +107,15 @@ async function getProfileAndFeeInfo(
   try {
     console.log(`Fetching profile info for user ${userId} in event ${eventId} with role ${selectedRole}`);
 
-    // Get profile ID based on selected role
+    // Get profile ID based on selected role - ensure correct profile name mapping
+    const profileName = selectedRole === 'ATL' ? 'Atleta' : 'Público Geral';
+    console.log('Looking for profile with name:', profileName);
+
     const { data: profileData, error: profileError } = await supabase
       .from('perfis')
       .select('id')
       .eq('evento_id', eventId)
-      .eq('nome', selectedRole === 'ATL' ? 'Atleta' : 'Público Geral')
+      .eq('nome', profileName)
       .maybeSingle();
 
     if (profileError) {
@@ -105,9 +124,11 @@ async function getProfileAndFeeInfo(
     }
 
     if (!profileData) {
-      console.error('No profile found for the given criteria');
-      throw new Error('Profile not found for this event');
+      console.error('No profile found for', profileName);
+      throw new Error(`Profile "${profileName}" not found for this event`);
     }
+
+    console.log('Found profile:', profileData);
 
     // Get user identifier
     const { data: userData, error: userError } = await supabase
