@@ -1,3 +1,4 @@
+
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Sidebar, 
@@ -67,13 +68,12 @@ export function MainNavigation() {
   };
 
   const menuItems = [
-    ...(isAthlete || userRoles.some(role => role.codigo === 'PGR') ? [
-      {
-        title: "Perfil",
-        icon: User,
-        path: "/athlete-profile"
-      }
-    ] : []),
+    // Profile menu item now shown for all logged-in users
+    {
+      title: "Perfil",
+      icon: User,
+      path: "/athlete-profile"
+    },
     {
       title: "Cronograma",
       icon: Calendar,
