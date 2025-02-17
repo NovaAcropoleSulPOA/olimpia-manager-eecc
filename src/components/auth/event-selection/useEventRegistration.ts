@@ -17,6 +17,8 @@ export const useEventRegistration = (userId: string | undefined) => {
       }
 
       try {
+        console.log('Starting registration process with:', { userId, eventId, selectedRole });
+        
         // Get user's age
         const { data: userData, error: userError } = await supabase
           .from('usuarios')
@@ -47,6 +49,8 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Error fetching profile types');
         }
 
+        console.log('Retrieved profile types:', profileTypes);
+
         // Get profile for the selected role
         const { data: profile, error: profilesError } = await supabase
           .from('perfis')
@@ -60,6 +64,8 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Error fetching profiles');
         }
 
+        console.log('Retrieved profile:', profile);
+
         // Get registration fee for the profile
         const { data: registrationFee, error: feeError } = await supabase
           .from('taxas_inscricao')
@@ -72,6 +78,8 @@ export const useEventRegistration = (userId: string | undefined) => {
           console.error('Error fetching registration fee:', feeError);
           throw new Error('Error fetching registration fee');
         }
+
+        console.log('Retrieved registration fee:', registrationFee);
 
         // First check if registration exists
         const { data: existingRegistration, error: checkError } = await supabase
@@ -91,21 +99,29 @@ export const useEventRegistration = (userId: string | undefined) => {
           return { success: true };
         }
 
-        // If no existing registration, create new one using a simple insert
-        const { error: registrationError } = await supabase
+        // Prepare the registration data
+        const registrationData = {
+          usuario_id: userId,
+          evento_id: eventId,
+          taxa_inscricao_id: registrationFee.id,
+          selected_role: selectedRole
+        };
+
+        console.log('Attempting to insert registration with data:', registrationData);
+
+        // Perform the insert operation without any ON CONFLICT clause
+        const { data: newRegistration, error: registrationError } = await supabase
           .from('inscricoes_eventos')
-          .insert([{
-            usuario_id: userId,
-            evento_id: eventId,
-            taxa_inscricao_id: registrationFee.id,
-            selected_role: selectedRole
-          }]);
+          .insert(registrationData)
+          .select('id')
+          .single();
 
         if (registrationError) {
           console.error('Error creating registration:', registrationError);
           throw new Error('Error creating registration');
         }
 
+        console.log('Successfully created registration:', newRegistration);
         return { success: true };
       } catch (error: any) {
         console.error('Registration error:', error);
