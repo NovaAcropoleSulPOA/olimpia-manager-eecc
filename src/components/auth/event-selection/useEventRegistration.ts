@@ -89,17 +89,24 @@ async function getProfileAndFeeInfo(
   selectedRole: PerfilTipo
 ): Promise<ProfileAndFeeInfo | null> {
   try {
+    console.log(`Fetching profile info for user ${userId} in event ${eventId} with role ${selectedRole}`);
+
     // Get profile ID based on selected role
     const { data: profileData, error: profileError } = await supabase
       .from('perfis')
       .select('id')
       .eq('evento_id', eventId)
       .eq('nome', selectedRole === 'ATL' ? 'Atleta' : 'Público Geral')
-      .single();
+      .maybeSingle();
 
-    if (profileError || !profileData) {
+    if (profileError) {
       console.error('Error fetching profile:', profileError);
       throw new Error('Could not determine user profile');
+    }
+
+    if (!profileData) {
+      console.error('No profile found for the given criteria');
+      throw new Error('Profile not found for this event');
     }
 
     // Get user identifier
@@ -107,11 +114,16 @@ async function getProfileAndFeeInfo(
       .from('usuarios')
       .select('numero_identificador')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
-    if (userError || !userData) {
+    if (userError) {
       console.error('Error fetching user data:', userError);
       throw new Error('Could not fetch user information');
+    }
+
+    if (!userData) {
+      console.error('No user found with ID:', userId);
+      throw new Error('User not found');
     }
 
     // Get registration fee information
@@ -120,11 +132,16 @@ async function getProfileAndFeeInfo(
       .select('id, valor')
       .eq('evento_id', eventId)
       .eq('perfil_id', profileData.id)
-      .single();
+      .maybeSingle();
 
-    if (feeError || !feeData) {
+    if (feeError) {
       console.error('Error fetching registration fee:', feeError);
       throw new Error('Could not determine registration fee');
+    }
+
+    if (!feeData) {
+      console.error('No registration fee found for profile:', profileData.id);
+      throw new Error('Registration fee not configured for this profile');
     }
 
     return {
