@@ -72,16 +72,25 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw registrationError;
         }
 
-        // Also ensure the user has the correct role in papeis_usuarios
+        // First, delete any existing base profile (Atleta or Público Geral) assignments
+        const { error: deleteError } = await supabase
+          .rpc('remove_base_profiles', { 
+            p_user_id: userId,
+            p_event_id: eventId
+          });
+
+        if (deleteError) {
+          console.error('Error removing existing base profiles:', deleteError);
+          throw deleteError;
+        }
+
+        // Then insert the new profile assignment
         const { error: roleError } = await supabase
           .from('papeis_usuarios')
-          .upsert({
+          .insert({
             usuario_id: userId,
             perfil_id: registrationInfo.perfilId,
             evento_id: eventId
-          }, {
-            onConflict: 'usuario_id,evento_id',
-            ignoreDuplicates: false
           });
 
         if (roleError) {
