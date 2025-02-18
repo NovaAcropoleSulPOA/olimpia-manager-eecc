@@ -38,7 +38,10 @@ export const LoginForm = () => {
     } catch (error: any) {
       console.error("Login Error:", error);
       
-      if (error.message?.toLowerCase().includes("email not confirmed")) {
+      // Enhanced error handling with more specific messages
+      if (error.error?.status === 400 && error.error?.message?.includes('Invalid login credentials')) {
+        toast.error("Email ou senha incorretos. Por favor, verifique suas credenciais.");
+      } else if (error.message?.toLowerCase().includes("email not confirmed")) {
         toast.error(
           <div className="flex flex-col gap-2">
             <p>Email não confirmado. Por favor, verifique sua caixa de entrada.</p>
@@ -51,8 +54,6 @@ export const LoginForm = () => {
             </Button>
           </div>
         );
-      } else if (error.message?.toLowerCase().includes("invalid login credentials")) {
-        toast.error("Email ou senha incorretos. Por favor, verifique suas credenciais.");
       } else if (error.message?.includes("too many requests")) {
         toast.error("Muitas tentativas de login. Por favor, aguarde alguns minutos.");
       } else if (error.message?.toLowerCase().includes("network")) {
