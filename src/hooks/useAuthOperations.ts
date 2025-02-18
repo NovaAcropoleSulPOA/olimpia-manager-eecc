@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { NavigateFunction } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -25,26 +26,33 @@ export function useAuthOperations({ setUser, navigate, location }: UseAuthOperat
       if (error) {
         console.log('Login error:', error);
         
-        // Try to get error details
-        let errorCode: string | undefined;
-        let errorMessage: string | undefined;
-
-        if (error instanceof AuthApiError) {
+        // Extract error details from the error object
+        let parsedError;
+        if (typeof error === 'object' && 'body' in error && typeof error.body === 'string') {
           try {
-            const errorDetails = JSON.parse(error.message);
-            errorCode = errorDetails.code;
-            errorMessage = errorDetails.message;
-          } catch {
-            errorCode = error.status.toString();
-            errorMessage = error.message;
+            parsedError = JSON.parse(error.body);
+          } catch (e) {
+            console.error('Error parsing error body:', e);
           }
-        } else {
-          errorMessage = error.message;
         }
 
-        // Handle different error cases
-        if (errorCode === 'invalid_credentials' || 
-            errorMessage?.toLowerCase().includes('invalid login credentials')) {
+        // Handle parsed error first
+        if (parsedError?.code === 'invalid_credentials') {
+          throw new Error('Invalid login credentials');
+        }
+
+        // Handle AuthApiError as fallback
+        if (error instanceof AuthApiError) {
+          if (error.status === 400) {
+            throw new Error('Invalid login credentials');
+          } else if (error.status === 429) {
+            throw new Error('Too many login attempts');
+          }
+        }
+
+        // Final fallback to message content check
+        const errorMessage = parsedError?.message || error.message;
+        if (errorMessage?.toLowerCase().includes('invalid login credentials')) {
           throw new Error('Invalid login credentials');
         } else if (errorMessage?.toLowerCase().includes('email not confirmed')) {
           throw new Error('Email not confirmed');
