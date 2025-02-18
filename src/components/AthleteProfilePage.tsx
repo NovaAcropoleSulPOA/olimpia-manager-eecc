@@ -15,7 +15,9 @@ interface PaymentStatus {
   valor: number | null;
   perfil_nome: string | null;
   isento: boolean;
-  pagamento_status?: string;
+  status?: string;
+  evento_id: string;
+  usuario_id: string;
 }
 
 export default function AthleteProfilePage() {
@@ -36,17 +38,16 @@ export default function AthleteProfilePage() {
   const { data: paymentStatus, isLoading: paymentLoading } = useQuery({
     queryKey: ['payment-status', user?.id, currentEventId],
     queryFn: async () => {
-      if (!user?.id || !currentEventId) return null;
+      if (!user?.id || !currentEventId) {
+        console.log('Missing user ID or event ID:', { userId: user?.id, eventId: currentEventId });
+        return null;
+      }
       
       console.log('Fetching payment status for user:', user.id, 'event:', currentEventId);
       
-      const { data, error } = await supabase
+      const { data: paymentData, error } = await supabase
         .from('vw_taxas_inscricao_usuarios')
-        .select(`
-          valor,
-          perfil_nome,
-          isento
-        `)
+        .select('*')
         .eq('usuario_id', user.id)
         .eq('evento_id', currentEventId)
         .maybeSingle();
@@ -56,8 +57,15 @@ export default function AthleteProfilePage() {
         throw error;
       }
 
-      console.log('Payment status response:', data);
-      return data as PaymentStatus;
+      // Log the full payment data for debugging
+      console.log('Payment status full response:', paymentData);
+
+      if (!paymentData) {
+        console.log('No payment data found for user');
+        return null;
+      }
+
+      return paymentData as PaymentStatus;
     },
     enabled: !!user?.id && !!currentEventId,
   });
@@ -85,12 +93,16 @@ export default function AthleteProfilePage() {
   }
 
   const isAthleteProfile = profile.papeis?.some(role => role.nome === 'Atleta');
-  const shouldShowPaymentInfo = isAthleteProfile && !paymentStatus?.isento;
+  const shouldShowPaymentInfo = isAthleteProfile && paymentStatus && !paymentStatus.isento;
 
+  // Enhanced logging for debugging
   console.log('Profile and payment check:', {
     isAthleteProfile,
     paymentStatus,
-    shouldShowPaymentInfo
+    shouldShowPaymentInfo,
+    userId: user?.id,
+    eventId: currentEventId,
+    profileRoles: profile.papeis
   });
 
   return (
