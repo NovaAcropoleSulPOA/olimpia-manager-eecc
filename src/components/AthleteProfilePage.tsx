@@ -45,6 +45,7 @@ export default function AthleteProfilePage() {
       
       console.log('Fetching payment status for user:', user.id, 'event:', currentEventId);
       
+      // First get payment status from vw_taxas_inscricao_usuarios
       const { data: paymentData, error } = await supabase
         .from('vw_taxas_inscricao_usuarios')
         .select('*')
@@ -58,16 +59,27 @@ export default function AthleteProfilePage() {
       }
 
       // Log the full payment data for debugging
-      console.log('Payment status full response:', paymentData);
+      console.log('Payment status from view:', paymentData);
 
+      // If no payment data found, create a default status
       if (!paymentData) {
-        console.log('No payment data found for user');
-        return null;
+        console.log('No payment data found, creating default status');
+        return {
+          valor: 0,
+          perfil_nome: profile?.papeis?.[0]?.nome || null,
+          isento: false,
+          status: 'pendente',
+          evento_id: currentEventId,
+          usuario_id: user.id
+        } as PaymentStatus;
       }
 
-      return paymentData as PaymentStatus;
+      return {
+        ...paymentData,
+        status: paymentData.status || 'pendente'
+      } as PaymentStatus;
     },
-    enabled: !!user?.id && !!currentEventId,
+    enabled: !!user?.id && !!currentEventId && !!profile,
   });
 
   const isLoading = profileLoading || paymentLoading;
@@ -93,7 +105,7 @@ export default function AthleteProfilePage() {
   }
 
   const isAthleteProfile = profile.papeis?.some(role => role.nome === 'Atleta');
-  const shouldShowPaymentInfo = isAthleteProfile && paymentStatus && !paymentStatus.isento;
+  const shouldShowPaymentInfo = isAthleteProfile && (!paymentStatus?.isento ?? true);
 
   // Enhanced logging for debugging
   console.log('Profile and payment check:', {
