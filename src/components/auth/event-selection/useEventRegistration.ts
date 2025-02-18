@@ -86,13 +86,13 @@ async function getProfileAndFeeInfo(
   try {
     console.log('Fetching profile and fee info for:', { userId, eventId });
 
-    // Step 1: Get the Atleta profile with its registration fee
+    // Step 1: Get the Atleta profile with its registration fee using explicit FK relationship
     const { data, error } = await supabase
       .from('perfis')
       .select(`
         id,
         nome,
-        taxas_inscricao:taxas_inscricao (
+        taxas_inscricao!fk_taxas_inscricao_perfil (
           id,
           valor,
           perfil_id
