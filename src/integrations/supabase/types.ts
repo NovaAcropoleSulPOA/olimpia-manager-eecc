@@ -1562,6 +1562,12 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_role_priority: {
+        Args: {
+          role_name: string
+        }
+        Returns: number
+      }
       has_profile: {
         Args: {
           user_id: string
