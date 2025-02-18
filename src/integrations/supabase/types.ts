@@ -1416,46 +1416,46 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "inscricoes_eventos_usuario_id_fkey"
+            foreignKeyName: "inscricoes_eventos_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "inscricoes_eventos_usuario_id_fkey"
+            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "view_perfil_atleta"
             referencedColumns: ["atleta_id"]
           },
           {
-            foreignKeyName: "inscricoes_eventos_usuario_id_fkey"
+            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "vw_athletes_management"
             referencedColumns: ["atleta_id"]
           },
           {
-            foreignKeyName: "inscricoes_eventos_usuario_id_fkey"
+            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "vw_inscricoes_atletas"
             referencedColumns: ["atleta_id"]
           },
           {
-            foreignKeyName: "inscricoes_eventos_usuario_id_fkey"
+            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "vw_pontuacoes_gerais_atletas"
             referencedColumns: ["atleta_id"]
-          },
-          {
-            foreignKeyName: "taxas_inscricao_evento_id_fkey"
-            columns: ["evento_id"]
-            isOneToOne: false
-            referencedRelation: "eventos"
-            referencedColumns: ["id"]
           },
         ]
       }
