@@ -26,11 +26,16 @@ export function useAuthOperations({ setUser, navigate, location }: UseAuthOperat
         console.log('Login error:', error);
         const errorMessage = error.message;
         
+        // Handle specific error cases
         if (errorMessage.toLowerCase().includes('invalid login credentials')) {
           throw new Error('Invalid login credentials');
+        } else if (errorMessage.toLowerCase().includes('email not confirmed')) {
+          throw new Error('Email not confirmed');
+        } else if (errorMessage.toLowerCase().includes('too many requests')) {
+          throw new Error('Too many login attempts');
         }
         
-        throw new Error(errorMessage || 'Login failed');
+        throw error;
       }
   
       if (!data.user) {
