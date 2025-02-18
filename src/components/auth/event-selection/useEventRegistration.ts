@@ -1,4 +1,3 @@
-
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -30,7 +29,6 @@ export const useEventRegistration = (userId: string | undefined) => {
       }
 
       try {
-        // Get correct profile and registration fee information
         const registrationInfo = await getProfileAndFeeInfo(userId, eventId, selectedRole);
         console.log('Retrieved registration info:', registrationInfo);
 
@@ -38,7 +36,6 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw new Error('Could not determine profile and registration fee information');
         }
 
-        // First, check if registration exists
         const { data: existingRegistration, error: checkError } = await supabase
           .from('inscricoes_eventos')
           .select('id')
@@ -51,7 +48,6 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw checkError;
         }
 
-        // Insert or update registration with the correct profile ID
         const { data: registration, error: registrationError } = await supabase
           .from('inscricoes_eventos')
           .upsert(
@@ -73,7 +69,6 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw registrationError;
         }
 
-        // Use the assign_user_profiles function with correct parameters including event_id
         const { error: profileError } = await supabase
           .rpc('assign_user_profiles', {
             p_user_id: userId,
@@ -103,23 +98,21 @@ async function getProfileAndFeeInfo(
   selectedRole: PerfilTipo
 ): Promise<ProfileAndFeeInfo | null> {
   try {
-    // Start by getting the exact profile ID for 'Atleta' in this event
     const profileName = selectedRole === 'ATL' ? 'Atleta' : 'Público Geral';
     console.log('Looking for profile:', { profileName, eventId });
 
-    // Get the profile ID and fee in a single query using a JOIN
     const { data, error } = await supabase
       .from('taxas_inscricao')
       .select(`
         id,
         valor,
-        perfil:perfil_id (
+        perfil:perfis!inner (
           id,
           nome
         )
       `)
       .eq('evento_id', eventId)
-      .eq('perfil.nome', profileName)
+      .eq('perfis.nome', profileName)
       .single();
 
     if (error) {
@@ -134,7 +127,6 @@ async function getProfileAndFeeInfo(
 
     console.log('Retrieved fee data:', data);
 
-    // Get user identifier
     const { data: userData, error: userError } = await supabase
       .from('usuarios')
       .select('numero_identificador')
