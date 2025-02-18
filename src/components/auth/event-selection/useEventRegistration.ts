@@ -58,7 +58,7 @@ export const useEventRegistration = (userId: string | undefined) => {
             {
               usuario_id: userId,
               evento_id: eventId,
-              selected_role: registrationInfo.perfilId, // Use the actual profile ID (integer)
+              selected_role: registrationInfo.perfilId,
               taxa_inscricao_id: registrationInfo.taxaInscricaoId
             },
             {
@@ -105,11 +105,19 @@ async function getProfileAndFeeInfo(
   try {
     console.log(`Fetching profile info for user ${userId} in event ${eventId} with role ${selectedRole}`);
 
-    // Get profile ID based on selected role
+    // First, let's debug what profiles exist for this event
+    const { data: allProfiles, error: allProfilesError } = await supabase
+      .from('perfis')
+      .select('*')
+      .eq('evento_id', eventId);
+    
+    console.log('All profiles for event:', allProfiles);
+
+    // Get profile ID based on selected role with more precise querying
     const profileName = selectedRole === 'ATL' ? 'Atleta' : 'Público Geral';
     console.log('Looking for profile with name:', profileName);
     
-    // First, get the complete profile information including the id
+    // Get the complete profile information with a more detailed query
     const { data: profileData, error: profileError } = await supabase
       .from('perfis')
       .select('id, nome')
@@ -146,7 +154,15 @@ async function getProfileAndFeeInfo(
       throw new Error('User not found');
     }
 
-    // Get registration fee information using the profile ID from perfis table
+    // Debug: check all registration fees for this event
+    const { data: allFees, error: allFeesError } = await supabase
+      .from('taxas_inscricao')
+      .select('id, valor, perfil_id')
+      .eq('evento_id', eventId);
+    
+    console.log('All fees for event:', allFees);
+
+    // Get registration fee information with explicit profile ID matching
     const { data: feeData, error: feeError } = await supabase
       .from('taxas_inscricao')
       .select('id, valor')
