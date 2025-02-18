@@ -103,39 +103,38 @@ async function getProfileAndFeeInfo(
   selectedRole: PerfilTipo
 ): Promise<ProfileAndFeeInfo | null> {
   try {
-    console.log(`Fetching profile info for user ${userId} in event ${eventId} with role ${selectedRole}`);
-
-    // First, let's debug what profiles exist for this event
-    const { data: allProfiles, error: allProfilesError } = await supabase
+    // First, let's do a combined query to get both profile and fee information
+    const { data: profilesAndFees, error: profileFeeError } = await supabase
       .from('perfis')
-      .select('*')
-      .eq('evento_id', eventId);
-    
-    console.log('All profiles for event:', allProfiles);
-
-    // Get profile ID based on selected role with more precise querying
-    const profileName = selectedRole === 'ATL' ? 'Atleta' : 'Público Geral';
-    console.log('Looking for profile with name:', profileName);
-    
-    // Get the complete profile information with a more detailed query
-    const { data: profileData, error: profileError } = await supabase
-      .from('perfis')
-      .select('id, nome')
+      .select(`
+        id,
+        nome,
+        taxas_inscricao!inner(
+          id,
+          valor,
+          perfil_id
+        )
+      `)
       .eq('evento_id', eventId)
-      .eq('nome', profileName)
-      .maybeSingle();
+      .eq('nome', selectedRole === 'ATL' ? 'Atleta' : 'Público Geral');
 
-    if (profileError) {
-      console.error('Error fetching profile:', profileError);
-      throw new Error('Could not determine user profile');
+    if (profileFeeError) {
+      console.error('Error fetching profile and fee data:', profileFeeError);
+      throw new Error('Could not fetch profile and fee information');
     }
 
-    if (!profileData) {
-      console.error('No profile found for:', { eventId, profileName });
-      throw new Error(`Profile not found for this event: ${profileName}`);
+    console.log('Retrieved profiles and fees:', profilesAndFees);
+
+    if (!profilesAndFees || profilesAndFees.length === 0) {
+      throw new Error(`No profile found for the selected role in this event`);
     }
 
-    console.log('Found profile:', profileData);
+    const profile = profilesAndFees[0];
+    const fee = profile.taxas_inscricao[0];
+
+    if (!fee) {
+      throw new Error(`No registration fee found for profile ${profile.nome}`);
+    }
 
     // Get user identifier
     const { data: userData, error: userError } = await supabase
@@ -144,50 +143,25 @@ async function getProfileAndFeeInfo(
       .eq('id', userId)
       .maybeSingle();
 
-    if (userError) {
+    if (userError || !userData) {
       console.error('Error fetching user data:', userError);
       throw new Error('Could not fetch user information');
     }
 
-    if (!userData) {
-      console.error('No user found with ID:', userId);
-      throw new Error('User not found');
-    }
-
-    // Debug: check all registration fees for this event
-    const { data: allFees, error: allFeesError } = await supabase
-      .from('taxas_inscricao')
-      .select('id, valor, perfil_id')
-      .eq('evento_id', eventId);
-    
-    console.log('All fees for event:', allFees);
-
-    // Get registration fee information with explicit profile ID matching
-    const { data: feeData, error: feeError } = await supabase
-      .from('taxas_inscricao')
-      .select('id, valor')
-      .eq('evento_id', eventId)
-      .eq('perfil_id', profileData.id)
-      .maybeSingle();
-
-    if (feeError) {
-      console.error('Error fetching registration fee:', feeError);
-      throw new Error('Could not determine registration fee');
-    }
-
-    if (!feeData) {
-      console.error('No registration fee found for profile:', profileData.id);
-      throw new Error('Registration fee not configured for this profile');
-    }
-
-    console.log('Found fee data:', feeData);
+    // Log the final fee information being used
+    console.log('Using fee information:', {
+      profileId: profile.id,
+      profileName: profile.nome,
+      feeId: fee.id,
+      feeValue: fee.valor
+    });
 
     return {
-      taxaInscricaoId: feeData.id,
-      perfilId: profileData.id,
-      valor: feeData.valor,
+      taxaInscricaoId: fee.id,
+      perfilId: profile.id,
+      valor: fee.valor,
       numeroIdentificador: userData.numero_identificador,
-      profileName: profileData.nome
+      profileName: profile.nome
     };
   } catch (error) {
     console.error('Error in getProfileAndFeeInfo:', error);
