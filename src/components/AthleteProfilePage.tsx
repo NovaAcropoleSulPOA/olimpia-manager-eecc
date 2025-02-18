@@ -12,7 +12,6 @@ import { useAthleteProfileData } from "@/hooks/useAthleteProfileData";
 export default function AthleteProfilePage() {
   const { user } = useAuth();
   const [currentEventId, setCurrentEventId] = useState<string | null>(null);
-  const isPublicUser = user?.papeis?.some(role => role.codigo === 'PGR') || user?.papeis?.length === 0;
 
   useEffect(() => {
     const eventId = localStorage.getItem('currentEventId');
@@ -43,17 +42,18 @@ export default function AthleteProfilePage() {
     );
   }
 
-  const shouldShowPaymentInfo = !isPublicUser && profile.pagamento_status === 'pendente';
+  const isAthleteProfile = profile.papeis?.some(role => role.nome === 'Atleta');
+  const shouldShowPaymentInfo = isAthleteProfile && profile.pagamento_status === 'pendente';
 
   return (
     <div className="container mx-auto py-6 space-y-8">
       {eventData && <EventHeader eventData={eventData} />}
       <AthleteProfile 
         profile={profile}
-        isPublicUser={isPublicUser}
+        isPublicUser={!isAthleteProfile}
       />
       {shouldShowPaymentInfo && <PaymentInfo key={user?.id} />}
-      {!isPublicUser && user?.id && <AthleteScoresSection athleteId={user.id} />}
+      {isAthleteProfile && user?.id && <AthleteScoresSection athleteId={user.id} />}
     </div>
   );
 }
