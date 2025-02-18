@@ -12,58 +12,48 @@ interface UseAuthOperationsProps {
   location: { pathname: string };
 }
 
-interface SupabaseErrorBody {
-  code: string;
+interface SupabaseAuthError {
+  url: string;
+  error_type: string;
   message: string;
+  status: number;
+  body: string;
 }
 
 export function useAuthOperations({ setUser, navigate, location }: UseAuthOperationsProps) {
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('Attempting login with:', email);
-  
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
   
       if (error) {
-        console.log('Login error:', error);
-
-        // Try to parse the error body
-        let errorBody: SupabaseErrorBody | null = null;
+        const authError = error as SupabaseAuthError;
+        
+        // Try to parse the error body if it exists
+        let errorBody = null;
         try {
-          if ('body' in error && typeof error.body === 'string') {
-            errorBody = JSON.parse(error.body);
+          if (authError.body) {
+            errorBody = JSON.parse(authError.body);
           }
         } catch (e) {
           console.error('Error parsing error body:', e);
         }
 
-        // If we have a parsed error body, use that
-        if (errorBody) {
-          console.log('Parsed error body:', errorBody);
-          
-          switch (errorBody.code) {
-            case 'invalid_credentials':
-              throw new Error('Invalid login credentials');
-            case 'email_not_confirmed':
-              throw new Error('Email not confirmed');
-            default:
-              throw new Error(errorBody.message || 'Login failed');
-          }
+        // Handle error based on the parsed body or fallback to status code
+        if (errorBody?.code === 'invalid_credentials' || authError.status === 400) {
+          throw new Error('Invalid login credentials');
         }
-
-        // Fallback to the error message
-        throw new Error(error.message || 'Login failed');
+        
+        // Generic error fallback
+        throw new Error(errorBody?.message || authError.message || 'Login failed');
       }
   
       if (!data.user) {
-        console.log("No user data returned");
         throw new Error("Login failed");
       }
   
-      console.log("Login successful, fetching user profile...");
       const profile = await fetchUserProfile(data.user.id);
       setUser({ ...data.user, ...profile });
       handleAuthRedirect(profile, location.pathname, navigate);
