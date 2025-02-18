@@ -1320,75 +1320,6 @@ export type Database = {
         }
         Relationships: []
       }
-      vw_debug_taxas_inscricao: {
-        Row: {
-          evento_id: string | null
-          fee_status: string | null
-          inscricao_role: number | null
-          inscription_status: string | null
-          perfil_id: number | null
-          perfil_nome: string | null
-          usuario_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_inscricoes_eventos_perfil"
-            columns: ["inscricao_role"]
-            isOneToOne: false
-            referencedRelation: "perfis"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "papeis_usuarios_evento_id_fkey"
-            columns: ["evento_id"]
-            isOneToOne: false
-            referencedRelation: "eventos"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "papeis_usuarios_perfil_id_fkey"
-            columns: ["perfil_id"]
-            isOneToOne: false
-            referencedRelation: "perfis"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "view_perfil_atleta"
-            referencedColumns: ["atleta_id"]
-          },
-          {
-            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "vw_athletes_management"
-            referencedColumns: ["atleta_id"]
-          },
-          {
-            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "vw_inscricoes_atletas"
-            referencedColumns: ["atleta_id"]
-          },
-          {
-            foreignKeyName: "papeis_usuarios_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "vw_pontuacoes_gerais_atletas"
-            referencedColumns: ["atleta_id"]
-          },
-        ]
-      }
       vw_inscricoes_atletas: {
         Row: {
           atleta_id: string | null
@@ -1473,7 +1404,6 @@ export type Database = {
           contato_nome: string | null
           contato_telefone: string | null
           data_limite_inscricao: string | null
-          debug_status: string | null
           evento_id: string | null
           isento: boolean | null
           link_formulario: string | null
@@ -1562,12 +1492,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      get_role_priority: {
-        Args: {
-          role_name: string
-        }
-        Returns: number
-      }
       has_profile: {
         Args: {
           user_id: string
@@ -1598,14 +1522,6 @@ export type Database = {
           p_new_profile_id: number
           p_old_profile_id: number
         }
-        Returns: undefined
-      }
-      sync_user_roles: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      sync_user_roles_reverse: {
-        Args: Record<PropertyKey, never>
         Returns: undefined
       }
     }

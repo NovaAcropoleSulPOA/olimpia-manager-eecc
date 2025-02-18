@@ -1,26 +1,58 @@
 
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Sidebar, 
   SidebarProvider, 
   SidebarContent, 
+  SidebarMenu, 
+  SidebarMenuItem, 
+  SidebarMenuButton,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarTrigger
 } from './ui/sidebar';
-import { LogOut, Menu } from 'lucide-react';
+import { User, BarChart3, LogOut, Menu, ClipboardList, Users, Calendar, Settings2, ArrowLeftRight } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
-import { MenuItems } from './navigation/MenuItems';
-import { EventSwitcher } from './navigation/EventSwitcher';
-import { useNavigation } from '@/hooks/useNavigation';
+import { useEffect } from 'react';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function MainNavigation() {
+  const { user, signOut } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
-  const { user, roles, signOut } = useNavigation();
+
+  const userRoles = user?.papeis || [];
+  const isOrganizer = userRoles.some(role => role.codigo === 'ORE');
+  const isAthlete = userRoles.some(role => role.codigo === 'ATL');
+  const isDelegationRep = userRoles.some(role => role.codigo === 'RDD');
+  const isPublicGeral = userRoles.some(role => role.codigo === 'PGR');
+  const isAdmin = userRoles.some(role => role.codigo === 'ADM');
+
+  useEffect(() => {
+    if (location.pathname === '/') {
+      console.log('MainNavigation - Initial navigation based on roles');
+      if (isAthlete || isPublicGeral) {
+        navigate('/athlete-profile');
+      } else if (isOrganizer) {
+        navigate('/organizer-dashboard');
+      } else if (isDelegationRep) {
+        navigate('/delegation-dashboard');
+      } else if (isAdmin) {
+        navigate('/administration');
+      }
+    }
+  }, [isAthlete, isOrganizer, isDelegationRep, isPublicGeral, isAdmin, location.pathname, navigate]);
 
   const handleLogout = async () => {
     try {
@@ -33,6 +65,80 @@ export function MainNavigation() {
       console.error('MainNavigation - Error during logout:', error);
       toast.error('Erro ao fazer logout');
     }
+  };
+
+  const menuItems = [
+    // Profile menu item now shown for all logged-in users
+    {
+      title: "Perfil",
+      icon: User,
+      path: "/athlete-profile"
+    },
+    {
+      title: "Cronograma",
+      icon: Calendar,
+      path: "/cronograma"
+    },
+    ...(isAthlete ? [
+      {
+        title: "Minhas Inscrições",
+        icon: ClipboardList,
+        path: "/athlete-registrations"
+      }
+    ] : []),
+    ...(isOrganizer ? [
+      {
+        title: "Organizador(a)",
+        icon: BarChart3,
+        path: "/organizer-dashboard"
+      }
+    ] : []),
+    ...(isDelegationRep ? [
+      {
+        title: "Delegação",
+        icon: Users,
+        path: "/delegation-dashboard"
+      }
+    ] : []),
+    ...(isAdmin ? [
+      {
+        title: "Administração",
+        icon: Settings2,
+        path: "/administration"
+      }
+    ] : [])
+  ];
+
+  const { data: userEvents } = useQuery({
+    queryKey: ['user-events', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('inscricoes_eventos')
+        .select(`
+          evento_id,
+          eventos (
+            id,
+            nome,
+            status_evento
+          )
+        `)
+        .eq('usuario_id', user.id);
+
+      if (error) {
+        console.error('Error fetching user events:', error);
+        throw error;
+      }
+
+      return data.map(item => item.eventos);
+    },
+    enabled: !!user?.id
+  });
+
+  const handleEventSwitch = (eventId: string) => {
+    localStorage.setItem('currentEventId', eventId);
+    window.location.reload(); // Reload to refresh all queries with new event
   };
 
   if (!user) {
@@ -54,12 +160,67 @@ export function MainNavigation() {
             </SidebarTrigger>
           </SidebarHeader>
           <SidebarContent>
-            <MenuItems {...roles} />
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-center px-4 py-2 text-sm font-medium uppercase tracking-wider text-white/70">
+                Navegação
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu className="px-3">
+                  {menuItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={location.pathname === item.path}
+                        tooltip={item.title}
+                        className={`
+                          w-full rounded-lg transition-all duration-200
+                          hover:bg-olimpics-green-secondary
+                          ${location.pathname === item.path 
+                            ? 'bg-olimpics-green-secondary shadow-lg' 
+                            : 'hover:shadow-md'
+                          }
+                        `}
+                      >
+                        <Link to={item.path} className="flex items-center gap-3 p-3">
+                          <item.icon className="h-5 w-5 flex-shrink-0" />
+                          <span className="font-medium whitespace-nowrap">{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
           </SidebarContent>
           <SidebarFooter className="mt-auto border-t border-olimpics-green-secondary p-4">
             <SidebarMenu>
               <SidebarMenuItem>
-                <EventSwitcher userId={user.id} />
+                {userEvents && userEvents.length > 1 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <SidebarMenuButton
+                        className="w-full rounded-lg p-4 flex items-center gap-3 
+                          text-white hover:bg-olimpics-green-secondary/20 
+                          transition-all duration-200 text-lg font-medium mb-2"
+                        tooltip="Trocar Evento"
+                      >
+                        <ArrowLeftRight className="h-6 w-6 flex-shrink-0" />
+                        <span className="whitespace-nowrap">Trocar Evento</span>
+                      </SidebarMenuButton>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      {userEvents.map((event: any) => (
+                        <DropdownMenuItem
+                          key={event.id}
+                          onClick={() => handleEventSwitch(event.id)}
+                          className="cursor-pointer"
+                        >
+                          {event.nome}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
                 <SidebarMenuButton
                   onClick={handleLogout}
                   className="w-full rounded-lg p-4 flex items-center gap-3 
