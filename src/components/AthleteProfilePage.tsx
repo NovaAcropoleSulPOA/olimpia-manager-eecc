@@ -136,12 +136,20 @@ export default function AthleteProfilePage() {
         isPublicUser={!isAthleteProfile}
       />
 
-      {shouldShowPaymentInfo && paymentStatus && (
-        <PaymentInfo key={`${user?.id}-${currentEventId}`} />
-      )}
-
       {isAthleteProfile && user?.id && (
         <AthleteScoresSection athleteId={user.id} />
+      )}
+
+      {/* Moved PaymentInfo rendering here and added debug div */}
+      {shouldShowPaymentInfo ? (
+        <PaymentInfo key={`${user?.id}-${currentEventId}`} />
+      ) : (
+        <div className="hidden">
+          Debug info (not visible): Payment info hidden because:
+          isAthleteProfile: {String(isAthleteProfile)},
+          paymentStatus exists: {String(!!paymentStatus)},
+          isento: {String(paymentStatus?.isento)}
+        </div>
       )}
     </div>
   );
