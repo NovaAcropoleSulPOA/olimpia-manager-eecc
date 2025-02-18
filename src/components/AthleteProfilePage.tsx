@@ -1,38 +1,13 @@
 
 import React, { useEffect, useState } from 'react';
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import AthleteScoresSection from './AthleteScoresSection';
 import AthleteProfile from './AthleteProfile';
 import PaymentInfo from './PaymentInfo';
 import { Loader2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-
-interface AthleteProfileData {
-  atleta_id: string;
-  nome_completo: string;
-  telefone: string;
-  email: string;
-  numero_identificador: string;
-  tipo_documento: string;
-  numero_documento: string;
-  genero: string;
-  filial_nome: string;
-  filial_cidade: string;
-  filial_estado: string;
-  status_confirmacao: boolean;
-  papeis?: { nome: string; codigo: string; }[];
-  pagamento_status?: string;
-  pagamento_valor?: number;
-}
-
-interface Event {
-  id: string;
-  nome: string;
-  status_evento: 'ativo' | 'encerrado' | 'suspenso' | 'em_teste';
-}
+import { EventHeader } from "./athlete/EventHeader";
+import { useEventData } from "@/hooks/useEventData";
+import { useAthleteProfileData } from "@/hooks/useAthleteProfileData";
 
 export default function AthleteProfilePage() {
   const { user } = useAuth();
@@ -47,108 +22,8 @@ export default function AthleteProfilePage() {
     console.log('Current event ID from localStorage:', eventId);
   }, []);
 
-  const getEventHeaderColor = (status: string) => {
-    switch (status) {
-      case 'encerrado':
-        return 'bg-red-600';
-      case 'suspenso':
-        return 'bg-yellow-500';
-      case 'em_teste':
-        return 'bg-blue-500';
-      default:
-        return 'bg-olimpics-green-primary';
-    }
-  };
-
-  const { data: eventData } = useQuery({
-    queryKey: ['event', currentEventId],
-    queryFn: async () => {
-      if (!currentEventId) return null;
-      
-      const { data, error } = await supabase
-        .from('eventos')
-        .select('id, nome, status_evento')
-        .eq('id', currentEventId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching event:', error);
-        return null;
-      }
-
-      return data as Event;
-    },
-    enabled: !!currentEventId,
-  });
-
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ['athlete-profile', user?.id, currentEventId],
-    queryFn: async () => {
-      if (!user?.id || !currentEventId) return null;
-      console.log('Fetching athlete profile for:', user.id, 'event:', currentEventId);
-
-      // First fetch the base profile data
-      const { data: profileData, error: profileError } = await supabase
-        .from('view_perfil_atleta')
-        .select('*')
-        .eq('atleta_id', user.id)
-        .eq('evento_id', currentEventId)
-        .maybeSingle();
-
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
-        throw profileError;
-      }
-
-      if (!profileData) {
-        console.log('No profile data found for event');
-        return null;
-      }
-
-      // Then, fetch the user's roles for this event
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('papeis_usuarios')
-        .select(`
-          perfis (
-            nome,
-            perfil_tipo:perfil_tipo_id (
-              codigo
-            )
-          )
-        `)
-        .eq('usuario_id', user.id)
-        .eq('evento_id', currentEventId);
-
-      if (rolesError) {
-        console.error('Error fetching roles:', rolesError);
-        throw rolesError;
-      }
-
-      // Fetch payment status
-      const { data: paymentData, error: paymentError } = await supabase
-        .from('pagamentos')
-        .select('status')
-        .eq('atleta_id', user.id)
-        .eq('evento_id', currentEventId)
-        .single();
-
-      if (paymentError) {
-        console.error('Error fetching payment status:', paymentError);
-      }
-
-      const transformedRoles = (rolesData || []).map((roleData: any) => ({
-        nome: roleData.perfis.nome,
-        codigo: roleData.perfis.perfil_tipo.codigo
-      }));
-
-      return {
-        ...profileData,
-        papeis: transformedRoles,
-        pagamento_status: paymentData?.status || 'pendente'
-      } as AthleteProfileData;
-    },
-    enabled: !!user?.id && !!currentEventId,
-  });
+  const { data: eventData } = useEventData(currentEventId);
+  const { data: profile, isLoading } = useAthleteProfileData(user?.id, currentEventId);
 
   if (isLoading) {
     return (
@@ -168,36 +43,11 @@ export default function AthleteProfilePage() {
     );
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ativo':
-        return 'bg-green-100 text-green-800 hover:bg-green-200';
-      case 'encerrado':
-        return 'bg-red-100 text-red-800 hover:bg-red-200';
-      case 'suspenso':
-        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
-      default:
-        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-    }
-  };
-
   const shouldShowPaymentInfo = !isPublicUser && profile.pagamento_status === 'pendente';
 
   return (
     <div className="container mx-auto py-6 space-y-8">
-      {eventData && (
-        <div className={cn(
-          "flex items-center gap-3 text-white p-4 rounded-lg shadow-md",
-          getEventHeaderColor(eventData.status_evento)
-        )}>
-          <h1 className="text-2xl font-bold">
-            {eventData.nome}
-          </h1>
-          <Badge className={`${getStatusColor(eventData.status_evento)} ml-2`}>
-            {eventData.status_evento.charAt(0).toUpperCase() + eventData.status_evento.slice(1)}
-          </Badge>
-        </div>
-      )}
+      {eventData && <EventHeader eventData={eventData} />}
       <AthleteProfile 
         profile={profile}
         isPublicUser={isPublicUser}
