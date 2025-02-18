@@ -104,12 +104,15 @@ async function getProfileAndFeeInfo(
   try {
     console.log(`Fetching profile info for user ${userId} in event ${eventId} with role ${selectedRole}`);
 
-    // Get profile ID based on selected role
+    // Get profile ID based on selected role - now correctly mapping ATL to 'Atleta'
+    const profileName = selectedRole === 'ATL' ? 'Atleta' : 'Público Geral';
+    console.log('Looking for profile with name:', profileName);
+    
     const { data: profileData, error: profileError } = await supabase
       .from('perfis')
       .select('id')
       .eq('evento_id', eventId)
-      .eq('nome', selectedRole === 'ATL' ? 'Atleta' : 'Público Geral')
+      .eq('nome', profileName)
       .maybeSingle();
 
     if (profileError) {
@@ -118,9 +121,11 @@ async function getProfileAndFeeInfo(
     }
 
     if (!profileData) {
-      console.error('No profile found for the given criteria');
-      throw new Error('Profile not found for this event');
+      console.error('No profile found for:', { eventId, profileName });
+      throw new Error(`Profile not found for this event: ${profileName}`);
     }
+
+    console.log('Found profile:', profileData);
 
     // Get user identifier
     const { data: userData, error: userError } = await supabase
@@ -139,7 +144,7 @@ async function getProfileAndFeeInfo(
       throw new Error('User not found');
     }
 
-    // Get registration fee information
+    // Get registration fee information for the specific profile
     const { data: feeData, error: feeError } = await supabase
       .from('taxas_inscricao')
       .select('id, valor')
@@ -157,6 +162,8 @@ async function getProfileAndFeeInfo(
       throw new Error('Registration fee not configured for this profile');
     }
 
+    console.log('Found fee data:', feeData);
+
     return {
       taxaInscricaoId: feeData.id,
       perfilId: profileData.id,
@@ -165,6 +172,6 @@ async function getProfileAndFeeInfo(
     };
   } catch (error) {
     console.error('Error in getProfileAndFeeInfo:', error);
-    return null;
+    throw error; // Re-throw to handle in the mutation
   }
 }
