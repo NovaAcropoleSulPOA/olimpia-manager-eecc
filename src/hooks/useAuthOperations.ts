@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { AuthUser } from '@/types/auth';
 import { fetchUserProfile, handleAuthRedirect } from '@/services/authService';
+import { AuthApiError } from '@supabase/supabase-js';
 
 interface UseAuthOperationsProps {
   setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
@@ -24,15 +25,23 @@ export function useAuthOperations({ setUser, navigate, location }: UseAuthOperat
   
       if (error) {
         console.log('Login error:', error);
-        const errorMessage = error.message;
         
-        // Handle specific error cases
-        if (errorMessage.toLowerCase().includes('invalid login credentials')) {
-          throw new Error('Invalid login credentials');
-        } else if (errorMessage.toLowerCase().includes('email not confirmed')) {
-          throw new Error('Email not confirmed');
-        } else if (errorMessage.toLowerCase().includes('too many requests')) {
-          throw new Error('Too many login attempts');
+        // Check if it's a Supabase AuthApiError
+        if (error instanceof AuthApiError) {
+          switch (error.status) {
+            case 400:
+              if (error.message.includes('Invalid login credentials')) {
+                throw new Error('Invalid login credentials');
+              } else if (error.message.includes('Email not confirmed')) {
+                throw new Error('Email not confirmed');
+              }
+              break;
+            case 429:
+              throw new Error('Too many login attempts');
+            default:
+              console.error('Unhandled AuthApiError:', error);
+              throw new Error('Login failed');
+          }
         }
         
         throw error;
