@@ -7,6 +7,11 @@ interface QRCodeSectionProps {
 }
 
 export const QRCodeSection = ({ paymentInfo }: QRCodeSectionProps) => {
+  console.log('QRCodeSection props:', {
+    has_qr_image: !!paymentInfo.qr_code_image,
+    has_qr_code: !!paymentInfo.qr_code_codigo
+  });
+
   if (!paymentInfo.qr_code_image && !paymentInfo.qr_code_codigo) {
     return (
       <div className="flex items-center justify-center h-full">

@@ -8,6 +8,15 @@ interface PaymentDetailsProps {
 }
 
 export const PaymentDetails = ({ paymentInfo, onWhatsAppClick }: PaymentDetailsProps) => {
+  console.log('PaymentDetails props:', {
+    has_perfil: !!paymentInfo.perfil_nome,
+    has_valor: !!paymentInfo.valor,
+    has_pix: !!paymentInfo.pix_key,
+    has_deadline: !!paymentInfo.data_limite_inscricao,
+    has_contact_name: !!paymentInfo.contato_nome,
+    has_contact_phone: !!paymentInfo.contato_telefone
+  });
+
   return (
     <div className="space-y-4 text-olimpics-text">
       {/* Profile Information */}

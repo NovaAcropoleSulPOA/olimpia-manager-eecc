@@ -33,6 +33,8 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
 
   const { data: paymentInfo, isLoading } = usePaymentInfo(userId, eventId, initialPaymentStatus);
 
+  console.log('PaymentInfo component - Current payment info:', paymentInfo);
+
   const handleWhatsAppClick = () => {
     if (paymentInfo?.contato_telefone) {
       window.open(`https://wa.me/${paymentInfo.contato_telefone.replace(/\D/g, '')}`, "_blank");

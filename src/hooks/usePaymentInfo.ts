@@ -8,6 +8,8 @@ export const usePaymentInfo = (
   eventId?: string,
   initialPaymentStatus?: PaymentStatus
 ) => {
+  console.log('usePaymentInfo - Initial payment status:', initialPaymentStatus);
+  
   // Convert PaymentStatus to PaymentFeeInfo for initial data
   const initialFeeInfo: PaymentFeeInfo | undefined = initialPaymentStatus ? {
     valor: initialPaymentStatus.valor,
@@ -51,12 +53,14 @@ export const usePaymentInfo = (
         throw error;
       }
 
+      console.log('Raw data from vw_taxas_inscricao_usuarios:', data);
+
       const mergedData: PaymentFeeInfo = {
         ...initialFeeInfo,
         ...(data || {}),
       } as PaymentFeeInfo;
 
-      console.log('Payment info response:', mergedData);
+      console.log('Merged payment info:', mergedData);
       return mergedData;
     },
     enabled: !!userId && !!eventId,
