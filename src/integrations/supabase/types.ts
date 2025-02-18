@@ -1468,13 +1468,22 @@ export type Database = {
         }
         Returns: undefined
       }
-      assign_user_profiles: {
-        Args: {
-          p_user_id: string
-          p_profile_ids: number[]
-        }
-        Returns: undefined
-      }
+      assign_user_profiles:
+        | {
+            Args: {
+              p_user_id: string
+              p_profile_ids: number[]
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_user_id: string
+              p_profile_ids: number[]
+              p_event_id: string
+            }
+            Returns: undefined
+          }
       atualizar_status_inscricao: {
         Args: {
           inscricao_id: number
