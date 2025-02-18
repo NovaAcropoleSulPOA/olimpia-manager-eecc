@@ -54,6 +54,20 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     }
   }, []);
 
+  // Convert PaymentStatus to PaymentFeeInfo for initial data
+  const initialFeeInfo: PaymentFeeInfo | undefined = initialPaymentStatus ? {
+    valor: initialPaymentStatus.valor,
+    pix_key: null,
+    data_limite_inscricao: null,
+    contato_nome: null,
+    contato_telefone: null,
+    isento: initialPaymentStatus.isento,
+    perfil_nome: initialPaymentStatus.perfil_nome,
+    qr_code_image: null,
+    qr_code_codigo: null,
+    link_formulario: null
+  } : undefined;
+
   const { data: paymentInfo, isLoading } = useQuery({
     queryKey: ['payment-info', userId, eventId],
     queryFn: async () => {
@@ -83,16 +97,16 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
         throw error;
       }
 
-      const mergedData = {
+      const mergedData: PaymentFeeInfo = {
+        ...initialFeeInfo,
         ...(data || {}),
-        ...(initialPaymentStatus || {}),
-      };
+      } as PaymentFeeInfo;
 
       console.log('Payment info response:', mergedData);
-      return mergedData as PaymentFeeInfo;
+      return mergedData;
     },
     enabled: !!userId && !!eventId,
-    initialData: initialPaymentStatus,
+    initialData: initialFeeInfo,
   });
 
   const handleWhatsAppClick = () => {
