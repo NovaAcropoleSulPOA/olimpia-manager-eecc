@@ -40,16 +40,16 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
   };
 
   const handleFormClick = () => {
-    console.log('Form link:', paymentInfo?.link_formulario);
-    if (paymentInfo?.link_formulario) {
-      const url = paymentInfo.link_formulario.startsWith('http') 
-        ? paymentInfo.link_formulario 
-        : `https://${paymentInfo.link_formulario}`;
-        
-      window.open(url, "_blank", "noopener,noreferrer");
-    } else {
+    if (!paymentInfo?.link_formulario) {
       toast.error("O link para envio do comprovante ainda não está disponível. Por favor, entre em contato com o suporte.");
+      return;
     }
+
+    const url = paymentInfo.link_formulario.startsWith('http') 
+      ? paymentInfo.link_formulario 
+      : `https://${paymentInfo.link_formulario}`;
+      
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   if (isLoading) {
@@ -63,7 +63,20 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
   }
 
   if (!paymentInfo) {
-    return null;
+    return (
+      <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-olimpics-green-primary">
+            Informações de Pagamento
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-olimpics-text">
+            Não foi possível carregar as informações de pagamento. Por favor, tente novamente mais tarde.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (paymentInfo.isento) {
