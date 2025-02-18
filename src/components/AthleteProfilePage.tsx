@@ -105,7 +105,7 @@ export default function AthleteProfilePage() {
   }
 
   const isAthleteProfile = profile.papeis?.some(role => role.nome === 'Atleta');
-  const shouldShowPaymentInfo = isAthleteProfile && (!paymentStatus?.isento ?? true);
+  const shouldShowPaymentInfo = isAthleteProfile && (!paymentStatus?.isento || paymentStatus === null);
 
   // Enhanced logging for debugging
   console.log('Profile and payment check:', {
