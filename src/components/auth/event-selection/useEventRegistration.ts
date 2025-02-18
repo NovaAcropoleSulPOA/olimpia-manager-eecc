@@ -36,18 +36,29 @@ interface ProfileData {
   }[];
 }
 
+const mapRoleToProfileName = (role: PerfilTipo): string => {
+  switch (role) {
+    case 'ATL':
+      return 'Atleta';
+    case 'PGR':
+      return 'Público Geral';
+    default:
+      throw new Error('Invalid role type');
+  }
+};
+
 export const useEventRegistration = (userId: string | undefined) => {
   return useMutation({
-    mutationFn: async ({ eventId }: EventRegistrationParams): Promise<RegistrationResult> => {
+    mutationFn: async ({ eventId, selectedRole }: EventRegistrationParams): Promise<RegistrationResult> => {
       if (!userId) {
         throw new Error("User not authenticated");
       }
 
       try {
-        console.log('Starting registration process for event:', eventId);
+        console.log('Starting registration process for event:', eventId, 'with role:', selectedRole);
 
-        // Step 1: Get profile and fee information
-        const registrationInfo = await getProfileAndFeeInfo(userId, eventId);
+        // Step 1: Get profile and fee information based on selected role
+        const registrationInfo = await getProfileAndFeeInfo(userId, eventId, selectedRole);
         console.log('Retrieved registration info:', registrationInfo);
 
         if (!registrationInfo) {
@@ -81,12 +92,14 @@ export const useEventRegistration = (userId: string | undefined) => {
 
 async function getProfileAndFeeInfo(
   userId: string,
-  eventId: string
+  eventId: string,
+  selectedRole: PerfilTipo
 ): Promise<ProfileAndFeeInfo | null> {
   try {
-    console.log('Fetching profile and fee info for:', { userId, eventId });
+    const profileName = mapRoleToProfileName(selectedRole);
+    console.log('Fetching profile and fee info for:', { userId, eventId, profileName });
 
-    // Step 1: Get the Atleta profile with its registration fee using explicit FK relationship
+    // Step 1: Get the profile with its registration fee using explicit FK relationship
     const { data, error } = await supabase
       .from('perfis')
       .select(`
@@ -99,7 +112,7 @@ async function getProfileAndFeeInfo(
         )
       `)
       .eq('evento_id', eventId)
-      .eq('nome', 'Atleta')
+      .eq('nome', profileName)
       .single();
 
     if (error) {
