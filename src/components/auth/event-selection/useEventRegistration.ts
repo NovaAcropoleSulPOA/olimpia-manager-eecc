@@ -72,13 +72,11 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw registrationError;
         }
 
-        // Use the existing assign_user_profiles function to manage profile assignments
-        // Pass both the user_id, profile_ids and the event_id
+        // Use the assign_user_profiles function with correct parameters
         const { error: profileError } = await supabase
           .rpc('assign_user_profiles', {
             p_user_id: userId,
-            p_profile_ids: [registrationInfo.perfilId],
-            p_event_id: eventId  // Add the event_id parameter
+            p_profile_ids: [registrationInfo.perfilId]
           });
 
         if (profileError) {
