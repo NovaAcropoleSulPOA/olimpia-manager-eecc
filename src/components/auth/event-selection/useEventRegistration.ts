@@ -1,3 +1,4 @@
+
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -72,11 +73,12 @@ export const useEventRegistration = (userId: string | undefined) => {
         }
 
         // Use the existing assign_user_profiles function to manage profile assignments
-        // This function already handles the deletion and insertion of profiles
+        // Pass both the user_id, profile_ids and the event_id
         const { error: profileError } = await supabase
           .rpc('assign_user_profiles', {
             p_user_id: userId,
-            p_profile_ids: [registrationInfo.perfilId]
+            p_profile_ids: [registrationInfo.perfilId],
+            p_event_id: eventId  // Add the event_id parameter
           });
 
         if (profileError) {

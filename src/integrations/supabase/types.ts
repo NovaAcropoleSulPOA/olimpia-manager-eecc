@@ -1010,7 +1010,7 @@ export type Database = {
           data_criacao: string | null
           data_nascimento: string
           email: string
-          filial_id: string | null
+          filial_id: string
           foto_perfil: string | null
           genero: string
           id: string
@@ -1026,7 +1026,7 @@ export type Database = {
           data_criacao?: string | null
           data_nascimento: string
           email: string
-          filial_id?: string | null
+          filial_id: string
           foto_perfil?: string | null
           genero?: string
           id?: string
@@ -1042,7 +1042,7 @@ export type Database = {
           data_criacao?: string | null
           data_nascimento?: string
           email?: string
-          filial_id?: string | null
+          filial_id?: string
           foto_perfil?: string | null
           genero?: string
           id?: string
