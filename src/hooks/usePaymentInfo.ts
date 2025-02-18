@@ -8,8 +8,6 @@ export const usePaymentInfo = (
   eventId?: string,
   initialPaymentStatus?: PaymentStatus
 ) => {
-  console.log('usePaymentInfo - Initial payment status:', initialPaymentStatus);
-  
   // Convert PaymentStatus to PaymentFeeInfo for initial data
   const initialFeeInfo: PaymentFeeInfo | undefined = initialPaymentStatus ? {
     valor: initialPaymentStatus.valor,
@@ -31,10 +29,32 @@ export const usePaymentInfo = (
         console.log('Missing userId or eventId for payment info query');
         return null;
       }
-      
+
       console.log('Fetching payment info for user:', userId, 'event:', eventId);
-      
-      const { data, error } = await supabase
+
+      // First, verify user's current payment status
+      const { data: paymentStatus, error: statusError } = await supabase
+        .from('pagamentos')
+        .select('status')
+        .eq('atleta_id', userId)
+        .eq('evento_id', eventId)
+        .maybeSingle();
+
+      if (statusError) {
+        console.error('Error fetching payment status:', statusError);
+        throw statusError;
+      }
+
+      // If payment status is not pending and we don't have initial status, return null
+      if (paymentStatus?.status && 
+          paymentStatus.status !== 'pendente' && 
+          !initialPaymentStatus) {
+        console.log('Payment status is not pending:', paymentStatus.status);
+        return null;
+      }
+
+      // Fetch complete payment information
+      const { data: paymentInfo, error: paymentError } = await supabase
         .from('vw_taxas_inscricao_usuarios')
         .select(`
           valor,
@@ -52,25 +72,32 @@ export const usePaymentInfo = (
         .eq('evento_id', eventId)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching payment info:', error);
-        throw error;
+      if (paymentError) {
+        console.error('Error fetching payment info:', paymentError);
+        throw paymentError;
       }
 
-      console.log('Raw data from vw_taxas_inscricao_usuarios:', data);
+      console.log('Raw payment info data:', paymentInfo);
+
+      // If we have no data and no initial status, return null
+      if (!paymentInfo && !initialPaymentStatus) {
+        console.log('No payment info found and no initial status');
+        return null;
+      }
 
       // Merge initial data with fetched data, prioritizing fetched data
       const mergedData: PaymentFeeInfo = {
         ...initialFeeInfo,
-        ...(data || {}),
-      } as PaymentFeeInfo;
+        ...(paymentInfo || {}),
+      };
 
-      console.log('Merged payment info:', mergedData);
+      console.log('Final merged payment info:', mergedData);
       return mergedData;
     },
     enabled: !!userId && !!eventId,
     initialData: initialFeeInfo,
     staleTime: 30000, // Cache for 30 seconds
+    refetchInterval: 60000, // Refresh every minute
     refetchOnWindowFocus: true,
   });
 };

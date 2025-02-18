@@ -31,22 +31,26 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     }
   }, []);
 
-  const { data: paymentInfo, isLoading } = usePaymentInfo(
-    userId, 
-    eventId || currentEventId || undefined,
+  // Only use stored event ID if no event ID is provided
+  const effectiveEventId = eventId || currentEventId || undefined;
+
+  const { data: paymentInfo, isLoading, error } = usePaymentInfo(
+    userId,
+    effectiveEventId,
     initialPaymentStatus
   );
 
-  console.log('PaymentInfo component - Payment status:', initialPaymentStatus?.status);
-  console.log('PaymentInfo component - Current payment info:', paymentInfo);
+  console.log('PaymentInfo component - Initial status:', initialPaymentStatus?.status);
+  console.log('PaymentInfo component - Current info:', paymentInfo);
 
   const handleWhatsAppClick = () => {
-    if (paymentInfo?.contato_telefone) {
-      const phoneNumber = paymentInfo.contato_telefone.replace(/\D/g, '');
-      window.open(`https://wa.me/${phoneNumber}`, "_blank");
-    } else {
+    if (!paymentInfo?.contato_telefone) {
       toast.error("Número de telefone para contato não disponível");
+      return;
     }
+    
+    const phoneNumber = paymentInfo.contato_telefone.replace(/\D/g, '');
+    window.open(`https://wa.me/${phoneNumber}`, "_blank");
   };
 
   const handleFormClick = () => {
@@ -73,7 +77,26 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     );
   }
 
-  // Show error state if no payment info is available
+  // Show error state
+  if (error) {
+    console.error('Payment info error:', error);
+    return (
+      <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-olimpics-green-primary">
+            Informações de Pagamento
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-olimpics-text">
+            Ocorreu um erro ao carregar as informações de pagamento. Por favor, tente novamente mais tarde.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show message if no payment info is available
   if (!paymentInfo) {
     return (
       <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
