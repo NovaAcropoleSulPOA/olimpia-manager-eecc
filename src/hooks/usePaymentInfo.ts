@@ -27,7 +27,11 @@ export const usePaymentInfo = (
   return useQuery({
     queryKey: ['payment-info', userId, eventId],
     queryFn: async () => {
-      if (!userId || !eventId) return null;
+      if (!userId || !eventId) {
+        console.log('Missing userId or eventId for payment info query');
+        return null;
+      }
+      
       console.log('Fetching payment info for user:', userId, 'event:', eventId);
       
       const { data, error } = await supabase
@@ -55,6 +59,7 @@ export const usePaymentInfo = (
 
       console.log('Raw data from vw_taxas_inscricao_usuarios:', data);
 
+      // Merge initial data with fetched data, prioritizing fetched data
       const mergedData: PaymentFeeInfo = {
         ...initialFeeInfo,
         ...(data || {}),
@@ -65,5 +70,7 @@ export const usePaymentInfo = (
     },
     enabled: !!userId && !!eventId,
     initialData: initialFeeInfo,
+    staleTime: 30000, // Cache for 30 seconds
+    refetchOnWindowFocus: true,
   });
 };

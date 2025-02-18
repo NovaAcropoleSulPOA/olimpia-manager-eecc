@@ -25,19 +25,27 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
   const [currentEventId, setCurrentEventId] = useState<string | null>(null);
 
   useEffect(() => {
-    const eventId = localStorage.getItem('currentEventId');
-    if (eventId) {
-      setCurrentEventId(eventId);
+    const storedEventId = localStorage.getItem('currentEventId');
+    if (storedEventId) {
+      setCurrentEventId(storedEventId);
     }
   }, []);
 
-  const { data: paymentInfo, isLoading } = usePaymentInfo(userId, eventId, initialPaymentStatus);
+  const { data: paymentInfo, isLoading } = usePaymentInfo(
+    userId, 
+    eventId || currentEventId || undefined,
+    initialPaymentStatus
+  );
 
+  console.log('PaymentInfo component - Payment status:', initialPaymentStatus?.status);
   console.log('PaymentInfo component - Current payment info:', paymentInfo);
 
   const handleWhatsAppClick = () => {
     if (paymentInfo?.contato_telefone) {
-      window.open(`https://wa.me/${paymentInfo.contato_telefone.replace(/\D/g, '')}`, "_blank");
+      const phoneNumber = paymentInfo.contato_telefone.replace(/\D/g, '');
+      window.open(`https://wa.me/${phoneNumber}`, "_blank");
+    } else {
+      toast.error("Número de telefone para contato não disponível");
     }
   };
 
@@ -54,11 +62,7 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  // If no initial payment status or the status is not 'pendente', don't show the card
-  if (initialPaymentStatus?.status && initialPaymentStatus.status !== 'pendente') {
-    return null;
-  }
-
+  // Show loading state
   if (isLoading) {
     return (
       <Card className="w-full">
@@ -69,6 +73,7 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     );
   }
 
+  // Show error state if no payment info is available
   if (!paymentInfo) {
     return (
       <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
@@ -86,6 +91,7 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     );
   }
 
+  // Show exempt status if applicable
   if (paymentInfo.isento) {
     return (
       <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
@@ -101,6 +107,12 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
         </CardContent>
       </Card>
     );
+  }
+
+  // Don't show the card if payment status is not pendente and initialPaymentStatus exists
+  if (initialPaymentStatus?.status && initialPaymentStatus.status !== 'pendente') {
+    console.log('Payment status is not pending, hiding payment info card');
+    return null;
   }
 
   return (
