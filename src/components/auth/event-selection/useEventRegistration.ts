@@ -133,7 +133,7 @@ async function getProfileAndFeeInfo(
       .select(`
         id,
         valor,
-        perfil:perfil_id (
+        perfil:perfil_id!fk_taxas_inscricao_perfil (
           id,
           nome
         )
