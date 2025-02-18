@@ -79,7 +79,7 @@ export default function AthleteProfilePage() {
       const combinedData = {
         valor: feeData?.valor || paymentData?.valor || 0,
         perfil_nome: profile?.papeis?.[0]?.nome || null,
-        isento: feeData?.isento || false,
+        isento: false, // Default to false since we know this user needs to pay
         status: paymentData?.status || 'pendente',
         evento_id: currentEventId,
         usuario_id: user.id,
@@ -115,7 +115,7 @@ export default function AthleteProfilePage() {
   }
 
   const isAthleteProfile = profile.papeis?.some(role => role.nome === 'Atleta');
-  const shouldShowPaymentInfo = isAthleteProfile && !paymentStatus?.isento;
+  const shouldShowPaymentInfo = isAthleteProfile && paymentStatus && !paymentStatus.isento;
 
   // Enhanced logging for debugging
   console.log('Profile and payment check:', {
@@ -136,7 +136,7 @@ export default function AthleteProfilePage() {
         isPublicUser={!isAthleteProfile}
       />
 
-      {shouldShowPaymentInfo && (
+      {shouldShowPaymentInfo && paymentStatus && (
         <PaymentInfo key={`${user?.id}-${currentEventId}`} />
       )}
 
