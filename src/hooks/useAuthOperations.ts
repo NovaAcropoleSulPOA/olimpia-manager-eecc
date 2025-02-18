@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { NavigateFunction } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { AuthUser } from '@/types/auth';
 import { fetchUserProfile, handleAuthRedirect } from '@/services/authService';
-import { AuthApiError } from '@supabase/supabase-js';
+import { AuthError, AuthApiError } from '@supabase/supabase-js';
 
 interface UseAuthOperationsProps {
   setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
@@ -26,39 +25,26 @@ export function useAuthOperations({ setUser, navigate, location }: UseAuthOperat
       if (error) {
         console.log('Login error:', error);
         
-        // Try to parse error body if it exists
-        let errorBody;
-        if (typeof error.body === 'string') {
+        // Try to get error details
+        let errorCode: string | undefined;
+        let errorMessage: string | undefined;
+
+        if (error instanceof AuthApiError) {
           try {
-            errorBody = JSON.parse(error.body);
-          } catch (e) {
-            console.log('Error parsing error body:', e);
+            const errorDetails = JSON.parse(error.message);
+            errorCode = errorDetails.code;
+            errorMessage = errorDetails.message;
+          } catch {
+            errorCode = error.status.toString();
+            errorMessage = error.message;
           }
+        } else {
+          errorMessage = error.message;
         }
 
-        // Handle different error formats
-        if (errorBody?.code === 'invalid_credentials') {
-          throw new Error('Invalid login credentials');
-        }
-        
-        // If it's a Supabase AuthApiError
-        if (error instanceof AuthApiError) {
-          switch (error.status) {
-            case 400:
-              if (error.message.includes('Invalid login credentials')) {
-                throw new Error('Invalid login credentials');
-              } else if (error.message.includes('Email not confirmed')) {
-                throw new Error('Email not confirmed');
-              }
-              break;
-            case 429:
-              throw new Error('Too many login attempts');
-          }
-        }
-        
-        // Check error message directly as fallback
-        const errorMessage = error.message || errorBody?.message;
-        if (errorMessage?.toLowerCase().includes('invalid login credentials')) {
+        // Handle different error cases
+        if (errorCode === 'invalid_credentials' || 
+            errorMessage?.toLowerCase().includes('invalid login credentials')) {
           throw new Error('Invalid login credentials');
         } else if (errorMessage?.toLowerCase().includes('email not confirmed')) {
           throw new Error('Email not confirmed');
