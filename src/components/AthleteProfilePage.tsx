@@ -45,39 +45,49 @@ export default function AthleteProfilePage() {
       
       console.log('Fetching payment status for user:', user.id, 'event:', currentEventId);
       
-      // First get payment status from vw_taxas_inscricao_usuarios
-      const { data: paymentData, error } = await supabase
+      // First check the pagamentos table
+      const { data: paymentData, error: paymentError } = await supabase
+        .from('pagamentos')
+        .select('*')
+        .eq('atleta_id', user.id)
+        .eq('evento_id', currentEventId)
+        .maybeSingle();
+
+      if (paymentError) {
+        console.error('Error fetching payment data:', paymentError);
+        throw paymentError;
+      }
+
+      // Then get the registration fee info
+      const { data: feeData, error: feeError } = await supabase
         .from('vw_taxas_inscricao_usuarios')
         .select('*')
         .eq('usuario_id', user.id)
         .eq('evento_id', currentEventId)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching payment status:', error);
-        throw error;
+      if (feeError) {
+        console.error('Error fetching fee data:', feeError);
+        throw feeError;
       }
 
-      // Log the full payment data for debugging
-      console.log('Payment status from view:', paymentData);
+      // Log both results for debugging
+      console.log('Payment data from pagamentos:', paymentData);
+      console.log('Fee data from view:', feeData);
 
-      // If no payment data found, create a default status
-      if (!paymentData) {
-        console.log('No payment data found, creating default status');
-        return {
-          valor: 0,
-          perfil_nome: profile?.papeis?.[0]?.nome || null,
-          isento: false,
-          status: 'pendente',
-          evento_id: currentEventId,
-          usuario_id: user.id
-        } as PaymentStatus;
-      }
+      // Combine the data, with paymentData taking precedence
+      const combinedData = {
+        valor: feeData?.valor || paymentData?.valor || 0,
+        perfil_nome: profile?.papeis?.[0]?.nome || null,
+        isento: feeData?.isento || false,
+        status: paymentData?.status || 'pendente',
+        evento_id: currentEventId,
+        usuario_id: user.id,
+        ...feeData // Include any additional fee data
+      };
 
-      return {
-        ...paymentData,
-        status: paymentData.status || 'pendente'
-      } as PaymentStatus;
+      console.log('Combined payment status:', combinedData);
+      return combinedData as PaymentStatus;
     },
     enabled: !!user?.id && !!currentEventId && !!profile,
   });
@@ -105,7 +115,7 @@ export default function AthleteProfilePage() {
   }
 
   const isAthleteProfile = profile.papeis?.some(role => role.nome === 'Atleta');
-  const shouldShowPaymentInfo = isAthleteProfile && (!paymentStatus?.isento || paymentStatus === null);
+  const shouldShowPaymentInfo = isAthleteProfile && !paymentStatus?.isento;
 
   // Enhanced logging for debugging
   console.log('Profile and payment check:', {
