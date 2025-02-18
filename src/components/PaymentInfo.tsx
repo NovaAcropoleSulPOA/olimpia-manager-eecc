@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -13,6 +14,15 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
+
+interface PaymentStatus {
+  valor: number | null;
+  perfil_nome: string | null;
+  isento: boolean;
+  status?: string;
+  evento_id: string;
+  usuario_id: string;
+}
 
 interface PaymentFeeInfo {
   valor: number | null;
