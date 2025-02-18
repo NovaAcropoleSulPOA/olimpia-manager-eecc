@@ -39,7 +39,6 @@ export const fetchUserProfile = async (userId: string) => {
       .from('papeis_usuarios')
       .select(`
         perfis (
-          id,
           nome,
           perfil_tipo_id,
           perfis_tipo (
