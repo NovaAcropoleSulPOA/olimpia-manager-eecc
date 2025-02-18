@@ -142,7 +142,12 @@ export default function AthleteProfilePage() {
 
       {/* Moved PaymentInfo rendering here and added debug div */}
       {shouldShowPaymentInfo ? (
-        <PaymentInfo key={`${user?.id}-${currentEventId}`} />
+        <PaymentInfo 
+          key={`${user?.id}-${currentEventId}`}
+          initialPaymentStatus={paymentStatus}
+          userId={user?.id}
+          eventId={currentEventId}
+        />
       ) : (
         <div className="hidden">
           Debug info (not visible): Payment info hidden because:

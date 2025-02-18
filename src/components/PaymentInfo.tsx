@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -28,7 +27,13 @@ interface PaymentFeeInfo {
   link_formulario: string | null;
 }
 
-const PaymentInfo = () => {
+interface PaymentInfoProps {
+  initialPaymentStatus?: PaymentStatus;
+  userId?: string;
+  eventId?: string;
+}
+
+const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps) => {
   const { user } = useAuth();
   const [currentEventId, setCurrentEventId] = useState<string | null>(null);
 
@@ -40,10 +45,10 @@ const PaymentInfo = () => {
   }, []);
 
   const { data: paymentInfo, isLoading } = useQuery({
-    queryKey: ['payment-info', user?.id, currentEventId],
+    queryKey: ['payment-info', userId, eventId],
     queryFn: async () => {
-      if (!user?.id || !currentEventId) return null;
-      console.log('Fetching payment info for user:', user.id, 'event:', currentEventId);
+      if (!userId || !eventId) return null;
+      console.log('Fetching payment info for user:', userId, 'event:', eventId);
       
       const { data, error } = await supabase
         .from('vw_taxas_inscricao_usuarios')
@@ -59,8 +64,8 @@ const PaymentInfo = () => {
           qr_code_codigo,
           link_formulario
         `)
-        .eq('usuario_id', user.id)
-        .eq('evento_id', currentEventId)
+        .eq('usuario_id', userId)
+        .eq('evento_id', eventId)
         .maybeSingle();
 
       if (error) {
@@ -68,10 +73,16 @@ const PaymentInfo = () => {
         throw error;
       }
 
-      console.log('Payment info response:', data);
-      return data as PaymentFeeInfo;
+      const mergedData = {
+        ...(data || {}),
+        ...(initialPaymentStatus || {}),
+      };
+
+      console.log('Payment info response:', mergedData);
+      return mergedData as PaymentFeeInfo;
     },
-    enabled: !!user?.id && !!currentEventId,
+    enabled: !!userId && !!eventId,
+    initialData: initialPaymentStatus,
   });
 
   const handleWhatsAppClick = () => {
