@@ -38,9 +38,24 @@ export const LoginForm = () => {
     } catch (error: any) {
       console.error("Login Error:", error);
       
-      // Enhanced error handling with more specific messages
-      if (error.error?.status === 400 && error.error?.message?.includes('Invalid login credentials')) {
-        toast.error("Email ou senha incorretos. Por favor, verifique suas credenciais.");
+      // Check for invalid credentials error from Supabase
+      if (error.error?.message?.includes('Invalid login credentials') || 
+          error.message?.includes('Invalid login credentials') ||
+          error?.code === 'invalid_credentials') {
+        toast.error(
+          <div className="flex flex-col gap-2">
+            <p>Email ou senha incorretos.</p>
+            <div className="text-sm">
+              <span>Esqueceu sua senha? </span>
+              <Link 
+                to="/forgot-password"
+                className="text-olimpics-green-primary hover:text-olimpics-green-secondary underline"
+              >
+                Clique aqui para recuperá-la
+              </Link>
+            </div>
+          </div>
+        );
       } else if (error.message?.toLowerCase().includes("email not confirmed")) {
         toast.error(
           <div className="flex flex-col gap-2">
