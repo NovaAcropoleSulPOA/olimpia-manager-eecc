@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -92,7 +93,7 @@ export default function AthleteProfilePage() {
         .select('*')
         .eq('atleta_id', user.id)
         .eq('evento_id', currentEventId)
-        .maybeSingle();  // Changed from single() to maybeSingle()
+        .maybeSingle();
 
       if (profileError) {
         console.error('Error fetching profile:', profileError);
@@ -123,19 +124,27 @@ export default function AthleteProfilePage() {
         throw rolesError;
       }
 
-      console.log('Raw roles data:', rolesData);
+      // Fetch payment status
+      const { data: paymentData, error: paymentError } = await supabase
+        .from('pagamentos')
+        .select('status')
+        .eq('atleta_id', user.id)
+        .eq('evento_id', currentEventId)
+        .single();
+
+      if (paymentError) {
+        console.error('Error fetching payment status:', paymentError);
+      }
 
       const transformedRoles = (rolesData || []).map((roleData: any) => ({
         nome: roleData.perfis.nome,
         codigo: roleData.perfis.perfil_tipo.codigo
       }));
 
-      console.log('Profile data:', profileData);
-      console.log('Transformed roles:', transformedRoles);
-
       return {
         ...profileData,
-        papeis: transformedRoles
+        papeis: transformedRoles,
+        pagamento_status: paymentData?.status || 'pendente'
       } as AthleteProfileData;
     },
     enabled: !!user?.id && !!currentEventId,
@@ -172,7 +181,7 @@ export default function AthleteProfilePage() {
     }
   };
 
-  const isPendingPayment = profile.pagamento_status?.toLowerCase() === 'pendente';
+  const shouldShowPaymentInfo = !isPublicUser && profile.pagamento_status === 'pendente';
 
   return (
     <div className="container mx-auto py-6 space-y-8">
@@ -193,7 +202,7 @@ export default function AthleteProfilePage() {
         profile={profile}
         isPublicUser={isPublicUser}
       />
-      {isPendingPayment && <PaymentInfo key={user?.id} />}
+      {shouldShowPaymentInfo && <PaymentInfo key={user?.id} />}
       {!isPublicUser && user?.id && <AthleteScoresSection athleteId={user.id} />}
     </div>
   );
