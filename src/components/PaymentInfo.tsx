@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -37,6 +38,7 @@ const PaymentInfo = () => {
       if (!user?.id || !currentEventId) return null;
       console.log('Fetching payment info for user:', user.id, 'event:', currentEventId);
       
+      // Use the view that joins user registrations with their fees
       const { data, error } = await supabase
         .from('vw_taxas_inscricao_usuarios')
         .select(`
@@ -61,8 +63,6 @@ const PaymentInfo = () => {
       }
 
       console.log('Payment info response:', data);
-      console.log('Form link from response:', data?.link_formulario);
-
       return data as PaymentFeeInfo;
     },
     enabled: !!user?.id && !!currentEventId,
