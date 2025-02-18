@@ -54,6 +54,11 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  // If no initial payment status or the status is not 'pendente', don't show the card
+  if (initialPaymentStatus?.status && initialPaymentStatus.status !== 'pendente') {
+    return null;
+  }
+
   if (isLoading) {
     return (
       <Card className="w-full">
