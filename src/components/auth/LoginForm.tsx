@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -19,7 +19,6 @@ const loginSchema = z.object({
 export const LoginForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signIn, resendVerificationEmail } = useAuth();
-  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -32,26 +31,21 @@ export const LoginForm = () => {
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
       setIsSubmitting(true);
-      console.log('Attempting login with:', values.email);
       await signIn(values.email, values.password);
-      navigate('/event-selection');
     } catch (error: any) {
       console.error("Login Error:", error);
       
-      // Check for invalid credentials error from Supabase
-      if (error.error?.message?.includes('Invalid login credentials') || 
-          error.message?.includes('Invalid login credentials') ||
-          error?.code === 'invalid_credentials') {
+      if (error.message?.includes('Invalid login credentials')) {
         toast.error(
           <div className="flex flex-col gap-2">
-            <p>Email ou senha incorretos.</p>
+            <p>Email ou senha inválidos</p>
             <div className="text-sm">
-              <span>Esqueceu sua senha? </span>
+              <span>Não possui uma conta? </span>
               <Link 
-                to="/forgot-password"
+                to="/"
                 className="text-olimpics-green-primary hover:text-olimpics-green-secondary underline"
               >
-                Clique aqui para recuperá-la
+                Registre-se aqui
               </Link>
             </div>
           </div>
@@ -71,13 +65,10 @@ export const LoginForm = () => {
         );
       } else if (error.message?.includes("too many requests")) {
         toast.error("Muitas tentativas de login. Por favor, aguarde alguns minutos.");
-      } else if (error.message?.toLowerCase().includes("network")) {
-        toast.error("Erro de conexão. Verifique sua internet.");
       } else {
-        toast.error("Erro ao fazer login. Por favor, tente novamente.");
+        toast.error("Erro ao fazer login. Por favor, tente novamente mais tarde.");
       }
 
-      // Clear password field on error for security
       form.setValue('password', '');
     } finally {
       setIsSubmitting(false);
