@@ -1,4 +1,3 @@
-
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -103,33 +102,34 @@ async function getProfileAndFeeInfo(
   selectedRole: PerfilTipo
 ): Promise<ProfileAndFeeInfo | null> {
   try {
-    // First, let's do a combined query to get both profile and fee information
+    // Use explicit foreign key relationship and proper filtering
     const { data: profilesAndFees, error: profileFeeError } = await supabase
       .from('perfis')
       .select(`
         id,
         nome,
-        taxas_inscricao!inner(
+        taxas_inscricao!fk_taxas_inscricao_perfil (
           id,
           valor,
           perfil_id
         )
       `)
       .eq('evento_id', eventId)
-      .eq('nome', selectedRole === 'ATL' ? 'Atleta' : 'Público Geral');
+      .eq('nome', selectedRole === 'ATL' ? 'Atleta' : 'Público Geral')
+      .single();
 
     if (profileFeeError) {
       console.error('Error fetching profile and fee data:', profileFeeError);
       throw new Error('Could not fetch profile and fee information');
     }
 
-    console.log('Retrieved profiles and fees:', profilesAndFees);
+    console.log('Retrieved profile and fees:', profilesAndFees);
 
-    if (!profilesAndFees || profilesAndFees.length === 0) {
+    if (!profilesAndFees) {
       throw new Error(`No profile found for the selected role in this event`);
     }
 
-    const profile = profilesAndFees[0];
+    const profile = profilesAndFees;
     const fee = profile.taxas_inscricao[0];
 
     if (!fee) {
