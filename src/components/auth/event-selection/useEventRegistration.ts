@@ -1,3 +1,4 @@
+
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -19,6 +20,16 @@ interface ProfileAndFeeInfo {
   valor: number;
   numeroIdentificador: string;
   profileName: string;
+}
+
+// Add interface for the Supabase query response
+interface TaxaInscricaoWithPerfil {
+  id: number;
+  valor: number;
+  perfil: {
+    id: number;
+    nome: string;
+  };
 }
 
 export const useEventRegistration = (userId: string | undefined) => {
@@ -113,7 +124,7 @@ async function getProfileAndFeeInfo(
       `)
       .eq('evento_id', eventId)
       .eq('perfis.nome', profileName)
-      .single();
+      .single() as { data: TaxaInscricaoWithPerfil | null; error: any };
 
     if (error) {
       console.error('Error fetching profile and fee:', error);
