@@ -31,21 +31,31 @@ export const LoginForm = () => {
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
       setIsSubmitting(true);
+      console.log('Attempting login with email:', values.email);
       await signIn(values.email, values.password);
     } catch (error: any) {
       console.error("Login Error:", error);
       
+      // Clear password field for security
+      form.setValue('password', '');
+      
       if (error.message?.includes('Invalid login credentials')) {
+        // Show a more user-friendly message for invalid credentials
         toast.error(
           <div className="flex flex-col gap-2">
-            <p>Email ou senha inválidos</p>
-            <div className="text-sm">
-              <span>Não possui uma conta? </span>
+            <p>Email ou senha incorretos</p>
+            <div className="text-sm flex flex-col gap-2">
               <Link 
-                to="/"
+                to="/forgot-password"
                 className="text-olimpics-green-primary hover:text-olimpics-green-secondary underline"
               >
-                Registre-se aqui
+                Esqueceu sua senha?
+              </Link>
+              <Link 
+                to="/"
+                className="text-olimpics-green-primary hover:text-olimpics-green-secondary"
+              >
+                Não possui uma conta? Registre-se aqui
               </Link>
             </div>
           </div>
@@ -68,8 +78,6 @@ export const LoginForm = () => {
       } else {
         toast.error("Erro ao fazer login. Por favor, tente novamente mais tarde.");
       }
-
-      form.setValue('password', '');
     } finally {
       setIsSubmitting(false);
     }
