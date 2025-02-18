@@ -19,6 +19,7 @@ interface ProfileAndFeeInfo {
   perfilId: number;
   valor: number;
   numeroIdentificador: string;
+  profileName: string;
 }
 
 export const useEventRegistration = (userId: string | undefined) => {
@@ -50,14 +51,14 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw checkError;
         }
 
-        // Insert or update registration
+        // Insert or update registration with the correct profile name as selected_role
         const { data: registration, error: registrationError } = await supabase
           .from('inscricoes_eventos')
           .upsert(
             {
               usuario_id: userId,
               evento_id: eventId,
-              selected_role: registrationInfo.perfilId,
+              selected_role: selectedRole, // Use the PerfilTipo enum value directly
               taxa_inscricao_id: registrationInfo.taxaInscricaoId
             },
             {
@@ -104,13 +105,14 @@ async function getProfileAndFeeInfo(
   try {
     console.log(`Fetching profile info for user ${userId} in event ${eventId} with role ${selectedRole}`);
 
-    // Get profile ID based on selected role - now correctly mapping ATL to 'Atleta'
+    // Get profile ID based on selected role
     const profileName = selectedRole === 'ATL' ? 'Atleta' : 'Público Geral';
     console.log('Looking for profile with name:', profileName);
     
+    // First, get the complete profile information including the id
     const { data: profileData, error: profileError } = await supabase
       .from('perfis')
-      .select('id')
+      .select('id, nome')
       .eq('evento_id', eventId)
       .eq('nome', profileName)
       .maybeSingle();
@@ -144,7 +146,7 @@ async function getProfileAndFeeInfo(
       throw new Error('User not found');
     }
 
-    // Get registration fee information for the specific profile
+    // Get registration fee information using the profile ID from perfis table
     const { data: feeData, error: feeError } = await supabase
       .from('taxas_inscricao')
       .select('id, valor')
@@ -168,10 +170,11 @@ async function getProfileAndFeeInfo(
       taxaInscricaoId: feeData.id,
       perfilId: profileData.id,
       valor: feeData.valor,
-      numeroIdentificador: userData.numero_identificador
+      numeroIdentificador: userData.numero_identificador,
+      profileName: profileData.nome
     };
   } catch (error) {
     console.error('Error in getProfileAndFeeInfo:', error);
-    throw error; // Re-throw to handle in the mutation
+    throw error;
   }
 }
