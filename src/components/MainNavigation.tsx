@@ -32,12 +32,16 @@ export function MainNavigation() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const userRoles = user?.papeis || [];
-  const isOrganizer = userRoles.some(role => role.codigo === 'ORE');
-  const isAthlete = userRoles.some(role => role.codigo === 'ATL');
-  const isDelegationRep = userRoles.some(role => role.codigo === 'RDD');
-  const isPublicGeral = userRoles.some(role => role.codigo === 'PGR');
-  const isAdmin = userRoles.some(role => role.codigo === 'ADM');
+  // Get all roles codes from the user's roles
+  const userRoleCodes = user?.papeis?.map(role => role.codigo) || [];
+  console.log('User role codes:', userRoleCodes);
+
+  // Check for each role type
+  const isOrganizer = userRoleCodes.includes('ORE');
+  const isAthlete = userRoleCodes.includes('ATL');
+  const isDelegationRep = userRoleCodes.includes('RDD');
+  const isPublicGeral = userRoleCodes.includes('PGR');
+  const isAdmin = userRoleCodes.includes('ADM');
 
   useEffect(() => {
     if (location.pathname === '/') {
@@ -67,8 +71,9 @@ export function MainNavigation() {
     }
   };
 
+  // Build menu items based on user roles
   const menuItems = [
-    // Profile menu item now shown for all logged-in users
+    // Profile and Schedule are available for all authenticated users
     {
       title: "Perfil",
       icon: User,
@@ -78,36 +83,41 @@ export function MainNavigation() {
       title: "Cronograma",
       icon: Calendar,
       path: "/cronograma"
-    },
-    ...(isAthlete ? [
-      {
-        title: "Minhas Inscrições",
-        icon: ClipboardList,
-        path: "/athlete-registrations"
-      }
-    ] : []),
-    ...(isOrganizer ? [
-      {
-        title: "Organizador(a)",
-        icon: BarChart3,
-        path: "/organizer-dashboard"
-      }
-    ] : []),
-    ...(isDelegationRep ? [
-      {
-        title: "Delegação",
-        icon: Users,
-        path: "/delegation-dashboard"
-      }
-    ] : []),
-    ...(isAdmin ? [
-      {
-        title: "Administração",
-        icon: Settings2,
-        path: "/administration"
-      }
-    ] : [])
+    }
   ];
+
+  // Add role-specific menu items
+  if (isAthlete) {
+    menuItems.push({
+      title: "Minhas Inscrições",
+      icon: ClipboardList,
+      path: "/athlete-registrations"
+    });
+  }
+
+  if (isOrganizer) {
+    menuItems.push({
+      title: "Organizador(a)",
+      icon: BarChart3,
+      path: "/organizer-dashboard"
+    });
+  }
+
+  if (isDelegationRep) {
+    menuItems.push({
+      title: "Delegação",
+      icon: Users,
+      path: "/delegation-dashboard"
+    });
+  }
+
+  if (isAdmin) {
+    menuItems.push({
+      title: "Administração",
+      icon: Settings2,
+      path: "/administration"
+    });
+  }
 
   const { data: userEvents } = useQuery({
     queryKey: ['user-events', user?.id],
