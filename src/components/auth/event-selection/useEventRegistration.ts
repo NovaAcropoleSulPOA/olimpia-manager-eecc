@@ -22,13 +22,6 @@ interface ProfileAndFeeInfo {
   profileName: string;
 }
 
-interface TaxaInscricao {
-  id: number;
-  valor: number;
-  perfil_id: number;
-  evento_id: string;
-}
-
 export const useEventRegistration = (userId: string | undefined) => {
   return useMutation({
     mutationFn: async ({ eventId, selectedRole }: EventRegistrationParams): Promise<RegistrationResult> => {
@@ -113,53 +106,37 @@ async function getProfileAndFeeInfo(
   selectedRole: PerfilTipo
 ): Promise<ProfileAndFeeInfo | null> {
   try {
-    // Step 1: Determine profile name based on selected role
-    const profileName = selectedRole === 'ATL' ? 'Atleta' : 'Público Geral';
-    console.log('Step 1 - Looking for profile:', { profileName, eventId, selectedRole });
-
-    // Step 2: Get profile ID for the given event and profile name
-    const { data: profiles, error: profileError } = await supabase
+    // Step 1: Get profile directly by name and event
+    const { data: profile, error: profileError } = await supabase
       .from('perfis')
-      .select('*')
+      .select('id, nome')
       .eq('evento_id', eventId)
-      .eq('nome', profileName);
+      .eq('nome', 'Atleta')
+      .single();
 
-    if (profileError) {
-      console.error('Error fetching profiles:', profileError);
-      throw new Error(`Could not find profiles for event ${eventId}`);
+    if (profileError || !profile) {
+      console.error('Error fetching profile:', profileError);
+      throw new Error('Could not find Atleta profile for this event');
     }
 
-    console.log('Step 2 - Found profiles:', profiles);
+    console.log('Found profile:', profile);
 
-    if (!profiles || profiles.length === 0) {
-      throw new Error(`No profile found for ${profileName} in this event`);
-    }
-
-    const profileData = profiles[0];
-    console.log('Step 3 - Selected profile:', profileData);
-
-    // Step 4: Get the registration fee with detailed logging
-    const { data: fees, error: feeError } = await supabase
+    // Step 2: Get registration fee using profile ID
+    const { data: fee, error: feeError } = await supabase
       .from('taxas_inscricao')
-      .select('*')
+      .select('id, valor')
       .eq('evento_id', eventId)
-      .eq('perfil_id', profileData.id);
+      .eq('perfil_id', profile.id)
+      .single();
 
-    if (feeError) {
-      console.error('Error fetching registration fees:', feeError);
-      throw new Error(`Error fetching fees: ${feeError.message}`);
+    if (feeError || !fee) {
+      console.error('Error fetching registration fee:', feeError);
+      throw new Error('No registration fee found for Atleta profile');
     }
 
-    console.log('Step 4 - Found fees:', fees);
+    console.log('Found registration fee:', fee);
 
-    if (!fees || fees.length === 0) {
-      throw new Error(`No registration fee found for profile ${profileName} (ID: ${profileData.id})`);
-    }
-
-    const feeData = fees[0];
-    console.log('Step 5 - Selected fee:', feeData);
-
-    // Step 6: Get user identifier
+    // Step 3: Get user identifier
     const { data: userData, error: userError } = await supabase
       .from('usuarios')
       .select('numero_identificador')
@@ -171,18 +148,16 @@ async function getProfileAndFeeInfo(
       throw new Error('Could not fetch user information');
     }
 
-    console.log('Step 6 - User data:', userData);
-
-    // Step 7: Prepare final result
+    // Step 4: Return compiled information
     const result: ProfileAndFeeInfo = {
-      taxaInscricaoId: feeData.id,
-      perfilId: profileData.id,
-      valor: feeData.valor,
+      taxaInscricaoId: fee.id,
+      perfilId: profile.id,
+      valor: fee.valor,
       numeroIdentificador: userData.numero_identificador,
-      profileName: profileData.nome
+      profileName: profile.nome
     };
 
-    console.log('Step 7 - Final registration info:', result);
+    console.log('Final registration info:', result);
     return result;
 
   } catch (error) {
