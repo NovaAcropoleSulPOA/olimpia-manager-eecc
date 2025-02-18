@@ -9,7 +9,7 @@ export const registerSchema = z.object({
   telefone: z.string().min(14, 'Telefone inválido').max(15),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
-  branchId: z.string().uuid('Sede inválida').optional(),
+  branchId: z.string().uuid('Sede inválida'),
   tipo_documento: z.enum(['CPF', 'RG'], {
     required_error: "Selecione o tipo de documento",
   }),
@@ -37,3 +37,4 @@ export const registerSchema = z.object({
 });
 
 export type RegisterFormData = z.infer<typeof registerSchema>;
+
