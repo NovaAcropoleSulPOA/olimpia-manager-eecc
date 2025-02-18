@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { NavigateFunction } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -13,6 +12,11 @@ interface UseAuthOperationsProps {
   location: { pathname: string };
 }
 
+interface SupabaseErrorBody {
+  code: string;
+  message: string;
+}
+
 export function useAuthOperations({ setUser, navigate, location }: UseAuthOperationsProps) {
   const signIn = async (email: string, password: string) => {
     try {
@@ -25,44 +29,33 @@ export function useAuthOperations({ setUser, navigate, location }: UseAuthOperat
   
       if (error) {
         console.log('Login error:', error);
-        
-        // Extract error details from the error object
-        let parsedError;
-        if (typeof error === 'object' && 'body' in error && typeof error.body === 'string') {
-          try {
-            parsedError = JSON.parse(error.body);
-          } catch (e) {
-            console.error('Error parsing error body:', e);
+
+        // Try to parse the error body
+        let errorBody: SupabaseErrorBody | null = null;
+        try {
+          if ('body' in error && typeof error.body === 'string') {
+            errorBody = JSON.parse(error.body);
+          }
+        } catch (e) {
+          console.error('Error parsing error body:', e);
+        }
+
+        // If we have a parsed error body, use that
+        if (errorBody) {
+          console.log('Parsed error body:', errorBody);
+          
+          switch (errorBody.code) {
+            case 'invalid_credentials':
+              throw new Error('Invalid login credentials');
+            case 'email_not_confirmed':
+              throw new Error('Email not confirmed');
+            default:
+              throw new Error(errorBody.message || 'Login failed');
           }
         }
 
-        // Handle parsed error first
-        if (parsedError?.code === 'invalid_credentials') {
-          throw new Error('Invalid login credentials');
-        }
-
-        // Handle AuthApiError as fallback
-        if (error instanceof AuthApiError) {
-          if (error.status === 400) {
-            throw new Error('Invalid login credentials');
-          } else if (error.status === 429) {
-            throw new Error('Too many login attempts');
-          }
-        }
-
-        // Final fallback to message content check
-        const errorMessage = parsedError?.message || error.message;
-        if (errorMessage?.toLowerCase().includes('invalid login credentials')) {
-          throw new Error('Invalid login credentials');
-        } else if (errorMessage?.toLowerCase().includes('email not confirmed')) {
-          throw new Error('Email not confirmed');
-        } else if (errorMessage?.toLowerCase().includes('too many requests')) {
-          throw new Error('Too many login attempts');
-        }
-        
-        // If we reach here, throw a generic error
-        console.error('Unhandled auth error:', error);
-        throw new Error('Login failed');
+        // Fallback to the error message
+        throw new Error(error.message || 'Login failed');
       }
   
       if (!data.user) {
