@@ -22,14 +22,12 @@ interface ProfileAndFeeInfo {
   profileName: string;
 }
 
-// Add interface for the Supabase query response
-interface TaxaInscricaoWithPerfil {
+// Updated interface to match the actual table structure
+interface TaxaInscricao {
   id: number;
   valor: number;
-  perfil: {
-    id: number;
-    nome: string;
-  };
+  perfil_id: number;
+  evento_id: string;
 }
 
 export const useEventRegistration = (userId: string | undefined) => {
@@ -127,20 +125,13 @@ async function getProfileAndFeeInfo(
 
     console.log('Found profile:', profileData);
 
-    // Then, get the registration fee using the profile ID
+    // Get the registration fee using a simple query without joins
     const { data: feeData, error: feeError } = await supabase
       .from('taxas_inscricao')
-      .select(`
-        id,
-        valor,
-        perfis (
-          id,
-          nome
-        )
-      `)
+      .select('id, valor')
       .eq('evento_id', eventId)
       .eq('perfil_id', profileData.id)
-      .single() as { data: TaxaInscricaoWithPerfil | null; error: any };
+      .single();
 
     if (feeError || !feeData) {
       console.error('Error fetching registration fee:', feeError);
