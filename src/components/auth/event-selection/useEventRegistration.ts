@@ -1,4 +1,3 @@
-
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -50,14 +49,14 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw checkError;
         }
 
-        // Insert or update registration with explicit conflict handling
+        // Insert or update registration
         const { data: registration, error: registrationError } = await supabase
           .from('inscricoes_eventos')
           .upsert(
             {
               usuario_id: userId,
               evento_id: eventId,
-              selected_role: registrationInfo.perfilId, // Store the perfis.id value
+              selected_role: registrationInfo.perfilId,
               taxa_inscricao_id: registrationInfo.taxaInscricaoId
             },
             {
@@ -72,30 +71,17 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw registrationError;
         }
 
-        // First, delete any existing base profile (Atleta or Público Geral) assignments
-        const { error: deleteError } = await supabase
-          .rpc('remove_base_profiles', { 
+        // Use the existing assign_user_profiles function to manage profile assignments
+        // This function already handles the deletion and insertion of profiles
+        const { error: profileError } = await supabase
+          .rpc('assign_user_profiles', {
             p_user_id: userId,
-            p_event_id: eventId
+            p_profile_ids: [registrationInfo.perfilId]
           });
 
-        if (deleteError) {
-          console.error('Error removing existing base profiles:', deleteError);
-          throw deleteError;
-        }
-
-        // Then insert the new profile assignment
-        const { error: roleError } = await supabase
-          .from('papeis_usuarios')
-          .insert({
-            usuario_id: userId,
-            perfil_id: registrationInfo.perfilId,
-            evento_id: eventId
-          });
-
-        if (roleError) {
-          console.error('Error assigning user role:', roleError);
-          throw roleError;
+        if (profileError) {
+          console.error('Error assigning user profiles:', profileError);
+          throw profileError;
         }
 
         console.log('Successfully created/updated registration with profile ID:', registrationInfo.perfilId);
