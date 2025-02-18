@@ -25,12 +25,15 @@ interface ProfileAndFeeInfo {
 interface ProfileData {
   id: number;
   nome: string;
-  evento_id: string;
   taxas_inscricao: {
     id: number;
     valor: number;
     perfil_id: number;
-  };
+  } | {
+    id: number;
+    valor: number;
+    perfil_id: number;
+  }[];
 }
 
 export const useEventRegistration = (userId: string | undefined) => {
@@ -104,15 +107,19 @@ async function getProfileAndFeeInfo(
       throw new Error('Could not find profile information');
     }
 
-    if (!data || !data.taxas_inscricao || data.taxas_inscricao.length === 0) {
+    if (!data || !data.taxas_inscricao) {
       console.error('Missing profile or fee data:', data);
       throw new Error('Registration fee not configured for this profile');
     }
 
     const profileData = data as ProfileData;
-    const feeData = Array.isArray(data.taxas_inscricao) 
-      ? data.taxas_inscricao[0]
-      : data.taxas_inscricao;
+    const feeData = Array.isArray(profileData.taxas_inscricao) 
+      ? profileData.taxas_inscricao[0]
+      : profileData.taxas_inscricao;
+
+    if (!feeData) {
+      throw new Error('No registration fee found for this profile');
+    }
 
     console.log('Found profile data:', profileData);
     console.log('Found fee data:', feeData);

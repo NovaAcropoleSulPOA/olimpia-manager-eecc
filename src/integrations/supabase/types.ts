@@ -1513,6 +1513,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      process_event_registration: {
+        Args: {
+          p_user_id: string
+          p_event_id: string
+          p_profile_id: number
+          p_registration_fee_id: number
+        }
+        Returns: undefined
+      }
       swap_user_profile: {
         Args: {
           p_user_id: string
