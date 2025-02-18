@@ -43,6 +43,12 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
   console.log('PaymentInfo component - Initial status:', initialPaymentStatus?.status);
   console.log('PaymentInfo component - Current info:', paymentInfo);
 
+  // Helper function to check if payment is pending
+  const isPaymentPending = () => {
+    const statusFromProps = initialPaymentStatus?.status?.toLowerCase();
+    return !statusFromProps || statusFromProps === 'pendente';
+  };
+
   const handleWhatsAppClick = () => {
     if (!paymentInfo?.contato_telefone) {
       toast.error("Número de telefone para contato não disponível");
@@ -96,8 +102,13 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     );
   }
 
-  // Show message if no payment info is available
-  if (!paymentInfo) {
+  // Don't show anything if we don't have payment info and payment is not pending
+  if (!paymentInfo && !isPaymentPending()) {
+    return null;
+  }
+
+  // Show message if no payment info is available but payment is pending
+  if (!paymentInfo && isPaymentPending()) {
     return (
       <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
         <CardHeader>
@@ -107,7 +118,7 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
         </CardHeader>
         <CardContent>
           <p className="text-olimpics-text">
-            Não foi possível carregar as informações de pagamento. Por favor, tente novamente mais tarde.
+            Aguardando informações de pagamento. Por favor, tente novamente em alguns instantes.
           </p>
         </CardContent>
       </Card>
@@ -115,7 +126,7 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
   }
 
   // Show exempt status if applicable
-  if (paymentInfo.isento) {
+  if (paymentInfo?.isento) {
     return (
       <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
         <CardHeader>
@@ -132,12 +143,7 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     );
   }
 
-  // Don't show the card if payment status is not pendente and initialPaymentStatus exists
-  if (initialPaymentStatus?.status && initialPaymentStatus.status !== 'pendente') {
-    console.log('Payment status is not pending, hiding payment info card');
-    return null;
-  }
-
+  // Always show the card for pending payments
   return (
     <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
       <CardHeader>

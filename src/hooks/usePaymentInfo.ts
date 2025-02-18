@@ -45,11 +45,15 @@ export const usePaymentInfo = (
         throw statusError;
       }
 
-      // If payment status is not pending and we don't have initial status, return null
-      if (paymentStatus?.status && 
-          paymentStatus.status !== 'pendente' && 
-          !initialPaymentStatus) {
-        console.log('Payment status is not pending:', paymentStatus.status);
+      console.log('Payment status from database:', paymentStatus);
+
+      // Check if we should show payment info based on status
+      const isPending = !paymentStatus?.status || 
+                       paymentStatus.status.toLowerCase() === 'pendente' ||
+                       (initialPaymentStatus?.status || '').toLowerCase() === 'pendente';
+
+      if (!isPending) {
+        console.log('Payment is not pending, no need to fetch payment info');
         return null;
       }
 
@@ -79,10 +83,9 @@ export const usePaymentInfo = (
 
       console.log('Raw payment info data:', paymentInfo);
 
-      // If we have no data and no initial status, return null
-      if (!paymentInfo && !initialPaymentStatus) {
-        console.log('No payment info found and no initial status');
-        return null;
+      if (!paymentInfo) {
+        console.log('No payment info found in view');
+        return initialFeeInfo || null;
       }
 
       // Merge initial data with fetched data, prioritizing fetched data
