@@ -51,14 +51,14 @@ export const useEventRegistration = (userId: string | undefined) => {
           throw checkError;
         }
 
-        // Insert or update registration with the correct profile name as selected_role
+        // Insert or update registration with the correct profile ID
         const { data: registration, error: registrationError } = await supabase
           .from('inscricoes_eventos')
           .upsert(
             {
               usuario_id: userId,
               evento_id: eventId,
-              selected_role: selectedRole, // Use the PerfilTipo enum value directly
+              selected_role: registrationInfo.perfilId, // Use the actual profile ID (integer)
               taxa_inscricao_id: registrationInfo.taxaInscricaoId
             },
             {
