@@ -26,7 +26,22 @@ export function useAuthOperations({ setUser, navigate, location }: UseAuthOperat
       if (error) {
         console.log('Login error:', error);
         
-        // Check if it's a Supabase AuthApiError
+        // Try to parse error body if it exists
+        let errorBody;
+        if (typeof error.body === 'string') {
+          try {
+            errorBody = JSON.parse(error.body);
+          } catch (e) {
+            console.log('Error parsing error body:', e);
+          }
+        }
+
+        // Handle different error formats
+        if (errorBody?.code === 'invalid_credentials') {
+          throw new Error('Invalid login credentials');
+        }
+        
+        // If it's a Supabase AuthApiError
         if (error instanceof AuthApiError) {
           switch (error.status) {
             case 400:
@@ -38,13 +53,22 @@ export function useAuthOperations({ setUser, navigate, location }: UseAuthOperat
               break;
             case 429:
               throw new Error('Too many login attempts');
-            default:
-              console.error('Unhandled AuthApiError:', error);
-              throw new Error('Login failed');
           }
         }
         
-        throw error;
+        // Check error message directly as fallback
+        const errorMessage = error.message || errorBody?.message;
+        if (errorMessage?.toLowerCase().includes('invalid login credentials')) {
+          throw new Error('Invalid login credentials');
+        } else if (errorMessage?.toLowerCase().includes('email not confirmed')) {
+          throw new Error('Email not confirmed');
+        } else if (errorMessage?.toLowerCase().includes('too many requests')) {
+          throw new Error('Too many login attempts');
+        }
+        
+        // If we reach here, throw a generic error
+        console.error('Unhandled auth error:', error);
+        throw new Error('Login failed');
       }
   
       if (!data.user) {
