@@ -103,43 +103,36 @@ async function getProfileAndFeeInfo(
   selectedRole: PerfilTipo
 ): Promise<ProfileAndFeeInfo | null> {
   try {
-    // First get the profile
-    const { data: profile, error: profileError } = await supabase
-      .from('perfis')
-      .select('id, nome')
-      .eq('evento_id', eventId)
-      .eq('nome', selectedRole === 'ATL' ? 'Atleta' : 'Público Geral')
-      .single();
+    // Start by getting the exact profile ID for 'Atleta' in this event
+    const profileName = selectedRole === 'ATL' ? 'Atleta' : 'Público Geral';
+    console.log('Looking for profile:', { profileName, eventId });
 
-    if (profileError) {
-      console.error('Error fetching profile:', profileError);
-      throw new Error('Could not fetch profile information');
-    }
-
-    if (!profile) {
-      throw new Error(`No profile found for the selected role in this event`);
-    }
-
-    console.log('Retrieved profile:', profile);
-
-    // Then get the corresponding fee using the profile ID
-    const { data: feeData, error: feeError } = await supabase
+    // Get the profile ID and fee in a single query using a JOIN
+    const { data, error } = await supabase
       .from('taxas_inscricao')
-      .select('id, valor')
+      .select(`
+        id,
+        valor,
+        perfil:perfil_id (
+          id,
+          nome
+        )
+      `)
       .eq('evento_id', eventId)
-      .eq('perfil_id', profile.id)
+      .eq('perfil.nome', profileName)
       .single();
 
-    if (feeError) {
-      console.error('Error fetching registration fee:', feeError);
-      throw new Error('Could not fetch registration fee information');
+    if (error) {
+      console.error('Error fetching profile and fee:', error);
+      throw new Error(`Could not fetch registration fee for ${profileName}`);
     }
 
-    if (!feeData) {
-      throw new Error(`No registration fee found for profile ${profile.nome}`);
+    if (!data || !data.perfil) {
+      console.error('No fee found for profile:', { profileName, eventId });
+      throw new Error(`No registration fee found for ${profileName}`);
     }
 
-    console.log('Retrieved fee data:', feeData);
+    console.log('Retrieved fee data:', data);
 
     // Get user identifier
     const { data: userData, error: userError } = await supabase
@@ -153,21 +146,17 @@ async function getProfileAndFeeInfo(
       throw new Error('Could not fetch user information');
     }
 
-    // Log the final fee information being used
-    console.log('Using fee information:', {
-      profileId: profile.id,
-      profileName: profile.nome,
-      feeId: feeData.id,
-      feeValue: feeData.valor
-    });
-
-    return {
-      taxaInscricaoId: feeData.id,
-      perfilId: profile.id,
-      valor: feeData.valor,
+    const result = {
+      taxaInscricaoId: data.id,
+      perfilId: data.perfil.id,
+      valor: data.valor,
       numeroIdentificador: userData.numero_identificador,
-      profileName: profile.nome
+      profileName: data.perfil.nome
     };
+
+    console.log('Final registration info:', result);
+    return result;
+
   } catch (error) {
     console.error('Error in getProfileAndFeeInfo:', error);
     throw error;
