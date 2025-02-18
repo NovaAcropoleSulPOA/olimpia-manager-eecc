@@ -4,20 +4,12 @@ import { toast } from 'sonner';
 import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { AuthUser } from '@/types/auth';
 import { fetchUserProfile, handleAuthRedirect } from '@/services/authService';
-import { AuthError, AuthApiError } from '@supabase/supabase-js';
+import { AuthError } from '@supabase/supabase-js';
 
 interface UseAuthOperationsProps {
   setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
   navigate: NavigateFunction;
   location: { pathname: string };
-}
-
-interface SupabaseAuthError {
-  url: string;
-  error_type: string;
-  message: string;
-  status: number;
-  body: string;
 }
 
 export function useAuthOperations({ setUser, navigate, location }: UseAuthOperationsProps) {
@@ -29,25 +21,17 @@ export function useAuthOperations({ setUser, navigate, location }: UseAuthOperat
       });
   
       if (error) {
-        const authError = error as SupabaseAuthError;
-        
-        // Try to parse the error body if it exists
-        let errorBody = null;
-        try {
-          if (authError.body) {
-            errorBody = JSON.parse(authError.body);
+        // Parse error message from Supabase
+        if (error instanceof AuthError) {
+          const errorMessage = error.message;
+          if (errorMessage.includes('Invalid login credentials')) {
+            throw new Error('Invalid login credentials');
           }
-        } catch (e) {
-          console.error('Error parsing error body:', e);
-        }
-
-        // Handle error based on the parsed body or fallback to status code
-        if (errorBody?.code === 'invalid_credentials' || authError.status === 400) {
-          throw new Error('Invalid login credentials');
+          throw new Error(errorMessage);
         }
         
-        // Generic error fallback
-        throw new Error(errorBody?.message || authError.message || 'Login failed');
+        // Fallback error
+        throw new Error('Login failed');
       }
   
       if (!data.user) {
