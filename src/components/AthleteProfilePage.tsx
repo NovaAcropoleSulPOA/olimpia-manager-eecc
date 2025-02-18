@@ -43,7 +43,15 @@ export default function AthleteProfilePage() {
   }
 
   const isAthleteProfile = profile.papeis?.some(role => role.nome === 'Atleta');
-  const shouldShowPaymentInfo = isAthleteProfile && profile.pagamento_status === 'pendente';
+  const isPendingPayment = profile.pagamento_status?.toLowerCase() === 'pendente';
+  const shouldShowPaymentInfo = isAthleteProfile && isPendingPayment;
+
+  console.log('Payment status check:', {
+    status: profile.pagamento_status,
+    isAthleteProfile,
+    isPendingPayment,
+    shouldShowPaymentInfo
+  });
 
   return (
     <div className="container mx-auto py-6 space-y-8">

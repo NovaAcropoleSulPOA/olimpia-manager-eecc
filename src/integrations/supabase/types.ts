@@ -1079,7 +1079,7 @@ export type Database = {
           confirmado: boolean | null
           data_criacao: string | null
           data_nascimento: string
-          email: string
+          email: string | null
           filial_id: string
           foto_perfil: string | null
           genero: string
@@ -1095,7 +1095,7 @@ export type Database = {
           confirmado?: boolean | null
           data_criacao?: string | null
           data_nascimento: string
-          email: string
+          email?: string | null
           filial_id: string
           foto_perfil?: string | null
           genero?: string
@@ -1111,7 +1111,7 @@ export type Database = {
           confirmado?: boolean | null
           data_criacao?: string | null
           data_nascimento?: string
-          email?: string
+          email?: string | null
           filial_id?: string
           foto_perfil?: string | null
           genero?: string
