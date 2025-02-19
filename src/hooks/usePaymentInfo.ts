@@ -22,7 +22,7 @@ interface PaymentFeeResponse {
   qr_code_codigo: string | null;
   link_formulario: string | null;
   perfis: {
-    nome: string;
+    nome: string | null;
   } | null;
 }
 
@@ -91,7 +91,7 @@ export const usePaymentInfo = (
           qr_code_image,
           qr_code_codigo,
           link_formulario,
-          perfis (
+          perfis:perfis!inner (
             nome
           )
         `)
@@ -108,7 +108,7 @@ export const usePaymentInfo = (
       }
 
       // Map and mark the user's current fee
-      const mappedFees: PaymentFeeInfo[] = paymentFees.map(fee => ({
+      const mappedFees: PaymentFeeInfo[] = (paymentFees as unknown as PaymentFeeResponse[]).map(fee => ({
         valor: fee.valor,
         pix_key: fee.pix_key,
         data_limite_inscricao: fee.data_limite_inscricao,
