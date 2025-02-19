@@ -3,6 +3,29 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { PaymentFeeInfo } from "@/types/payment";
 
+interface ProfileResponse {
+  perfil_id: number;
+  perfis: {
+    nome: string;
+  };
+}
+
+interface PaymentFeeResponse {
+  valor: number;
+  pix_key: string | null;
+  data_limite_inscricao: string | null;
+  contato_nome: string | null;
+  contato_telefone: string | null;
+  isento: boolean;
+  perfil_id: number;
+  qr_code_image: string | null;
+  qr_code_codigo: string | null;
+  link_formulario: string | null;
+  perfis: {
+    nome: string;
+  };
+}
+
 export const usePaymentInfo = (
   userId?: string,
   eventId?: string
@@ -85,7 +108,7 @@ export const usePaymentInfo = (
       }
 
       // Map and mark the user's current fee
-      const mappedFees: PaymentFeeInfo[] = paymentFees.map(fee => ({
+      const mappedFees: PaymentFeeInfo[] = (paymentFees as PaymentFeeResponse[]).map(fee => ({
         valor: fee.valor,
         pix_key: fee.pix_key,
         data_limite_inscricao: fee.data_limite_inscricao,
