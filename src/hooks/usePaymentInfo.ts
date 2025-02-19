@@ -23,7 +23,7 @@ interface PaymentFeeResponse {
   link_formulario: string | null;
   perfis: {
     nome: string;
-  } | null;
+  }[];
 }
 
 export const usePaymentInfo = (
@@ -123,7 +123,7 @@ export const usePaymentInfo = (
         contato_nome: fee.contato_nome,
         contato_telefone: fee.contato_telefone,
         isento: fee.isento,
-        perfil_nome: fee.perfis?.nome || null,
+        perfil_nome: fee.perfis?.[0]?.nome || null,
         qr_code_image: fee.qr_code_image,
         qr_code_codigo: fee.qr_code_codigo,
         link_formulario: fee.link_formulario,
