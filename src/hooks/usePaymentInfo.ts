@@ -23,7 +23,7 @@ interface PaymentFeeResponse {
   link_formulario: string | null;
   perfis: {
     nome: string;
-  };
+  } | null;
 }
 
 export const usePaymentInfo = (
@@ -108,7 +108,7 @@ export const usePaymentInfo = (
       }
 
       // Map and mark the user's current fee
-      const mappedFees: PaymentFeeInfo[] = (paymentFees as PaymentFeeResponse[]).map(fee => ({
+      const mappedFees: PaymentFeeInfo[] = paymentFees.map(fee => ({
         valor: fee.valor,
         pix_key: fee.pix_key,
         data_limite_inscricao: fee.data_limite_inscricao,
