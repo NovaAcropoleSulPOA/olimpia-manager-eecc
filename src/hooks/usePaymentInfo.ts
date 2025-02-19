@@ -22,7 +22,7 @@ interface PaymentFeeResponse {
   qr_code_codigo: string | null;
   link_formulario: string | null;
   perfis: {
-    nome: string | null;
+    nome: string;
   } | null;
 }
 
@@ -91,11 +91,12 @@ export const usePaymentInfo = (
           qr_code_image,
           qr_code_codigo,
           link_formulario,
-          perfis:perfis!inner (
+          perfis (
             nome
           )
         `)
-        .eq('evento_id', eventId);
+        .eq('evento_id', eventId)
+        .order('perfil_id', { ascending: true });
 
       if (feesError) {
         console.error('Error fetching payment fees:', feesError);
@@ -107,8 +108,15 @@ export const usePaymentInfo = (
         return [];
       }
 
+      // Sort the fees to put the user's profile first
+      const sortedFees = [...paymentFees].sort((a, b) => {
+        if (a.perfil_id === userProfile?.perfil_id) return -1;
+        if (b.perfil_id === userProfile?.perfil_id) return 1;
+        return 0;
+      });
+
       // Map and mark the user's current fee
-      const mappedFees: PaymentFeeInfo[] = (paymentFees as unknown as PaymentFeeResponse[]).map(fee => ({
+      const mappedFees: PaymentFeeInfo[] = sortedFees.map(fee => ({
         valor: fee.valor,
         pix_key: fee.pix_key,
         data_limite_inscricao: fee.data_limite_inscricao,
