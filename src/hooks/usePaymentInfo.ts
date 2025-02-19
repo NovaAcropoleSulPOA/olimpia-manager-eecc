@@ -32,7 +32,7 @@ export const usePaymentInfo = (
 
       console.log('Fetching payment info for user:', userId, 'event:', eventId);
 
-      // Use a single query to get both payment status and fee info
+      // Use materialized view to get payment info
       const { data: paymentInfo, error: paymentError } = await supabase
         .from('mvw_taxas_inscricao_usuarios')
         .select(`
@@ -63,10 +63,18 @@ export const usePaymentInfo = (
         return initialFeeInfo || null;
       }
 
-      // Merge initial data with fetched data, prioritizing fetched data
+      // Create the merged data with null checks
       const mergedData: PaymentFeeInfo = {
-        ...initialFeeInfo,
-        ...(paymentInfo || {}),
+        valor: paymentInfo.valor ?? null,
+        pix_key: paymentInfo.pix_key ?? null,
+        data_limite_inscricao: paymentInfo.data_limite_inscricao ?? null,
+        contato_nome: paymentInfo.contato_nome ?? null,
+        contato_telefone: paymentInfo.contato_telefone ?? null,
+        isento: paymentInfo.isento ?? false,
+        perfil_nome: paymentInfo.perfil_nome ?? null,
+        qr_code_image: paymentInfo.qr_code_image ?? null,
+        qr_code_codigo: paymentInfo.qr_code_codigo ?? null,
+        link_formulario: paymentInfo.link_formulario ?? null
       };
 
       console.log('Final merged payment info:', mergedData);
@@ -75,7 +83,7 @@ export const usePaymentInfo = (
     enabled: !!userId && !!eventId,
     initialData: initialFeeInfo,
     staleTime: 60000, // Cache for 1 minute
-    gcTime: 3600000, // Keep in cache for 1 hour (renamed from cacheTime)
+    gcTime: 3600000, // Keep in cache for 1 hour
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchInterval: (data) => {
