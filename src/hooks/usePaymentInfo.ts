@@ -75,9 +75,9 @@ export const usePaymentInfo = (
     enabled: !!userId && !!eventId,
     initialData: initialFeeInfo,
     staleTime: 60000, // Cache for 1 minute
-    cacheTime: 3600000, // Keep in cache for 1 hour
-    refetchOnMount: false, // Don't refetch on mount if we have data
-    refetchOnWindowFocus: false, // Don't refetch on window focus
+    gcTime: 3600000, // Keep in cache for 1 hour (renamed from cacheTime)
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     refetchInterval: (data) => {
       // Only refetch every 5 minutes if we have data
       return data ? 300000 : false;
