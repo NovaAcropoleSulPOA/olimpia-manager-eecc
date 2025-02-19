@@ -32,34 +32,9 @@ export const usePaymentInfo = (
 
       console.log('Fetching payment info for user:', userId, 'event:', eventId);
 
-      // First, verify user's current payment status
-      const { data: paymentStatus, error: statusError } = await supabase
-        .from('pagamentos')
-        .select('status')
-        .eq('atleta_id', userId)
-        .eq('evento_id', eventId)
-        .maybeSingle();
-
-      if (statusError) {
-        console.error('Error fetching payment status:', statusError);
-        throw statusError;
-      }
-
-      console.log('Payment status from database:', paymentStatus);
-
-      // Check if we should show payment info based on status
-      const isPending = !paymentStatus?.status || 
-                       paymentStatus.status.toLowerCase() === 'pendente' ||
-                       (initialPaymentStatus?.status || '').toLowerCase() === 'pendente';
-
-      if (!isPending) {
-        console.log('Payment is not pending, no need to fetch payment info');
-        return null;
-      }
-
-      // Fetch complete payment information
+      // Use a single query to get both payment status and fee info
       const { data: paymentInfo, error: paymentError } = await supabase
-        .from('vw_taxas_inscricao_usuarios')
+        .from('mvw_taxas_inscricao_usuarios')
         .select(`
           valor,
           pix_key,
@@ -81,7 +56,7 @@ export const usePaymentInfo = (
         throw paymentError;
       }
 
-      console.log('Raw payment info data:', paymentInfo);
+      console.log('Payment info from materialized view:', paymentInfo);
 
       if (!paymentInfo) {
         console.log('No payment info found in view');
@@ -99,8 +74,13 @@ export const usePaymentInfo = (
     },
     enabled: !!userId && !!eventId,
     initialData: initialFeeInfo,
-    staleTime: 30000, // Cache for 30 seconds
-    refetchInterval: 60000, // Refresh every minute
-    refetchOnWindowFocus: true,
+    staleTime: 60000, // Cache for 1 minute
+    cacheTime: 3600000, // Keep in cache for 1 hour
+    refetchOnMount: false, // Don't refetch on mount if we have data
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchInterval: (data) => {
+      // Only refetch every 5 minutes if we have data
+      return data ? 300000 : false;
+    },
   });
 };
