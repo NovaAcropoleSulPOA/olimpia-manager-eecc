@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
   CardContent,
-  CardFooter,
 } from "@/components/ui/card";
 import { PaymentDetails } from "./payment/PaymentDetails";
 import { QRCodeSection } from "./payment/QRCodeSection";
@@ -31,7 +30,6 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     }
   }, []);
 
-  // Only use stored event ID if no event ID is provided
   const effectiveEventId = eventId || currentEventId || undefined;
 
   const { data: paymentFees, isLoading, error } = usePaymentInfo(
@@ -59,7 +57,6 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  // Show loading state
   if (isLoading) {
     return (
       <Card className="w-full">
@@ -70,7 +67,6 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     );
   }
 
-  // Show error state
   if (error) {
     console.error('Payment info error:', error);
     return (
@@ -89,7 +85,11 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     );
   }
 
-  if (!paymentFees || paymentFees.length === 0) {
+  if (!paymentFees) {
+    return null; // Don't show anything if payment is not pending
+  }
+
+  if (paymentFees.length === 0) {
     return (
       <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
         <CardHeader>
