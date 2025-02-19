@@ -104,3 +104,4 @@ export const handleAuthRedirect = (userProfile: any, pathname: string, navigate:
     navigate('/event-selection');
   }
 };
+

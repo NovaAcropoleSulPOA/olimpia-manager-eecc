@@ -97,3 +97,4 @@ export const initializeSupabase = async () => {
 
 // Initialize on import
 initializeSupabase();
+
