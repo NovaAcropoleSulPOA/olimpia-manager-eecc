@@ -19,4 +19,6 @@ export interface PaymentFeeInfo {
   qr_code_image: string | null;
   qr_code_codigo: string | null;
   link_formulario: string | null;
+  perfil_id: number;
+  is_current_profile?: boolean;
 }

@@ -34,41 +34,28 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
   // Only use stored event ID if no event ID is provided
   const effectiveEventId = eventId || currentEventId || undefined;
 
-  const { data: paymentInfo, isLoading, error } = usePaymentInfo(
+  const { data: paymentFees, isLoading, error } = usePaymentInfo(
     userId,
-    effectiveEventId,
-    initialPaymentStatus
+    effectiveEventId
   );
 
-  console.log('PaymentInfo component - Initial status:', initialPaymentStatus?.status);
-  console.log('PaymentInfo component - Current info:', paymentInfo);
-
-  // Helper function to check if payment is pending
-  const isPaymentPending = () => {
-    const statusFromProps = initialPaymentStatus?.status?.toLowerCase();
-    return !statusFromProps || statusFromProps === 'pendente';
-  };
-
-  const handleWhatsAppClick = () => {
-    if (!paymentInfo?.contato_telefone) {
+  const handleWhatsAppClick = (telefone: string | null) => {
+    if (!telefone) {
       toast.error("Número de telefone para contato não disponível");
       return;
     }
     
-    const phoneNumber = paymentInfo.contato_telefone.replace(/\D/g, '');
+    const phoneNumber = telefone.replace(/\D/g, '');
     window.open(`https://wa.me/${phoneNumber}`, "_blank");
   };
 
-  const handleFormClick = () => {
-    if (!paymentInfo?.link_formulario) {
+  const handleFormClick = (link: string | null) => {
+    if (!link) {
       toast.error("O link para envio do comprovante ainda não está disponível. Por favor, entre em contato com o suporte.");
       return;
     }
 
-    const url = paymentInfo.link_formulario.startsWith('http') 
-      ? paymentInfo.link_formulario 
-      : `https://${paymentInfo.link_formulario}`;
-      
+    const url = link.startsWith('http') ? link : `https://${link}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
@@ -102,13 +89,7 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     );
   }
 
-  // Don't show anything if we don't have payment info and payment is not pending
-  if (!paymentInfo && !isPaymentPending()) {
-    return null;
-  }
-
-  // Show message if no payment info is available but payment is pending
-  if (!paymentInfo && isPaymentPending()) {
+  if (!paymentFees || paymentFees.length === 0) {
     return (
       <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
         <CardHeader>
@@ -118,32 +99,13 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
         </CardHeader>
         <CardContent>
           <p className="text-olimpics-text">
-            Aguardando informações de pagamento. Por favor, tente novamente em alguns instantes.
+            Não há informações de pagamento disponíveis no momento.
           </p>
         </CardContent>
       </Card>
     );
   }
 
-  // Show exempt status if applicable
-  if (paymentInfo?.isento) {
-    return (
-      <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-olimpics-green-primary">
-            Informações de Pagamento
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-olimpics-text">
-            Você está isento da taxa de inscrição.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Always show the card for pending payments
   return (
     <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
       <CardHeader>
@@ -154,26 +116,47 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
       
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <PaymentDetails 
-            paymentInfo={paymentInfo}
-            onWhatsAppClick={handleWhatsAppClick}
-          />
-          <QRCodeSection paymentInfo={paymentInfo} />
+          {paymentFees.map((fee, index) => (
+            <Card 
+              key={index}
+              className={`relative ${fee.is_current_profile 
+                ? 'border-2 border-olimpics-green-primary shadow-lg' 
+                : 'border border-olimpics-green-primary/20'}`}
+            >
+              <CardHeader>
+                <CardTitle className="text-md font-semibold text-olimpics-green-primary">
+                  {fee.perfil_nome}
+                  {fee.is_current_profile && (
+                    <span className="ml-2 text-sm text-olimpics-orange-primary">(Seu perfil)</span>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PaymentDetails 
+                  paymentInfo={fee}
+                  onWhatsAppClick={() => handleWhatsAppClick(fee.contato_telefone)}
+                />
+                {fee.is_current_profile && (
+                  <>
+                    <div className="mt-6 border-t border-olimpics-green-primary/20 pt-6">
+                      <QRCodeSection paymentInfo={fee} />
+                    </div>
+                    {fee.link_formulario && (
+                      <Button
+                        onClick={() => handleFormClick(fee.link_formulario)}
+                        className="w-full mt-4 bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white"
+                        type="button"
+                      >
+                        Enviar comprovante de pagamento
+                      </Button>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </CardContent>
-
-      <CardFooter>
-        <Button
-          onClick={handleFormClick}
-          className="w-full bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white"
-          type="button"
-        >
-          {paymentInfo.link_formulario 
-            ? 'Realize o envio do comprovante'
-            : 'Link para envio indisponível no momento'
-          }
-        </Button>
-      </CardFooter>
     </Card>
   );
 };
