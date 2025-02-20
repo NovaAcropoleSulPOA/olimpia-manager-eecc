@@ -38,11 +38,15 @@ export default function ScoresPage() {
           )
         `)
         .eq('atleta_id', user?.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching athlete scores:', error);
         throw error;
+      }
+
+      if (!data) {
+        return [];
       }
 
       // Transform the data to match the Score interface
@@ -52,7 +56,7 @@ export default function ScoresPage() {
         modalidade: {
           id: data.modalidades.id,
           nome: data.modalidades.nome,
-          tipo_pontuacao: data.modalidades.tipo_pontuacao as 'tempo' | 'distancia' | 'pontos'
+          tipo_pontuacao: data.modalidades.tipo_pontuacao
         }
       };
 
