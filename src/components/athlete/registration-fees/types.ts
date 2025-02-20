@@ -3,6 +3,7 @@ export interface Fee {
   id: number;
   valor: number;
   isento: boolean;
+  mostra_card: boolean;
   pix_key: string | null;
   data_limite_inscricao: string | null;
   contato_nome: string | null;
