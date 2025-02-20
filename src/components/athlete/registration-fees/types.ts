@@ -20,9 +20,19 @@ export interface Fee {
     id: number;
     nome: string;
   } | null;
+  isUserFee?: boolean;
 }
 
 export interface UserProfileData {
   nome: string;
   codigo: string;
+}
+
+export interface UserProfile {
+  perfis: {
+    nome: string;
+    perfil_tipo: {
+      codigo: string;
+    };
+  };
 }

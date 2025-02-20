@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Fee, UserProfileData } from './types';
+import { Fee, UserProfile } from './types';
 
 export function useRegistrationFees(eventId: string | null) {
   return useQuery({
@@ -65,16 +65,25 @@ export function useRegistrationFees(eventId: string | null) {
       console.log('User profiles:', userProfiles);
       console.log('Raw fees data:', feesData);
 
-      const transformedFees = (feesData || []).map(fee => ({
-        ...fee,
-        perfil: Array.isArray(fee.perfil) ? fee.perfil[0] : fee.perfil,
-        isUserFee: userProfiles?.some(
-          profile => profile.perfis?.nome === fee.perfil?.nome
-        )
-      }));
+      const transformedFees = (feesData || []).map(fee => {
+        const normalizedFee = {
+          ...fee,
+          perfil: Array.isArray(fee.perfil) ? fee.perfil[0] : fee.perfil
+        };
+
+        // Check if this fee matches any of the user's profiles
+        const isUserFee = userProfiles?.some((userProfile: UserProfile) => 
+          userProfile.perfis?.nome === normalizedFee.perfil?.nome
+        );
+
+        return {
+          ...normalizedFee,
+          isUserFee
+        } as Fee;
+      });
 
       console.log('Transformed fees:', transformedFees);
-      return transformedFees as Fee[];
+      return transformedFees;
     },
     enabled: !!eventId
   });

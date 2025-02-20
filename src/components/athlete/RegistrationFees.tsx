@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { CreditCard } from 'lucide-react';
 import { useRegistrationFees } from './registration-fees/useRegistrationFees';
 import { RegistrationFeeCard } from './registration-fees/RegistrationFeeCard';
-import type { RegistrationFeesProps } from './registration-fees/types';
+import type { RegistrationFeesProps, Fee } from './registration-fees/types';
 
 export default function RegistrationFees({ eventId, userProfileId }: RegistrationFeesProps) {
   console.log('RegistrationFees component mounted with:', { eventId, userProfileId });
@@ -49,7 +49,7 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
   const exemptFees = visibleFees.filter(fee => fee.isento);
 
   // Sort regular fees to put user's fee first
-  const sortedRegularFees = [...regularFees].sort((a, b) => {
+  const sortedRegularFees = [...regularFees].sort((a: Fee, b: Fee) => {
     if (a.isUserFee) return -1;
     if (b.isUserFee) return 1;
     return 0;
