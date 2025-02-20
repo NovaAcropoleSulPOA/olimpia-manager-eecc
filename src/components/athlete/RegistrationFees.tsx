@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { CreditCard } from 'lucide-react';
 import { useRegistrationFees } from './registration-fees/useRegistrationFees';
 import { RegistrationFeeCard } from './registration-fees/RegistrationFeeCard';
@@ -40,8 +41,15 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
     );
   }
 
-  // Sort fees to put main profile types first, followed by the user's specific profile
-  const sortedFees = [...fees].sort((a, b) => {
+  // Filter fees to only show those with show_card = true
+  const visibleFees = fees.filter(fee => fee.mostra_card);
+
+  // Separate regular and exempt fees
+  const regularFees = visibleFees.filter(fee => !fee.isento);
+  const exemptFees = visibleFees.filter(fee => fee.isento);
+
+  // Sort regular fees to put main profile types first
+  const sortedRegularFees = [...regularFees].sort((a, b) => {
     // First, prioritize user's profile if it exists
     if (a.perfil?.id === userProfileId) return -1;
     if (b.perfil?.id === userProfileId) return 1;
@@ -65,14 +73,33 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {sortedFees.map((fee) => (
-            <RegistrationFeeCard
-              key={fee.id}
-              fee={fee}
-              isUserFee={fee.perfil?.id === userProfileId}
-            />
-          ))}
+        <div className="space-y-6">
+          {/* Regular fees */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {sortedRegularFees.map((fee) => (
+              <RegistrationFeeCard
+                key={fee.id}
+                fee={fee}
+                isUserFee={fee.perfil?.id === userProfileId}
+              />
+            ))}
+          </div>
+
+          {/* Show separator and exempt fees only if there are any */}
+          {exemptFees.length > 0 && (
+            <>
+              <Separator className="my-6" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {exemptFees.map((fee) => (
+                  <RegistrationFeeCard
+                    key={fee.id}
+                    fee={fee}
+                    isUserFee={fee.perfil?.id === userProfileId}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>
