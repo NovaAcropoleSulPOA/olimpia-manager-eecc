@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Link as LinkIcon, Phone, User, Calendar } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { format } from 'date-fns';
@@ -85,16 +86,16 @@ export function RegistrationFeeCard({ fee, isUserFee }: RegistrationFeeCardProps
           )}
 
           {fee.link_formulario && (
-            <div className="flex items-center gap-2 text-sm">
-              <LinkIcon className="h-4 w-4 text-muted-foreground" />
-              <a 
-                href={fee.link_formulario}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-olimpics-orange-primary hover:underline"
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-olimpics-orange-primary hover:text-olimpics-orange-primary"
+                onClick={() => window.open(fee.link_formulario, '_blank')}
               >
+                <LinkIcon className="h-4 w-4" />
                 Formulário de pagamento
-              </a>
+              </Button>
             </div>
           )}
         </div>
