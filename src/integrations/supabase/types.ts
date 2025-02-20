@@ -1016,6 +1016,7 @@ export type Database = {
           id: number
           isento: boolean
           link_formulario: string | null
+          mostra_card: boolean
           perfil_id: number
           pix_key: string | null
           qr_code_codigo: string | null
@@ -1030,6 +1031,7 @@ export type Database = {
           id?: number
           isento?: boolean
           link_formulario?: string | null
+          mostra_card?: boolean
           perfil_id: number
           pix_key?: string | null
           qr_code_codigo?: string | null
@@ -1044,6 +1046,7 @@ export type Database = {
           id?: number
           isento?: boolean
           link_formulario?: string | null
+          mostra_card?: boolean
           perfil_id?: number
           pix_key?: string | null
           qr_code_codigo?: string | null
