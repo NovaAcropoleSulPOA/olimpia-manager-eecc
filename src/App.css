@@ -5,6 +5,11 @@
 }
 
 /* Add padding to account for fixed header */
-main, .container {
-  padding-top: 4rem; /* 64px, matches header height */
+.container {
+  padding-top: 5rem; /* Increased from 4rem to ensure enough space */
+}
+
+/* Add specific padding for event selection page */
+.min-h-screen {
+  padding-top: 4rem;
 }
