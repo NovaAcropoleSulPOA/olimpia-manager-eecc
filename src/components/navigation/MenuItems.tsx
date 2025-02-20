@@ -20,9 +20,8 @@ interface MenuItemsProps {
 export function MenuItems({ isOrganizer, isAthlete, isDelegationRep, isAdmin }: MenuItemsProps) {
   const location = useLocation();
 
-  // Build menu items based on user roles
+  // Always include base menu items for all authenticated users
   const menuItems = [
-    // Profile and Schedule are available for all authenticated users
     {
       title: "Perfil",
       icon: User,
