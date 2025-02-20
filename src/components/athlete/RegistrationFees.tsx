@@ -2,22 +2,15 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { BadgeCheck, CreditCard } from 'lucide-react';
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 interface RegistrationFee {
   id: number;
   valor: number;
   isento: boolean;
-  pix_key: string | null;
-  data_limite_inscricao: string | null;
-  contato_nome: string | null;
-  contato_telefone: string | null;
-  qr_code_image: string | null;
-  qr_code_codigo: string | null;
-  link_formulario: string | null;
   perfil: {
     nome: string;
     id: number;
@@ -26,7 +19,7 @@ interface RegistrationFee {
 
 interface RegistrationFeesProps {
   eventId: string | null;
-  currentProfileId: number | undefined;
+  currentProfileId: number;
 }
 
 export function RegistrationFees({ eventId, currentProfileId }: RegistrationFeesProps) {
@@ -41,14 +34,7 @@ export function RegistrationFees({ eventId, currentProfileId }: RegistrationFees
           id,
           valor,
           isento,
-          pix_key,
-          data_limite_inscricao,
-          contato_nome,
-          contato_telefone,
-          qr_code_image,
-          qr_code_codigo,
-          link_formulario,
-          perfil:perfis!inner (
+          perfil:perfis (
             nome,
             id
           )
@@ -60,7 +46,7 @@ export function RegistrationFees({ eventId, currentProfileId }: RegistrationFees
         throw error;
       }
 
-      return (data as any as RegistrationFee[]) || [];
+      return data as RegistrationFee[];
     },
     enabled: !!eventId
   });
@@ -68,7 +54,7 @@ export function RegistrationFees({ eventId, currentProfileId }: RegistrationFees
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-orange-primary" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
       </div>
     );
   }
@@ -77,6 +63,7 @@ export function RegistrationFees({ eventId, currentProfileId }: RegistrationFees
     return null;
   }
 
+  // Sort fees to put the current profile first
   const sortedFees = [...fees].sort((a, b) => {
     if (a.perfil.id === currentProfileId) return -1;
     if (b.perfil.id === currentProfileId) return 1;
@@ -104,26 +91,15 @@ export function RegistrationFees({ eventId, currentProfileId }: RegistrationFees
               >
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start">
-                    <div className="space-y-2">
+                    <div>
                       <h3 className="font-semibold text-lg">{fee.perfil.nome}</h3>
-                      <p className="text-2xl font-bold">
+                      <p className="text-2xl font-bold mt-2">
                         {fee.isento ? (
                           <span className="text-olimpics-green-primary">Isento</span>
                         ) : (
                           `R$ ${fee.valor.toFixed(2)}`
                         )}
                       </p>
-                      {fee.data_limite_inscricao && (
-                        <p className="text-sm text-muted-foreground">
-                          Prazo: {new Date(fee.data_limite_inscricao).toLocaleDateString('pt-BR')}
-                        </p>
-                      )}
-                      {fee.contato_nome && (
-                        <p className="text-sm">
-                          Contato: {fee.contato_nome}
-                          {fee.contato_telefone && ` - ${fee.contato_telefone}`}
-                        </p>
-                      )}
                     </div>
                     {fee.perfil.id === currentProfileId && (
                       <BadgeCheck className="h-6 w-6 text-olimpics-orange-primary" />
