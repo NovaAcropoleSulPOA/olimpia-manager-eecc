@@ -10,18 +10,19 @@ export interface NavigationItem {
 }
 
 export const getNavigationItems = (userRoles: UserRole[]) => {
+  // Base navigation items that should appear for all users
   const navigationItems: NavigationItem[] = [
     {
       icon: User,
       label: "Perfil",
       path: "/athlete-profile",
-      roles: ["ATL"],
+      roles: ["ATL", "ORE", "RDD", "ADM"], // Available for all roles
     },
     {
       icon: Calendar,
       label: "Cronograma",
       path: "/cronograma",
-      roles: ["ATL", "ORE", "RDD", "ADM"],
+      roles: ["ATL", "ORE", "RDD", "ADM"], // Available for all roles
     }
   ];
 
