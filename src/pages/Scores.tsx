@@ -9,6 +9,16 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
+interface Score {
+  id: number;
+  valor: number;
+  modalidade: {
+    id: number;
+    nome: string;
+    tipo_pontuacao: 'tempo' | 'distancia' | 'pontos';
+  };
+}
+
 export default function ScoresPage() {
   const { user } = useAuth();
 
@@ -20,21 +30,33 @@ export default function ScoresPage() {
         .from('pontuacoes')
         .select(`
           id,
-          valor,
-          modalidade:modalidades (
+          valor_pontuacao as valor,
+          modalidade:modalidades!inner (
             id,
             nome,
             tipo_pontuacao
           )
         `)
-        .eq('atleta_id', user?.id);
+        .eq('atleta_id', user?.id)
+        .single();
 
       if (error) {
         console.error('Error fetching athlete scores:', error);
         throw error;
       }
 
-      return data;
+      // Transform the data to match the Score interface
+      const transformedData: Score = {
+        id: data.id,
+        valor: data.valor,
+        modalidade: {
+          id: data.modalidade.id,
+          nome: data.modalidade.nome,
+          tipo_pontuacao: data.modalidade.tipo_pontuacao as 'tempo' | 'distancia' | 'pontos'
+        }
+      };
+
+      return [transformedData];
     },
     enabled: !!user?.id,
   });
