@@ -40,10 +40,19 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
     );
   }
 
-  // Sort fees to put the user's profile first
+  // Sort fees to put main profile types first, followed by the user's specific profile
   const sortedFees = [...fees].sort((a, b) => {
+    // First, prioritize user's profile if it exists
     if (a.perfil?.id === userProfileId) return -1;
     if (b.perfil?.id === userProfileId) return 1;
+
+    // Then prioritize main profile types ("Atleta" or "Público Geral")
+    const isMainProfileA = a.perfil?.nome?.includes('Atleta') || a.perfil?.nome?.includes('Público Geral');
+    const isMainProfileB = b.perfil?.nome?.includes('Atleta') || b.perfil?.nome?.includes('Público Geral');
+    
+    if (isMainProfileA && !isMainProfileB) return -1;
+    if (!isMainProfileA && isMainProfileB) return 1;
+    
     return 0;
   });
 
