@@ -68,11 +68,14 @@ const Footer = () => {
   );
 
   const isEventSelectionPage = location.pathname === '/';
-  const showFooter = !isMobile || (isMobile && isEventSelectionPage);
+
+  if (isEventSelectionPage) {
+    return null;
+  }
 
   return (
     <>
-      {!isEventSelectionPage && isMobile && (
+      {isMobile && (
         <MobileNavigation
           navigationItems={filteredNavItems}
           currentPath={location.pathname}
@@ -81,8 +84,8 @@ const Footer = () => {
           onLogout={handleLogout}
         />
       )}
-      {showFooter && (
-        <footer className="hidden md:block w-full bg-white/80 backdrop-blur-sm border-t py-4 px-4 mt-auto">
+      {!isMobile && (
+        <footer className="w-full bg-white/80 backdrop-blur-sm border-t py-4 px-4 mt-auto">
           <div className="container mx-auto flex justify-between items-center">
             <span className="text-xs text-gray-500">
               Desenvolvido por: Olimar Teixeira Borges
