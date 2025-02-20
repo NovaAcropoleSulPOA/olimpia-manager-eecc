@@ -10,7 +10,7 @@ export interface NavigationItem {
 }
 
 export const getNavigationItems = (userRoles: UserRole[]) => {
-  // Base navigation items that should appear for all users
+  // Base navigation items that should appear for all authenticated users
   const navigationItems: NavigationItem[] = [
     {
       icon: User,
@@ -26,49 +26,55 @@ export const getNavigationItems = (userRoles: UserRole[]) => {
     }
   ];
 
-  // Add role-specific items
-  if (userRoles.some(role => role.codigo === "ATL")) {
-    navigationItems.push(
-      {
-        icon: Medal,
-        label: "Minhas Pontuações",
-        path: "/scores",
-        roles: ["ATL"],
-      },
-      {
-        icon: ClipboardList,
-        label: "Inscrições",
-        path: "/athlete-registrations",
-        roles: ["ATL"],
-      }
-    );
-  }
+  // Only add role-specific items if we have valid roles
+  if (userRoles && userRoles.length > 0) {
+    // Add athlete-specific items
+    if (userRoles.some(role => role.codigo === "ATL")) {
+      navigationItems.push(
+        {
+          icon: Medal,
+          label: "Minhas Pontuações",
+          path: "/scores",
+          roles: ["ATL"],
+        },
+        {
+          icon: ClipboardList,
+          label: "Inscrições",
+          path: "/athlete-registrations",
+          roles: ["ATL"],
+        }
+      );
+    }
 
-  if (userRoles.some(role => role.codigo === "ORE")) {
-    navigationItems.push({
-      icon: Settings,
-      label: "Organizador(a)",
-      path: "/organizer-dashboard",
-      roles: ["ORE"],
-    });
-  }
+    // Add organizer-specific items
+    if (userRoles.some(role => role.codigo === "ORE")) {
+      navigationItems.push({
+        icon: Settings,
+        label: "Organizador(a)",
+        path: "/organizer-dashboard",
+        roles: ["ORE"],
+      });
+    }
 
-  if (userRoles.some(role => role.codigo === "RDD")) {
-    navigationItems.push({
-      icon: Users,
-      label: "Delegação",
-      path: "/delegation-dashboard",
-      roles: ["RDD"],
-    });
-  }
+    // Add delegation-specific items
+    if (userRoles.some(role => role.codigo === "RDD")) {
+      navigationItems.push({
+        icon: Users,
+        label: "Delegação",
+        path: "/delegation-dashboard",
+        roles: ["RDD"],
+      });
+    }
 
-  if (userRoles.some(role => role.codigo === "ADM")) {
-    navigationItems.push({
-      icon: Settings2,
-      label: "Administração",
-      path: "/administration",
-      roles: ["ADM"],
-    });
+    // Add admin-specific items
+    if (userRoles.some(role => role.codigo === "ADM")) {
+      navigationItems.push({
+        icon: Settings2,
+        label: "Administração",
+        path: "/administration",
+        roles: ["ADM"],
+      });
+    }
   }
 
   return navigationItems;
