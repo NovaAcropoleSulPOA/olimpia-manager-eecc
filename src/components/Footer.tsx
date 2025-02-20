@@ -1,5 +1,5 @@
 
-import { Github, Instagram, Linkedin, Mail, MessageCircle, User, Settings, LogOut, ClipboardList, Users, ArrowLeftRight } from "lucide-react";
+import { Github, Instagram, Linkedin, Mail, MessageCircle, User, Settings, LogOut, ClipboardList, Users, ArrowLeftRight, Calendar } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -54,6 +54,12 @@ const Footer = () => {
       icon: User,
       label: "Perfil",
       path: "/athlete-profile",
+      roles: ["ATL"],
+    },
+    {
+      icon: Calendar,
+      label: "Cronograma",
+      path: "/cronograma",
       roles: ["ATL"],
     },
     {
