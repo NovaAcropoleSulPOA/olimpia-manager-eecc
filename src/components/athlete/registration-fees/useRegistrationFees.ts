@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Fee } from './types';
+import { Fee, UserProfileData } from './types';
 
 export function useRegistrationFees(eventId: string | null) {
   return useQuery({
@@ -11,7 +11,8 @@ export function useRegistrationFees(eventId: string | null) {
       
       if (!eventId) return [];
       
-      const { data, error } = await supabase
+      // Get all fees
+      const { data: feesData, error: feesError } = await supabase
         .from('taxas_inscricao')
         .select(`
           id,
@@ -26,25 +27,54 @@ export function useRegistrationFees(eventId: string | null) {
           qr_code_codigo,
           link_formulario,
           perfil:perfis!fk_taxas_inscricao_perfil (
-            nome,
-            id
+            id,
+            nome
           )
         `)
         .eq('evento_id', eventId);
 
-      if (error) {
-        console.error('Error fetching registration fees:', error);
-        throw error;
+      if (feesError) {
+        console.error('Error fetching registration fees:', feesError);
+        throw feesError;
       }
 
-      const transformedData = (data || []).map(item => ({
-        ...item,
-        perfil: Array.isArray(item.perfil) ? item.perfil[0] : item.perfil
+      // Get the current user's profiles for this event
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('No authenticated user found');
+      }
+
+      const { data: userProfiles, error: profilesError } = await supabase
+        .from('papeis_usuarios')
+        .select(`
+          perfis (
+            nome,
+            perfil_tipo:perfil_tipo_id (
+              codigo
+            )
+          )
+        `)
+        .eq('usuario_id', user.id)
+        .eq('evento_id', eventId);
+
+      if (profilesError) {
+        console.error('Error fetching user profiles:', profilesError);
+        throw profilesError;
+      }
+
+      console.log('User profiles:', userProfiles);
+      console.log('Raw fees data:', feesData);
+
+      const transformedFees = (feesData || []).map(fee => ({
+        ...fee,
+        perfil: Array.isArray(fee.perfil) ? fee.perfil[0] : fee.perfil,
+        isUserFee: userProfiles?.some(
+          profile => profile.perfis?.nome === fee.perfil?.nome
+        )
       }));
 
-      console.log('Raw fees data:', data);
-      console.log('Transformed fees:', transformedData);
-      return transformedData as Fee[];
+      console.log('Transformed fees:', transformedFees);
+      return transformedFees as Fee[];
     },
     enabled: !!eventId
   });

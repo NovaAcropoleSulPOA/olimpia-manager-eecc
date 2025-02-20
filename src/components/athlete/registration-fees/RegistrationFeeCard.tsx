@@ -9,14 +9,17 @@ import { Fee } from './types';
 import CopyableCode from '@/components/CopyableCode';
 
 interface RegistrationFeeCardProps {
-  fee: Fee;
-  isUserFee: boolean;
+  fee: Fee & { isUserFee?: boolean };
+  isUserFee?: boolean;
 }
 
 export function RegistrationFeeCard({
   fee,
-  isUserFee
+  isUserFee: isUserFeeProp
 }: RegistrationFeeCardProps) {
+  // Use either the prop or the fee property, prioritizing the prop
+  const isUserFee = isUserFeeProp ?? fee.isUserFee;
+
   const formatPhoneNumber = (phone: string | null) => {
     if (!phone) return null;
     return phone.replace(/\D/g, '');

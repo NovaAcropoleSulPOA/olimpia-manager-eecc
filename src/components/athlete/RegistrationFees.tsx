@@ -48,19 +48,10 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
   const regularFees = visibleFees.filter(fee => !fee.isento);
   const exemptFees = visibleFees.filter(fee => fee.isento);
 
-  // Sort regular fees to put main profile types first
+  // Sort regular fees to put user's fee first
   const sortedRegularFees = [...regularFees].sort((a, b) => {
-    // First, prioritize user's profile if it exists
-    if (a.perfil?.id === userProfileId) return -1;
-    if (b.perfil?.id === userProfileId) return 1;
-
-    // Then prioritize main profile types ("Atleta" or "Público Geral")
-    const isMainProfileA = a.perfil?.nome?.includes('Atleta') || a.perfil?.nome?.includes('Público Geral');
-    const isMainProfileB = b.perfil?.nome?.includes('Atleta') || b.perfil?.nome?.includes('Público Geral');
-    
-    if (isMainProfileA && !isMainProfileB) return -1;
-    if (!isMainProfileA && isMainProfileB) return 1;
-    
+    if (a.isUserFee) return -1;
+    if (b.isUserFee) return 1;
     return 0;
   });
 
@@ -80,7 +71,6 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
               <RegistrationFeeCard
                 key={fee.id}
                 fee={fee}
-                isUserFee={fee.perfil?.id === userProfileId}
               />
             ))}
           </div>
@@ -94,7 +84,6 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
                   <RegistrationFeeCard
                     key={fee.id}
                     fee={fee}
-                    isUserFee={fee.perfil?.id === userProfileId}
                   />
                 ))}
               </div>
