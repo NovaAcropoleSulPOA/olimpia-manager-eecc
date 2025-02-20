@@ -3,26 +3,8 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { BadgeCheck, CreditCard } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 import { cn } from "@/lib/utils";
-
-interface RegistrationFee {
-  id: number;
-  valor: number;
-  isento: boolean;
-  pix_key: string | null;
-  data_limite_inscricao: string | null;
-  contato_nome: string | null;
-  contato_telefone: string | null;
-  qr_code_image: string | null;
-  qr_code_codigo: string | null;
-  link_formulario: string | null;
-  perfil: {
-    nome: string;
-    id: number;
-  };
-}
 
 interface RegistrationFeesProps {
   eventId: string | null;
@@ -30,9 +12,13 @@ interface RegistrationFeesProps {
 }
 
 export default function RegistrationFees({ eventId, userProfileId }: RegistrationFeesProps) {
+  console.log('RegistrationFees component mounted with:', { eventId, userProfileId });
+  
   const { data: fees, isLoading } = useQuery({
     queryKey: ['registration-fees', eventId],
     queryFn: async () => {
+      console.log('Fetching fees for event:', eventId);
+      
       if (!eventId) return [];
       
       const { data, error } = await supabase
@@ -41,13 +27,6 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
           id,
           valor,
           isento,
-          pix_key,
-          data_limite_inscricao,
-          contato_nome,
-          contato_telefone,
-          qr_code_image,
-          qr_code_codigo,
-          link_formulario,
           perfil:perfis!inner (
             nome,
             id
@@ -60,10 +39,13 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
         throw error;
       }
 
-      return (data as any as RegistrationFee[]) || [];
+      console.log('Fetched fees:', data);
+      return data || [];
     },
     enabled: !!eventId
   });
+
+  console.log('Current fees data:', fees);
 
   if (isLoading) {
     return (
@@ -113,21 +95,7 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
                         `R$ ${fee.valor.toFixed(2)}`
                       )}
                     </p>
-                    {fee.data_limite_inscricao && (
-                      <p className="text-sm text-muted-foreground">
-                        Prazo: {new Date(fee.data_limite_inscricao).toLocaleDateString('pt-BR')}
-                      </p>
-                    )}
-                    {(fee.contato_nome || fee.contato_telefone) && (
-                      <p className="text-sm text-muted-foreground">
-                        {fee.contato_nome && `Contato: ${fee.contato_nome}`}
-                        {fee.contato_telefone && ` - ${fee.contato_telefone}`}
-                      </p>
-                    )}
                   </div>
-                  {fee.perfil.id === userProfileId && (
-                    <BadgeCheck className="h-6 w-6 text-olimpics-orange-primary" />
-                  )}
                 </div>
                 {fee.perfil.id === userProfileId && (
                   <div className="absolute bottom-0 left-0 w-full h-1 bg-olimpics-orange-primary" />
