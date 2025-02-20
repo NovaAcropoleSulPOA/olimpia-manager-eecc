@@ -85,25 +85,8 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     );
   }
 
-  if (!paymentFees) {
-    return null; // Don't show anything if payment is not pending
-  }
-
-  if (paymentFees.length === 0) {
-    return (
-      <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-olimpics-green-primary">
-            Informações de Pagamento
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-olimpics-text">
-            Não há informações de pagamento disponíveis no momento.
-          </p>
-        </CardContent>
-      </Card>
-    );
+  if (!paymentFees || paymentFees.length === 0) {
+    return null;
   }
 
   return (

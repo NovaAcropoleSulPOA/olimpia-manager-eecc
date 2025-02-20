@@ -3,29 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { PaymentFeeInfo } from "@/types/payment";
 
-interface ProfileResponse {
-  perfil_id: number;
-  perfis: {
-    nome: string;
-  };
-}
-
-interface PaymentFeeResponse {
-  valor: number;
-  pix_key: string | null;
-  data_limite_inscricao: string | null;
-  contato_nome: string | null;
-  contato_telefone: string | null;
-  isento: boolean;
-  perfil_id: number;
-  qr_code_image: string | null;
-  qr_code_codigo: string | null;
-  link_formulario: string | null;
-  perfis: {
-    nome: string;
-  }[];
-}
-
 export const usePaymentInfo = (
   userId?: string,
   eventId?: string
@@ -135,9 +112,5 @@ export const usePaymentInfo = (
       return mappedFees;
     },
     enabled: !!userId && !!eventId,
-    staleTime: 60000, // Cache for 1 minute
-    gcTime: 3600000, // Keep in cache for 1 hour
-    refetchOnMount: false,
-    refetchOnWindowFocus: false
   });
 };
