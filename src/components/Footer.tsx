@@ -67,12 +67,14 @@ const Footer = () => {
     item.roles.some(roleCode => userRoles.some(userRole => userRole.codigo === roleCode))
   );
 
-  const showMobileNav = user && (!isMobile || (isMobile && location.pathname !== '/'));
-  const showFooter = !isMobile || (isMobile && location.pathname === '/');
+  const currentEventId = localStorage.getItem('currentEventId');
+  const isEventSelectionPage = location.pathname === '/';
+  const shouldShowMobileNav = user && currentEventId && !isEventSelectionPage;
+  const showFooter = !isMobile || (isMobile && isEventSelectionPage);
 
   return (
     <>
-      {showMobileNav && (
+      {shouldShowMobileNav && (
         <MobileNavigation
           navigationItems={filteredNavItems}
           currentPath={location.pathname}
