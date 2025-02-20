@@ -93,51 +93,49 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-full max-h-[400px]">
-          <div className="grid grid-cols-1 gap-4">
-            {sortedFees.map((fee) => (
-              <Card
-                key={fee.id}
-                className={cn(
-                  "relative overflow-hidden transition-all",
-                  fee.perfil.id === userProfileId && "ring-2 ring-olimpics-orange-primary"
-                )}
-              >
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-2">
-                      <h3 className="font-semibold text-lg">{fee.perfil.nome}</h3>
-                      <p className="text-2xl font-bold">
-                        {fee.isento ? (
-                          <span className="text-olimpics-green-primary">Isento</span>
-                        ) : (
-                          `R$ ${fee.valor.toFixed(2)}`
-                        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {sortedFees.map((fee) => (
+            <Card
+              key={fee.id}
+              className={cn(
+                "relative overflow-hidden transition-all",
+                fee.perfil.id === userProfileId && "ring-2 ring-olimpics-orange-primary"
+              )}
+            >
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg">{fee.perfil.nome}</h3>
+                    <p className="text-2xl font-bold">
+                      {fee.isento ? (
+                        <span className="text-olimpics-green-primary">Isento</span>
+                      ) : (
+                        `R$ ${fee.valor.toFixed(2)}`
+                      )}
+                    </p>
+                    {fee.data_limite_inscricao && (
+                      <p className="text-sm text-muted-foreground">
+                        Prazo: {new Date(fee.data_limite_inscricao).toLocaleDateString('pt-BR')}
                       </p>
-                      {fee.data_limite_inscricao && (
-                        <p className="text-sm text-muted-foreground">
-                          Prazo: {new Date(fee.data_limite_inscricao).toLocaleDateString('pt-BR')}
-                        </p>
-                      )}
-                      {(fee.contato_nome || fee.contato_telefone) && (
-                        <p className="text-sm text-muted-foreground">
-                          {fee.contato_nome && `Contato: ${fee.contato_nome}`}
-                          {fee.contato_telefone && ` - ${fee.contato_telefone}`}
-                        </p>
-                      )}
-                    </div>
-                    {fee.perfil.id === userProfileId && (
-                      <BadgeCheck className="h-6 w-6 text-olimpics-orange-primary" />
+                    )}
+                    {(fee.contato_nome || fee.contato_telefone) && (
+                      <p className="text-sm text-muted-foreground">
+                        {fee.contato_nome && `Contato: ${fee.contato_nome}`}
+                        {fee.contato_telefone && ` - ${fee.contato_telefone}`}
+                      </p>
                     )}
                   </div>
                   {fee.perfil.id === userProfileId && (
-                    <div className="absolute bottom-0 left-0 w-full h-1 bg-olimpics-orange-primary" />
+                    <BadgeCheck className="h-6 w-6 text-olimpics-orange-primary" />
                   )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </ScrollArea>
+                </div>
+                {fee.perfil.id === userProfileId && (
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-olimpics-orange-primary" />
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

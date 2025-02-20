@@ -59,55 +59,53 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              <div>
-                <ProfileImage 
-                  gender={profile.genero}
-                  identificador={profile.numero_identificador}
-                  isPublicUser={isPublicUser}
-                />
-              </div>
-
-              <div>
-                <PersonalInfo 
-                  nome_completo={profile.nome_completo}
-                  tipo_documento={profile.tipo_documento}
-                  numero_documento={profile.numero_documento}
-                  telefone={profile.telefone}
-                  email={profile.email}
-                  data_nascimento={profile.data_nascimento}
-                />
-              </div>
-
-              <div>
-                <PaymentAndBranchInfo 
-                  pagamento_status={profile.pagamento_status}
-                  pagamento_valor={profile.pagamento_valor}
-                  filial_nome={profile.filial_nome}
-                  filial_cidade={profile.filial_cidade}
-                  filial_estado={profile.filial_estado}
-                />
-              </div>
-
-              <div>
-                <AccessProfile 
-                  papeis={profile.papeis}
-                  onPasswordChange={handlePasswordChange}
-                />
-              </div>
+      <Card>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div>
+              <ProfileImage 
+                gender={profile.genero}
+                identificador={profile.numero_identificador}
+                isPublicUser={isPublicUser}
+              />
             </div>
-          </CardContent>
-        </Card>
 
-        <div className="lg:col-span-1">
-          <RegistrationFees 
-            eventId={currentEventId}
-            userProfileId={profile.papeis?.[0]?.id}
-          />
-        </div>
+            <div>
+              <PersonalInfo 
+                nome_completo={profile.nome_completo}
+                tipo_documento={profile.tipo_documento}
+                numero_documento={profile.numero_documento}
+                telefone={profile.telefone}
+                email={profile.email}
+                data_nascimento={profile.data_nascimento}
+              />
+            </div>
+
+            <div>
+              <PaymentAndBranchInfo 
+                pagamento_status={profile.pagamento_status}
+                pagamento_valor={profile.pagamento_valor}
+                filial_nome={profile.filial_nome}
+                filial_cidade={profile.filial_cidade}
+                filial_estado={profile.filial_estado}
+              />
+            </div>
+
+            <div>
+              <AccessProfile 
+                papeis={profile.papeis}
+                onPasswordChange={handlePasswordChange}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="mt-6">
+        <RegistrationFees 
+          eventId={currentEventId}
+          userProfileId={profile.papeis?.[0]?.id}
+        />
       </div>
     </div>
   );
