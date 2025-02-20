@@ -36,7 +36,7 @@ export default function ScoresPage() {
     queryKey: ['athlete-individual-scores', user?.id],
     queryFn: async () => {
       console.log('Fetching individual scores for athlete:', user?.id);
-      const { data, error } = await supabase
+      const { data: response, error } = await supabase
         .from('pontuacoes')
         .select(`
           id,
@@ -48,7 +48,7 @@ export default function ScoresPage() {
           )
         `)
         .eq('atleta_id', user?.id)
-        .returns<PontuacaoRow>()
+        .returns<PontuacaoRow[]>()
         .maybeSingle();
 
       if (error) {
@@ -56,15 +56,15 @@ export default function ScoresPage() {
         throw error;
       }
 
-      if (!data) {
+      if (!response) {
         return [];
       }
 
       // Transform the data to match the Score interface
       const transformedData: Score = {
-        id: data.id,
-        valor: data.valor_pontuacao,
-        modalidade: data.modalidades
+        id: response.id,
+        valor: response.valor_pontuacao,
+        modalidade: response.modalidades
       };
 
       return [transformedData];
