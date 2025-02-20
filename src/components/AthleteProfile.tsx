@@ -1,54 +1,101 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from "@/components/ui/card";
+import { Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import ProfileImage from './athlete/ProfileImage';
 import PersonalInfo from './athlete/PersonalInfo';
 import PaymentAndBranchInfo from './athlete/PaymentAndBranchInfo';
 import AccessProfile from './athlete/AccessProfile';
-import ProfileImage from './athlete/ProfileImage';
-import AthleteScores from './AthleteScores';
-import AthleteRegistrations from './AthleteRegistrations';
-import AthleteSchedule from './AthleteSchedule';
-import { Card } from './ui/card';
-import { AthleteProfileData } from '@/types/athlete';
-import { RegistrationFees } from './athlete/RegistrationFees';
 
 interface AthleteProfileProps {
-  profile: AthleteProfileData;
-  isPublicUser?: boolean;
+  profile: {
+    nome_completo: string;
+    telefone: string;
+    email: string;
+    numero_identificador?: string;
+    tipo_documento: string;
+    numero_documento: string;
+    genero: string;
+    filial_nome: string;
+    filial_cidade: string;
+    filial_estado: string;
+    pagamento_status?: string;
+    pagamento_valor?: number;
+    papeis?: { nome: string; codigo: string; }[];
+    data_nascimento?: string | null;
+  };
+  isPublicUser: boolean;
 }
 
-export default function AthleteProfile({ profile, isPublicUser = false }: AthleteProfileProps) {
-  const currentEventId = localStorage.getItem('currentEventId');
-  const currentProfileId = profile.papeis?.[0]?.id;
+export default function AthleteProfile({ profile, isPublicUser }: AthleteProfileProps) {
+  const navigate = useNavigate();
+  
+  if (!profile) {
+    return null;
+  }
+
+  const handlePasswordChange = () => {
+    console.log('Navigating to reset password from profile');
+    navigate('/reset-password', { 
+      state: { 
+        fromProfile: true 
+      },
+      replace: false
+    });
+  };
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2 p-6">
-          <div className="flex flex-col md:flex-row gap-6">
-            <ProfileImage
-              photoUrl={profile.foto_perfil}
-              userName={profile.nome_completo}
-              role={profile.papeis?.[0]?.nome}
+      {!isPublicUser && (
+        <Alert className="bg-olimpics-orange-primary/10 border-olimpics-orange-primary text-olimpics-text">
+          <Info className="h-5 w-5 text-olimpics-orange-primary" />
+          <AlertDescription className="text-sm font-medium">
+            As inscrições nas modalidades devem ser feitas no menu 'Minhas Inscrições'.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Card>
+        <CardContent className="p-6 space-y-6 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
+          <div>
+            <ProfileImage 
+              gender={profile.genero}
+              identificador={profile.numero_identificador}
+              isPublicUser={isPublicUser}
             />
-            <div className="flex-1 space-y-6">
-              <PersonalInfo profile={profile} />
-              <PaymentAndBranchInfo profile={profile} />
-              <AccessProfile profile={profile} />
-            </div>
           </div>
-        </Card>
 
-        <div className="md:col-span-1">
-          <RegistrationFees 
-            eventId={currentEventId} 
-            currentProfileId={currentProfileId}
-          />
-        </div>
-      </div>
+          <div>
+            <PersonalInfo 
+              nome_completo={profile.nome_completo}
+              tipo_documento={profile.tipo_documento}
+              numero_documento={profile.numero_documento}
+              telefone={profile.telefone}
+              email={profile.email}
+              data_nascimento={profile.data_nascimento}
+            />
+          </div>
 
-      <AthleteRegistrations userId={profile.id} />
-      <AthleteSchedule userId={profile.id} />
-      <AthleteScores scores={[]} />
+          <div>
+            <PaymentAndBranchInfo 
+              pagamento_status={profile.pagamento_status}
+              pagamento_valor={profile.pagamento_valor}
+              filial_nome={profile.filial_nome}
+              filial_cidade={profile.filial_cidade}
+              filial_estado={profile.filial_estado}
+            />
+          </div>
+
+          <div>
+            <AccessProfile 
+              papeis={profile.papeis}
+              onPasswordChange={handlePasswordChange}
+            />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
