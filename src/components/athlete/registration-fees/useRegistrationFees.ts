@@ -24,7 +24,7 @@ export function useRegistrationFees(eventId: string | null) {
           qr_code_image,
           qr_code_codigo,
           link_formulario,
-          perfil:perfis (
+          perfil:perfis!fk_taxas_inscricao_perfil (
             nome,
             id
           )
@@ -36,7 +36,6 @@ export function useRegistrationFees(eventId: string | null) {
         throw error;
       }
 
-      // Transform the data to match our Fee interface
       const transformedData = (data || []).map(item => ({
         ...item,
         perfil: Array.isArray(item.perfil) ? item.perfil[0] : item.perfil
