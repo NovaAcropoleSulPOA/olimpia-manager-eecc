@@ -1,4 +1,10 @@
+
 #root {
   margin: 0 auto;
   text-align: center;
+}
+
+/* Add padding to account for fixed header */
+main, .container {
+  padding-top: 4rem; /* 64px, matches header height */
 }
