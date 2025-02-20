@@ -20,6 +20,7 @@ import Cronograma from './pages/Cronograma';
 import Administration from './pages/Administration';
 import EventSelectionPage from './pages/EventSelectionPage';
 import WhatsAppButton from './components/WhatsAppButton';
+import Scores from './pages/Scores';
 import React from 'react';
 
 const queryClient = new QueryClient({
@@ -54,6 +55,7 @@ function App() {
                   <Route path="/delegation-dashboard" element={<DelegationDashboard />} />
                   <Route path="/cronograma" element={<Cronograma />} />
                   <Route path="/administration" element={<Administration />} />
+                  <Route path="/scores" element={<Scores />} />
                 </Route>
               </Routes>
             </div>

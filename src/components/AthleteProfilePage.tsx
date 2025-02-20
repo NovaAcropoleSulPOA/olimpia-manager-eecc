@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
-import AthleteScoresSection from './AthleteScoresSection';
 import AthleteProfile from './AthleteProfile';
 import { Loader2 } from "lucide-react";
 import { EventHeader } from "./athlete/EventHeader";
@@ -53,10 +52,6 @@ export default function AthleteProfilePage() {
         profile={profile}
         isPublicUser={!isAthleteProfile}
       />
-
-      {isAthleteProfile && user?.id && (
-        <AthleteScoresSection athleteId={user.id} />
-      )}
     </div>
   );
 }
