@@ -6,6 +6,7 @@ import { Link as LinkIcon, Phone, User, Calendar, AlertCircle } from 'lucide-rea
 import { cn } from "@/lib/utils";
 import { format } from 'date-fns';
 import { Fee } from './types';
+import CopyableCode from '@/components/CopyableCode';
 
 interface RegistrationFeeCardProps {
   fee: Fee;
@@ -98,9 +99,7 @@ export function RegistrationFeeCard({
           {fee.pix_key && (
             <div className="space-y-2">
               <p className="text-sm font-medium">Chave PIX:</p>
-              <code className="bg-muted px-2 py-1 rounded text-sm block break-all">
-                {fee.pix_key}
-              </code>
+              <CopyableCode code={fee.pix_key} />
             </div>
           )}
 
@@ -114,9 +113,7 @@ export function RegistrationFeeCard({
           {fee.qr_code_codigo && (
             <div className="space-y-2">
               <p className="text-sm font-medium">Código PIX:</p>
-              <code className="bg-muted px-2 py-1 rounded text-sm block break-all">
-                {fee.qr_code_codigo}
-              </code>
+              <CopyableCode code={fee.qr_code_codigo} />
             </div>
           )}
 
