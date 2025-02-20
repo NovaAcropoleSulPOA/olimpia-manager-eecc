@@ -19,6 +19,16 @@ interface Score {
   };
 }
 
+interface PontuacaoRow {
+  id: number;
+  valor_pontuacao: number;
+  modalidades: {
+    id: number;
+    nome: string;
+    tipo_pontuacao: 'tempo' | 'distancia' | 'pontos';
+  };
+}
+
 export default function ScoresPage() {
   const { user } = useAuth();
 
@@ -31,13 +41,14 @@ export default function ScoresPage() {
         .select(`
           id,
           valor_pontuacao,
-          modalidades (
+          modalidades:modalidades (
             id,
             nome,
             tipo_pontuacao
           )
         `)
         .eq('atleta_id', user?.id)
+        .returns<PontuacaoRow>()
         .maybeSingle();
 
       if (error) {
@@ -53,11 +64,7 @@ export default function ScoresPage() {
       const transformedData: Score = {
         id: data.id,
         valor: data.valor_pontuacao,
-        modalidade: {
-          id: data.modalidades.id,
-          nome: data.modalidades.nome,
-          tipo_pontuacao: data.modalidades.tipo_pontuacao
-        }
+        modalidade: data.modalidades
       };
 
       return [transformedData];
