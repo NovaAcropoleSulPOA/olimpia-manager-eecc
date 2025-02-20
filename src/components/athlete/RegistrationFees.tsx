@@ -49,8 +49,16 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
         throw error;
       }
 
-      console.log('Fetched fees:', data);
-      return (data || []) as Fee[];
+      // Transform the data to match our Fee interface
+      const transformedData = (data || []).map(item => ({
+        id: item.id,
+        valor: item.valor,
+        isento: item.isento,
+        perfil: Array.isArray(item.perfil) ? item.perfil[0] : item.perfil
+      }));
+
+      console.log('Transformed fees:', transformedData);
+      return transformedData as Fee[];
     },
     enabled: !!eventId
   });
