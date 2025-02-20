@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { EventSelection } from '@/components/auth/EventSelection';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -11,6 +11,13 @@ import { differenceInYears } from 'date-fns';
 export default function EventSelectionPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Redirect to landing page if there's no authenticated user
+  useEffect(() => {
+    if (!user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   const { data: userAge } = useQuery({
     queryKey: ['user-age', user?.id],
@@ -44,6 +51,11 @@ export default function EventSelectionPage() {
     toast.success('Evento selecionado com sucesso!');
     navigate('/athlete-profile');
   };
+
+  // If there's no user, don't render anything while redirecting
+  if (!user) {
+    return null;
+  }
 
   const isUnder13 = userAge !== null && userAge < 13;
 
