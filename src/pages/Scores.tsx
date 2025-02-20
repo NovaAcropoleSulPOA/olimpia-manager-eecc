@@ -30,8 +30,8 @@ export default function ScoresPage() {
         .from('pontuacoes')
         .select(`
           id,
-          valor_pontuacao as valor,
-          modalidade:modalidades!inner (
+          valor_pontuacao,
+          modalidades (
             id,
             nome,
             tipo_pontuacao
@@ -48,11 +48,11 @@ export default function ScoresPage() {
       // Transform the data to match the Score interface
       const transformedData: Score = {
         id: data.id,
-        valor: data.valor,
+        valor: data.valor_pontuacao,
         modalidade: {
-          id: data.modalidade.id,
-          nome: data.modalidade.nome,
-          tipo_pontuacao: data.modalidade.tipo_pontuacao as 'tempo' | 'distancia' | 'pontos'
+          id: data.modalidades.id,
+          nome: data.modalidades.nome,
+          tipo_pontuacao: data.modalidades.tipo_pontuacao as 'tempo' | 'distancia' | 'pontos'
         }
       };
 
