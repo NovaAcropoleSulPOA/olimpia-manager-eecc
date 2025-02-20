@@ -24,7 +24,7 @@ interface AthleteProfileProps {
     filial_estado: string;
     pagamento_status?: string;
     pagamento_valor?: number;
-    papeis?: { nome: string; codigo: string; id?: number; }[];
+    papeis?: { nome: string; codigo: string; id?: string; }[];
     data_nascimento?: string | null;
   };
   isPublicUser: boolean;
@@ -104,7 +104,7 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
       <div className="mt-6">
         <RegistrationFees 
           eventId={currentEventId}
-          userProfileId={profile.papeis?.[0]?.id}
+          userProfileId={profile.papeis?.[0]?.id?.toString()}
         />
       </div>
     </div>

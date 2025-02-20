@@ -72,9 +72,11 @@ export function useRegistrationFees(eventId: string | null) {
         };
 
         // Check if this fee matches any of the user's profiles
-        const isUserFee = userProfiles?.some((userProfile: UserProfile) => 
-          userProfile.perfis?.nome === normalizedFee.perfil?.nome
-        );
+        const isUserFee = userProfiles?.some((userProfile) => {
+          return userProfile.perfis.some(profile => 
+            profile.nome === normalizedFee.perfil?.nome
+          );
+        });
 
         return {
           ...normalizedFee,

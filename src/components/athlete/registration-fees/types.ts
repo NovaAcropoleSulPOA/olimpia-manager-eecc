@@ -30,9 +30,9 @@ export interface UserProfileData {
 
 export interface UserProfile {
   perfis: {
-    nome: string;
+    nome: any;
     perfil_tipo: {
-      codigo: string;
-    };
-  };
+      codigo: any;
+    }[];
+  }[];
 }
