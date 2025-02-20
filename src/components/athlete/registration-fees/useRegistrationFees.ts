@@ -96,6 +96,6 @@ export function useRegistrationFees(eventId: string | null) {
     },
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    cacheTime: 30 * 60 * 1000, // Keep data in cache for 30 minutes
+    gcTime: 30 * 60 * 1000 // Keep data in garbage collection for 30 minutes (formerly cacheTime)
   });
 }
