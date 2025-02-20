@@ -1,7 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from "@/contexts/AuthContext";
-import AthleteScoresSection from './AthleteScoresSection';
 import AthleteProfile from './AthleteProfile';
 import PaymentInfo from './PaymentInfo';
 import { Loader2 } from "lucide-react";
@@ -45,7 +44,6 @@ export default function AthleteProfilePage() {
       
       console.log('Fetching payment status for user:', user.id, 'event:', currentEventId);
       
-      // First check the pagamentos table
       const { data: paymentData, error: paymentError } = await supabase
         .from('pagamentos')
         .select('*')
@@ -58,7 +56,6 @@ export default function AthleteProfilePage() {
         throw paymentError;
       }
 
-      // Then get the registration fee info
       const { data: feeData, error: feeError } = await supabase
         .from('vw_taxas_inscricao_usuarios')
         .select('*')
@@ -71,19 +68,17 @@ export default function AthleteProfilePage() {
         throw feeError;
       }
 
-      // Log both results for debugging
       console.log('Payment data from pagamentos:', paymentData);
       console.log('Fee data from view:', feeData);
 
-      // Combine the data, with paymentData taking precedence
       const combinedData = {
         valor: feeData?.valor || paymentData?.valor || 0,
         perfil_nome: profile?.papeis?.[0]?.nome || null,
-        isento: false, // Default to false since we know this user needs to pay
+        isento: false,
         status: paymentData?.status || 'pendente',
         evento_id: currentEventId,
         usuario_id: user.id,
-        ...feeData // Include any additional fee data
+        ...feeData
       };
 
       console.log('Combined payment status:', combinedData);
@@ -117,7 +112,6 @@ export default function AthleteProfilePage() {
   const isAthleteProfile = profile.papeis?.some(role => role.nome === 'Atleta');
   const shouldShowPaymentInfo = isAthleteProfile && paymentStatus && !paymentStatus.isento;
 
-  // Enhanced logging for debugging
   console.log('Profile and payment check:', {
     isAthleteProfile,
     paymentStatus,
@@ -136,25 +130,13 @@ export default function AthleteProfilePage() {
         isPublicUser={!isAthleteProfile}
       />
 
-      {isAthleteProfile && user?.id && (
-        <AthleteScoresSection athleteId={user.id} />
-      )}
-
-      {/* Moved PaymentInfo rendering here and added debug div */}
-      {shouldShowPaymentInfo ? (
+      {shouldShowPaymentInfo && (
         <PaymentInfo 
           key={`${user?.id}-${currentEventId}`}
           initialPaymentStatus={paymentStatus}
           userId={user?.id}
           eventId={currentEventId}
         />
-      ) : (
-        <div className="hidden">
-          Debug info (not visible): Payment info hidden because:
-          isAthleteProfile: {String(isAthleteProfile)},
-          paymentStatus exists: {String(!!paymentStatus)},
-          isento: {String(paymentStatus?.isento)}
-        </div>
       )}
     </div>
   );

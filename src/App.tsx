@@ -1,68 +1,57 @@
-
-import { BrowserRouter as Router } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './components/providers/AuthProvider';
-import { Toaster } from './components/ui/sonner';
-import { GlobalHeader } from './components/GlobalHeader';
-import './App.css';
-import { Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
-import { MainNavigation } from './components/MainNavigation';
-import LandingPage from './pages/LandingPage';
-import Footer from './components/Footer';
-import OrganizerDashboard from './components/OrganizerDashboard';
-import DelegationDashboard from './components/DelegationDashboard';
-import AthleteProfilePage from './components/AthleteProfilePage';
-import AthleteRegistrations from './components/AthleteRegistrations';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import Cronograma from './pages/Cronograma';
-import Administration from './pages/Administration';
-import EventSelectionPage from './pages/EventSelectionPage';
-import WhatsAppButton from './components/WhatsAppButton';
 import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'sonner';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      staleTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+import { AuthProvider } from './components/providers/AuthProvider';
+import { MainNavigation } from './components/MainNavigation';
+import { Index } from './pages/Index';
+import { Login } from './pages/Login';
+import { ResetPassword } from './pages/ResetPassword';
+import { VerifyEmail } from './pages/VerifyEmail';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { AthleteProfilePage } from './components/AthleteProfilePage';
+import { Cronograma } from './pages/Cronograma';
+import { AthleteRegistrations } from './pages/AthleteRegistrations';
+import { OrganizerDashboard } from './pages/OrganizerDashboard';
+import { DelegationDashboard } from './pages/DelegationDashboard';
+import { Administration } from './pages/Administration';
+import { GlobalHeader } from './components/GlobalHeader';
+import { Footer } from './components/Footer';
+import { EventSelectionPage } from './pages/EventSelectionPage';
+import { RejectedAccess } from './pages/RejectedAccess';
+import ScoresPage from './pages/Scores';
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthProvider>
-          <div className="min-h-screen flex flex-col">
-            <GlobalHeader />
-            <div className="flex-1 flex flex-col mt-16">
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/event-selection" element={<EventSelectionPage />} />
-                <Route element={<MainNavigation />}>
-                  <Route path="/athlete-profile" element={<AthleteProfilePage />} />
-                  <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
-                  <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
-                  <Route path="/delegation-dashboard" element={<DelegationDashboard />} />
-                  <Route path="/cronograma" element={<Cronograma />} />
-                  <Route path="/administration" element={<Administration />} />
-                </Route>
-              </Routes>
-            </div>
-            <Footer />
-            <WhatsAppButton />
-            <Toaster />
-          </div>
-        </AuthProvider>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <GlobalHeader />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/event-selection" element={<EventSelectionPage />} />
+            <Route path="/rejected-access" element={<RejectedAccess />} />
+            <Route element={<MainNavigation />}>
+              <Route path="/athlete-profile" element={<AthleteProfilePage />} />
+              <Route path="/scores" element={<ScoresPage />} />
+              <Route path="/cronograma" element={<Cronograma />} />
+              <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
+              <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
+              <Route path="/delegation-dashboard" element={<DelegationDashboard />} />
+              <Route path="/administration" element={<Administration />} />
+            </Route>
+          </Routes>
+          <Footer />
+          <Toaster />
+        </Router>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
