@@ -65,7 +65,12 @@ export function useRegistrationFees(eventId: string | null) {
       console.log('User profiles:', userProfiles);
       console.log('Raw fees data:', feesData);
 
-      const transformedFees = (feesData || []).map(fee => {
+      if (!feesData) {
+        console.log('No fees data returned from query');
+        return [];
+      }
+
+      const transformedFees = feesData.map(fee => {
         const normalizedFee = {
           ...fee,
           perfil: Array.isArray(fee.perfil) ? fee.perfil[0] : fee.perfil
@@ -78,15 +83,19 @@ export function useRegistrationFees(eventId: string | null) {
           );
         });
 
-        return {
+        const result: Fee = {
           ...normalizedFee,
-          isUserFee
-        } as Fee;
+          isUserFee: isUserFee || false
+        };
+
+        return result;
       });
 
       console.log('Transformed fees:', transformedFees);
       return transformedFees;
     },
-    enabled: !!eventId
+    enabled: !!eventId,
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    cacheTime: 30 * 60 * 1000, // Keep data in cache for 30 minutes
   });
 }
