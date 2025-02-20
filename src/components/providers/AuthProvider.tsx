@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         } else if (!PUBLIC_ROUTES.includes(location.pathname as PublicRoute) && 
                   !(location.pathname === '/reset-password')) {
-          navigate('/login');
+          navigate('/');
         }
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               if (mounted) {
                 setUser(null);
                 localStorage.removeItem('currentEventId');
-                navigate('/login');
+                navigate('/');
               }
               return;
             }
@@ -63,14 +63,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 toast.error(handleSupabaseError(error));
                 if (mounted) {
                   setUser(null);
-                  navigate('/login');
+                  navigate('/');
                 }
               }
             } else {
               if (mounted) {
                 setUser(null);
                 if (!PUBLIC_ROUTES.includes(location.pathname as PublicRoute)) {
-                  navigate('/login');
+                  navigate('/');
                 }
               }
             }
@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (mounted) {
           setUser(null);
           if (!PUBLIC_ROUTES.includes(location.pathname as PublicRoute)) {
-            navigate('/login');
+            navigate('/');
           }
         }
       } finally {

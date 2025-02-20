@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { NavigateFunction } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -65,15 +66,15 @@ export function useAuthOperations({ setUser, navigate, location }: UseAuthOperat
       }
 
       setUser(null);
-      console.log('AuthContext - Logout successful, navigating to login page');
-      navigate('/login');
+      console.log('AuthContext - Logout successful, navigating to landing page');
+      navigate('/');
       toast.success('Logout realizado com sucesso!');
       
     } catch (error: any) {
       console.error('AuthContext - Unexpected error during signOut:', error);
       setUser(null);
       localStorage.removeItem('currentEventId');
-      navigate('/login');
+      navigate('/');
       toast.error('Erro ao fazer logout, mas sua sessão foi encerrada localmente.');
     }
   };
