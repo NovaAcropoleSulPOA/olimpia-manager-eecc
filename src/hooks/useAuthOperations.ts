@@ -51,7 +51,8 @@ export function useAuthOperations({ setUser, navigate, location }: UseAuthOperat
   const signOut = async () => {
     try {
       console.log('AuthContext - Starting logout process...');
-      setUser(null);
+      localStorage.removeItem('currentEventId');
+      
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -63,6 +64,7 @@ export function useAuthOperations({ setUser, navigate, location }: UseAuthOperat
         }
       }
 
+      setUser(null);
       console.log('AuthContext - Logout successful, navigating to login page');
       navigate('/login');
       toast.success('Logout realizado com sucesso!');
@@ -70,6 +72,7 @@ export function useAuthOperations({ setUser, navigate, location }: UseAuthOperat
     } catch (error: any) {
       console.error('AuthContext - Unexpected error during signOut:', error);
       setUser(null);
+      localStorage.removeItem('currentEventId');
       navigate('/login');
       toast.error('Erro ao fazer logout, mas sua sessão foi encerrada localmente.');
     }

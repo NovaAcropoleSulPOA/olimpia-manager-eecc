@@ -40,6 +40,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           async (event, session) => {
             console.log('AuthContext - Auth state changed:', event, session?.user?.id);
 
+            if (event === 'SIGNED_OUT') {
+              if (mounted) {
+                setUser(null);
+                localStorage.removeItem('currentEventId');
+                navigate('/login');
+              }
+              return;
+            }
+
             if (session?.user) {
               try {
                 const userProfile = await fetchUserProfile(session.user.id);
