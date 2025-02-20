@@ -25,15 +25,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: { session } } = await supabase.auth.getSession();
         console.log('AuthContext - Initial session:', session?.user?.id);
 
+        if (!session?.user && !PUBLIC_ROUTES.includes(location.pathname as PublicRoute) && 
+            location.pathname !== '/reset-password') {
+          navigate('/', { replace: true });
+          return;
+        }
+
         if (session?.user) {
           const userProfile = await fetchUserProfile(session.user.id);
           if (mounted) {
             setUser({ ...session.user, ...userProfile });
-            handleAuthRedirect(userProfile, location.pathname, navigate);
           }
-        } else if (!PUBLIC_ROUTES.includes(location.pathname as PublicRoute) && 
-                  !(location.pathname === '/reset-password')) {
-          navigate('/');
         }
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -44,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               if (mounted) {
                 setUser(null);
                 localStorage.removeItem('currentEventId');
-                navigate('/');
+                navigate('/', { replace: true });
               }
               return;
             }
@@ -55,22 +57,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (mounted) {
                   setUser({ ...session.user, ...userProfile });
                 }
-                if (event === 'SIGNED_IN') {
-                  handleAuthRedirect(userProfile, location.pathname, navigate);
-                }
               } catch (error) {
                 console.error('AuthContext - Error setting up user session:', error);
                 toast.error(handleSupabaseError(error));
                 if (mounted) {
                   setUser(null);
-                  navigate('/');
+                  navigate('/', { replace: true });
                 }
               }
             } else {
               if (mounted) {
                 setUser(null);
                 if (!PUBLIC_ROUTES.includes(location.pathname as PublicRoute)) {
-                  navigate('/');
+                  navigate('/', { replace: true });
                 }
               }
             }
@@ -85,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (mounted) {
           setUser(null);
           if (!PUBLIC_ROUTES.includes(location.pathname as PublicRoute)) {
-            navigate('/');
+            navigate('/', { replace: true });
           }
         }
       } finally {

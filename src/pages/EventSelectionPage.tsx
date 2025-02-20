@@ -12,7 +12,6 @@ export default function EventSelectionPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Redirect to landing page if there's no authenticated user
   useEffect(() => {
     if (!user) {
       navigate('/', { replace: true });
@@ -22,7 +21,10 @@ export default function EventSelectionPage() {
   const { data: userAge } = useQuery({
     queryKey: ['user-age', user?.id],
     queryFn: async () => {
-      if (!user?.id) return null;
+      if (!user?.id) {
+        navigate('/', { replace: true });
+        return null;
+      }
 
       const { data: userData, error } = await supabase
         .from('usuarios')
@@ -52,7 +54,7 @@ export default function EventSelectionPage() {
     navigate('/athlete-profile');
   };
 
-  // If there's no user, don't render anything while redirecting
+  // If there's no user, redirect to landing page
   if (!user) {
     return null;
   }
