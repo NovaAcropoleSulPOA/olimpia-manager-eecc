@@ -40,25 +40,6 @@ export const usePaymentInfo = (
 
       console.log('Fetching payment info for user:', userId, 'event:', eventId);
 
-      // First, check payment status
-      const { data: paymentStatus, error: paymentError } = await supabase
-        .from('pagamentos')
-        .select('status')
-        .eq('atleta_id', userId)
-        .eq('evento_id', eventId)
-        .maybeSingle();
-
-      if (paymentError) {
-        console.error('Error fetching payment status:', paymentError);
-        throw paymentError;
-      }
-
-      // If payment status is not pending, return null
-      if (paymentStatus?.status !== 'pendente') {
-        console.log('Payment is not pending, status:', paymentStatus?.status);
-        return null;
-      }
-
       // Get user's current profile for the event
       const { data: userProfile, error: profileError } = await supabase
         .from('papeis_usuarios')

@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Loader2, ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
   Card,
@@ -9,6 +9,11 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { PaymentDetails } from "./payment/PaymentDetails";
 import { QRCodeSection } from "./payment/QRCodeSection";
 import { usePaymentInfo } from "@/hooks/usePaymentInfo";
@@ -21,6 +26,7 @@ interface PaymentInfoProps {
 }
 
 const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps) => {
+  const [isOpen, setIsOpen] = useState(true);
   const [currentEventId, setCurrentEventId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -85,11 +91,7 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
     );
   }
 
-  if (!paymentFees) {
-    return null; // Don't show anything if payment is not pending
-  }
-
-  if (paymentFees.length === 0) {
+  if (!paymentFees || paymentFees.length === 0) {
     return (
       <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
         <CardHeader>
@@ -108,55 +110,68 @@ const PaymentInfo = ({ initialPaymentStatus, userId, eventId }: PaymentInfoProps
 
   return (
     <Card className="w-full bg-olimpics-background border-olimpics-green-primary/20">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-olimpics-green-primary">
-          Informações de Pagamento
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {paymentFees.map((fee, index) => (
-            <Card 
-              key={index}
-              className={`relative ${fee.is_current_profile 
-                ? 'border-2 border-olimpics-green-primary shadow-lg' 
-                : 'border border-olimpics-green-primary/20'}`}
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-lg font-semibold text-olimpics-green-primary">
+            Informações de Pagamento
+          </CardTitle>
+          <CollapsibleTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className={`w-9 h-9 p-0 transition-transform ${isOpen ? 'rotate-180' : ''}`}
             >
-              <CardHeader>
-                <CardTitle className="text-md font-semibold text-olimpics-green-primary">
-                  {fee.perfil_nome}
-                  {fee.is_current_profile && (
-                    <span className="ml-2 text-sm text-olimpics-orange-primary">(Seu perfil)</span>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PaymentDetails 
-                  paymentInfo={fee}
-                  onWhatsAppClick={() => handleWhatsAppClick(fee.contato_telefone)}
-                />
-                {fee.is_current_profile && (
-                  <>
-                    <div className="mt-6 border-t border-olimpics-green-primary/20 pt-6">
-                      <QRCodeSection paymentInfo={fee} />
-                    </div>
-                    {fee.link_formulario && (
-                      <Button
-                        onClick={() => handleFormClick(fee.link_formulario)}
-                        className="w-full mt-4 bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white"
-                        type="button"
-                      >
-                        Enviar comprovante de pagamento
-                      </Button>
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </CollapsibleTrigger>
+        </CardHeader>
+        
+        <CollapsibleContent>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {paymentFees.map((fee, index) => (
+                <Card 
+                  key={index}
+                  className={`relative ${fee.is_current_profile 
+                    ? 'border-2 border-olimpics-green-primary shadow-lg' 
+                    : 'border border-olimpics-green-primary/20'}`}
+                >
+                  <CardHeader>
+                    <CardTitle className="text-md font-semibold text-olimpics-green-primary">
+                      {fee.perfil_nome}
+                      {fee.is_current_profile && (
+                        <span className="ml-2 text-sm text-olimpics-orange-primary">(Seu perfil)</span>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <PaymentDetails 
+                      paymentInfo={fee}
+                      onWhatsAppClick={() => handleWhatsAppClick(fee.contato_telefone)}
+                    />
+                    {fee.is_current_profile && (
+                      <>
+                        <div className="mt-6 border-t border-olimpics-green-primary/20 pt-6">
+                          <QRCodeSection paymentInfo={fee} />
+                        </div>
+                        {fee.link_formulario && (
+                          <Button
+                            onClick={() => handleFormClick(fee.link_formulario)}
+                            className="w-full mt-4 bg-olimpics-orange-primary hover:bg-olimpics-orange-secondary text-white"
+                            type="button"
+                          >
+                            Enviar comprovante de pagamento
+                          </Button>
+                        )}
+                      </>
                     )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </CardContent>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 };
