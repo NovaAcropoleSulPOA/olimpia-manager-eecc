@@ -1,6 +1,7 @@
 
 export interface AthleteProfileData {
   atleta_id: string;
+  id: string;
   nome_completo: string;
   telefone: string;
   email: string;
@@ -12,7 +13,12 @@ export interface AthleteProfileData {
   filial_cidade: string;
   filial_estado: string;
   status_confirmacao: boolean;
-  papeis?: { nome: string; codigo: string; }[];
+  foto_perfil?: string;
+  papeis?: { 
+    id: number;
+    nome: string; 
+    codigo: string; 
+  }[];
   pagamento_status?: string;
   pagamento_valor?: number;
 }

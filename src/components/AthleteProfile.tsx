@@ -1,11 +1,12 @@
+
 import React from 'react';
-import { PersonalInfo } from './athlete/PersonalInfo';
-import { PaymentAndBranchInfo } from './athlete/PaymentAndBranchInfo';
-import { AccessProfile } from './athlete/AccessProfile';
-import { ProfileImage } from './athlete/ProfileImage';
-import { AthleteScores } from './AthleteScores';
-import { AthleteRegistrations } from './AthleteRegistrations';
-import { AthleteSchedule } from './AthleteSchedule';
+import PersonalInfo from './athlete/PersonalInfo';
+import PaymentAndBranchInfo from './athlete/PaymentAndBranchInfo';
+import AccessProfile from './athlete/AccessProfile';
+import ProfileImage from './athlete/ProfileImage';
+import AthleteScores from './AthleteScores';
+import AthleteRegistrations from './AthleteRegistrations';
+import AthleteSchedule from './AthleteSchedule';
 import { Card } from './ui/card';
 import { AthleteProfileData } from '@/types/athlete';
 import { RegistrationFees } from './athlete/RegistrationFees';

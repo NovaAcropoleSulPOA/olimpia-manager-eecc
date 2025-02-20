@@ -19,7 +19,7 @@ interface RegistrationFee {
 
 interface RegistrationFeesProps {
   eventId: string | null;
-  currentProfileId: number;
+  currentProfileId: number | undefined;
 }
 
 export function RegistrationFees({ eventId, currentProfileId }: RegistrationFeesProps) {
@@ -34,7 +34,7 @@ export function RegistrationFees({ eventId, currentProfileId }: RegistrationFees
           id,
           valor,
           isento,
-          perfil:perfis (
+          perfil:perfis!inner (
             nome,
             id
           )
@@ -46,7 +46,7 @@ export function RegistrationFees({ eventId, currentProfileId }: RegistrationFees
         throw error;
       }
 
-      return data as RegistrationFee[];
+      return (data as unknown as RegistrationFee[]) || [];
     },
     enabled: !!eventId
   });
