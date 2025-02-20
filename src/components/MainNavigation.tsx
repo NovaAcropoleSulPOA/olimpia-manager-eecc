@@ -46,7 +46,7 @@ export function MainNavigation() {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex flex-1 w-full">
-        <Sidebar className="bg-olimpics-green-primary text-white fixed md:sticky top-16 h-[calc(100vh-4rem)] z-50">
+        <Sidebar className="bg-olimpics-green-primary text-white fixed md:sticky top-0 md:top-16 h-screen md:h-[calc(100vh-4rem)] z-50">
           <SidebarHeader className="relative p-6 border-b border-olimpics-green-secondary">
             <h2 className="text-xl font-bold text-center">Menu</h2>
             <SidebarTrigger className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden text-white hover:text-olimpics-green-secondary">
