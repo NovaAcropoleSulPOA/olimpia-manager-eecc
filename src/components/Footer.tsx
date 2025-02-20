@@ -1,5 +1,5 @@
 
-import { Github, Instagram, Linkedin, Mail, MessageCircle, User, Settings, LogOut, ClipboardList, Users, ArrowLeftRight, Calendar, Medal } from "lucide-react";
+import { Github, Instagram, Linkedin, Mail, MessageCircle, User, Settings, LogOut, ClipboardList, Users, ArrowLeftRight, Calendar, Medal, Settings2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -97,6 +97,15 @@ const Footer = () => {
       label: "Delegação",
       path: "/delegation-dashboard",
       roles: ["RDD"],
+    });
+  }
+
+  if (userRoles.some(role => role.codigo === "ADM")) {
+    navigationItems.push({
+      icon: Settings2,
+      label: "Administração",
+      path: "/administration",
+      roles: ["ADM"],
     });
   }
 
