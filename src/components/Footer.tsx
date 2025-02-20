@@ -1,5 +1,5 @@
 
-import { Github, Instagram, Linkedin, Mail, MessageCircle, User, Settings, LogOut, ClipboardList, Users, ArrowLeftRight } from "lucide-react";
+import { Github, Instagram, Linkedin, Mail, MessageCircle, User, Settings, LogOut, ClipboardList, Users, ArrowLeftRight, Calendar, Medal } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -57,24 +57,48 @@ const Footer = () => {
       roles: ["ATL"],
     },
     {
-      icon: ClipboardList,
-      label: "Inscrições",
-      path: "/athlete-registrations",
-      roles: ["ATL"],
-    },
-    {
+      icon: Calendar,
+      label: "Cronograma",
+      path: "/cronograma",
+      roles: ["ATL", "ORE", "RDD", "ADM"],
+    }
+  ];
+
+  // Add role-specific items
+  if (userRoles.some(role => role.codigo === "ATL")) {
+    navigationItems.push(
+      {
+        icon: Medal,
+        label: "Minhas Pontuações",
+        path: "/scores",
+        roles: ["ATL"],
+      },
+      {
+        icon: ClipboardList,
+        label: "Inscrições",
+        path: "/athlete-registrations",
+        roles: ["ATL"],
+      }
+    );
+  }
+
+  if (userRoles.some(role => role.codigo === "ORE")) {
+    navigationItems.push({
       icon: Settings,
       label: "Organizador(a)",
       path: "/organizer-dashboard",
       roles: ["ORE"],
-    },
-    {
+    });
+  }
+
+  if (userRoles.some(role => role.codigo === "RDD")) {
+    navigationItems.push({
       icon: Users,
       label: "Delegação",
       path: "/delegation-dashboard",
       roles: ["RDD"],
-    }
-  ];
+    });
+  }
 
   const { data: userEvents } = useQuery({
     queryKey: ['user-events', user?.id],
