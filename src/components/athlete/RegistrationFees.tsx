@@ -11,6 +11,16 @@ interface RegistrationFeesProps {
   userProfileId?: number;
 }
 
+interface Fee {
+  id: number;
+  valor: number;
+  isento: boolean;
+  perfil: {
+    nome: string;
+    id: number;
+  };
+}
+
 export default function RegistrationFees({ eventId, userProfileId }: RegistrationFeesProps) {
   console.log('RegistrationFees component mounted with:', { eventId, userProfileId });
   
@@ -40,7 +50,7 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
       }
 
       console.log('Fetched fees:', data);
-      return data || [];
+      return (data || []) as Fee[];
     },
     enabled: !!eventId
   });
