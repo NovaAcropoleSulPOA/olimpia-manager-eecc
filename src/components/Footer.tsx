@@ -1,5 +1,5 @@
 
-import { Github, Instagram, Linkedin, Mail, MessageCircle, User, Settings, LogOut, ClipboardList, Users, ArrowLeftRight, Calendar, Trophy } from "lucide-react";
+import { Github, Instagram, Linkedin, Mail, MessageCircle, User, Settings, LogOut, ClipboardList, Users, ArrowLeftRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -54,18 +54,6 @@ const Footer = () => {
       icon: User,
       label: "Perfil",
       path: "/athlete-profile",
-      roles: ["ATL"],
-    },
-    {
-      icon: Calendar,
-      label: "Cronograma",
-      path: "/cronograma",
-      roles: ["ATL"],
-    },
-    {
-      icon: Trophy,
-      label: "Pontuações",
-      path: "/scores",
       roles: ["ATL"],
     },
     {
@@ -144,7 +132,7 @@ const Footer = () => {
     <>
       {showMobileNav && (
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t md:hidden">
-          <div className="grid grid-cols-6 gap-1 px-2 py-2">
+          <div className="grid grid-cols-5 gap-1 px-2 py-2">
             {filteredNavItems.map((item) => (
               <button
                 key={item.path}

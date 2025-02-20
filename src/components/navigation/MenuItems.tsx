@@ -1,5 +1,5 @@
 
-import { User, BarChart3, ClipboardList, Users, Calendar, Settings2, Trophy } from 'lucide-react';
+import { User, BarChart3, ClipboardList, Users, Calendar, Settings2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   SidebarGroup,
@@ -37,18 +37,11 @@ export function MenuItems({ isOrganizer, isAthlete, isDelegationRep, isAdmin }: 
 
   // Add role-specific menu items
   if (isAthlete) {
-    menuItems.push(
-      {
-        title: "Minhas Inscrições",
-        icon: ClipboardList,
-        path: "/athlete-registrations"
-      },
-      {
-        title: "Minhas Pontuações",
-        icon: Trophy,
-        path: "/scores"
-      }
-    );
+    menuItems.push({
+      title: "Minhas Inscrições",
+      icon: ClipboardList,
+      path: "/athlete-registrations"
+    });
   }
 
   if (isOrganizer) {

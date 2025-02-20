@@ -1,15 +1,4 @@
-
 #root {
   margin: 0 auto;
   text-align: center;
-}
-
-/* Add padding to account for fixed header */
-.container {
-  padding-top: 5rem; /* Increased from 4rem to ensure enough space */
-}
-
-/* Add specific padding for event selection page */
-.min-h-screen {
-  padding-top: 4rem;
 }
