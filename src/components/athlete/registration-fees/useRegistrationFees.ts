@@ -17,6 +17,7 @@ export function useRegistrationFees(eventId: string | null) {
           id,
           valor,
           isento,
+          mostra_card,
           pix_key,
           data_limite_inscricao,
           contato_nome,
