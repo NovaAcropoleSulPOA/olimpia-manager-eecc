@@ -67,7 +67,7 @@ const Footer = () => {
     item.roles.some(roleCode => userRoles.some(userRole => userRole.codigo === roleCode))
   );
 
-  const isEventSelectionPage = location.pathname === '/';
+  const isEventSelectionPage = location.pathname === '/' || location.pathname === '/event-selection';
 
   if (isEventSelectionPage) {
     return null;
