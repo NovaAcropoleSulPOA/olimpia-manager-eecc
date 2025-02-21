@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -194,7 +195,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           <AthleteInfoGrid
             email={registration.email}
             telefone={registration.telefone}
-            filialNome={isDelegationView ? undefined : registration.filial_nome}
+            filialNome={registration.filial_nome}
             tipoDocumento={registration.tipo_documento}
             numeroDocumento={registration.numero_documento}
             genero={registration.genero}
