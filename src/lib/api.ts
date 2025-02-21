@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase';
 
 export interface AthleteModality {
@@ -20,6 +21,7 @@ export interface AthleteManagement {
   filial_id: string;
   filial_nome: string;
   status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
+  usuario_registrador_id?: string; // Added this field
   modalidades: AthleteModality[];
 }
 
