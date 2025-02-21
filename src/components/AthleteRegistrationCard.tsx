@@ -201,6 +201,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
             hasRegistrador={!!registration.usuario_registrador_id}
             statusPagamento={registration.status_pagamento}
             getStatusBadgeStyle={getStatusBadgeStyle}
+            modalidades={registration.modalidades}
           />
           <AthleteInfoGrid
             email={registration.email}
