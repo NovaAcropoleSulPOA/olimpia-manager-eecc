@@ -16,6 +16,61 @@ import { updatePaymentAmount } from '@/lib/api';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
+interface PaymentAmountFieldProps {
+  value: string;
+  disabled: boolean;
+  isUpdating: boolean;
+  onInputChange: (value: string) => void;
+  onSave: () => void;
+  onBlur: () => void;
+}
+
+const PaymentAmountField = React.memo(({
+  value,
+  disabled,
+  isUpdating,
+  onInputChange,
+  onSave,
+  onBlur
+}: PaymentAmountFieldProps) => {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value.replace(/[^\d.]/g, '');
+    const parts = newValue.split('.');
+    if (parts.length > 2) return; // Don't allow multiple decimal points
+    if (parts[1]?.length > 2) return; // Don't allow more than 2 decimal places
+    onInputChange(newValue);
+  };
+
+  return (
+    <div className="mt-4 flex items-center gap-2">
+      <label className="text-sm text-muted-foreground">Valor do pagamento:</label>
+      <Input
+        type="text"
+        value={value}
+        onChange={handleChange}
+        onBlur={onBlur}
+        className="w-[180px]"
+        disabled={disabled || isUpdating}
+        ref={inputRef}
+      />
+      {!disabled && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onSave}
+          disabled={isUpdating}
+        >
+          Salvar
+        </Button>
+      )}
+    </div>
+  );
+});
+
+PaymentAmountField.displayName = 'PaymentAmountField';
+
 interface AthleteRegistrationCardProps {
   registration: AthleteManagement;
   onStatusChange: (modalityId: string, status: string, justification: string) => Promise<void>;
@@ -137,7 +192,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     }
   };
 
-  const handlePaymentAmountChange = async () => {
+  const handlePaymentAmountChange = React.useCallback(async () => {
     if (!registration?.id || isUpdatingAmount) return;
     
     const newAmount = parseFloat(localInputAmount);
@@ -157,21 +212,17 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     } finally {
       setIsUpdatingAmount(false);
     }
-  };
+  }, [registration?.id, localInputAmount, isUpdatingAmount, refetchPayment]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^\d.]/g, '');
-    const parts = value.split('.');
-    if (parts.length > 2) return; // Don't allow multiple decimal points
-    if (parts[1]?.length > 2) return; // Don't allow more than 2 decimal places
+  const handleInputChange = React.useCallback((value: string) => {
     setLocalInputAmount(value);
-  };
+  }, []);
 
-  const handleInputBlur = () => {
+  const handleInputBlur = React.useCallback(() => {
     if (localInputAmount === '') {
       setLocalInputAmount(paymentData?.valor?.toString() || '0');
     }
-  };
+  }, [localInputAmount, paymentData?.valor]);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -215,31 +266,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           <SelectItem value="cancelado">Cancelado</SelectItem>
         </SelectContent>
       </Select>
-    </div>
-  );
-
-  const PaymentAmountField = () => (
-    <div className="mt-4 flex items-center gap-2">
-      <label className="text-sm text-muted-foreground">Valor do pagamento:</label>
-      <Input
-        type="text"
-        value={localInputAmount}
-        onChange={handleInputChange}
-        onBlur={handleInputBlur}
-        className="w-[180px]"
-        disabled={registration.status_pagamento !== "pendente" || isUpdatingAmount}
-        ref={amountInputRef}
-      />
-      {registration.status_pagamento === "pendente" && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handlePaymentAmountChange}
-          disabled={isUpdatingAmount}
-        >
-          Salvar
-        </Button>
-      )}
     </div>
   );
 
@@ -364,7 +390,14 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               {onPaymentStatusChange && (
                 <>
                   <PaymentStatusSelector />
-                  <PaymentAmountField />
+                  <PaymentAmountField
+                    value={localInputAmount}
+                    disabled={registration.status_pagamento !== "pendente"}
+                    isUpdating={isUpdatingAmount}
+                    onInputChange={handleInputChange}
+                    onSave={handlePaymentAmountChange}
+                    onBlur={handleInputBlur}
+                  />
                 </>
               )}
             </div>
