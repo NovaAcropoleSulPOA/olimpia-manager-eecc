@@ -76,9 +76,10 @@ export const AthleteInfoGrid: React.FC<AthleteInfoGridProps> = ({
       {hasRegistrador && registradorInfo && (
         <div className="mt-2 pt-2 border-t border-gray-200">
           <div className="text-sm text-muted-foreground">
-            <p>Registrado por: {registradorInfo.nome_completo}</p>
-            <p>Email do responsável: {registradorInfo.email}</p>
-            <p>Telefone do responsável: {registradorInfo.telefone}</p>
+            <p className="font-medium">Informações do Responsável:</p>
+            <p>Nome: {registradorInfo.nome_completo}</p>
+            <p>Email: {registradorInfo.email}</p>
+            <p>Telefone: {registradorInfo.telefone}</p>
           </div>
         </div>
       )}

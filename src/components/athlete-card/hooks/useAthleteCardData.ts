@@ -33,16 +33,28 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
     queryFn: async () => {
       if (!registration.usuario_registrador_id) return null;
       
-      const { data, error } = await supabase
+      const { data: userInfo, error: userError } = await supabase
         .from('usuarios')
         .select('nome_completo, email, telefone')
         .eq('id', registration.usuario_registrador_id)
         .single();
 
-      if (error) return null;
-      return data;
+      if (userError || !userInfo) return null;
+
+      const { data: roles, error: rolesError } = await supabase
+        .from('papeis_usuarios')
+        .select('perfil_id')
+        .eq('usuario_id', registration.id)
+        .eq('evento_id', registration.evento_id);
+
+      if (rolesError) return userInfo;
+
+      return {
+        ...userInfo,
+        roles: roles.map(r => r.perfil_id)
+      };
     },
-    enabled: !!registration.usuario_registrador_id,
+    enabled: !!registration.usuario_registrador_id && !!registration.evento_id,
   });
 
   return {

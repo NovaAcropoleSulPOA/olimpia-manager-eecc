@@ -37,7 +37,7 @@ export const AthleteCard: React.FC<AthleteCardProps> = ({
             statusPagamento={registration.status_pagamento}
             getStatusBadgeStyle={getStatusBadgeStyle}
             modalidades={registration.modalidades}
-            isDependent={!!registration.usuario_registrador_id}
+            isDependent={true}
           />
           <AthleteInfoGrid
             email={registration.usuario_registrador_id ? registradorInfo?.email : registration.email}
