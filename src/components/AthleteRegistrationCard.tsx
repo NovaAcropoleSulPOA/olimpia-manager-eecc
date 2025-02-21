@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { AthleteCardHeader } from './athlete-card/AthleteCardHeader';
 import { AthleteInfoGrid } from './athlete-card/AthleteInfoGrid';
 import { AthleteDialogContent } from './athlete-card/AthleteDialogContent';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AthleteRegistrationCardProps {
   registration: AthleteManagement;
@@ -24,6 +25,9 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   onPaymentStatusChange,
   isCurrentUser = false,
 }) => {
+  const { user } = useAuth();
+  const isDelegationView = user?.filial_id === registration.filial_id;
+
   const [justifications, setJustifications] = React.useState<Record<string, string>>({});
   const [isUpdating, setIsUpdating] = React.useState<Record<string, boolean>>({});
   const [modalityStatuses, setModalityStatuses] = React.useState<Record<string, string>>({});
@@ -190,7 +194,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           <AthleteInfoGrid
             email={registration.email}
             telefone={registration.telefone}
-            filialNome={registration.filial_nome}
+            filialNome={isDelegationView ? undefined : registration.filial_nome}
             tipoDocumento={registration.tipo_documento}
             numeroDocumento={registration.numero_documento}
             genero={registration.genero}
@@ -218,7 +222,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           isExempt={!!paymentData?.isento}
           email={registration.email}
           telefone={registration.telefone}
-          filialNome={registration.filial_nome}
+          filialNome={isDelegationView ? undefined : registration.filial_nome}
           tipoDocumento={registration.tipo_documento}
           numeroDocumento={registration.numero_documento}
           genero={registration.genero}

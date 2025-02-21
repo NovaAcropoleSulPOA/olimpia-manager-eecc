@@ -1,22 +1,17 @@
 
 import React from 'react';
-import { Mail, MessageCircle, Building2, FileText, User } from "lucide-react";
+import { Mail, Phone, Building2, CreditCard, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface RegistradorInfo {
-  nome_completo: string;
-  email: string;
-}
 
 interface AthleteInfoGridProps {
   email: string | null;
   telefone: string;
-  filialNome: string;
+  filialNome?: string;
   tipoDocumento: string;
   numeroDocumento: string;
   genero: string;
   onWhatsAppClick: (phone: string) => void;
-  registradorInfo?: RegistradorInfo | null;
+  registradorInfo?: any;
   hasRegistrador?: boolean;
 }
 
@@ -31,49 +26,53 @@ export const AthleteInfoGrid: React.FC<AthleteInfoGridProps> = ({
   registradorInfo,
   hasRegistrador
 }) => {
-  // Use registrador's email if the dependent doesn't have one
-  const displayEmail = email || (hasRegistrador && registradorInfo?.email) || '';
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+    <div className="grid grid-cols-1 gap-2">
+      {email && (
+        <div className="flex items-center gap-2">
+          <Mail className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm">{email}</span>
+        </div>
+      )}
+      
       <div className="flex items-center gap-2">
-        <Mail className="h-4 w-4" />
-        <span>{displayEmail}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <MessageCircle className="h-4 w-4" />
-        <Button
-          variant="link"
-          className="p-0 h-auto font-normal text-olimpics-orange-primary hover:text-olimpics-orange-secondary"
-          onClick={() => onWhatsAppClick(telefone)}
-        >
+        <Phone className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm">
           {telefone}
-        </Button>
+          <Button
+            variant="link"
+            className="text-olimpics-green-primary p-0 h-auto ml-2"
+            onClick={() => onWhatsAppClick(telefone)}
+          >
+            WhatsApp
+          </Button>
+        </span>
       </div>
+
+      {filialNome && (
+        <div className="flex items-center gap-2">
+          <Building2 className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm">{filialNome}</span>
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
-        <Building2 className="h-4 w-4" />
-        <span>{filialNome}</span>
+        <CreditCard className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm">
+          {tipoDocumento}: {numeroDocumento}
+        </span>
       </div>
+
       <div className="flex items-center gap-2">
-        <FileText className="h-4 w-4" />
-        <span>{tipoDocumento}: {numeroDocumento}</span>
+        <User className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm">Gênero: {genero}</span>
       </div>
-      <div className="flex items-center gap-2">
-        <User className="h-4 w-4" />
-        <span>Gênero: {genero}</span>
-      </div>
-      {registradorInfo && (
-        <div className="col-span-2 mt-2 p-2 bg-blue-50 rounded-md">
-          <div className="text-sm font-medium text-blue-700 mb-1">Informações do Responsável:</div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-blue-600" />
-              <span className="text-blue-700">{registradorInfo.nome_completo}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-blue-600" />
-              <span className="text-blue-700">{registradorInfo.email}</span>
-            </div>
+
+      {hasRegistrador && registradorInfo && (
+        <div className="mt-2 pt-2 border-t border-gray-200">
+          <div className="text-sm text-muted-foreground">
+            <p>Registrado por: {registradorInfo.nome_completo}</p>
+            <p>Email do registrador: {registradorInfo.email}</p>
           </div>
         </div>
       )}
