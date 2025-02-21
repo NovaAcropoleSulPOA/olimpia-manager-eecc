@@ -28,6 +28,19 @@ export const useAthleteProfileData = (userId: string | undefined, currentEventId
         return null;
       }
 
+      console.log('Retrieved profile data:', {
+        userId,
+        eventId: currentEventId,
+        numero_identificador: profileData.numero_identificador,
+        pagamento_status: profileData.pagamento_status,
+        payment_info: {
+          status: profileData.pagamento_status,
+          valor: profileData.pagamento_valor,
+          data_criacao: profileData.pagamento_data_criacao,
+          data_validacao: profileData.data_validacao
+        }
+      });
+
       // Get user roles
       const { data: rolesData, error: rolesError } = await supabase
         .from('papeis_usuarios')
@@ -52,34 +65,13 @@ export const useAthleteProfileData = (userId: string | undefined, currentEventId
         codigo: roleData.perfis.perfil_tipo.codigo
       }));
 
-      // Get the most recent payment status directly from the pagamentos table
-      const { data: paymentData, error: paymentError } = await supabase
-        .from('pagamentos')
-        .select('status')
-        .eq('atleta_id', userId)
-        .eq('evento_id', currentEventId)
-        .order('data_criacao', { ascending: false })
-        .maybeSingle();
-
-      if (paymentError) {
-        console.error('Error fetching payment status:', paymentError);
-      }
-
-      // Use the payment status from the pagamentos table if available,
-      // otherwise use the status from the view, defaulting to 'pendente'
-      const paymentStatus = (paymentData?.status || profileData.pagamento_status || 'pendente').toLowerCase();
-
-      console.log('Payment status determined:', {
-        fromPaymentTable: paymentData?.status,
-        fromProfileView: profileData.pagamento_status,
-        finalStatus: paymentStatus
-      });
+      console.log('Transformed roles:', transformedRoles);
 
       return {
         ...profileData,
-        id: profileData.atleta_id, // Ensure id is set from atleta_id
+        id: profileData.atleta_id,
         papeis: transformedRoles,
-        pagamento_status: paymentStatus
+        pagamento_status: profileData.pagamento_status?.toLowerCase() || 'pendente'
       } as AthleteProfileData;
     },
     enabled: !!userId && !!currentEventId,
