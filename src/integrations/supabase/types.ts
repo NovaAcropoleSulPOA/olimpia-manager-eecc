@@ -1089,7 +1089,7 @@ export type Database = {
           id: string
           nome_completo: string
           numero_documento: string
-          numero_identificador: string
+          numero_identificador: string | null
           telefone: string
           tipo_documento: string
           usuario_registrador_id: string | null
@@ -1105,7 +1105,7 @@ export type Database = {
           id?: string
           nome_completo: string
           numero_documento: string
-          numero_identificador: string
+          numero_identificador?: string | null
           telefone: string
           tipo_documento: string
           usuario_registrador_id?: string | null
@@ -1121,7 +1121,7 @@ export type Database = {
           id?: string
           nome_completo?: string
           numero_documento?: string
-          numero_identificador?: string
+          numero_identificador?: string | null
           telefone?: string
           tipo_documento?: string
           usuario_registrador_id?: string | null
