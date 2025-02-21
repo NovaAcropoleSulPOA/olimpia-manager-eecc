@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Phone, Mail, Building2, MessageCircle, FileText, User, Hash } from "lucide-react";
+import { Phone, Mail, Building2, MessageCircle, FileText, User, Hash, UserPlus2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -269,6 +269,27 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     </div>
   );
 
+  const { data: registradorInfo } = useQuery({
+    queryKey: ['registrador', registration.usuario_registrador_id],
+    queryFn: async () => {
+      if (!registration.usuario_registrador_id) return null;
+      
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('nome_completo, email')
+        .eq('id', registration.usuario_registrador_id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching registrador info:', error);
+        return null;
+      }
+
+      return data;
+    },
+    enabled: !!registration.usuario_registrador_id,
+  });
+
   const cardContent = (
     <Card className={cn(
       getStatusColor(registration.status_pagamento),
@@ -282,6 +303,12 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               {isCurrentUser && (
                 <Badge variant="secondary" className="bg-olimpics-orange-primary text-white">
                   Meu Cadastro
+                </Badge>
+              )}
+              {registration.usuario_registrador_id && (
+                <Badge variant="secondary" className="bg-blue-500 text-white">
+                  <UserPlus2 className="h-3 w-3 mr-1" />
+                  Dependente
                 </Badge>
               )}
             </div>
@@ -356,6 +383,12 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                 {registration.numero_identificador}
               </Badge>
             )}
+            {registration.usuario_registrador_id && (
+              <Badge variant="secondary" className="bg-blue-500 text-white">
+                <UserPlus2 className="h-3 w-3 mr-1" />
+                Dependente
+              </Badge>
+            )}
           </DialogTitle>
           <DialogDescription className="space-y-4">
             <div className="bg-muted/50 p-4 rounded-lg space-y-2">
@@ -386,6 +419,21 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
                   <User className="h-4 w-4" />
                   <span>Gênero: {registration.genero}</span>
                 </div>
+                {registration.usuario_registrador_id && registradorInfo && (
+                  <div className="col-span-2 mt-2 p-2 bg-blue-50 rounded-md">
+                    <div className="text-sm font-medium text-blue-700 mb-1">Informações do Responsável:</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-blue-600" />
+                        <span className="text-blue-700">{registradorInfo.nome_completo}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-blue-600" />
+                        <span className="text-blue-700">{registradorInfo.email}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               {onPaymentStatusChange && (
                 <>
