@@ -10,10 +10,10 @@ interface RegistradorInfo {
   telefone: string;
 }
 
-interface UserProfile {
+interface PapeisUsuarios {
   perfis: {
     nome: string;
-  };
+  }
 }
 
 export const useAthleteCardData = (registration: AthleteManagement) => {
@@ -40,7 +40,7 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
     enabled: !!registration.id,
   });
 
-  const { data: userProfiles } = useQuery<UserProfile[]>({
+  const { data: userProfiles } = useQuery<PapeisUsuarios[]>({
     queryKey: ['user-profiles', registration.id, registration.evento_id],
     queryFn: async () => {
       if (!registration.id || !registration.evento_id) return [];
@@ -52,7 +52,7 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
         .eq('evento_id', registration.evento_id);
 
       if (error) throw error;
-      return (data || []) as UserProfile[];
+      return data || [];
     },
     enabled: !!registration.id && !!registration.evento_id,
   });
