@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Hash } from "lucide-react";
@@ -218,6 +219,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
             genero={registration.genero}
             onWhatsAppClick={handleWhatsAppClick}
             registradorInfo={registradorInfo}
+            hasRegistrador={!!registration.usuario_registrador_id}
           />
         </div>
       </CardContent>

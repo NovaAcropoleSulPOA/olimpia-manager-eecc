@@ -9,7 +9,7 @@ interface RegistradorInfo {
 }
 
 interface AthleteInfoGridProps {
-  email: string;
+  email: string | null;
   telefone: string;
   filialNome: string;
   tipoDocumento: string;
@@ -17,6 +17,7 @@ interface AthleteInfoGridProps {
   genero: string;
   onWhatsAppClick: (phone: string) => void;
   registradorInfo?: RegistradorInfo | null;
+  hasRegistrador?: boolean;
 }
 
 export const AthleteInfoGrid: React.FC<AthleteInfoGridProps> = ({
@@ -27,13 +28,17 @@ export const AthleteInfoGrid: React.FC<AthleteInfoGridProps> = ({
   numeroDocumento,
   genero,
   onWhatsAppClick,
-  registradorInfo
+  registradorInfo,
+  hasRegistrador
 }) => {
+  // Use registrador's email if the dependent doesn't have one
+  const displayEmail = email || (hasRegistrador && registradorInfo?.email) || '';
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
       <div className="flex items-center gap-2">
         <Mail className="h-4 w-4" />
-        <span>{email}</span>
+        <span>{displayEmail}</span>
       </div>
       <div className="flex items-center gap-2">
         <MessageCircle className="h-4 w-4" />
