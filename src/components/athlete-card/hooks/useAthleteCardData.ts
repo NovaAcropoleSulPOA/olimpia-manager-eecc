@@ -10,17 +10,10 @@ interface RegistradorInfo {
   telefone: string;
 }
 
-// Update interface to match Supabase's response structure
 interface PerfilData {
   perfil_id: {
     nome: string;
   };
-}
-
-interface SupabasePerfilResponse {
-  perfil_id: {
-    nome: string;
-  } | null;
 }
 
 export const useAthleteCardData = (registration: AthleteManagement) => {
@@ -54,20 +47,22 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
       
       const { data, error } = await supabase
         .from('papeis_usuarios')
-        .select('perfil_id(nome)')
+        .select(`
+          perfil:perfil_id (
+            nome
+          )
+        `)
         .eq('usuario_id', registration.id)
         .eq('evento_id', registration.evento_id);
 
       if (error) throw error;
       
       // Transform the data to match our interface
-      const transformedData = (data as SupabasePerfilResponse[] || []).map(item => ({
+      return (data || []).map(item => ({
         perfil_id: {
-          nome: item.perfil_id?.nome || ''
+          nome: item.perfil?.nome || ''
         }
       }));
-
-      return transformedData;
     },
     enabled: !!registration.id && !!registration.evento_id,
   });
