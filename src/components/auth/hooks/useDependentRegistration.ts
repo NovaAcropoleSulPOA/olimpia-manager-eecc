@@ -1,13 +1,15 @@
-
 import { useState } from 'react';
 import { toast } from "sonner";
 import { DependentRegisterFormData } from '../types/form-types';
 import { formatBirthDate } from '../utils/registrationUtils';
 import { supabase } from '@/lib/supabase';
 import { differenceInYears } from 'date-fns';
+import { useQueryClient } from '@tanstack/react-query';
+import { DEPENDENTS_QUERY_KEY } from '../../athlete/DependentsTable';
 
 export const useDependentRegistration = (onSuccess?: () => void) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (values: DependentRegisterFormData) => {
     let toastId: string | number | undefined;
@@ -26,7 +28,6 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
         throw new Error('Data de nascimento inválida');
       }
 
-      // Calculate age
       const age = differenceInYears(new Date(), values.data_nascimento);
       console.log('[Dependent Registration] Calculated age:', age);
       
@@ -37,7 +38,6 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
         );
       }
 
-      // Get current user's ID
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
       if (!user?.id) {
@@ -46,7 +46,6 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
 
       console.log('[Dependent Registration] Current user ID:', user.id);
 
-      // Get current user's profile data
       const { data: parentUser, error: parentError } = await supabase
         .from('usuarios')
         .select('telefone, filial_id')
@@ -67,7 +66,6 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
 
       console.log('[Dependent Registration] Creating dependent user...');
 
-      // Create the dependent user
       const { data: dependent, error: userCreationError } = await supabase
         .from('usuarios')
         .insert({
@@ -96,7 +94,6 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
       console.log('[Dependent Registration] Dependent user created:', dependent);
 
       try {
-        // Process dependent registration (profiles and payment)
         const { error: registrationError } = await supabase
           .rpc('process_dependent_registration', {
             p_dependent_id: dependent.id,
@@ -112,12 +109,10 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
         console.log('[Dependent Registration] Registration processed successfully');
       } catch (processError) {
         console.error('[Dependent Registration] Process registration error:', processError);
-        // Clean up the created user if registration process fails
         await supabase.from('usuarios').delete().eq('id', dependent.id);
         throw processError;
       }
 
-      // Register modalities if any selected
       if (values.modalidades.length > 0) {
         console.log('[Dependent Registration] Registering modalities:', values.modalidades);
         
@@ -140,7 +135,6 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
           }
         } catch (modalityError) {
           console.error('[Dependent Registration] Error registering modalities:', modalityError);
-          // Don't throw here, as the main registration was successful
           toast.error('Algumas modalidades não puderam ser registradas');
         }
       }
@@ -150,11 +144,15 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
       toast.success('Dependente cadastrado com sucesso!');
       onSuccess?.();
 
+      // Invalidate the dependents query to trigger a refresh
+      await queryClient.invalidateQueries({
+        queryKey: DEPENDENTS_QUERY_KEY(user.id, eventId)
+      });
+
     } catch (error: any) {
       console.error('[Dependent Registration] Error:', error);
       toast.dismiss(toastId);
       toast.error(error.message || 'Erro ao cadastrar dependente');
-      setIsSubmitting(false);
     } finally {
       console.log('[Dependent Registration] Finalizing process');
       setIsSubmitting(false);

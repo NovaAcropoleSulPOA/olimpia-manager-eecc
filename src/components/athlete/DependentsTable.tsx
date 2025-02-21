@@ -1,6 +1,6 @@
 
 import { formatToCurrency } from "@/utils/formatters";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { differenceInYears } from "date-fns";
 import { supabase } from "@/lib/supabase";
 import {
@@ -31,8 +31,10 @@ interface DependentsTableProps {
 }
 
 export function DependentsTable({ userId, eventId }: DependentsTableProps) {
+  const queryKey = ['dependents', userId, eventId];
+  
   const { data: dependents, isLoading } = useQuery({
-    queryKey: ['dependents', userId, eventId],
+    queryKey,
     queryFn: async () => {
       console.log('Fetching dependents for user:', userId, 'event:', eventId);
       
@@ -158,3 +160,6 @@ export function DependentsTable({ userId, eventId }: DependentsTableProps) {
     </div>
   );
 }
+
+// Export the query key for external use
+export const DEPENDENTS_QUERY_KEY = (userId: string, eventId: string) => ['dependents', userId, eventId];
