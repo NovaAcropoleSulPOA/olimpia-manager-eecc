@@ -10,45 +10,41 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (values: DependentRegisterFormData) => {
-    console.log('Starting dependent registration process:', values);
+    let toastId: string | number | undefined;
     
     try {
+      console.log('[Dependent Registration] Starting process with values:', values);
       setIsSubmitting(true);
+      toastId = toast.loading('Cadastrando dependente...');
 
       if (!values.data_nascimento) {
-        toast.error('Data de nascimento é obrigatória');
-        setIsSubmitting(false);
-        return;
+        throw new Error('Data de nascimento é obrigatória');
       }
 
       const formattedBirthDate = formatBirthDate(values.data_nascimento);
       if (!formattedBirthDate) {
-        toast.error('Data de nascimento inválida');
-        setIsSubmitting(false);
-        return;
+        throw new Error('Data de nascimento inválida');
       }
 
       // Calculate age
       const age = differenceInYears(new Date(), values.data_nascimento);
-      console.log('Calculated age:', age);
+      console.log('[Dependent Registration] Calculated age:', age);
       
-      // Check if user is 13 or older
       if (age >= 13) {
-        toast.error(
+        throw new Error(
           'Apenas menores de 13 anos podem ser cadastrados como dependentes. ' +
           'Para maiores de 13 anos, utilize o cadastro padrão na página inicial.'
         );
-        setIsSubmitting(false);
-        return;
       }
 
-      // Get current user's ID and event ID
-      const { data: { user } } = await supabase.auth.getUser();
+      // Get current user's ID
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
       if (!user?.id) {
-        toast.error('Erro ao obter informações do usuário');
-        setIsSubmitting(false);
-        return;
+        throw new Error('Usuário não autenticado');
       }
+
+      console.log('[Dependent Registration] Current user ID:', user.id);
 
       // Get current user's profile data
       const { data: parentUser, error: parentError } = await supabase
@@ -57,31 +53,22 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
         .eq('id', user.id)
         .single();
 
-      if (parentError || !parentUser) {
-        console.error('Error fetching parent user data:', parentError);
-        toast.error('Erro ao obter informações do usuário principal');
-        setIsSubmitting(false);
-        return;
+      if (parentError) throw parentError;
+      if (!parentUser) {
+        throw new Error('Dados do usuário principal não encontrados');
       }
+
+      console.log('[Dependent Registration] Parent user data:', parentUser);
 
       const eventId = localStorage.getItem('currentEventId');
       if (!eventId) {
-        toast.error('Erro ao obter informações do evento');
-        setIsSubmitting(false);
-        return;
+        throw new Error('ID do evento não encontrado');
       }
 
-      console.log('Creating dependent user with data:', {
-        nome: values.nome,
-        telefone: parentUser.telefone,
-        filial_id: parentUser.filial_id,
-        documento: values.numero_documento,
-        genero: values.genero,
-        data_nascimento: formattedBirthDate
-      });
+      console.log('[Dependent Registration] Creating dependent user...');
 
-      // Create the dependent user first
-      const { data: dependent, error: userError } = await supabase
+      // Create the dependent user
+      const { data: dependent, error: userCreationError } = await supabase
         .from('usuarios')
         .insert({
           nome_completo: values.nome,
@@ -97,14 +84,16 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
         .select()
         .single();
 
-      if (userError) {
-        console.error('Error registering dependent:', userError);
-        toast.error('Erro ao cadastrar dependente');
-        setIsSubmitting(false);
-        return;
+      if (userCreationError) {
+        console.error('[Dependent Registration] Error creating user:', userCreationError);
+        throw userCreationError;
       }
 
-      console.log('Dependent user created successfully:', dependent);
+      if (!dependent) {
+        throw new Error('Erro ao criar usuário dependente');
+      }
+
+      console.log('[Dependent Registration] Dependent user created:', dependent);
 
       // Process dependent registration (profiles and payment)
       const { error: registrationError } = await supabase
@@ -115,16 +104,16 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
         });
 
       if (registrationError) {
-        console.error('Error processing registration:', registrationError);
-        toast.error('Erro ao processar registro do dependente');
-        setIsSubmitting(false);
-        return;
+        console.error('[Dependent Registration] Process registration error:', registrationError);
+        throw registrationError;
       }
 
-      console.log('Processing modality registrations:', values.modalidades);
+      console.log('[Dependent Registration] Registration processed, handling modalities...');
 
-      // Register the dependent in the selected modalities
+      // Register modalities if any selected
       if (values.modalidades.length > 0) {
+        console.log('[Dependent Registration] Registering modalities:', values.modalidades);
+        
         const modalityRegistrations = values.modalidades.map(modalityId => ({
           atleta_id: dependent.id,
           modalidade_id: modalityId,
@@ -138,21 +127,22 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
           .insert(modalityRegistrations);
 
         if (modalitiesError) {
-          console.error('Error registering modalities:', modalitiesError);
-          toast.error('Erro ao cadastrar modalidades');
-          setIsSubmitting(false);
-          return;
+          console.error('[Dependent Registration] Modalities registration error:', modalitiesError);
+          throw modalitiesError;
         }
       }
 
-      console.log('Registration process completed successfully');
+      console.log('[Dependent Registration] Process completed successfully');
+      toast.dismiss(toastId);
       toast.success('Dependente cadastrado com sucesso!');
       onSuccess?.();
 
-    } catch (error) {
-      console.error('Registration process error:', error);
-      toast.error('Erro ao cadastrar dependente');
+    } catch (error: any) {
+      console.error('[Dependent Registration] Error:', error);
+      toast.dismiss(toastId);
+      toast.error(error.message || 'Erro ao cadastrar dependente');
     } finally {
+      console.log('[Dependent Registration] Finalizing process');
       setIsSubmitting(false);
     }
   };
