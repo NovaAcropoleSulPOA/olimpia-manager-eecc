@@ -10,7 +10,7 @@ import type { RegistrationFeesProps, Fee } from './registration-fees/types';
 export default function RegistrationFees({ eventId, userProfileId }: RegistrationFeesProps) {
   console.log('RegistrationFees component mounted with:', { eventId, userProfileId });
   
-  const { data: fees, isLoading } = useRegistrationFees(eventId);
+  const { data: fees, isLoading, error } = useRegistrationFees(eventId);
 
   console.log('Current fees data:', fees);
 
@@ -19,6 +19,25 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
       <div className="flex items-center justify-center p-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-orange-primary" />
       </div>
+    );
+  }
+
+  if (error) {
+    console.error('Error loading registration fees:', error);
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5 text-olimpics-orange-primary" />
+            Taxas de Inscrição
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground">
+            Erro ao carregar taxas de inscrição. Por favor, tente novamente mais tarde.
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -66,19 +85,21 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
       <CardContent>
         <div className="space-y-6">
           {/* Regular fees */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {sortedRegularFees.map((fee) => (
-              <RegistrationFeeCard
-                key={fee.id}
-                fee={fee}
-              />
-            ))}
-          </div>
+          {sortedRegularFees.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {sortedRegularFees.map((fee) => (
+                <RegistrationFeeCard
+                  key={fee.id}
+                  fee={fee}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Show separator and exempt fees only if there are any */}
           {exemptFees.length > 0 && (
             <>
-              <Separator className="my-6" />
+              {sortedRegularFees.length > 0 && <Separator className="my-6" />}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {exemptFees.map((fee) => (
                   <RegistrationFeeCard

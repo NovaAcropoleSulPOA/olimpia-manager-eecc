@@ -26,7 +26,7 @@ export function useRegistrationFees(eventId: string | null) {
           qr_code_image,
           qr_code_codigo,
           link_formulario,
-          perfil:perfis!fk_taxas_inscricao_perfil (
+          perfil:perfis (
             id,
             nome
           )
@@ -48,10 +48,8 @@ export function useRegistrationFees(eventId: string | null) {
         .from('papeis_usuarios')
         .select(`
           perfis (
-            nome,
-            perfil_tipo:perfil_tipo_id (
-              codigo
-            )
+            id,
+            nome
           )
         `)
         .eq('usuario_id', user.id)
@@ -71,24 +69,15 @@ export function useRegistrationFees(eventId: string | null) {
       }
 
       const transformedFees = feesData.map(fee => {
-        const normalizedFee = {
-          ...fee,
-          perfil: Array.isArray(fee.perfil) ? fee.perfil[0] : fee.perfil
-        };
-
         // Check if this fee matches any of the user's profiles
-        const isUserFee = userProfiles?.some((userProfile) => {
-          return userProfile.perfis.some(profile => 
-            profile.nome === normalizedFee.perfil?.nome
-          );
-        });
+        const isUserFee = userProfiles?.some((userProfile) => 
+          userProfile.perfis?.id === fee.perfil?.id
+        );
 
-        const result: Fee = {
-          ...normalizedFee,
+        return {
+          ...fee,
           isUserFee: isUserFee || false
         };
-
-        return result;
       });
 
       console.log('Transformed fees:', transformedFees);
@@ -96,6 +85,6 @@ export function useRegistrationFees(eventId: string | null) {
     },
     enabled: !!eventId,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    gcTime: 30 * 60 * 1000 // Keep data in garbage collection for 30 minutes (formerly cacheTime)
+    gcTime: 30 * 60 * 1000 // Keep data in garbage collection for 30 minutes
   });
 }
