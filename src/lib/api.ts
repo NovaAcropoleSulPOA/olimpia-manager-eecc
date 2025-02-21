@@ -1,3 +1,4 @@
+
 import { supabase } from './supabase';
 
 export interface AthleteModality {
@@ -239,9 +240,10 @@ export const fetchAthleteManagement = async (filterByBranch: boolean = false, ev
           status_confirmacao: record.status_confirmacao,
           filial_id: record.filial_id,
           filial_nome: record.filial_nome,
-          status_pagamento: paymentStatus,
+          status_pagamento: paymentStatus as 'pendente' | 'confirmado' | 'cancelado',
           usuario_registrador_id: record.usuario_registrador_id,
-          modalidades: []
+          modalidades: [],
+          evento_id: eventId // Added this line to include evento_id
         });
       }
 
