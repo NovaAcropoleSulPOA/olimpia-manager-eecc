@@ -503,6 +503,7 @@ export type Database = {
           data_validacao: string | null
           evento_id: string | null
           id: number
+          isento: boolean
           numero_identificador: string
           status: string | null
           taxa_inscricao_id: number
@@ -516,6 +517,7 @@ export type Database = {
           data_validacao?: string | null
           evento_id?: string | null
           id?: number
+          isento?: boolean
           numero_identificador: string
           status?: string | null
           taxa_inscricao_id: number
@@ -529,6 +531,7 @@ export type Database = {
           data_validacao?: string | null
           evento_id?: string | null
           id?: number
+          isento?: boolean
           numero_identificador?: string
           status?: string | null
           taxa_inscricao_id?: number
