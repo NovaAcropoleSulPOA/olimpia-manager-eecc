@@ -70,7 +70,7 @@ export function useRegistrationFees(eventId: string | null) {
 
       const transformedFees: Fee[] = (feesData as any[]).map(fee => {
         // Check if this fee matches any of the user's profiles
-        const isUserFee = Array.isArray(userProfiles) && userProfiles.some((userProfile: SupabaseUserProfile) => {
+        const isUserFee = Array.isArray(userProfiles) && userProfiles.some((userProfile: any) => {
           return fee.perfil && userProfile.perfis && userProfile.perfis.id === fee.perfil.id;
         });
 
