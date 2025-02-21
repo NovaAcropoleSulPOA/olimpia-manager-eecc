@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Hash } from "lucide-react";
@@ -45,7 +44,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
       if (!registration.id) return null;
       const { data, error } = await supabase
         .from('pagamentos')
-        .select('valor')
+        .select('valor, isento')
         .eq('atleta_id', registration.id)
         .maybeSingle();
 
@@ -81,13 +80,16 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
 
   React.useEffect(() => {
     if (registration?.modalidades) {
-      const initialStatuses = registration.modalidades.reduce((acc, modality) => ({
-        ...acc,
-        [modality.id]: modality.status
-      }), {});
+      const initialStatuses = registration.modalidades.reduce((acc, modality) => {
+        const status = paymentData?.isento ? 'confirmado' : modality.status;
+        return {
+          ...acc,
+          [modality.id]: status
+        };
+      }, {});
       setModalityStatuses(initialStatuses);
     }
-  }, [registration?.modalidades]);
+  }, [registration?.modalidades, paymentData?.isento]);
 
   const handleWhatsAppClick = (phone: string) => {
     const formattedPhone = phone.replace(/\D/g, '');
@@ -153,6 +155,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   };
 
   const getStatusColor = (status: string) => {
+    if (paymentData?.isento) return 'border-l-4 border-l-green-500 bg-green-50';
+
     switch (status.toLowerCase()) {
       case 'confirmado': return 'border-l-4 border-l-green-500 bg-green-50';
       case 'pendente': return 'border-l-4 border-l-yellow-500 bg-yellow-50';
@@ -163,6 +167,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   };
 
   const getStatusBadgeStyle = (status: string) => {
+    if (paymentData?.isento) return 'bg-green-100 text-green-800 hover:bg-green-200';
+
     switch (status.toLowerCase()) {
       case 'confirmado': return 'bg-green-100 text-green-800 hover:bg-green-200';
       case 'pendente': return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
@@ -243,6 +249,11 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               <Badge variant="secondary" className="bg-blue-500 text-white">
                 <UserPlus2 className="h-3 w-3 mr-1" />
                 Dependente
+              </Badge>
+            )}
+            {paymentData?.isento && (
+              <Badge variant="secondary" className="bg-green-500 text-white">
+                Isento
               </Badge>
             )}
           </DialogTitle>
