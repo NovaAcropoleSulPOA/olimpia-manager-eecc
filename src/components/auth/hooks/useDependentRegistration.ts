@@ -60,12 +60,14 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
           numero_documento: values.numero_documento.replace(/\D/g, ''),
           genero: values.genero,
           data_nascimento: formattedBirthDate,
-          usuario_registrador_id: user.id
+          usuario_registrador_id: user.id,
+          confirmado: true, // Dependents are automatically confirmed
+          numero_identificador: '000' // Dependents use '000' as identifier since they don't participate directly
         })
         .select()
         .single();
 
-      if (userError || !dependent) {
+      if (userError) {
         console.error('Error registering dependent:', userError);
         toast.error('Erro ao cadastrar dependente');
         return;
