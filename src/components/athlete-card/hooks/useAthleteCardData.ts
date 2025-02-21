@@ -16,6 +16,13 @@ interface PerfilData {
   };
 }
 
+// Define the shape of the data returned by Supabase
+interface SupabasePerfilResponse {
+  perfil: {
+    nome: string;
+  } | null;
+}
+
 export const useAthleteCardData = (registration: AthleteManagement) => {
   const [justifications, setJustifications] = useState<Record<string, string>>({});
   const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({});
@@ -57,8 +64,8 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
 
       if (error) throw error;
       
-      // Transform the data to match our interface
-      return (data || []).map(item => ({
+      // Type assertion and transformation
+      return ((data as SupabasePerfilResponse[]) || []).map(item => ({
         perfil_id: {
           nome: item.perfil?.nome || ''
         }
