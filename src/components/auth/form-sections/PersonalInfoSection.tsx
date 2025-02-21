@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -13,9 +14,10 @@ import { UseFormReturn } from 'react-hook-form';
 
 interface PersonalInfoSectionProps {
   form: UseFormReturn<any>;
+  hideContactInfo?: boolean;
 }
 
-export const PersonalInfoSection = ({ form }: PersonalInfoSectionProps) => {
+export const PersonalInfoSection = ({ form, hideContactInfo }: PersonalInfoSectionProps) => {
   const [dateInputValue, setDateInputValue] = useState("");
   const [dateError, setDateError] = useState<string | null>(null);
 
