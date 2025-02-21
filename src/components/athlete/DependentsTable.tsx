@@ -133,7 +133,7 @@ export function DependentsTable({ userId, eventId }: DependentsTableProps) {
               </TableCell>
               <TableCell>
                 {dependent.modalidades[0]?.status_pagamento === 'confirmado' ? (
-                  <span className="text-green-600">Pago</span>
+                  <span className="text-green-600">Confirmado</span>
                 ) : (
                   <span className="text-red-600">Pendente</span>
                 )}
