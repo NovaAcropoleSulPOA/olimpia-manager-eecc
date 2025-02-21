@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link as LinkIcon, Phone, User, Calendar, AlertCircle } from 'lucide-react';
+import { Link as LinkIcon, Phone, User, Calendar, AlertCircle, Star } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { format } from 'date-fns';
 import { Fee } from './types';
@@ -33,13 +33,13 @@ export function RegistrationFeeCard({
     <Card 
       className={cn(
         "relative overflow-hidden transition-all",
-        isUserFee ? "ring-2 ring-olimpics-orange-primary bg-orange-50/80 shadow-lg" : "hover:shadow-md"
+        isUserFee ? "ring-2 ring-olimpics-orange-primary bg-orange-50 shadow-lg" : "hover:shadow-md"
       )}
     >
       {isUserFee && (
         <div className="absolute top-0 right-0 left-0 bg-olimpics-orange-primary text-white py-1.5 px-3 text-center text-sm font-medium">
           <div className="flex items-center justify-center gap-2">
-            <AlertCircle className="h-4 w-4" />
+            <Star className="h-4 w-4" />
             Sua taxa de inscrição
           </div>
         </div>
@@ -53,7 +53,7 @@ export function RegistrationFeeCard({
           <div className="space-y-2">
             <h3 className={cn(
               "font-semibold",
-              isUserFee ? "text-xl" : "text-lg"
+              isUserFee ? "text-xl text-olimpics-orange-primary" : "text-lg"
             )}>{fee.perfil?.nome || 'Taxa de Inscrição'}</h3>
             <p className={cn(
               "font-bold",
