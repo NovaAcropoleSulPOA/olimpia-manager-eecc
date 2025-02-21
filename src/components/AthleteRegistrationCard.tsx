@@ -1,17 +1,13 @@
 
 import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { AthleteManagement } from '@/lib/api';
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { updatePaymentAmount } from '@/lib/api';
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { AthleteCardHeader } from './athlete-card/AthleteCardHeader';
-import { AthleteInfoGrid } from './athlete-card/AthleteInfoGrid';
-import { AthleteDialogContent } from './athlete-card/AthleteDialogContent';
 import { useAuth } from '@/contexts/AuthContext';
+import { AthleteDialogContent } from './athlete-card/AthleteDialogContent';
+import { AthleteCard } from './athlete-card/components/AthleteCard';
+import { useAthleteCardData } from './athlete-card/hooks/useAthleteCardData';
 
 interface AthleteRegistrationCardProps {
   registration: AthleteManagement;
@@ -28,67 +24,23 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
 }) => {
   const { user } = useAuth();
   const isDelegationView = user?.filial_id === registration.filial_id;
-
-  const [justifications, setJustifications] = React.useState<Record<string, string>>({});
-  const [isUpdating, setIsUpdating] = React.useState<Record<string, boolean>>({});
-  const [modalityStatuses, setModalityStatuses] = React.useState<Record<string, string>>({});
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [isUpdatingAmount, setIsUpdatingAmount] = React.useState(false);
-  const [localInputAmount, setLocalInputAmount] = React.useState<string>('');
-  const [hasInitialized, setHasInitialized] = React.useState(false);
 
-  const { data: paymentData, refetch: refetchPayment } = useQuery({
-    queryKey: ['payment-amount', registration.id],
-    queryFn: async () => {
-      if (!registration.id) return null;
-      const { data, error } = await supabase
-        .from('pagamentos')
-        .select('valor, isento')
-        .eq('atleta_id', registration.id)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!registration.id,
-  });
-
-  const { data: registradorInfo } = useQuery({
-    queryKey: ['registrador', registration.usuario_registrador_id],
-    queryFn: async () => {
-      if (!registration.usuario_registrador_id) return null;
-      
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('nome_completo, email, telefone')
-        .eq('id', registration.usuario_registrador_id)
-        .single();
-
-      if (error) return null;
-      return data;
-    },
-    enabled: !!registration.usuario_registrador_id,
-  });
-
-  React.useEffect(() => {
-    if (paymentData?.valor && !hasInitialized) {
-      setLocalInputAmount(paymentData.valor.toString());
-      setHasInitialized(true);
-    }
-  }, [paymentData, hasInitialized]);
-
-  React.useEffect(() => {
-    if (registration?.modalidades) {
-      const initialStatuses = registration.modalidades.reduce((acc, modality) => {
-        const status = paymentData?.isento ? 'confirmado' : modality.status;
-        return {
-          ...acc,
-          [modality.id]: status
-        };
-      }, {});
-      setModalityStatuses(initialStatuses);
-    }
-  }, [registration?.modalidades, paymentData?.isento]);
+  const {
+    justifications,
+    setJustifications,
+    isUpdating,
+    setIsUpdating,
+    modalityStatuses,
+    setModalityStatuses,
+    isUpdatingAmount,
+    setIsUpdatingAmount,
+    localInputAmount,
+    setLocalInputAmount,
+    paymentData,
+    refetchPayment,
+    registradorInfo
+  } = useAthleteCardData(registration);
 
   const handleWhatsAppClick = (phone: string) => {
     const formattedPhone = phone.replace(/\D/g, '');
@@ -177,45 +129,21 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     }
   };
 
-  const cardContent = (
-    <Card className={cn(
-      getStatusColor(registration.status_pagamento),
-      isCurrentUser && 'ring-2 ring-olimpics-orange-primary'
-    )}>
-      <CardContent className="p-6">
-        <div className="space-y-4">
-          <AthleteCardHeader
-            nome={registration.nome_atleta}
-            isCurrentUser={isCurrentUser}
-            hasRegistrador={!!registration.usuario_registrador_id}
-            statusPagamento={registration.status_pagamento}
-            getStatusBadgeStyle={getStatusBadgeStyle}
-            modalidades={registration.modalidades}
-            isDependent={!!registration.usuario_registrador_id}
-          />
-          <AthleteInfoGrid
-            email={registration.usuario_registrador_id ? registradorInfo?.email : registration.email}
-            telefone={registration.telefone}
-            filialNome={registration.filial_nome}
-            tipoDocumento={registration.tipo_documento}
-            numeroDocumento={registration.numero_documento}
-            genero={registration.genero}
-            onWhatsAppClick={handleWhatsAppClick}
-            registradorInfo={registradorInfo}
-            hasRegistrador={!!registration.usuario_registrador_id}
-            showRegistradorEmail={!!registration.usuario_registrador_id}
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
-
   const validModalities = registration?.modalidades?.filter(m => m.modalidade) || [];
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
-        <div>{cardContent}</div>
+        <div>
+          <AthleteCard
+            registration={registration}
+            isCurrentUser={isCurrentUser}
+            registradorInfo={registradorInfo}
+            getStatusBadgeStyle={getStatusBadgeStyle}
+            getStatusColor={getStatusColor}
+            onWhatsAppClick={handleWhatsAppClick}
+          />
+        </div>
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[80vh]">
         <AthleteDialogContent
