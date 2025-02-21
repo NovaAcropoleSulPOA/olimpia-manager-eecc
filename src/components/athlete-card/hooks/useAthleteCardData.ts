@@ -13,7 +13,7 @@ interface RegistradorInfo {
 interface PerfilData {
   perfil_id: {
     nome: string;
-  }
+  };
 }
 
 export const useAthleteCardData = (registration: AthleteManagement) => {
@@ -47,16 +47,12 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
       
       const { data, error } = await supabase
         .from('papeis_usuarios')
-        .select(`
-          perfil_id:perfil_id(
-            nome
-          )
-        `)
+        .select('perfil_id:perfil_id(nome)')
         .eq('usuario_id', registration.id)
         .eq('evento_id', registration.evento_id);
 
       if (error) throw error;
-      return data || [];
+      return (data as PerfilData[]) || [];
     },
     enabled: !!registration.id && !!registration.evento_id,
   });
