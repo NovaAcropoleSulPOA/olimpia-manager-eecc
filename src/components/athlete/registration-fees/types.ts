@@ -32,5 +32,5 @@ export interface UserProfile {
   perfis: {
     id: number;
     nome: string;
-  } | null;
+  };
 }

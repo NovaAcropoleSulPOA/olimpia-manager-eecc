@@ -68,11 +68,11 @@ export function useRegistrationFees(eventId: string | null) {
         return [];
       }
 
-      const transformedFees: Fee[] = feesData.map(fee => {
+      const transformedFees: Fee[] = (feesData as any[]).map(fee => {
         // Check if this fee matches any of the user's profiles
-        const isUserFee = userProfiles?.some((userProfile: UserProfile) => {
-          if (!userProfile.perfis || !fee.perfil) return false;
-          return userProfile.perfis.id === fee.perfil.id;
+        const isUserFee = Array.isArray(userProfiles) && userProfiles.some(userProfile => {
+          const profile = userProfile.perfis;
+          return profile && fee.perfil && profile.id === fee.perfil.id;
         });
 
         return {
@@ -80,15 +80,15 @@ export function useRegistrationFees(eventId: string | null) {
           valor: fee.valor,
           isento: fee.isento,
           mostra_card: fee.mostra_card,
-          pix_key: fee.pix_key,
-          data_limite_inscricao: fee.data_limite_inscricao,
-          contato_nome: fee.contato_nome,
-          contato_telefone: fee.contato_telefone,
-          qr_code_image: fee.qr_code_image,
-          qr_code_codigo: fee.qr_code_codigo,
-          link_formulario: fee.link_formulario,
-          perfil: fee.perfil,
-          isUserFee: isUserFee
+          pix_key: fee.pix_key || null,
+          data_limite_inscricao: fee.data_limite_inscricao || null,
+          contato_nome: fee.contato_nome || null,
+          contato_telefone: fee.contato_telefone || null,
+          qr_code_image: fee.qr_code_image || null,
+          qr_code_codigo: fee.qr_code_codigo || null,
+          link_formulario: fee.link_formulario || null,
+          perfil: fee.perfil || null,
+          isUserFee: !!isUserFee
         };
       });
 
