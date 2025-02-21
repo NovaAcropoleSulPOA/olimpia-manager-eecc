@@ -28,6 +28,23 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
     enabled: !!registration.id,
   });
 
+  const { data: userProfiles } = useQuery({
+    queryKey: ['user-profiles', registration.id, registration.evento_id],
+    queryFn: async () => {
+      if (!registration.id || !registration.evento_id) return null;
+      
+      const { data, error } = await supabase
+        .from('papeis_usuarios')
+        .select('perfis:perfil_id(nome)')
+        .eq('usuario_id', registration.id)
+        .eq('evento_id', registration.evento_id);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!registration.id && !!registration.evento_id,
+  });
+
   const { data: registradorInfo } = useQuery({
     queryKey: ['registrador', registration.usuario_registrador_id],
     queryFn: async () => {
@@ -41,21 +58,13 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
 
       if (userError || !userInfo) return null;
 
-      const { data: roles, error: rolesError } = await supabase
-        .from('papeis_usuarios')
-        .select('perfil_id')
-        .eq('usuario_id', registration.id)
-        .eq('evento_id', registration.evento_id);
-
-      if (rolesError) return userInfo;
-
-      return {
-        ...userInfo,
-        roles: roles.map(r => r.perfil_id)
-      };
+      return userInfo;
     },
-    enabled: !!registration.usuario_registrador_id && !!registration.evento_id,
+    enabled: !!registration.usuario_registrador_id,
   });
+
+  const isDependent = !!registration.usuario_registrador_id || 
+    userProfiles?.some(profile => profile.perfis?.nome === 'Dependente');
 
   return {
     justifications,
@@ -72,6 +81,7 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
     setHasInitialized,
     paymentData,
     refetchPayment,
-    registradorInfo
+    registradorInfo,
+    isDependent
   };
 };

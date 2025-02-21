@@ -5,11 +5,11 @@ import { cn } from "@/lib/utils";
 import { AthleteManagement } from '@/lib/api';
 import { AthleteCardHeader } from '../AthleteCardHeader';
 import { AthleteInfoGrid } from '../AthleteInfoGrid';
+import { useAthleteCardData } from '../hooks/useAthleteCardData';
 
 interface AthleteCardProps {
   registration: AthleteManagement;
   isCurrentUser: boolean;
-  registradorInfo: any;
   getStatusBadgeStyle: (status: string) => string;
   getStatusColor: (status: string) => string;
   onWhatsAppClick: (phone: string) => void;
@@ -18,13 +18,14 @@ interface AthleteCardProps {
 export const AthleteCard: React.FC<AthleteCardProps> = ({
   registration,
   isCurrentUser,
-  registradorInfo,
   getStatusBadgeStyle,
   getStatusColor,
   onWhatsAppClick,
 }) => {
-  // A user is considered a dependent if they have a registrador ID
-  const isDependent = !!registration.usuario_registrador_id;
+  const { 
+    registradorInfo,
+    isDependent,
+  } = useAthleteCardData(registration);
 
   return (
     <Card 
@@ -38,7 +39,7 @@ export const AthleteCard: React.FC<AthleteCardProps> = ({
           <AthleteCardHeader
             nome={registration.nome_atleta}
             isCurrentUser={isCurrentUser}
-            hasRegistrador={isDependent}
+            hasRegistrador={!!registration.usuario_registrador_id}
             statusPagamento={registration.status_pagamento}
             getStatusBadgeStyle={getStatusBadgeStyle}
             modalidades={registration.modalidades}
@@ -53,8 +54,8 @@ export const AthleteCard: React.FC<AthleteCardProps> = ({
             genero={registration.genero}
             onWhatsAppClick={onWhatsAppClick}
             registradorInfo={registradorInfo}
-            hasRegistrador={isDependent}
-            showRegistradorEmail={isDependent}
+            hasRegistrador={!!registration.usuario_registrador_id}
+            showRegistradorEmail={!!registration.usuario_registrador_id}
           />
         </div>
       </CardContent>
