@@ -38,8 +38,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     localInputAmount,
     setLocalInputAmount,
     paymentData,
-    refetchPayment,
-    registradorInfo
+    refetchPayment
   } = useAthleteCardData(registration);
 
   const handleWhatsAppClick = (phone: string) => {
@@ -129,8 +128,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     }
   };
 
-  const validModalities = registration?.modalidades?.filter(m => m.modalidade) || [];
-
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
@@ -138,7 +135,6 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           <AthleteCard
             registration={registration}
             isCurrentUser={isCurrentUser}
-            registradorInfo={registradorInfo}
             getStatusBadgeStyle={getStatusBadgeStyle}
             getStatusColor={getStatusColor}
             onWhatsAppClick={handleWhatsAppClick}
@@ -151,14 +147,13 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           numeroIdentificador={registration.numero_identificador}
           isDependent={!!registration.usuario_registrador_id}
           isExempt={!!paymentData?.isento}
-          email={registration.usuario_registrador_id ? registradorInfo?.email : registration.email}
+          email={registration.email}
           telefone={registration.telefone}
           filialNome={isDelegationView ? undefined : registration.filial_nome}
           tipoDocumento={registration.tipo_documento}
           numeroDocumento={registration.numero_documento}
           genero={registration.genero}
           onWhatsAppClick={handleWhatsAppClick}
-          registradorInfo={registradorInfo}
           onPaymentStatusChange={onPaymentStatusChange ? handlePaymentStatusChange : undefined}
           paymentControlProps={onPaymentStatusChange ? {
             value: localInputAmount,
@@ -172,8 +167,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
               }
             }
           } : undefined}
-          modalitiesProps={validModalities.length > 0 ? {
-            modalidades: validModalities,
+          modalitiesProps={registration.modalidades.length > 0 ? {
+            modalidades: registration.modalidades,
             justifications,
             isUpdating,
             modalityStatuses,

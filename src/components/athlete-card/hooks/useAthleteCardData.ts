@@ -4,6 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { AthleteManagement } from '@/lib/api';
 
+interface UserProfile {
+  perfis: {
+    nome: string;
+  };
+}
+
 export const useAthleteCardData = (registration: AthleteManagement) => {
   const [justifications, setJustifications] = useState<Record<string, string>>({});
   const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({});
@@ -28,10 +34,10 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
     enabled: !!registration.id,
   });
 
-  const { data: userProfiles } = useQuery({
+  const { data: userProfiles } = useQuery<UserProfile[]>({
     queryKey: ['user-profiles', registration.id, registration.evento_id],
     queryFn: async () => {
-      if (!registration.id || !registration.evento_id) return null;
+      if (!registration.id || !registration.evento_id) return [];
       
       const { data, error } = await supabase
         .from('papeis_usuarios')
@@ -40,7 +46,7 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
         .eq('evento_id', registration.evento_id);
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!registration.id && !!registration.evento_id,
   });
