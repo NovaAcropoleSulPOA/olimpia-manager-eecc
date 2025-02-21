@@ -1,4 +1,3 @@
-
 import { AthleteRegistrationCard } from "@/components/AthleteRegistrationCard";
 import {
   Pagination,
@@ -10,7 +9,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { AthleteManagement } from "@/lib/api";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PaginatedAthleteListProps {
   athletes: AthleteManagement[];
@@ -18,6 +18,7 @@ interface PaginatedAthleteListProps {
   onPaymentStatusChange?: (athleteId: string, status: string) => Promise<void>;
   currentUserId?: string;
   itemsPerPage?: number;
+  delegationOnly?: boolean;
 }
 
 export function PaginatedAthleteList({
@@ -25,26 +26,34 @@ export function PaginatedAthleteList({
   onStatusChange,
   onPaymentStatusChange,
   currentUserId,
-  itemsPerPage = 6
+  itemsPerPage = 6,
+  delegationOnly = false
 }: PaginatedAthleteListProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const { user } = useAuth();
 
-  // Reset to first page when athletes list changes (e.g., due to filtering)
   useEffect(() => {
     setCurrentPage(1);
   }, [athletes.length]);
 
-  const totalPages = Math.ceil(athletes.length / itemsPerPage);
+  const filteredAthletes = useMemo(() => {
+    if (!delegationOnly || !user?.filial_id) {
+      return athletes;
+    }
+    
+    return athletes.filter(athlete => athlete.filial_id === user.filial_id);
+  }, [athletes, delegationOnly, user?.filial_id]);
+
+  const totalPages = Math.ceil(filteredAthletes.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentAthletes = athletes.slice(startIndex, endIndex);
+  const currentAthletes = filteredAthletes.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Generate array of page numbers to display
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxVisiblePages = 5;
@@ -53,14 +62,11 @@ export function PaginatedAthleteList({
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
 
-    // Always show first page
     pageNumbers.push(1);
 
-    // Calculate range around current page
     let start = Math.max(2, currentPage - 1);
     let end = Math.min(totalPages - 1, currentPage + 1);
 
-    // Adjust range if at edges
     if (currentPage <= 2) {
       end = Math.min(4, totalPages - 1);
     }
@@ -68,23 +74,23 @@ export function PaginatedAthleteList({
       start = Math.max(2, totalPages - 3);
     }
 
-    // Add ellipsis and numbers
-    if (start > 2) pageNumbers.push(-1); // ellipsis
+    if (start > 2) pageNumbers.push(-1);
     for (let i = start; i <= end; i++) {
       pageNumbers.push(i);
     }
-    if (end < totalPages - 1) pageNumbers.push(-1); // ellipsis
+    if (end < totalPages - 1) pageNumbers.push(-1);
 
-    // Always show last page
     if (totalPages > 1) pageNumbers.push(totalPages);
 
     return pageNumbers;
   };
 
-  if (athletes.length === 0) {
+  if (filteredAthletes.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        Nenhum atleta encontrado com os filtros selecionados.
+        {delegationOnly 
+          ? "Nenhum atleta encontrado na sua delegação com os filtros selecionados."
+          : "Nenhum atleta encontrado com os filtros selecionados."}
       </div>
     );
   }
@@ -146,7 +152,7 @@ export function PaginatedAthleteList({
       )}
 
       <div className="text-center text-sm text-muted-foreground">
-        Mostrando {startIndex + 1}-{Math.min(endIndex, athletes.length)} de {athletes.length} atletas
+        Mostrando {startIndex + 1}-{Math.min(endIndex, filteredAthletes.length)} de {filteredAthletes.length} atletas
       </div>
     </div>
   );
