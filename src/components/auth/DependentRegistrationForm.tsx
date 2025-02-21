@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { Loader2, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PersonalInfoSection } from './form-sections/PersonalInfoSection';
-import { ContactSection } from './form-sections/ContactSection';
 import { useDependentRegistration } from './hooks/useDependentRegistration';
 import { dependentRegisterSchema, DependentRegisterFormData } from './types/form-types';
 import { Modality } from '@/types/modality';
@@ -46,9 +45,6 @@ export const DependentRegistrationForm = ({ onSuccess, onCancel }: DependentRegi
     resolver: zodResolver(dependentRegisterSchema),
     defaultValues: {
       nome: '',
-      ddi: '+55',
-      telefone: '',
-      branchId: undefined,
       tipo_documento: 'CPF',
       numero_documento: '',
       genero: 'Masculino',
@@ -72,11 +68,7 @@ export const DependentRegistrationForm = ({ onSuccess, onCancel }: DependentRegi
         </Alert>
 
         <div className="space-y-6">
-          <PersonalInfoSection form={form} />
-          <ContactSection 
-            form={form} 
-            hideEmail
-          />
+          <PersonalInfoSection form={form} hideContactInfo />
 
           <Card>
             <CardHeader>

@@ -40,17 +40,17 @@ export const registerSchema = z.object({
 
 export type RegisterFormData = z.infer<typeof registerSchema>;
 
-export type DependentRegisterFormData = Omit<RegisterFormData, 'email' | 'password' | 'confirmPassword'> & {
+export type DependentRegisterFormData = {
+  nome: string;
+  tipo_documento: 'CPF' | 'RG';
+  numero_documento: string;
+  genero: 'Masculino' | 'Feminino';
+  data_nascimento: Date;
   modalidades: number[];
 };
 
 export const dependentRegisterSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-  ddi: z.string().default('+55'),
-  telefone: z.string().min(14, 'Telefone inválido').max(15),
-  branchId: z.string({
-    required_error: "Sede inválida"
-  }).uuid('Sede inválida'),
   tipo_documento: z.enum(['CPF', 'RG'], {
     required_error: "Selecione o tipo de documento",
   }),

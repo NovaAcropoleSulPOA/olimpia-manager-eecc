@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { toast } from "sonner";
 import { DependentRegisterFormData } from '../types/form-types';
-import { formatBirthDate, formatPhoneNumber } from '../utils/registrationUtils';
+import { formatBirthDate } from '../utils/registrationUtils';
 import { supabase } from '@/lib/supabase';
 import { differenceInYears } from 'date-fns';
 
@@ -43,6 +43,19 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
         return;
       }
 
+      // Get current user's profile data
+      const { data: parentUser, error: parentError } = await supabase
+        .from('usuarios')
+        .select('telefone, filial_id')
+        .eq('id', user.id)
+        .single();
+
+      if (parentError || !parentUser) {
+        console.error('Error fetching parent user data:', parentError);
+        toast.error('Erro ao obter informações do usuário principal');
+        return;
+      }
+
       const eventId = localStorage.getItem('currentEventId');
       if (!eventId) {
         toast.error('Erro ao obter informações do evento');
@@ -54,8 +67,8 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
         .from('usuarios')
         .insert({
           nome_completo: values.nome,
-          telefone: formatPhoneNumber(values.ddi, values.telefone),
-          filial_id: values.branchId,
+          telefone: parentUser.telefone, // Copy parent's phone
+          filial_id: parentUser.filial_id, // Copy parent's branch
           tipo_documento: values.tipo_documento,
           numero_documento: values.numero_documento.replace(/\D/g, ''),
           genero: values.genero,
