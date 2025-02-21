@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const [modalityStatuses, setModalityStatuses] = React.useState<Record<string, string>>({});
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [isUpdatingAmount, setIsUpdatingAmount] = React.useState(false);
+  const [inputAmount, setInputAmount] = React.useState<string>('');
+  const amountInputRef = React.useRef<HTMLInputElement>(null);
   
   const uniqueModalities = registration?.modalidades?.reduce((acc, current) => {
     if (!acc.has(current.modalidade)) {
@@ -68,11 +71,9 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     enabled: !!registration.id,
   });
 
-  const [paymentAmount, setPaymentAmount] = React.useState<number>(paymentData?.valor || 0);
-
   React.useEffect(() => {
     if (paymentData?.valor) {
-      setPaymentAmount(paymentData.valor);
+      setInputAmount(paymentData.valor.toString());
     }
   }, [paymentData]);
 
@@ -135,20 +136,41 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     }
   };
 
-  const handlePaymentAmountChange = async (newAmount: number) => {
-    if (!registration?.id) return;
+  const handlePaymentAmountChange = async () => {
+    if (!registration?.id || isUpdatingAmount) return;
     
+    const newAmount = parseFloat(inputAmount);
+    if (isNaN(newAmount)) {
+      toast.error('Por favor, insira um valor válido');
+      return;
+    }
+
     setIsUpdatingAmount(true);
     try {
       await updatePaymentAmount(registration.id, newAmount);
-      setPaymentAmount(newAmount);
-      refetchPayment(); // Refresh the payment data after update
+      await refetchPayment();
       toast.success('Valor do pagamento atualizado com sucesso!');
     } catch (error) {
       console.error('Error updating payment amount:', error);
       toast.error('Erro ao atualizar valor do pagamento');
     } finally {
       setIsUpdatingAmount(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Only allow numbers and one decimal point
+    const value = e.target.value.replace(/[^\d.]/g, '');
+    const parts = value.split('.');
+    if (parts.length > 2) return; // Don't allow multiple decimal points
+    if (parts[1]?.length > 2) return; // Don't allow more than 2 decimal places
+    
+    setInputAmount(value);
+  };
+
+  const handleInputBlur = () => {
+    if (inputAmount === '') {
+      setInputAmount(paymentData?.valor?.toString() || '0');
     }
   };
 
@@ -201,17 +223,19 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     <div className="mt-4 flex items-center gap-2">
       <label className="text-sm text-muted-foreground">Valor do pagamento:</label>
       <Input
-        type="number"
-        value={paymentAmount}
-        onChange={(e) => setPaymentAmount(Number(e.target.value))}
+        type="text"
+        value={inputAmount}
+        onChange={handleInputChange}
+        onBlur={handleInputBlur}
         className="w-[180px]"
         disabled={registration.status_pagamento !== "pendente" || isUpdatingAmount}
+        ref={amountInputRef}
       />
       {registration.status_pagamento === "pendente" && (
         <Button
           variant="outline"
           size="sm"
-          onClick={() => handlePaymentAmountChange(paymentAmount)}
+          onClick={handlePaymentAmountChange}
           disabled={isUpdatingAmount}
         >
           Salvar
