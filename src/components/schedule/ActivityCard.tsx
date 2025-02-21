@@ -84,7 +84,7 @@ export function ActivityCard({ category, activities }: ActivityCardProps) {
                   )}
                 >
                   {displayName}
-                  {activity.global && ' (Global)'}
+                  {activity.global && ' (Todos)'}
                 </Badge>
               );
             })}

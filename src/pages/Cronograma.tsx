@@ -62,7 +62,7 @@ function GeneralScheduleActivityCard({ category, activities }: {
                   )}
                 >
                   {displayName}
-                  {activity.global && ' (Global)'}
+                  {activity.global && ' (Todos)'}
                 </Badge>
               );
             })}
