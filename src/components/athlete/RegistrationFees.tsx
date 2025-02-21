@@ -5,12 +5,12 @@ import { Separator } from "@/components/ui/separator";
 import { CreditCard } from 'lucide-react';
 import { useRegistrationFees } from './registration-fees/useRegistrationFees';
 import { RegistrationFeeCard } from './registration-fees/RegistrationFeeCard';
-import type { RegistrationFeesProps, Fee } from './registration-fees/types';
+import type { RegistrationFeesProps } from './registration-fees/types';
 
 export default function RegistrationFees({ eventId, userProfileId }: RegistrationFeesProps) {
   console.log('RegistrationFees component mounted with:', { eventId, userProfileId });
   
-  const { data: fees, isLoading, error } = useRegistrationFees(eventId);
+  const { data: fees, isLoading } = useRegistrationFees(eventId);
 
   console.log('Current fees data:', fees);
 
@@ -19,25 +19,6 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
       <div className="flex items-center justify-center p-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-orange-primary" />
       </div>
-    );
-  }
-
-  if (error) {
-    console.error('Error loading registration fees:', error);
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-olimpics-orange-primary" />
-            Taxas de Inscrição
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center text-muted-foreground">
-            Erro ao carregar taxas de inscrição. Por favor, tente novamente mais tarde.
-          </div>
-        </CardContent>
-      </Card>
     );
   }
 
@@ -67,10 +48,19 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
   const regularFees = visibleFees.filter(fee => !fee.isento);
   const exemptFees = visibleFees.filter(fee => fee.isento);
 
-  // Sort regular fees to put user's fee first
-  const sortedRegularFees = [...regularFees].sort((a: Fee, b: Fee) => {
-    if (a.isUserFee) return -1;
-    if (b.isUserFee) return 1;
+  // Sort regular fees to put main profile types first
+  const sortedRegularFees = [...regularFees].sort((a, b) => {
+    // First, prioritize user's profile if it exists
+    if (a.perfil?.id === userProfileId) return -1;
+    if (b.perfil?.id === userProfileId) return 1;
+
+    // Then prioritize main profile types ("Atleta" or "Público Geral")
+    const isMainProfileA = a.perfil?.nome?.includes('Atleta') || a.perfil?.nome?.includes('Público Geral');
+    const isMainProfileB = b.perfil?.nome?.includes('Atleta') || b.perfil?.nome?.includes('Público Geral');
+    
+    if (isMainProfileA && !isMainProfileB) return -1;
+    if (!isMainProfileA && isMainProfileB) return 1;
+    
     return 0;
   });
 
@@ -85,26 +75,26 @@ export default function RegistrationFees({ eventId, userProfileId }: Registratio
       <CardContent>
         <div className="space-y-6">
           {/* Regular fees */}
-          {sortedRegularFees.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {sortedRegularFees.map((fee) => (
-                <RegistrationFeeCard
-                  key={fee.id}
-                  fee={fee}
-                />
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {sortedRegularFees.map((fee) => (
+              <RegistrationFeeCard
+                key={fee.id}
+                fee={fee}
+                isUserFee={fee.perfil?.id === userProfileId}
+              />
+            ))}
+          </div>
 
           {/* Show separator and exempt fees only if there are any */}
           {exemptFees.length > 0 && (
             <>
-              {sortedRegularFees.length > 0 && <Separator className="my-6" />}
+              <Separator className="my-6" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {exemptFees.map((fee) => (
                   <RegistrationFeeCard
                     key={fee.id}
                     fee={fee}
+                    isUserFee={fee.perfil?.id === userProfileId}
                   />
                 ))}
               </div>
