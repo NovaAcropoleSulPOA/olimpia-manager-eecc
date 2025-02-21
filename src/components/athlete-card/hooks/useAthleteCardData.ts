@@ -10,8 +10,8 @@ interface RegistradorInfo {
   telefone: string;
 }
 
-interface PapeisUsuarios {
-  perfis: {
+interface PerfilData {
+  perfil_id: {
     nome: string;
   }
 }
@@ -40,14 +40,18 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
     enabled: !!registration.id,
   });
 
-  const { data: userProfiles } = useQuery<PapeisUsuarios[]>({
+  const { data: userProfiles } = useQuery<PerfilData[]>({
     queryKey: ['user-profiles', registration.id, registration.evento_id],
     queryFn: async () => {
       if (!registration.id || !registration.evento_id) return [];
       
       const { data, error } = await supabase
         .from('papeis_usuarios')
-        .select('perfis:perfil_id(nome)')
+        .select(`
+          perfil_id:perfil_id(
+            nome
+          )
+        `)
         .eq('usuario_id', registration.id)
         .eq('evento_id', registration.evento_id);
 
@@ -78,7 +82,7 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
   const hasRegistrador = !!registration.usuario_registrador_id;
   const hasRegistradorInfo = !!registradorInfo;
   const hasDepententProfile = Array.isArray(userProfiles) && 
-    userProfiles.some(profile => profile.perfis?.nome === 'Dependente');
+    userProfiles.some(profile => profile.perfil_id?.nome === 'Dependente');
   const isDependent = hasRegistrador || hasDepententProfile;
 
   return {
