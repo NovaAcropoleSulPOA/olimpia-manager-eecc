@@ -10,10 +10,17 @@ interface RegistradorInfo {
   telefone: string;
 }
 
+// Update interface to match Supabase's response structure
 interface PerfilData {
   perfil_id: {
     nome: string;
   };
+}
+
+interface SupabasePerfilResponse {
+  perfil_id: {
+    nome: string;
+  } | null;
 }
 
 export const useAthleteCardData = (registration: AthleteManagement) => {
@@ -54,7 +61,7 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
       if (error) throw error;
       
       // Transform the data to match our interface
-      const transformedData = (data || []).map(item => ({
+      const transformedData = (data as SupabasePerfilResponse[] || []).map(item => ({
         perfil_id: {
           nome: item.perfil_id?.nome || ''
         }
