@@ -23,24 +23,29 @@ export const AthleteCard: React.FC<AthleteCardProps> = ({
   getStatusColor,
   onWhatsAppClick,
 }) => {
+  // A user is considered a dependent if they have a registrador ID
+  const isDependent = !!registration.usuario_registrador_id;
+
   return (
-    <Card className={cn(
-      getStatusColor(registration.status_pagamento),
-      isCurrentUser && 'ring-2 ring-olimpics-orange-primary'
-    )}>
+    <Card 
+      className={cn(
+        getStatusColor(registration.status_pagamento),
+        isCurrentUser && 'ring-2 ring-olimpics-orange-primary'
+      )}
+    >
       <CardContent className="p-6">
         <div className="space-y-4">
           <AthleteCardHeader
             nome={registration.nome_atleta}
             isCurrentUser={isCurrentUser}
-            hasRegistrador={!!registration.usuario_registrador_id}
+            hasRegistrador={isDependent}
             statusPagamento={registration.status_pagamento}
             getStatusBadgeStyle={getStatusBadgeStyle}
             modalidades={registration.modalidades}
-            isDependent={true}
+            isDependent={isDependent}
           />
           <AthleteInfoGrid
-            email={registration.usuario_registrador_id ? registradorInfo?.email : registration.email}
+            email={registration.email}
             telefone={registration.telefone}
             filialNome={registration.filial_nome}
             tipoDocumento={registration.tipo_documento}
@@ -48,8 +53,8 @@ export const AthleteCard: React.FC<AthleteCardProps> = ({
             genero={registration.genero}
             onWhatsAppClick={onWhatsAppClick}
             registradorInfo={registradorInfo}
-            hasRegistrador={!!registration.usuario_registrador_id}
-            showRegistradorEmail={!!registration.usuario_registrador_id}
+            hasRegistrador={isDependent}
+            showRegistradorEmail={isDependent}
           />
         </div>
       </CardContent>

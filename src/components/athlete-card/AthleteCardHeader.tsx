@@ -12,17 +12,16 @@ interface AthleteCardHeaderProps {
   statusPagamento: string;
   getStatusBadgeStyle: (status: string) => string;
   modalidades?: AthleteModality[];
-  isDependent?: boolean;
+  isDependent: boolean;
 }
 
 export const AthleteCardHeader: React.FC<AthleteCardHeaderProps> = ({
   nome,
   isCurrentUser,
-  hasRegistrador,
+  isDependent,
   statusPagamento,
   getStatusBadgeStyle,
   modalidades = [],
-  isDependent = false
 }) => {
   return (
     <div className="space-y-2">
