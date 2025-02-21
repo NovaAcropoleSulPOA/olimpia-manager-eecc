@@ -71,6 +71,20 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
         return;
       }
 
+      // Process dependent registration (profiles and payment)
+      const { error: registrationError } = await supabase
+        .rpc('process_dependent_registration', {
+          p_dependent_id: dependent.id,
+          p_event_id: eventId,
+          p_birth_date: formattedBirthDate
+        });
+
+      if (registrationError) {
+        console.error('Error processing registration:', registrationError);
+        toast.error('Erro ao processar registro do dependente');
+        return;
+      }
+
       // Register the dependent in the selected modalities
       const modalityRegistrations = values.modalidades.map(modalityId => ({
         atleta_id: dependent.id,
