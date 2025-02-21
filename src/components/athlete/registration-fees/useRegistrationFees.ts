@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Fee, UserProfile } from './types';
+import { Fee, SupabaseUserProfile } from './types';
 
 export function useRegistrationFees(eventId: string | null) {
   return useQuery({
@@ -70,9 +70,8 @@ export function useRegistrationFees(eventId: string | null) {
 
       const transformedFees: Fee[] = (feesData as any[]).map(fee => {
         // Check if this fee matches any of the user's profiles
-        const isUserFee = Array.isArray(userProfiles) && userProfiles.some(userProfile => {
-          const profile = userProfile.perfis;
-          return profile && fee.perfil && profile.id === fee.perfil.id;
+        const isUserFee = Array.isArray(userProfiles) && userProfiles.some((userProfile: SupabaseUserProfile) => {
+          return fee.perfil && userProfile.perfis && userProfile.perfis.id === fee.perfil.id;
         });
 
         return {

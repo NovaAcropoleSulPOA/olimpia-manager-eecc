@@ -34,3 +34,10 @@ export interface UserProfile {
     nome: string;
   };
 }
+
+export interface SupabaseUserProfile {
+  perfis: {
+    id: number;
+    nome: string;
+  };
+}
