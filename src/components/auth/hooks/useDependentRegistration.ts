@@ -80,19 +80,19 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
         data_nascimento: formattedBirthDate
       });
 
-      // Start a transaction by creating the dependent user first
+      // Create the dependent user first
       const { data: dependent, error: userError } = await supabase
         .from('usuarios')
         .insert({
           nome_completo: values.nome,
-          telefone: parentUser.telefone, // Copy parent's phone
-          filial_id: parentUser.filial_id, // Copy parent's branch
+          telefone: parentUser.telefone,
+          filial_id: parentUser.filial_id,
           tipo_documento: values.tipo_documento,
           numero_documento: values.numero_documento.replace(/\D/g, ''),
           genero: values.genero,
           data_nascimento: formattedBirthDate,
           usuario_registrador_id: user.id,
-          confirmado: true // Dependents are automatically confirmed
+          confirmado: true
         })
         .select()
         .single();
@@ -124,23 +124,25 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
       console.log('Processing modality registrations:', values.modalidades);
 
       // Register the dependent in the selected modalities
-      const modalityRegistrations = values.modalidades.map(modalityId => ({
-        atleta_id: dependent.id,
-        modalidade_id: modalityId,
-        evento_id: eventId,
-        status: 'pendente',
-        data_inscricao: new Date().toISOString()
-      }));
+      if (values.modalidades.length > 0) {
+        const modalityRegistrations = values.modalidades.map(modalityId => ({
+          atleta_id: dependent.id,
+          modalidade_id: modalityId,
+          evento_id: eventId,
+          status: 'pendente',
+          data_inscricao: new Date().toISOString()
+        }));
 
-      const { error: modalitiesError } = await supabase
-        .from('inscricoes_modalidades')
-        .insert(modalityRegistrations);
+        const { error: modalitiesError } = await supabase
+          .from('inscricoes_modalidades')
+          .insert(modalityRegistrations);
 
-      if (modalitiesError) {
-        console.error('Error registering modalities:', modalitiesError);
-        toast.error('Erro ao cadastrar modalidades');
-        setIsSubmitting(false);
-        return;
+        if (modalitiesError) {
+          console.error('Error registering modalities:', modalitiesError);
+          toast.error('Erro ao cadastrar modalidades');
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       console.log('Registration process completed successfully');
