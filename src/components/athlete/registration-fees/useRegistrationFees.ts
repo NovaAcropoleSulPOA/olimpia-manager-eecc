@@ -68,15 +68,27 @@ export function useRegistrationFees(eventId: string | null) {
         return [];
       }
 
-      const transformedFees = feesData.map(fee => {
+      const transformedFees: Fee[] = feesData.map(fee => {
         // Check if this fee matches any of the user's profiles
-        const isUserFee = userProfiles?.some((userProfile) => 
-          userProfile.perfis?.id === fee.perfil?.id
-        );
+        const isUserFee = userProfiles?.some((userProfile: UserProfile) => {
+          if (!userProfile.perfis || !fee.perfil) return false;
+          return userProfile.perfis.id === fee.perfil.id;
+        });
 
         return {
-          ...fee,
-          isUserFee: isUserFee || false
+          id: fee.id,
+          valor: fee.valor,
+          isento: fee.isento,
+          mostra_card: fee.mostra_card,
+          pix_key: fee.pix_key,
+          data_limite_inscricao: fee.data_limite_inscricao,
+          contato_nome: fee.contato_nome,
+          contato_telefone: fee.contato_telefone,
+          qr_code_image: fee.qr_code_image,
+          qr_code_codigo: fee.qr_code_codigo,
+          link_formulario: fee.link_formulario,
+          perfil: fee.perfil,
+          isUserFee: isUserFee
         };
       });
 

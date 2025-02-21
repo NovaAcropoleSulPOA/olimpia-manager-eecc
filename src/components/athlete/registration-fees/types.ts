@@ -30,9 +30,7 @@ export interface UserProfileData {
 
 export interface UserProfile {
   perfis: {
-    nome: any;
-    perfil_tipo: {
-      codigo: any;
-    }[];
-  }[];
+    id: number;
+    nome: string;
+  } | null;
 }
