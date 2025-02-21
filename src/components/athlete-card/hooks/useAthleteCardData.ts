@@ -52,7 +52,15 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
         .eq('evento_id', registration.evento_id);
 
       if (error) throw error;
-      return (data as PerfilData[]) || [];
+      
+      // Transform the data to match our interface
+      const transformedData = (data || []).map(item => ({
+        perfil_id: {
+          nome: item.perfil_id.nome
+        }
+      }));
+
+      return transformedData;
     },
     enabled: !!registration.id && !!registration.evento_id,
   });
