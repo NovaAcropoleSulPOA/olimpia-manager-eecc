@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,8 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const [modalityStatuses, setModalityStatuses] = React.useState<Record<string, string>>({});
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [isUpdatingAmount, setIsUpdatingAmount] = React.useState(false);
-  const [inputAmount, setInputAmount] = React.useState<string>('');
+  const [localInputAmount, setLocalInputAmount] = React.useState<string>('');
+  const [hasInitialized, setHasInitialized] = React.useState(false);
   const amountInputRef = React.useRef<HTMLInputElement>(null);
   
   const uniqueModalities = registration?.modalidades?.reduce((acc, current) => {
@@ -72,10 +72,11 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   });
 
   React.useEffect(() => {
-    if (paymentData?.valor) {
-      setInputAmount(paymentData.valor.toString());
+    if (paymentData?.valor && !hasInitialized) {
+      setLocalInputAmount(paymentData.valor.toString());
+      setHasInitialized(true);
     }
-  }, [paymentData]);
+  }, [paymentData, hasInitialized]);
 
   React.useEffect(() => {
     if (registration?.modalidades) {
@@ -139,7 +140,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   const handlePaymentAmountChange = async () => {
     if (!registration?.id || isUpdatingAmount) return;
     
-    const newAmount = parseFloat(inputAmount);
+    const newAmount = parseFloat(localInputAmount);
     if (isNaN(newAmount)) {
       toast.error('Por favor, insira um valor válido');
       return;
@@ -159,18 +160,16 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow numbers and one decimal point
     const value = e.target.value.replace(/[^\d.]/g, '');
     const parts = value.split('.');
     if (parts.length > 2) return; // Don't allow multiple decimal points
     if (parts[1]?.length > 2) return; // Don't allow more than 2 decimal places
-    
-    setInputAmount(value);
+    setLocalInputAmount(value);
   };
 
   const handleInputBlur = () => {
-    if (inputAmount === '') {
-      setInputAmount(paymentData?.valor?.toString() || '0');
+    if (localInputAmount === '') {
+      setLocalInputAmount(paymentData?.valor?.toString() || '0');
     }
   };
 
@@ -224,7 +223,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
       <label className="text-sm text-muted-foreground">Valor do pagamento:</label>
       <Input
         type="text"
-        value={inputAmount}
+        value={localInputAmount}
         onChange={handleInputChange}
         onBlur={handleInputBlur}
         className="w-[180px]"
