@@ -61,8 +61,7 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
           genero: values.genero,
           data_nascimento: formattedBirthDate,
           usuario_registrador_id: user.id,
-          confirmado: true, // Dependents are automatically confirmed
-          numero_identificador: '000' // Dependents use '000' as identifier since they don't participate directly
+          confirmado: true // Dependents are automatically confirmed
         })
         .select()
         .single();
