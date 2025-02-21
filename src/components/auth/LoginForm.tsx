@@ -18,7 +18,7 @@ const loginSchema = z.object({
 
 export const LoginForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, resendVerificationEmail } = useAuth();
   const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof loginSchema>>({
