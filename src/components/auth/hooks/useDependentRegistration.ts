@@ -95,40 +95,53 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
 
       console.log('[Dependent Registration] Dependent user created:', dependent);
 
-      // Process dependent registration (profiles and payment)
-      const { error: registrationError } = await supabase
-        .rpc('process_dependent_registration', {
-          p_dependent_id: dependent.id,
-          p_event_id: eventId,
-          p_birth_date: formattedBirthDate
-        });
+      try {
+        // Process dependent registration (profiles and payment)
+        const { error: registrationError } = await supabase
+          .rpc('process_dependent_registration', {
+            p_dependent_id: dependent.id,
+            p_event_id: eventId,
+            p_birth_date: formattedBirthDate
+          });
 
-      if (registrationError) {
-        console.error('[Dependent Registration] Process registration error:', registrationError);
-        throw registrationError;
+        if (registrationError) {
+          console.error('[Dependent Registration] Process registration error:', registrationError);
+          throw registrationError;
+        }
+
+        console.log('[Dependent Registration] Registration processed successfully');
+      } catch (processError) {
+        console.error('[Dependent Registration] Process registration error:', processError);
+        // Clean up the created user if registration process fails
+        await supabase.from('usuarios').delete().eq('id', dependent.id);
+        throw processError;
       }
-
-      console.log('[Dependent Registration] Registration processed, handling modalities...');
 
       // Register modalities if any selected
       if (values.modalidades.length > 0) {
         console.log('[Dependent Registration] Registering modalities:', values.modalidades);
         
-        const modalityRegistrations = values.modalidades.map(modalityId => ({
-          atleta_id: dependent.id,
-          modalidade_id: modalityId,
-          evento_id: eventId,
-          status: 'pendente',
-          data_inscricao: new Date().toISOString()
-        }));
+        try {
+          const modalityRegistrations = values.modalidades.map(modalityId => ({
+            atleta_id: dependent.id,
+            modalidade_id: modalityId,
+            evento_id: eventId,
+            status: 'pendente',
+            data_inscricao: new Date().toISOString()
+          }));
 
-        const { error: modalitiesError } = await supabase
-          .from('inscricoes_modalidades')
-          .insert(modalityRegistrations);
+          const { error: modalitiesError } = await supabase
+            .from('inscricoes_modalidades')
+            .insert(modalityRegistrations);
 
-        if (modalitiesError) {
-          console.error('[Dependent Registration] Modalities registration error:', modalitiesError);
-          throw modalitiesError;
+          if (modalitiesError) {
+            console.error('[Dependent Registration] Modalities registration error:', modalitiesError);
+            throw modalitiesError;
+          }
+        } catch (modalityError) {
+          console.error('[Dependent Registration] Error registering modalities:', modalityError);
+          // Don't throw here, as the main registration was successful
+          toast.error('Algumas modalidades não puderam ser registradas');
         }
       }
 
@@ -141,6 +154,7 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
       console.error('[Dependent Registration] Error:', error);
       toast.dismiss(toastId);
       toast.error(error.message || 'Erro ao cadastrar dependente');
+      setIsSubmitting(false);
     } finally {
       console.log('[Dependent Registration] Finalizing process');
       setIsSubmitting(false);
