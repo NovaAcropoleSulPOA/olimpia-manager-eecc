@@ -39,7 +39,9 @@ export const registerSchema = z.object({
 
 export type RegisterFormData = z.infer<typeof registerSchema>;
 
-export type DependentRegisterFormData = Omit<RegisterFormData, 'email' | 'password' | 'confirmPassword'>;
+export type DependentRegisterFormData = Omit<RegisterFormData, 'email' | 'password' | 'confirmPassword'> & {
+  modalidades: number[];
+};
 
 export const dependentRegisterSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
@@ -68,5 +70,6 @@ export const dependentRegisterSchema = z.object({
   }),
   data_nascimento: z.date({
     required_error: "Data de nascimento é obrigatória",
-  })
+  }),
+  modalidades: z.array(z.number()).min(1, 'Selecione pelo menos uma modalidade')
 });

@@ -36,15 +36,21 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
         return;
       }
 
-      // Get current user's ID
+      // Get current user's ID and event ID
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) {
         toast.error('Erro ao obter informações do usuário');
         return;
       }
 
-      // Insert dependent into usuarios table
-      const { error } = await supabase
+      const eventId = localStorage.getItem('currentEventId');
+      if (!eventId) {
+        toast.error('Erro ao obter informações do evento');
+        return;
+      }
+
+      // Start a transaction by creating the dependent user first
+      const { data: dependent, error: userError } = await supabase
         .from('usuarios')
         .insert({
           nome_completo: values.nome,
@@ -55,11 +61,32 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
           genero: values.genero,
           data_nascimento: formattedBirthDate,
           usuario_registrador_id: user.id
-        });
+        })
+        .select()
+        .single();
 
-      if (error) {
-        console.error('Error registering dependent:', error);
+      if (userError || !dependent) {
+        console.error('Error registering dependent:', userError);
         toast.error('Erro ao cadastrar dependente');
+        return;
+      }
+
+      // Register the dependent in the selected modalities
+      const modalityRegistrations = values.modalidades.map(modalityId => ({
+        atleta_id: dependent.id,
+        modalidade_id: modalityId,
+        evento_id: eventId,
+        status: 'pendente',
+        data_inscricao: new Date().toISOString()
+      }));
+
+      const { error: modalitiesError } = await supabase
+        .from('inscricoes_modalidades')
+        .insert(modalityRegistrations);
+
+      if (modalitiesError) {
+        console.error('Error registering modalities:', modalitiesError);
+        toast.error('Erro ao cadastrar modalidades');
         return;
       }
 
