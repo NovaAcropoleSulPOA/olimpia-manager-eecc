@@ -60,7 +60,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
       
       const { data, error } = await supabase
         .from('usuarios')
-        .select('nome_completo, email')
+        .select('nome_completo, email, telefone')
         .eq('id', registration.usuario_registrador_id)
         .single();
 
@@ -191,9 +191,10 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
             statusPagamento={registration.status_pagamento}
             getStatusBadgeStyle={getStatusBadgeStyle}
             modalidades={registration.modalidades}
+            isDependent={!!registration.usuario_registrador_id}
           />
           <AthleteInfoGrid
-            email={registration.email}
+            email={registration.usuario_registrador_id ? registradorInfo?.email : registration.email}
             telefone={registration.telefone}
             filialNome={registration.filial_nome}
             tipoDocumento={registration.tipo_documento}
@@ -202,6 +203,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
             onWhatsAppClick={handleWhatsAppClick}
             registradorInfo={registradorInfo}
             hasRegistrador={!!registration.usuario_registrador_id}
+            showRegistradorEmail={!!registration.usuario_registrador_id}
           />
         </div>
       </CardContent>
@@ -221,7 +223,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           numeroIdentificador={registration.numero_identificador}
           isDependent={!!registration.usuario_registrador_id}
           isExempt={!!paymentData?.isento}
-          email={registration.email}
+          email={registration.usuario_registrador_id ? registradorInfo?.email : registration.email}
           telefone={registration.telefone}
           filialNome={isDelegationView ? undefined : registration.filial_nome}
           tipoDocumento={registration.tipo_documento}

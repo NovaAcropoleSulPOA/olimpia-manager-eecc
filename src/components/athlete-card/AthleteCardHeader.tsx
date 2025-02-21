@@ -12,6 +12,7 @@ interface AthleteCardHeaderProps {
   statusPagamento: string;
   getStatusBadgeStyle: (status: string) => string;
   modalidades?: AthleteModality[];
+  isDependent?: boolean;
 }
 
 export const AthleteCardHeader: React.FC<AthleteCardHeaderProps> = ({
@@ -20,19 +21,20 @@ export const AthleteCardHeader: React.FC<AthleteCardHeaderProps> = ({
   hasRegistrador,
   statusPagamento,
   getStatusBadgeStyle,
-  modalidades = []
+  modalidades = [],
+  isDependent = false
 }) => {
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-start">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-lg font-semibold">{nome}</h3>
           {isCurrentUser && (
             <Badge variant="secondary" className="bg-olimpics-orange-primary text-white">
               Meu Cadastro
             </Badge>
           )}
-          {hasRegistrador && (
+          {isDependent && (
             <Badge variant="secondary" className="bg-blue-500 text-white">
               <UserPlus2 className="h-3 w-3 mr-1" />
               Dependente
