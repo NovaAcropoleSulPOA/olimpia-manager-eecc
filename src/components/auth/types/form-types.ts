@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 import { validateCPF } from "@/utils/documentValidation";
 
@@ -40,3 +39,34 @@ export const registerSchema = z.object({
 
 export type RegisterFormData = z.infer<typeof registerSchema>;
 
+export type DependentRegisterFormData = Omit<RegisterFormData, 'email' | 'password' | 'confirmPassword'>;
+
+export const dependentRegisterSchema = z.object({
+  nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
+  ddi: z.string().default('+55'),
+  telefone: z.string().min(14, 'Telefone inválido').max(15),
+  branchId: z.string({
+    required_error: "Sede inválida"
+  }).uuid('Sede inválida'),
+  tipo_documento: z.enum(['CPF', 'RG'], {
+    required_error: "Selecione o tipo de documento",
+  }),
+  numero_documento: z.string()
+    .min(1, 'Número do documento é obrigatório')
+    .refine((val) => {
+      if (!val) return false;
+      const clean = val.replace(/\D/g, '');
+      return clean.length >= 9;
+    }, 'Documento inválido')
+    .refine((val) => {
+      const clean = val.replace(/\D/g, '');
+      if (clean.length !== 11) return true;
+      return validateCPF(clean);
+    }, 'CPF inválido'),
+  genero: z.enum(['Masculino', 'Feminino'], {
+    required_error: "Selecione o gênero",
+  }),
+  data_nascimento: z.date({
+    required_error: "Data de nascimento é obrigatória",
+  })
+});

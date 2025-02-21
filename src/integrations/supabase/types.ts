@@ -1149,6 +1149,41 @@ export type Database = {
             referencedColumns: ["filial_id"]
           },
           {
+            foreignKeyName: "usuarios_registrador_fk"
+            columns: ["usuario_registrador_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usuarios_registrador_fk"
+            columns: ["usuario_registrador_id"]
+            isOneToOne: false
+            referencedRelation: "view_perfil_atleta"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "usuarios_registrador_fk"
+            columns: ["usuario_registrador_id"]
+            isOneToOne: false
+            referencedRelation: "vw_athletes_management"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "usuarios_registrador_fk"
+            columns: ["usuario_registrador_id"]
+            isOneToOne: false
+            referencedRelation: "vw_inscricoes_atletas"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "usuarios_registrador_fk"
+            columns: ["usuario_registrador_id"]
+            isOneToOne: false
+            referencedRelation: "vw_pontuacoes_gerais_atletas"
+            referencedColumns: ["atleta_id"]
+          },
+          {
             foreignKeyName: "usuarios_registrador_fkey"
             columns: ["usuario_registrador_id"]
             isOneToOne: false
