@@ -1,5 +1,6 @@
 
 export interface AthleteProfileData {
+  id: string; // Adding the missing id field
   atleta_id: string;
   nome_completo: string;
   telefone: string;

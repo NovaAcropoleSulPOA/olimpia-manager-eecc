@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { AthleteProfileData } from "@/types/athlete";
@@ -76,6 +77,7 @@ export const useAthleteProfileData = (userId: string | undefined, currentEventId
 
       return {
         ...profileData,
+        id: profileData.atleta_id, // Ensure id is set from atleta_id
         papeis: transformedRoles,
         pagamento_status: paymentStatus
       } as AthleteProfileData;
