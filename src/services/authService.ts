@@ -98,10 +98,18 @@ export const handleAuthRedirect = (userProfile: any, pathname: string, navigate:
     return;
   }
   
-  // If user is on a public route, redirect to event selection
-  if (['/login', '/', '/forgot-password'].includes(pathname)) {
+  // If user is logged in and on a public route, redirect to event selection
+  if (pathname === '/login' || pathname === '/' || pathname === '/forgot-password') {
     console.log('AuthContext - Redirecting to event selection');
     navigate('/event-selection');
+    return;
+  }
+  
+  // If no currentEventId is set, redirect to event selection
+  const currentEventId = localStorage.getItem('currentEventId');
+  if (!currentEventId && pathname !== '/event-selection') {
+    console.log('AuthContext - No current event, redirecting to event selection');
+    navigate('/event-selection');
+    return;
   }
 };
-

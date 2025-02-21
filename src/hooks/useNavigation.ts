@@ -31,8 +31,16 @@ export const useNavigation = () => {
   };
 
   useEffect(() => {
+    const currentEventId = localStorage.getItem('currentEventId');
+    
     if (location.pathname === '/') {
       console.log('MainNavigation - Initial navigation based on roles');
+      
+      if (!currentEventId) {
+        navigate('/event-selection');
+        return;
+      }
+      
       if (roles.isAthlete || roles.isPublicGeral) {
         navigate('/athlete-profile');
       } else if (roles.isOrganizer) {
