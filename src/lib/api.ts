@@ -21,7 +21,7 @@ export interface AthleteManagement {
   filial_id: string;
   filial_nome: string;
   status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
-  usuario_registrador_id?: string; // Added this field
+  usuario_registrador_id?: string;
   modalidades: AthleteModality[];
 }
 
@@ -224,6 +224,9 @@ export const fetchAthleteManagement = async (filterByBranch: boolean = false, ev
 
     data.forEach(record => {
       if (!athletesMap.has(record.atleta_id)) {
+        // For exempt dependents, set their status as confirmed
+        const paymentStatus = record.isento ? 'confirmado' : (record.status_pagamento || 'pendente');
+        
         athletesMap.set(record.atleta_id, {
           id: record.atleta_id,
           nome_atleta: record.nome_atleta,
@@ -236,7 +239,8 @@ export const fetchAthleteManagement = async (filterByBranch: boolean = false, ev
           status_confirmacao: record.status_confirmacao,
           filial_id: record.filial_id,
           filial_nome: record.filial_nome,
-          status_pagamento: record.status_pagamento || 'pendente',
+          status_pagamento: paymentStatus,
+          usuario_registrador_id: record.usuario_registrador_id,
           modalidades: []
         });
       }
@@ -246,10 +250,13 @@ export const fetchAthleteManagement = async (filterByBranch: boolean = false, ev
         const modalityExists = athlete.modalidades.some(m => m.id === record.inscricao_id);
         
         if (!modalityExists && record.inscricao_id) {
+          // For exempt dependents, set their modality status as confirmed
+          const modalityStatus = record.isento ? 'confirmado' : (record.status_inscricao || 'pendente');
+          
           athlete.modalidades.push({
             id: record.inscricao_id.toString(),
             modalidade: record.modalidade_nome,
-            status: record.status_inscricao || 'pendente',
+            status: modalityStatus,
             justificativa_status: record.justificativa_status || ''
           });
         }
