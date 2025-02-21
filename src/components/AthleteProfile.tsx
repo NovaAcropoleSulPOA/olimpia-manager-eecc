@@ -9,9 +9,11 @@ import PersonalInfo from './athlete/PersonalInfo';
 import PaymentAndBranchInfo from './athlete/PaymentAndBranchInfo';
 import AccessProfile from './athlete/AccessProfile';
 import RegistrationFees from './athlete/RegistrationFees';
+import { DependentsTable } from './athlete/DependentsTable';
 
 interface AthleteProfileProps {
   profile: {
+    id: string;
     nome_completo: string;
     telefone: string;
     email: string;
@@ -100,6 +102,10 @@ export default function AthleteProfile({ profile, isPublicUser }: AthleteProfile
           </div>
         </CardContent>
       </Card>
+
+      {currentEventId && !isPublicUser && (
+        <DependentsTable userId={profile.id} eventId={currentEventId} />
+      )}
 
       <div className="mt-6">
         <RegistrationFees 
