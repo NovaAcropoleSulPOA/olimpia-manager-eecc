@@ -5,6 +5,8 @@ import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 import { PersonalInfoSection } from './form-sections/PersonalInfoSection';
 import { ContactSection } from './form-sections/ContactSection';
 import { useDependentRegistration } from './hooks/useDependentRegistration';
@@ -35,6 +37,14 @@ export const DependentRegistrationForm = ({ onSuccess, onCancel }: DependentRegi
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            Este formulário é exclusivo para cadastro de dependentes menores de 13 anos.
+            Para maiores de 13 anos, utilize o cadastro padrão na página inicial.
+          </AlertDescription>
+        </Alert>
+
         <div className="space-y-6">
           <PersonalInfoSection form={form} />
           <ContactSection 

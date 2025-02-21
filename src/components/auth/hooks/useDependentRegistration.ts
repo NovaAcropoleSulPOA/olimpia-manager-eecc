@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { DependentRegisterFormData } from '../types/form-types';
 import { formatBirthDate, formatPhoneNumber } from '../utils/registrationUtils';
 import { supabase } from '@/lib/supabase';
+import { differenceInYears } from 'date-fns';
 
 export const useDependentRegistration = (onSuccess?: () => void) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,6 +21,18 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
       const formattedBirthDate = formatBirthDate(values.data_nascimento);
       if (!formattedBirthDate) {
         toast.error('Data de nascimento inválida');
+        return;
+      }
+
+      // Calculate age
+      const age = differenceInYears(new Date(), values.data_nascimento);
+      
+      // Check if user is 13 or older
+      if (age >= 13) {
+        toast.error(
+          'Apenas menores de 13 anos podem ser cadastrados como dependentes. ' +
+          'Para maiores de 13 anos, utilize o cadastro padrão na página inicial.'
+        );
         return;
       }
 
