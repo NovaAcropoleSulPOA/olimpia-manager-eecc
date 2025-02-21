@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { updatePaymentAmount } from '@/lib/api';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PaymentAmountField } from './athlete-card/PaymentAmountField';
 import { AthleteCardHeader } from './athlete-card/AthleteCardHeader';
 import { AthleteInfoGrid } from './athlete-card/AthleteInfoGrid';
