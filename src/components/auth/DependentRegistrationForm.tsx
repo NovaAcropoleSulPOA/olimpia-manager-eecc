@@ -40,7 +40,7 @@ export const DependentRegistrationForm = ({ onSuccess, onCancel }: DependentRegi
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Este formulário é exclusivo para cadastro de dependentes menores de 13 anos.
+            Este formulário é exclusivo para cadastro de dependentes até 12 anos de idade.
             Para maiores de 13 anos, utilize o cadastro padrão na página inicial.
           </AlertDescription>
         </Alert>
