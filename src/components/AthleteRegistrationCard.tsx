@@ -38,7 +38,10 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     localInputAmount,
     setLocalInputAmount,
     paymentData,
-    refetchPayment
+    refetchPayment,
+    registradorInfo,
+    isDependent,
+    hasRegistrador
   } = useAthleteCardData(registration);
 
   const handleWhatsAppClick = (phone: string) => {
@@ -145,7 +148,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
         <AthleteDialogContent
           nome={registration.nome_atleta}
           numeroIdentificador={registration.numero_identificador}
-          isDependent={!!registration.usuario_registrador_id}
+          isDependent={isDependent}
           isExempt={!!paymentData?.isento}
           email={registration.email}
           telefone={registration.telefone}
@@ -154,6 +157,7 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
           numeroDocumento={registration.numero_documento}
           genero={registration.genero}
           onWhatsAppClick={handleWhatsAppClick}
+          registradorInfo={hasRegistrador ? registradorInfo : undefined}
           onPaymentStatusChange={onPaymentStatusChange ? handlePaymentStatusChange : undefined}
           paymentControlProps={onPaymentStatusChange ? {
             value: localInputAmount,

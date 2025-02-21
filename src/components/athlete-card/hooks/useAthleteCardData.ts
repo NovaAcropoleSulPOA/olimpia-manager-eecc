@@ -4,10 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { AthleteManagement } from '@/lib/api';
 
-interface UserProfile {
-  perfis: {
-    nome: string;
-  };
+interface RegistradorInfo {
+  nome_completo: string;
+  email: string;
+  telefone: string;
 }
 
 export const useAthleteCardData = (registration: AthleteManagement) => {
@@ -34,7 +34,7 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
     enabled: !!registration.id,
   });
 
-  const { data: userProfiles } = useQuery<UserProfile[]>({
+  const { data: userProfiles } = useQuery({
     queryKey: ['user-profiles', registration.id, registration.evento_id],
     queryFn: async () => {
       if (!registration.id || !registration.evento_id) return [];
@@ -51,7 +51,7 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
     enabled: !!registration.id && !!registration.evento_id,
   });
 
-  const { data: registradorInfo } = useQuery({
+  const { data: registradorInfo } = useQuery<RegistradorInfo | null>({
     queryKey: ['registrador', registration.usuario_registrador_id],
     queryFn: async () => {
       if (!registration.usuario_registrador_id) return null;
@@ -69,8 +69,11 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
     enabled: !!registration.usuario_registrador_id,
   });
 
-  const isDependent = !!registration.usuario_registrador_id || 
-    userProfiles?.some(profile => profile.perfis?.nome === 'Dependente');
+  const hasRegistrador = !!registration.usuario_registrador_id;
+  const hasRegistradorInfo = !!registradorInfo;
+  const hasDepententProfile = Array.isArray(userProfiles) && 
+    userProfiles.some(profile => profile.perfis?.nome === 'Dependente');
+  const isDependent = hasRegistrador || hasDepententProfile;
 
   return {
     justifications,
@@ -88,6 +91,8 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
     paymentData,
     refetchPayment,
     registradorInfo,
-    isDependent
+    isDependent,
+    hasRegistrador,
+    hasRegistradorInfo
   };
 };
