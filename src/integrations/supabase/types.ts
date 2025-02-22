@@ -1200,11 +1200,20 @@ export type Database = {
           inscritos_por_status_pagamento: Json | null
           modalidades_populares: Json | null
           total_atletas_pendentes_pagamento: number | null
+          total_confirmados: number | null
           total_inscritos: number | null
           valor_total_pago: number | null
           valor_total_pendente: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "inscricoes_eventos_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vw_athletes_management: {
         Row: {

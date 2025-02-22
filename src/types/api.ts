@@ -36,18 +36,17 @@ export interface Branch {
 export interface BranchAnalytics {
   filial_id: string;
   filial: string;
+  evento_id: string;
   total_inscritos: number;
+  total_confirmados: number;
   valor_total_pago: number;
   valor_total_pendente: number;
   total_atletas_pendentes_pagamento: number;
-  inscritos_por_status_pagamento: Record<string, number>;
+  inscritos_por_status_pagamento: Record<'confirmado' | 'pendente' | 'cancelado', number>;
   modalidades_populares: Record<string, {
     Masculino: number;
     Feminino: number;
     Misto: number;
   }>;
-  media_pontuacao_por_modalidade: Record<string, number>;
-  top_modalidades_masculino: Record<string, number>;
-  top_modalidades_feminino: Record<string, number>;
-  top_modalidades_misto: Record<string, number>;
 }
+

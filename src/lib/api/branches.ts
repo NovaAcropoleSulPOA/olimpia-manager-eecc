@@ -36,10 +36,22 @@ export const fetchBranchAnalytics = async (eventId: string | null): Promise<Bran
       return [];
     }
 
-    console.log('Branch analytics response:', data);
-    return data;
+    // Parse JSON fields that come as strings
+    const formattedData = data.map(row => ({
+      ...row,
+      inscritos_por_status_pagamento: typeof row.inscritos_por_status_pagamento === 'string' 
+        ? JSON.parse(row.inscritos_por_status_pagamento)
+        : row.inscritos_por_status_pagamento,
+      modalidades_populares: typeof row.modalidades_populares === 'string'
+        ? JSON.parse(row.modalidades_populares)
+        : row.modalidades_populares
+    }));
+
+    console.log('Branch analytics response:', formattedData);
+    return formattedData;
   } catch (error) {
     console.error('Error in fetchBranchAnalytics:', error);
     throw error;
   }
 };
+
