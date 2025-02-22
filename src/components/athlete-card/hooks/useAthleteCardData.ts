@@ -82,15 +82,20 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
     queryFn: async () => {
       if (!registration.usuario_registrador_id) return null;
       
+      // Updated query to include email
       const { data: userInfo, error: userError } = await supabase
         .from('usuarios')
         .select('nome_completo, email, telefone')
         .eq('id', registration.usuario_registrador_id)
-        .single();
+        .maybeSingle();
 
       if (userError || !userInfo) return null;
 
-      return userInfo;
+      return {
+        nome_completo: userInfo.nome_completo,
+        email: userInfo.email || '',
+        telefone: userInfo.telefone
+      };
     },
     enabled: !!registration.usuario_registrador_id,
   });

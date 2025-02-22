@@ -11,7 +11,11 @@ interface AthleteInfoGridProps {
   numeroDocumento: string;
   genero: string;
   onWhatsAppClick: (phone: string) => void;
-  registradorInfo?: any;
+  registradorInfo?: {
+    nome_completo: string;
+    email: string;
+    telefone: string;
+  };
   hasRegistrador?: boolean;
   showRegistradorEmail?: boolean;
 }
@@ -25,8 +29,7 @@ export const AthleteInfoGrid: React.FC<AthleteInfoGridProps> = ({
   genero,
   onWhatsAppClick,
   registradorInfo,
-  hasRegistrador,
-  showRegistradorEmail
+  hasRegistrador
 }) => {
   return (
     <div className="grid grid-cols-1 gap-2">
@@ -85,7 +88,16 @@ export const AthleteInfoGrid: React.FC<AthleteInfoGridProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <span>{registradorInfo.telefone}</span>
+                <span>
+                  {registradorInfo.telefone}
+                  <Button
+                    variant="link"
+                    className="text-olimpics-green-primary p-0 h-auto ml-2"
+                    onClick={() => onWhatsAppClick(registradorInfo.telefone)}
+                  >
+                    WhatsApp
+                  </Button>
+                </span>
               </div>
             </div>
           </div>
