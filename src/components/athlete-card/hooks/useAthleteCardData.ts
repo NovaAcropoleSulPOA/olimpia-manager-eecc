@@ -16,6 +16,13 @@ interface PerfilData {
   };
 }
 
+// Define the actual shape of the raw Supabase response
+interface RawSupabaseResponse {
+  perfil: {
+    nome: string | null;
+  };
+}
+
 export const useAthleteCardData = (registration: AthleteManagement) => {
   const [justifications, setJustifications] = useState<Record<string, string>>({});
   const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({});
@@ -24,7 +31,6 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
   const [localInputAmount, setLocalInputAmount] = useState<string>('');
   const [hasInitialized, setHasInitialized] = useState(false);
 
-  // Query to fetch payment data
   const { data: paymentData, refetch: refetchPayment } = useQuery({
     queryKey: ['payment-amount', registration.id],
     queryFn: async () => {
@@ -33,7 +39,6 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
         .from('pagamentos')
         .select('valor, isento')
         .eq('atleta_id', registration.id)
-        .eq('evento_id', registration.evento_id)
         .maybeSingle();
 
       if (error) throw error;
@@ -42,30 +47,6 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
     enabled: !!registration.id,
   });
 
-  // Query to fetch registrator info
-  const { data: registradorInfo } = useQuery<RegistradorInfo | null>({
-    queryKey: ['registrador', registration.usuario_registrador_id],
-    queryFn: async () => {
-      if (!registration.usuario_registrador_id) return null;
-      
-      const { data: userInfo, error: userError } = await supabase
-        .from('usuarios')
-        .select('nome_completo, email, telefone')
-        .eq('id', registration.usuario_registrador_id)
-        .maybeSingle();
-
-      if (userError || !userInfo) return null;
-
-      return {
-        nome_completo: userInfo.nome_completo,
-        email: userInfo.email || '',
-        telefone: userInfo.telefone
-      };
-    },
-    enabled: !!registration.usuario_registrador_id,
-  });
-
-  // Query to fetch user profiles to determine if the user is a dependent
   const { data: userProfiles } = useQuery<PerfilData[]>({
     queryKey: ['user-profiles', registration.id, registration.evento_id],
     queryFn: async () => {
@@ -83,9 +64,40 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
 
       if (error) throw error;
       
-      return data as PerfilData[];
+      // First cast to unknown, then to our known type to satisfy TypeScript
+      const typedData = (data as unknown) as RawSupabaseResponse[];
+      
+      // Transform the data to match our interface
+      return typedData.map(item => ({
+        perfil_id: {
+          nome: item.perfil?.nome || ''
+        }
+      }));
     },
     enabled: !!registration.id && !!registration.evento_id,
+  });
+
+  const { data: registradorInfo } = useQuery<RegistradorInfo | null>({
+    queryKey: ['registrador', registration.usuario_registrador_id],
+    queryFn: async () => {
+      if (!registration.usuario_registrador_id) return null;
+      
+      // Updated query to include email
+      const { data: userInfo, error: userError } = await supabase
+        .from('usuarios')
+        .select('nome_completo, email, telefone')
+        .eq('id', registration.usuario_registrador_id)
+        .maybeSingle();
+
+      if (userError || !userInfo) return null;
+
+      return {
+        nome_completo: userInfo.nome_completo,
+        email: userInfo.email || '',
+        telefone: userInfo.telefone
+      };
+    },
+    enabled: !!registration.usuario_registrador_id,
   });
 
   const hasRegistrador = !!registration.usuario_registrador_id;
