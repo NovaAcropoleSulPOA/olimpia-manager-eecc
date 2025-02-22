@@ -49,7 +49,7 @@ export const AthleteCardHeader: React.FC<AthleteCardHeaderProps> = ({
         <div className="flex flex-wrap gap-1">
           {modalidades.map((modalidade) => (
             <Badge key={modalidade.id} variant="outline">
-              {modalidade.modalidade_nome}
+              {modalidade.modalidade}
             </Badge>
           ))}
         </div>
