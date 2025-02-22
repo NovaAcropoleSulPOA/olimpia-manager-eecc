@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { AthleteManagement } from '@/lib/api';
@@ -49,6 +48,12 @@ export const AthleteRegistrationCard: React.FC<AthleteRegistrationCardProps> = (
     const message = encodeURIComponent('Olá! Gostaria de falar sobre sua inscrição nas Olimpíadas.');
     window.open(`https://wa.me/${formattedPhone}?text=${message}`, '_blank');
   };
+
+  React.useEffect(() => {
+    if (paymentData?.valor) {
+      setLocalInputAmount(paymentData.valor.toString());
+    }
+  }, [paymentData?.valor]);
 
   const handleStatusChange = async (modalityId: string, newStatus: string) => {
     const justification = justifications[modalityId];

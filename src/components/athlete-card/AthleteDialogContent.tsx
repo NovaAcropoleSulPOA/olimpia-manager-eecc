@@ -20,7 +20,11 @@ interface AthleteDialogContentProps {
   numeroDocumento: string;
   genero: string;
   onWhatsAppClick: (phone: string) => void;
-  registradorInfo: any;
+  registradorInfo?: {
+    nome_completo: string;
+    email: string;
+    telefone: string;
+  };
   onPaymentStatusChange?: (status: string) => void;
   paymentControlProps?: {
     value: string;
@@ -82,6 +86,8 @@ export const AthleteDialogContent: React.FC<AthleteDialogContentProps> = ({
               genero={genero}
               onWhatsAppClick={onWhatsAppClick}
               registradorInfo={registradorInfo}
+              hasRegistrador={isDependent}
+              showRegistradorEmail={true}
             />
             {onPaymentStatusChange && paymentControlProps && (
               <PaymentStatusControls
