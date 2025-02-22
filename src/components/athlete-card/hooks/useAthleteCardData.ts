@@ -16,11 +16,11 @@ interface PerfilData {
   };
 }
 
-// Define the shape of the data returned by Supabase
-interface SupabasePerfilResponse {
+// Define the actual shape of the raw Supabase response
+interface RawSupabaseResponse {
   perfil: {
-    nome: string;
-  } | null;
+    nome: string | null;
+  };
 }
 
 export const useAthleteCardData = (registration: AthleteManagement) => {
@@ -64,8 +64,11 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
 
       if (error) throw error;
       
-      // Type assertion and transformation
-      return ((data as SupabasePerfilResponse[]) || []).map(item => ({
+      // First cast to unknown, then to our known type to satisfy TypeScript
+      const typedData = (data as unknown) as RawSupabaseResponse[];
+      
+      // Transform the data to match our interface
+      return typedData.map(item => ({
         perfil_id: {
           nome: item.perfil?.nome || ''
         }
