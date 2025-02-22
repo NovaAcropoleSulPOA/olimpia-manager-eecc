@@ -22,6 +22,8 @@ export interface AthleteManagement {
   filial_nome: string;
   status_pagamento: 'pendente' | 'confirmado' | 'cancelado';
   usuario_registrador_id?: string;
+  registrador_nome?: string;
+  registrador_email?: string;
   modalidades: AthleteModality[];
   evento_id: string;
 }
