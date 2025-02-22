@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { AthleteManagement } from '@/lib/api';
@@ -110,7 +110,7 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
   });
 
   // Initialize localInputAmount when payment data is loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (paymentData?.valor && !localInputAmount) {
       setLocalInputAmount(paymentData.valor.toString());
     }
