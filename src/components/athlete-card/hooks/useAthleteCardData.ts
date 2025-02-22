@@ -68,16 +68,18 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
       
       const { data, error } = await supabase
         .from('papeis_usuarios')
-        .select(`
-          perfil:perfil_id (
-            nome
-          )
-        `)
+        .select('perfil:perfil_id(nome)')
         .eq('usuario_id', registration.id)
         .eq('evento_id', registration.evento_id);
 
       if (error) throw error;
-      return (data || []) as ProfileData[];
+      
+      // Transform the data to match ProfileData interface
+      return (data || []).map(item => ({
+        perfil: {
+          nome: item.perfil.nome as string
+        }
+      }));
     },
     enabled: !!registration.id && !!registration.evento_id,
   });
