@@ -6,20 +6,13 @@ import { AthleteManagement } from '@/lib/api';
 
 interface RegistradorInfo {
   nome_completo: string;
-  email: string;
+  email: string | null;
   telefone: string;
 }
 
-interface PerfilData {
-  perfil_id: {
-    nome: string;
-  };
-}
-
-// Define the actual shape of the raw Supabase response
-interface RawSupabaseResponse {
+interface ProfileData {
   perfil: {
-    nome: string | null;
+    nome: string;
   };
 }
 
@@ -31,23 +24,44 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
   const [localInputAmount, setLocalInputAmount] = useState<string>('');
   const [hasInitialized, setHasInitialized] = useState(false);
 
+  // Query to fetch payment data
   const { data: paymentData, refetch: refetchPayment } = useQuery({
-    queryKey: ['payment-amount', registration.id],
+    queryKey: ['payment-amount', registration.id, registration.evento_id],
     queryFn: async () => {
       if (!registration.id) return null;
       const { data, error } = await supabase
         .from('pagamentos')
         .select('valor, isento')
         .eq('atleta_id', registration.id)
+        .eq('evento_id', registration.evento_id)
         .maybeSingle();
 
       if (error) throw error;
       return data;
     },
-    enabled: !!registration.id,
+    enabled: !!registration.id && !!registration.evento_id,
   });
 
-  const { data: userProfiles } = useQuery<PerfilData[]>({
+  // Query to fetch registrator info
+  const { data: registradorInfo } = useQuery<RegistradorInfo | null>({
+    queryKey: ['registrador', registration.usuario_registrador_id],
+    queryFn: async () => {
+      if (!registration.usuario_registrador_id) return null;
+      
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('nome_completo, email, telefone')
+        .eq('id', registration.usuario_registrador_id)
+        .maybeSingle();
+
+      if (error || !data) return null;
+      return data;
+    },
+    enabled: !!registration.usuario_registrador_id,
+  });
+
+  // Query to fetch user profiles
+  const { data: userProfiles } = useQuery<ProfileData[]>({
     queryKey: ['user-profiles', registration.id, registration.evento_id],
     queryFn: async () => {
       if (!registration.id || !registration.evento_id) return [];
@@ -63,48 +77,17 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
         .eq('evento_id', registration.evento_id);
 
       if (error) throw error;
-      
-      // First cast to unknown, then to our known type to satisfy TypeScript
-      const typedData = (data as unknown) as RawSupabaseResponse[];
-      
-      // Transform the data to match our interface
-      return typedData.map(item => ({
-        perfil_id: {
-          nome: item.perfil?.nome || ''
-        }
-      }));
+      return (data || []) as ProfileData[];
     },
     enabled: !!registration.id && !!registration.evento_id,
   });
 
-  const { data: registradorInfo } = useQuery<RegistradorInfo | null>({
-    queryKey: ['registrador', registration.usuario_registrador_id],
-    queryFn: async () => {
-      if (!registration.usuario_registrador_id) return null;
-      
-      // Updated query to include email
-      const { data: userInfo, error: userError } = await supabase
-        .from('usuarios')
-        .select('nome_completo, email, telefone')
-        .eq('id', registration.usuario_registrador_id)
-        .maybeSingle();
-
-      if (userError || !userInfo) return null;
-
-      return {
-        nome_completo: userInfo.nome_completo,
-        email: userInfo.email || '',
-        telefone: userInfo.telefone
-      };
-    },
-    enabled: !!registration.usuario_registrador_id,
-  });
-
   const hasRegistrador = !!registration.usuario_registrador_id;
   const hasRegistradorInfo = !!registradorInfo;
-  const hasDepententProfile = Array.isArray(userProfiles) && 
-    userProfiles.some(profile => profile.perfil_id?.nome === 'Dependente');
-  const isDependent = hasRegistrador || hasDepententProfile;
+  const hasDependentProfile = userProfiles?.some(profile => 
+    profile.perfil?.nome === 'Dependente'
+  );
+  const isDependent = hasRegistrador || hasDependentProfile;
 
   return {
     justifications,

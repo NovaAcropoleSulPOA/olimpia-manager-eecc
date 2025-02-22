@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { formatToCurrency } from '@/utils/formatters';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PaymentAmountField } from './PaymentAmountField';
 
@@ -23,8 +24,8 @@ export const PaymentStatusControls: React.FC<PaymentStatusControlsProps> = ({
   onBlur
 }) => {
   return (
-    <>
-      <div className="mt-4 flex items-center gap-2">
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
         <label className="text-sm text-muted-foreground">Status do pagamento:</label>
         <Select onValueChange={onPaymentStatusChange}>
           <SelectTrigger className="w-[180px]">
@@ -45,6 +46,6 @@ export const PaymentStatusControls: React.FC<PaymentStatusControlsProps> = ({
         onSave={onSave}
         onBlur={onBlur}
       />
-    </>
+    </div>
   );
 };

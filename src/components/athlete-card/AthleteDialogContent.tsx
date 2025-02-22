@@ -72,7 +72,7 @@ export const AthleteDialogContent: React.FC<AthleteDialogContentProps> = ({
           />
         </DialogTitle>
         <DialogDescription className="space-y-4">
-          <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+          <div className="bg-muted/50 p-4 rounded-lg space-y-4">
             <AthleteInfoGrid
               email={email}
               telefone={telefone}
@@ -82,12 +82,16 @@ export const AthleteDialogContent: React.FC<AthleteDialogContentProps> = ({
               genero={genero}
               onWhatsAppClick={onWhatsAppClick}
               registradorInfo={registradorInfo}
+              hasRegistrador={isDependent}
+              showRegistradorEmail={true}
             />
             {onPaymentStatusChange && paymentControlProps && (
-              <PaymentStatusControls
-                onPaymentStatusChange={onPaymentStatusChange}
-                {...paymentControlProps}
-              />
+              <div className="pt-4 border-t border-gray-200">
+                <PaymentStatusControls
+                  onPaymentStatusChange={onPaymentStatusChange}
+                  {...paymentControlProps}
+                />
+              </div>
             )}
           </div>
         </DialogDescription>
