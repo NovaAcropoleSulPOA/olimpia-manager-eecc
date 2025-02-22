@@ -25,6 +25,8 @@ export const AthleteCard: React.FC<AthleteCardProps> = ({
   const { 
     registradorInfo,
     isDependent,
+    paymentData,
+    hasRegistrador,
   } = useAthleteCardData(registration);
 
   return (
@@ -44,6 +46,7 @@ export const AthleteCard: React.FC<AthleteCardProps> = ({
             getStatusBadgeStyle={getStatusBadgeStyle}
             modalidades={registration.modalidades}
             isDependent={isDependent}
+            paymentValue={paymentData?.valor}
           />
           <AthleteInfoGrid
             email={registration.email}
@@ -54,7 +57,7 @@ export const AthleteCard: React.FC<AthleteCardProps> = ({
             genero={registration.genero}
             onWhatsAppClick={onWhatsAppClick}
             registradorInfo={registradorInfo}
-            hasRegistrador={!!registration.usuario_registrador_id}
+            hasRegistrador={hasRegistrador}
             showRegistradorEmail={!!registration.usuario_registrador_id}
           />
         </div>
