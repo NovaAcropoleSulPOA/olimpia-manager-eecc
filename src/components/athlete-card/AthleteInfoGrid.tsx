@@ -29,8 +29,7 @@ export const AthleteInfoGrid: React.FC<AthleteInfoGridProps> = ({
   genero,
   onWhatsAppClick,
   registradorInfo,
-  hasRegistrador,
-  showRegistradorEmail
+  hasRegistrador
 }) => {
   return (
     <div className="grid grid-cols-1 gap-2">
@@ -77,18 +76,16 @@ export const AthleteInfoGrid: React.FC<AthleteInfoGridProps> = ({
       {hasRegistrador && registradorInfo && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="text-sm">
-            <h4 className="font-medium text-muted-foreground mb-2">Responsável pelo cadastro:</h4>
+            <h4 className="font-medium text-muted-foreground mb-2">Informações do Responsável:</h4>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span>{registradorInfo.nome_completo}</span>
               </div>
-              {showRegistradorEmail && (
-                <div className="flex items-center gap-2">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span>{registradorInfo.email}</span>
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span>{registradorInfo.email}</span>
+              </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 <span>

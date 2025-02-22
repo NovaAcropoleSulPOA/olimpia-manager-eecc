@@ -13,7 +13,6 @@ interface AthleteCardHeaderProps {
   getStatusBadgeStyle: (status: string) => string;
   modalidades?: AthleteModality[];
   isDependent: boolean;
-  paymentValue?: number;
 }
 
 export const AthleteCardHeader: React.FC<AthleteCardHeaderProps> = ({
@@ -23,7 +22,6 @@ export const AthleteCardHeader: React.FC<AthleteCardHeaderProps> = ({
   statusPagamento,
   getStatusBadgeStyle,
   modalidades = [],
-  paymentValue
 }) => {
   return (
     <div className="space-y-2">
@@ -39,14 +37,6 @@ export const AthleteCardHeader: React.FC<AthleteCardHeaderProps> = ({
             <Badge variant="secondary" className="bg-blue-500 text-white">
               <UserPlus2 className="h-3 w-3 mr-1" />
               Dependente
-            </Badge>
-          )}
-          {paymentValue && (
-            <Badge variant="outline" className="ml-2">
-              {new Intl.NumberFormat('pt-BR', {
-                style: 'currency',
-                currency: 'BRL'
-              }).format(paymentValue)}
             </Badge>
           )}
         </div>
