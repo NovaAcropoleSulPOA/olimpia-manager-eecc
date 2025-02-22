@@ -16,6 +16,12 @@ interface ProfileData {
   };
 }
 
+interface SupabaseProfileResponse {
+  perfil: {
+    nome: string;
+  };
+}
+
 export const useAthleteCardData = (registration: AthleteManagement) => {
   const [justifications, setJustifications] = useState<Record<string, string>>({});
   const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({});
@@ -75,11 +81,14 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
       if (error) throw error;
       
       // Transform the data to match ProfileData interface
-      return (data || []).map(item => ({
-        perfil: {
-          nome: (item.perfil as { nome: string }).nome
-        }
-      }));
+      return (data || []).map(item => {
+        const supabaseProfile = item as unknown as SupabaseProfileResponse;
+        return {
+          perfil: {
+            nome: supabaseProfile.perfil.nome
+          }
+        };
+      });
     },
     enabled: !!registration.id && !!registration.evento_id,
   });
