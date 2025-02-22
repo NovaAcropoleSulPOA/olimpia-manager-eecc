@@ -77,7 +77,7 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
       // Transform the data to match ProfileData interface
       return (data || []).map(item => ({
         perfil: {
-          nome: item.perfil.nome as string
+          nome: (item.perfil as { nome: string }).nome
         }
       }));
     },
