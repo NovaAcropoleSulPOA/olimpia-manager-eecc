@@ -244,8 +244,10 @@ export const fetchAthleteManagement = async (filterByBranch: boolean = false, ev
           filial_nome: record.filial_nome,
           status_pagamento: paymentStatus as 'pendente' | 'confirmado' | 'cancelado',
           usuario_registrador_id: record.usuario_registrador_id,
+          registrador_nome: record.registrador_nome,
+          registrador_email: record.registrador_email,
           modalidades: [],
-          evento_id: eventId // Added this line to include evento_id
+          evento_id: eventId
         });
       }
 
