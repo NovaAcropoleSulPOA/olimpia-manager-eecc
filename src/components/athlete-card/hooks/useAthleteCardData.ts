@@ -34,16 +34,32 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
   const { data: paymentData, refetch: refetchPayment } = useQuery({
     queryKey: ['payment-amount', registration.id, registration.evento_id],
     queryFn: async () => {
-      if (!registration.id) return null;
-      const { data, error } = await supabase
-        .from('pagamentos')
-        .select('valor, isento')
-        .eq('atleta_id', registration.id)
-        .eq('evento_id', registration.evento_id)
-        .maybeSingle();
+      console.log('Fetching payment data for:', {
+        athleteId: registration.id,
+        eventId: registration.evento_id
+      });
 
-      if (error) throw error;
-      return data;
+      if (!registration.id) return null;
+      
+      try {
+        const { data, error } = await supabase
+          .from('pagamentos')
+          .select('*')  // Select all fields to ensure we get all payment info
+          .eq('atleta_id', registration.id)
+          .eq('evento_id', registration.evento_id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching payment data:', error);
+          throw error;
+        }
+
+        console.log('Payment data received:', data);
+        return data;
+      } catch (error) {
+        console.error('Error in payment query:', error);
+        throw error;
+      }
     },
     enabled: !!registration.id && !!registration.evento_id,
   });
@@ -92,6 +108,13 @@ export const useAthleteCardData = (registration: AthleteManagement) => {
     },
     enabled: !!registration.id && !!registration.evento_id,
   });
+
+  // Initialize localInputAmount when payment data is loaded
+  React.useEffect(() => {
+    if (paymentData?.valor && !localInputAmount) {
+      setLocalInputAmount(paymentData.valor.toString());
+    }
+  }, [paymentData?.valor]);
 
   const hasRegistrador = !!registration.usuario_registrador_id;
   const hasRegistradorInfo = !!registradorInfo;
