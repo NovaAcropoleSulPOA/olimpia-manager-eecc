@@ -6,7 +6,6 @@ import { AthleteManagement } from '@/lib/api';
 import { AthleteCardHeader } from '../AthleteCardHeader';
 import { AthleteInfoGrid } from '../AthleteInfoGrid';
 import { useAthleteCardData } from '../hooks/useAthleteCardData';
-import { formatToCurrency } from '@/utils/formatters';
 
 interface AthleteCardProps {
   registration: AthleteManagement;
@@ -26,7 +25,6 @@ export const AthleteCard: React.FC<AthleteCardProps> = ({
   const { 
     registradorInfo,
     isDependent,
-    paymentData
   } = useAthleteCardData(registration);
 
   return (
@@ -46,7 +44,6 @@ export const AthleteCard: React.FC<AthleteCardProps> = ({
             getStatusBadgeStyle={getStatusBadgeStyle}
             modalidades={registration.modalidades}
             isDependent={isDependent}
-            paymentAmount={paymentData?.valor ? formatToCurrency(paymentData.valor) : undefined}
           />
           <AthleteInfoGrid
             email={registration.email}

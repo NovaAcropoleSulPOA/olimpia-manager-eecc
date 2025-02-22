@@ -1,7 +1,9 @@
 
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
-import { AthleteModality } from '@/lib/api';
+import { UserPlus2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { AthleteModality } from "@/lib/api";
 
 interface AthleteCardHeaderProps {
   nome: string;
@@ -9,46 +11,46 @@ interface AthleteCardHeaderProps {
   hasRegistrador: boolean;
   statusPagamento: string;
   getStatusBadgeStyle: (status: string) => string;
-  modalidades: AthleteModality[];
+  modalidades?: AthleteModality[];
   isDependent: boolean;
-  paymentAmount?: string;
 }
 
 export const AthleteCardHeader: React.FC<AthleteCardHeaderProps> = ({
   nome,
   isCurrentUser,
-  hasRegistrador,
+  isDependent,
   statusPagamento,
   getStatusBadgeStyle,
-  modalidades,
-  isDependent,
-  paymentAmount
+  modalidades = [],
 }) => {
   return (
     <div className="space-y-2">
-      <div className="flex items-start justify-between">
-        <div>
-          <h3 className="font-semibold">{nome}</h3>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {isCurrentUser && (
-              <Badge variant="secondary">Você</Badge>
-            )}
-            {isDependent && (
-              <Badge variant="secondary">Dependente</Badge>
-            )}
-            <Badge className={getStatusBadgeStyle(statusPagamento)}>
-              {statusPagamento}
+      <div className="flex justify-between items-start">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h3 className="text-lg font-semibold">{nome}</h3>
+          {isCurrentUser && (
+            <Badge variant="secondary" className="bg-olimpics-orange-primary text-white">
+              Meu Cadastro
             </Badge>
-            {paymentAmount && (
-              <Badge variant="outline">{paymentAmount}</Badge>
-            )}
-          </div>
+          )}
+          {isDependent && (
+            <Badge variant="secondary" className="bg-blue-500 text-white">
+              <UserPlus2 className="h-3 w-3 mr-1" />
+              Dependente
+            </Badge>
+          )}
         </div>
+        <Badge className={cn("capitalize", getStatusBadgeStyle(statusPagamento))}>
+          {statusPagamento}
+        </Badge>
       </div>
       {modalidades.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {modalidades.map((modalidade) => (
-            <Badge key={modalidade.id} variant="outline">
+            <Badge
+              key={modalidade.id}
+              className={cn("capitalize text-xs", getStatusBadgeStyle(modalidade.status))}
+            >
               {modalidade.modalidade}
             </Badge>
           ))}
