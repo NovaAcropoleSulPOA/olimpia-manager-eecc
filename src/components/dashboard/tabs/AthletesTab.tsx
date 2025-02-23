@@ -2,7 +2,8 @@
 import { AthleteManagement } from "@/types/api";
 import { AthleteFilters } from "../AthleteFilters";
 import { PaginatedAthleteList } from "../PaginatedAthleteList";
-import { updateModalityStatus, updatePaymentStatus } from "@/lib/api/modalities";
+import { updateModalityStatus } from "@/lib/api/modalities";
+import { updatePaymentStatus } from "@/lib/api/payments";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 
