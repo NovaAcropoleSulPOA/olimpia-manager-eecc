@@ -1,22 +1,19 @@
-
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBranchAnalytics, fetchAthleteManagement } from "@/lib/api";
-import { DashboardMetrics } from "./dashboard/DashboardMetrics";
-import { DashboardCharts } from "./dashboard/DashboardCharts";
-import { AthleteFilters } from "./dashboard/AthleteFilters";
-import { ModalityEnrollments } from "./dashboard/ModalityEnrollments";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PaginatedAthleteList } from "./dashboard/PaginatedAthleteList";
 import { LayoutDashboard, Users, ListChecks } from "lucide-react";
 import { EmptyState } from "./dashboard/components/EmptyState";
 import { LoadingState } from "./dashboard/components/LoadingState";
 import { ErrorState } from "./dashboard/components/ErrorState";
 import { DashboardHeader } from "./dashboard/components/DashboardHeader";
 import { NoEventSelected } from "./dashboard/components/NoEventSelected";
+import { DashboardTab } from "./dashboard/tabs/DashboardTab";
+import { AthletesTab } from "./dashboard/tabs/AthletesTab";
+import { EnrollmentsTab } from "./dashboard/tabs/EnrollmentsTab";
 
 export default function OrganizerDashboard() {
   const queryClient = useQueryClient();
@@ -129,18 +126,6 @@ export default function OrganizerDashboard() {
     return <EmptyState />;
   }
 
-  // Filter and sort athletes
-  const filteredAthletes = athletes?.filter(athlete => {
-    const nameMatch = athlete.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
-    const branchMatch = branchFilter === "all" || athlete.filial_id === branchFilter;
-    const statusMatch = paymentStatusFilter === "all" || athlete.status_pagamento === paymentStatusFilter;
-    return nameMatch && branchMatch && statusMatch;
-  }).sort((a, b) => {
-    if (a.id === user?.id) return -1;
-    if (b.id === user?.id) return 1;
-    return (a.nome_atleta || '').localeCompare(b.nome_atleta || '', 'pt-BR', { sensitivity: 'base' });
-  });
-
   return (
     <div className="container mx-auto py-6 space-y-6">
       <DashboardHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
@@ -171,76 +156,30 @@ export default function OrganizerDashboard() {
         </TabsList>
 
         <TabsContent value="dashboard" className="mt-6">
-          <div className="grid gap-6">
-            <DashboardMetrics data={branchAnalytics} />
-            <DashboardCharts data={branchAnalytics} />
-          </div>
+          <DashboardTab branchAnalytics={branchAnalytics} />
         </TabsContent>
 
         <TabsContent value="athletes" className="mt-6">
-          <div className="mt-4">
-            <h2 className="text-2xl font-bold mb-4 text-olimpics-text">Gerenciamento de Atletas</h2>
-            
-            <AthleteFilters
-              nameFilter={nameFilter}
-              onNameFilterChange={setNameFilter}
-              branchFilter={branchFilter}
-              onBranchFilterChange={setBranchFilter}
-              paymentStatusFilter={paymentStatusFilter}
-              onPaymentStatusFilterChange={setPaymentStatusFilter}
-              branches={branches || []}
-            />
-
-            <div className="mt-4">
-              <PaginatedAthleteList
-                athletes={filteredAthletes || []}
-                onStatusChange={async (modalityId, status, justification) => {
-                  try {
-                    await updateModalityStatus(modalityId, status, justification);
-                    toast.success("Status atualizado com sucesso!");
-                    await queryClient.invalidateQueries({ 
-                      queryKey: ['branch-analytics', currentEventId]
-                    });
-                    await queryClient.invalidateQueries({ 
-                      queryKey: ['athlete-management', currentEventId]
-                    });
-                  } catch (error) {
-                    console.error('Error updating status:', error);
-                    toast.error("Erro ao atualizar status");
-                  }
-                }}
-                onPaymentStatusChange={async (athleteId, status) => {
-                  try {
-                    await updatePaymentStatus(athleteId, status);
-                    toast.success("Status de pagamento atualizado com sucesso!");
-                    await queryClient.invalidateQueries({ 
-                      queryKey: ['branch-analytics', currentEventId]
-                    });
-                    await queryClient.invalidateQueries({ 
-                      queryKey: ['athlete-management', currentEventId]
-                    });
-                  } catch (error) {
-                    console.error('Error updating payment status:', error);
-                    toast.error("Erro ao atualizar status de pagamento");
-                  }
-                }}
-                currentUserId={user?.id}
-              />
-            </div>
-          </div>
+          <AthletesTab
+            athletes={athletes || []}
+            branches={branches || []}
+            currentUserId={user?.id}
+            currentEventId={currentEventId}
+            filters={{
+              nameFilter,
+              branchFilter,
+              paymentStatusFilter
+            }}
+            onFilterChange={{
+              setNameFilter,
+              setBranchFilter,
+              setPaymentStatusFilter
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="enrollments" className="mt-6">
-          <div className="mt-4">
-            <h2 className="text-2xl font-bold mb-4 text-olimpics-text">Inscrições por Modalidade</h2>
-            {confirmedEnrollments && confirmedEnrollments.length > 0 ? (
-              <ModalityEnrollments enrollments={confirmedEnrollments} />
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                Nenhuma inscrição confirmada encontrada.
-              </div>
-            )}
-          </div>
+          <EnrollmentsTab enrollments={confirmedEnrollments || []} />
         </TabsContent>
       </Tabs>
     </div>
