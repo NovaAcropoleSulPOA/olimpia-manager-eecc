@@ -1,36 +1,22 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchBranchAnalytics, fetchAthleteManagement, updateModalityStatus, updatePaymentStatus } from "@/lib/api";
-import { Button } from "@/components/ui/button";
+import { fetchBranchAnalytics, fetchAthleteManagement } from "@/lib/api";
 import { DashboardMetrics } from "./dashboard/DashboardMetrics";
 import { DashboardCharts } from "./dashboard/DashboardCharts";
-import { AthleteRegistrationCard } from "./AthleteRegistrationCard";
 import { AthleteFilters } from "./dashboard/AthleteFilters";
 import { ModalityEnrollments } from "./dashboard/ModalityEnrollments";
 import { toast } from "sonner";
-import { LayoutDashboard, Users, ListChecks, RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PaginatedAthleteList } from "./dashboard/PaginatedAthleteList";
-
-const EmptyState = () => (
-  <div className="flex flex-col items-center justify-center h-96 text-center">
-    <p className="text-muted-foreground mb-2">Nenhum dado disponível no momento</p>
-    <p className="text-sm text-muted-foreground mb-4">
-      Verifique se existem inscrições registradas no sistema
-    </p>
-    <Button
-      variant="outline"
-      onClick={() => {
-        window.location.reload();
-      }}
-    >
-      Atualizar Dados
-    </Button>
-  </div>
-);
+import { LayoutDashboard, Users, ListChecks } from "lucide-react";
+import { EmptyState } from "./dashboard/components/EmptyState";
+import { LoadingState } from "./dashboard/components/LoadingState";
+import { ErrorState } from "./dashboard/components/ErrorState";
+import { DashboardHeader } from "./dashboard/components/DashboardHeader";
+import { NoEventSelected } from "./dashboard/components/NoEventSelected";
 
 export default function OrganizerDashboard() {
   const queryClient = useQueryClient();
@@ -106,21 +92,7 @@ export default function OrganizerDashboard() {
   });
 
   if (!currentEventId) {
-    return (
-      <div className="container mx-auto py-6 space-y-6">
-        <div className="text-center py-8">
-          <p className="text-muted-foreground mb-2">Nenhum evento selecionado</p>
-          <Button
-            variant="outline"
-            onClick={() => {
-              window.location.href = '/event-selection';
-            }}
-          >
-            Selecionar Evento
-          </Button>
-        </div>
-      </div>
-    );
+    return <NoEventSelected />;
   }
 
   const handleRefresh = async () => {
@@ -144,110 +116,34 @@ export default function OrganizerDashboard() {
   };
 
   if (isLoadingAnalytics || isLoadingAthletes) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (analyticsError || athletesError) {
     console.error('Error fetching data:', analyticsError || athletesError);
     toast.error('Erro ao carregar dados do dashboard');
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-red-500 mb-2">Erro ao carregar dados</p>
-          <Button variant="outline" onClick={handleRefresh}>
-            Tentar Novamente
-          </Button>
-        </div>
-      </div>
-    );
+    return <ErrorState onRetry={handleRefresh} />;
   }
 
   if (!branchAnalytics || branchAnalytics.length === 0) {
     return <EmptyState />;
   }
 
-  // Apply user filters and sort athletes
+  // Filter and sort athletes
   const filteredAthletes = athletes?.filter(athlete => {
     const nameMatch = athlete.nome_atleta?.toLowerCase().includes(nameFilter.toLowerCase()) ?? false;
     const branchMatch = branchFilter === "all" || athlete.filial_id === branchFilter;
     const statusMatch = paymentStatusFilter === "all" || athlete.status_pagamento === paymentStatusFilter;
     return nameMatch && branchMatch && statusMatch;
   }).sort((a, b) => {
-    // If one of them is the current user, it should come first
     if (a.id === user?.id) return -1;
     if (b.id === user?.id) return 1;
-    
-    // Otherwise, sort alphabetically by name
     return (a.nome_atleta || '').localeCompare(b.nome_atleta || '', 'pt-BR', { sensitivity: 'base' });
   });
 
-  console.log('Filtered and sorted athletes:', filteredAthletes?.length);
-
-  const handleStatusChange = async (modalityId: string, status: string, justification: string) => {
-    console.log('Attempting to update modality status:', { modalityId, status, justification });
-    try {
-      await updateModalityStatus(modalityId, status, justification);
-      console.log('Status updated successfully in the database');
-      toast.success("Status atualizado com sucesso!");
-      
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['branch-analytics', currentEventId] }),
-        queryClient.invalidateQueries({ queryKey: ['athlete-management', currentEventId] })
-      ]);
-      console.log('Queries invalidated and refetched');
-    } catch (error) {
-      console.error('Error updating status:', error);
-      toast.error("Erro ao atualizar status. Por favor, tente novamente.");
-      throw error;
-    }
-  };
-
-  const handlePaymentStatusChange = async (athleteId: string, status: string) => {
-    console.log('Attempting to update payment status:', { athleteId, status });
-    try {
-      await updatePaymentStatus(athleteId, status);
-      console.log('Payment status updated successfully in the database');
-      toast.success("Status de pagamento atualizado com sucesso!");
-      
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['branch-analytics', currentEventId] }),
-        queryClient.invalidateQueries({ queryKey: ['athlete-management', currentEventId] })
-      ]);
-      console.log('Queries invalidated and refetched after payment status update');
-    } catch (error) {
-      console.error('Error updating payment status:', error);
-      const errorMessage = error instanceof Error ? error.message : "Erro ao atualizar status de pagamento";
-      toast.error(errorMessage);
-      throw error;
-    }
-  };
-
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-olimpics-text">Dashboard do Organizador</h1>
-        <Button 
-          onClick={handleRefresh} 
-          disabled={isRefreshing}
-          className="bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
-        >
-          {isRefreshing ? (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              Atualizando...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Atualizar Dados
-            </>
-          )}
-        </Button>
-      </div>
+      <DashboardHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
 
       <Tabs defaultValue="dashboard" className="w-full">
         <TabsList className="w-full border-b mb-8 bg-background flex justify-start space-x-2 p-0">
@@ -298,8 +194,36 @@ export default function OrganizerDashboard() {
             <div className="mt-4">
               <PaginatedAthleteList
                 athletes={filteredAthletes || []}
-                onStatusChange={handleStatusChange}
-                onPaymentStatusChange={handlePaymentStatusChange}
+                onStatusChange={async (modalityId, status, justification) => {
+                  try {
+                    await updateModalityStatus(modalityId, status, justification);
+                    toast.success("Status atualizado com sucesso!");
+                    await queryClient.invalidateQueries({ 
+                      queryKey: ['branch-analytics', currentEventId]
+                    });
+                    await queryClient.invalidateQueries({ 
+                      queryKey: ['athlete-management', currentEventId]
+                    });
+                  } catch (error) {
+                    console.error('Error updating status:', error);
+                    toast.error("Erro ao atualizar status");
+                  }
+                }}
+                onPaymentStatusChange={async (athleteId, status) => {
+                  try {
+                    await updatePaymentStatus(athleteId, status);
+                    toast.success("Status de pagamento atualizado com sucesso!");
+                    await queryClient.invalidateQueries({ 
+                      queryKey: ['branch-analytics', currentEventId]
+                    });
+                    await queryClient.invalidateQueries({ 
+                      queryKey: ['athlete-management', currentEventId]
+                    });
+                  } catch (error) {
+                    console.error('Error updating payment status:', error);
+                    toast.error("Erro ao atualizar status de pagamento");
+                  }
+                }}
                 currentUserId={user?.id}
               />
             </div>
