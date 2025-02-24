@@ -30,16 +30,16 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
     .filter(branch => branch.filial !== '_Nenhuma_') // Exclude placeholder branches
     .map(branch => ({
       name: branch.filial,
-      total: branch.total_inscritos || 0,
-      pago: branch.valor_total_pago || 0,
-      pendente: branch.valor_total_pendente || 0
+      totalGeral: branch.total_inscritos_geral || 0,
+      totalModalidades: branch.total_inscritos_modalidades || 0,
+      pago: branch.valor_total_pago || 0
     }))
-    .filter(branch => branch.total > 0) // Only show branches with registrations
-    .sort((a, b) => b.total - a.total);
+    .filter(branch => branch.totalGeral > 0) // Only show branches with registrations
+    .sort((a, b) => b.totalGeral - a.totalGeral);
 
   // Transform data for payment status distribution
   const paymentStatusData = data.reduce((acc: { name: string; value: number }[], branch) => {
-    const statusData = branch.inscritos_por_status_pagamento || [];
+    const statusData = branch.total_inscritos_por_status || [];
     statusData.forEach(({ status_pagamento, quantidade }) => {
       if (!status_pagamento || quantidade === 0) return;
       
@@ -65,14 +65,15 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
               style={{ color: entry.color }}
               className="text-sm"
             >
-              {`${entry.name === 'total' ? 'Total de Inscrições' : 
-                 entry.name === 'pago' ? 'Valor Pago (R$)' : 
-                 'Valor Pendente (R$)'}: ${
-                 entry.name === 'total' ? entry.value :
-                 new Intl.NumberFormat('pt-BR', {
-                   style: 'currency',
-                   currency: 'BRL'
-                 }).format(entry.value)
+              {`${entry.name === 'totalGeral' ? 'Total de Inscritos' :
+                 entry.name === 'totalModalidades' ? 'Total de Inscrições em Modalidades' :
+                 'Valor Pago (R$)'}: ${
+                 entry.name === 'pago'
+                   ? new Intl.NumberFormat('pt-BR', {
+                       style: 'currency',
+                       currency: 'BRL'
+                     }).format(entry.value)
+                   : entry.value
               }`}
             </p>
           ))}
@@ -122,7 +123,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                   tick={{ fontSize: 12, fill: '#4b5563' }}
                   tickFormatter={(value) => `R$ ${value}`}
                   label={{ 
-                    value: 'Valor (R$)',
+                    value: 'Valor Pago (R$)',
                     angle: 90,
                     position: 'insideRight',
                     style: { textAnchor: 'middle' }
@@ -136,24 +137,24 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                 />
                 <Bar 
                   yAxisId="left"
-                  dataKey="total" 
+                  dataKey="totalGeral" 
                   fill="#009B40"
-                  name="Total de Inscrições"
+                  name="Total de Inscritos"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="totalModalidades" 
+                  fill="#2196F3"
+                  name="Total de Inscrições em Modalidades"
                   radius={[4, 4, 0, 0]}
                 />
                 <Line
                   yAxisId="right"
                   type="monotone"
                   dataKey="pago"
-                  stroke="#2196F3"
-                  name="Valor Pago (R$)"
-                />
-                <Line
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="pendente"
                   stroke="#FF5722"
-                  name="Valor Pendente (R$)"
+                  name="Valor Pago (R$)"
                 />
               </ComposedChart>
             </ResponsiveContainer>
