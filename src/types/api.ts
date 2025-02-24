@@ -1,3 +1,4 @@
+
 export interface AthleteModality {
   id: string;
   modalidade: string;
@@ -32,33 +33,45 @@ export interface Branch {
   estado: string;
 }
 
+interface ModalidadePopular {
+  modalidade: string;
+  total_inscritos: number;
+}
+
+interface StatusQuantidade {
+  status_pagamento: string;
+  quantidade: number;
+}
+
+interface StatusInscricao {
+  status_inscricao: string;
+  quantidade: number;
+}
+
+interface RankingFilial {
+  total_pontos: number;
+}
+
+interface CategoriaQuantidade {
+  categoria: string;
+  quantidade: number;
+}
+
+interface PontuacaoModalidade {
+  modalidade: string;
+  media_pontuacao: number;
+}
+
 export interface BranchAnalytics {
   filial_id: string;
   filial: string;
   total_inscritos: number;
   valor_total_pago: number;
   valor_total_pendente: number;
-  modalidades_populares: Array<{
-    modalidade: string;
-    total_inscritos: number;
-  }>;
-  inscritos_por_status_pagamento: Array<{
-    status_pagamento: string;
-    quantidade: number;
-  }>;
-  inscritos_por_status: Array<{
-    status_inscricao: string;
-    quantidade: number;
-  }>;
-  ranking_filiais: Array<{
-    total_pontos: number;
-  }>;
-  atletas_por_categoria: Array<{
-    categoria: string;
-    quantidade: number;
-  }>;
-  media_pontuacao_por_modalidade: Array<{
-    modalidade: string;
-    media_pontuacao: number;
-  }>;
+  modalidades_populares: ModalidadePopular[];
+  inscritos_por_status_pagamento: StatusQuantidade[];
+  inscritos_por_status: StatusInscricao[];
+  ranking_filiais: RankingFilial[];
+  atletas_por_categoria: CategoriaQuantidade[];
+  media_pontuacao_por_modalidade: PontuacaoModalidade[];
 }

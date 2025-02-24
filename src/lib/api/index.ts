@@ -17,6 +17,12 @@ export type {
 export const fetchBranchAnalytics = async (eventId: string | null, filialId?: string) => {
   if (!eventId) return [];
   
+  // Set the current event ID in the session
+  await supabase.rpc('set_config', {
+    parameter: 'app.current_event_id',
+    value: eventId
+  });
+  
   let query = supabase
     .from('vw_analytics_inscricoes')
     .select('*');
