@@ -9,7 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
-  Line
+  BarChart
 } from "recharts";
 import { CustomTooltip } from "./CustomTooltip";
 import { ChartBranchData } from "./types";
@@ -28,7 +28,7 @@ export function BranchRegistrationsChart({ data }: BranchRegistrationsChartProps
       </CardHeader>
       <CardContent className="h-[500px]">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart 
+          <BarChart 
             data={data}
             margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
           >
@@ -43,25 +43,12 @@ export function BranchRegistrationsChart({ data }: BranchRegistrationsChartProps
               tickMargin={30}
             />
             <YAxis 
-              yAxisId="left" 
               tick={{ fontSize: 12, fill: '#4b5563' }}
               tickFormatter={(value) => `${value}`}
               label={{ 
-                value: 'Total de Inscrições',
+                value: 'Número de Inscrições',
                 angle: -90,
                 position: 'insideLeft',
-                style: { textAnchor: 'middle' }
-              }}
-            />
-            <YAxis 
-              yAxisId="right" 
-              orientation="right" 
-              tick={{ fontSize: 12, fill: '#4b5563' }}
-              tickFormatter={(value) => `R$ ${value}`}
-              label={{ 
-                value: 'Valor Pago (R$)',
-                angle: 90,
-                position: 'insideRight',
                 style: { textAnchor: 'middle' }
               }}
             />
@@ -72,27 +59,34 @@ export function BranchRegistrationsChart({ data }: BranchRegistrationsChartProps
               wrapperStyle={{ paddingBottom: '20px' }}
             />
             <Bar 
-              yAxisId="left"
               dataKey="totalGeral" 
               fill="#009B40"
               name="Total de Inscritos"
               radius={[4, 4, 0, 0]}
+              stackId="status"
             />
             <Bar 
-              yAxisId="left"
-              dataKey="totalModalidades" 
-              fill="#2196F3"
-              name="Total de Inscrições em Modalidades"
+              dataKey="confirmados" 
+              fill="#4CAF50"
+              name="Confirmados"
               radius={[4, 4, 0, 0]}
+              stackId="breakdown"
             />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="pago"
-              stroke="#FF5722"
-              name="Valor Pago (R$)"
+            <Bar 
+              dataKey="pendentes" 
+              fill="#FFC107"
+              name="Pendentes"
+              radius={[4, 4, 0, 0]}
+              stackId="breakdown"
             />
-          </ComposedChart>
+            <Bar 
+              dataKey="cancelados" 
+              fill="#F44336"
+              name="Cancelados"
+              radius={[4, 4, 0, 0]}
+              stackId="breakdown"
+            />
+          </BarChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>

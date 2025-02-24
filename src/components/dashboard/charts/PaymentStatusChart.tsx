@@ -14,7 +14,11 @@ interface PaymentStatusChartProps {
   data: PaymentStatusData[];
 }
 
-const COLORS = ['#009B40', '#EE7E01', '#4CAF50', '#2196F3', '#9C27B0', '#FF5722'];
+const STATUS_LABELS = {
+  'confirmado': 'Confirmado',
+  'pendente': 'Pendente',
+  'cancelado': 'Cancelado'
+};
 
 export function PaymentStatusChart({ data }: PaymentStatusChartProps) {
   if (data.length === 0) return null;
@@ -32,19 +36,22 @@ export function PaymentStatusChart({ data }: PaymentStatusChartProps) {
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+              label={({ name, percent }) => 
+                `${STATUS_LABELS[name as keyof typeof STATUS_LABELS] || name} (${(percent * 100).toFixed(0)}%)`
+              }
               outerRadius={120}
               fill="#8884d8"
               dataKey="value"
             >
-              {data.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
             <Tooltip />
             <Legend 
               verticalAlign="bottom" 
               height={36}
+              formatter={(value: string) => STATUS_LABELS[value as keyof typeof STATUS_LABELS] || value}
               wrapperStyle={{ paddingTop: '20px' }}
             />
           </PieChart>
