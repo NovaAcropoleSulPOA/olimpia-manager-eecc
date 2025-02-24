@@ -8,10 +8,15 @@ interface DashboardTabProps {
 }
 
 export function DashboardTab({ branchAnalytics }: DashboardTabProps) {
+  // Filter out any invalid entries and ensure we have proper data
+  const validAnalytics = branchAnalytics.filter(branch => 
+    branch && typeof branch.total_inscritos_geral === 'number'
+  );
+
   return (
     <div className="grid gap-6">
-      <DashboardMetrics data={branchAnalytics} />
-      <DashboardCharts data={branchAnalytics} />
+      <DashboardMetrics data={validAnalytics} />
+      <DashboardCharts data={validAnalytics} />
     </div>
   );
 }

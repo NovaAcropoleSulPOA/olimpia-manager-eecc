@@ -1,13 +1,16 @@
 
 import { BranchAnalytics } from "@/lib/api";
+import { PaymentStatus } from "./types";
 
 export function useMetricsData(data: BranchAnalytics[]) {
   // Calculate total unique athletes (using total_inscritos_geral)
-  const totalAthletes = data.reduce((acc, branch) => acc + (branch.total_inscritos_geral || 0), 0);
+  const totalAthletes = data.reduce((acc, branch) => 
+    acc + (branch.total_inscritos_geral || 0), 0
+  );
   
-  // Calculate payment status totals
+  // Calculate payment status totals from the JSON field
   const paymentTotals = data.reduce((acc, branch) => {
-    const statusData = branch.total_inscritos_por_status || [];
+    const statusData: PaymentStatus[] = branch.total_inscritos_por_status || [];
     
     statusData.forEach(({ status_pagamento, quantidade }) => {
       if (status_pagamento === 'confirmado') {
@@ -24,9 +27,11 @@ export function useMetricsData(data: BranchAnalytics[]) {
   const totalRevenuePaid = data.reduce((acc, branch) => 
     acc + (branch.valor_total_pago || 0), 0
   );
-  
-  // Since valor_total_pendente is no longer in the view, we calculate it from status
-  const totalRevenuePending = 0; // Removed as per new view structure
+
+  // Now we'll calculate the pending revenue
+  // This is a placeholder - you might want to add valor_total_pendente to the view
+  // For now, we'll show 0
+  const totalRevenuePending = 0;
 
   return {
     totalAthletes,
