@@ -1,4 +1,3 @@
-
 export interface AthleteModality {
   id: string;
   modalidade: string;
@@ -65,6 +64,7 @@ interface PontuacaoModalidade {
 export interface BranchAnalytics {
   filial_id: string;
   filial: string;
+  evento_id: string | null;
   total_inscritos: number;
   valor_total_pago: number;
   valor_total_pendente: number;

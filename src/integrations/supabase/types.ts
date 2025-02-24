@@ -1195,7 +1195,6 @@ export type Database = {
       vw_analytics_inscricoes: {
         Row: {
           atletas_por_categoria: Json | null
-          evento_id: string | null
           filial: string | null
           filial_id: string | null
           inscritos_por_status: Json | null
