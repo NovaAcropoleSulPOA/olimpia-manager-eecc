@@ -33,20 +33,45 @@ export interface Branch {
   estado: string;
 }
 
+interface ModalidadePopular {
+  modalidade: string;
+  total_inscritos: number;
+}
+
+interface StatusQuantidade {
+  status_pagamento: string;
+  quantidade: number;
+}
+
+interface StatusInscricao {
+  status_inscricao: string;
+  quantidade: number;
+}
+
+interface RankingFilial {
+  total_pontos: number;
+}
+
+interface CategoriaQuantidade {
+  categoria: string;
+  quantidade: number;
+}
+
+interface PontuacaoModalidade {
+  modalidade: string;
+  media_pontuacao: number;
+}
+
 export interface BranchAnalytics {
   filial_id: string;
   filial: string;
-  evento_id: string;
   total_inscritos: number;
-  total_confirmados: number;
   valor_total_pago: number;
   valor_total_pendente: number;
-  total_atletas_pendentes_pagamento: number;
-  inscritos_por_status_pagamento: Record<'confirmado' | 'pendente' | 'cancelado', number>;
-  modalidades_populares: Record<string, {
-    Masculino: number;
-    Feminino: number;
-    Misto: number;
-  }>;
+  modalidades_populares: ModalidadePopular[];
+  inscritos_por_status_pagamento: StatusQuantidade[];
+  inscritos_por_status: StatusInscricao[];
+  ranking_filiais: RankingFilial[];
+  atletas_por_categoria: CategoriaQuantidade[];
+  media_pontuacao_por_modalidade: PontuacaoModalidade[];
 }
-

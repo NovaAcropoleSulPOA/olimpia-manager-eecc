@@ -35,7 +35,6 @@ export default function DelegationDashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
   
-  // Get current event ID
   const currentEventId = localStorage.getItem('currentEventId');
   
   const { data: userProfile } = useQuery({
@@ -63,14 +62,8 @@ export default function DelegationDashboard() {
     queryKey: ['branch-analytics', userProfile?.filial_id, currentEventId],
     queryFn: async () => {
       console.log('Fetching branch analytics for filial:', userProfile?.filial_id, 'and event:', currentEventId);
-      const { data, error } = await supabase
-        .from('vw_analytics_inscricoes')
-        .select('*')
-        .eq('filial_id', userProfile?.filial_id)
-        .eq('evento_id', currentEventId);
-      
-      if (error) throw error;
-      return data || [];
+      const data = await fetchBranchAnalytics(currentEventId, userProfile?.filial_id);
+      return data;
     },
     enabled: !!userProfile?.filial_id && !!currentEventId,
   });
@@ -339,4 +332,15 @@ export default function DelegationDashboard() {
       </Tabs>
     </div>
   );
+}
+
+async function fetchBranchAnalytics(eventId: string, filialId: string) {
+  const { data, error } = await supabase
+    .from('vw_analytics_inscricoes')
+    .select('*')
+    .eq('filial_id', filialId)
+    .eq('evento_id', eventId);
+  
+  if (error) throw error;
+  return data || [];
 }

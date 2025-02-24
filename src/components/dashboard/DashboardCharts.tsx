@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BranchAnalytics } from "@/lib/api";
 import {
@@ -25,28 +26,33 @@ const COLORS = ['#009B40', '#EE7E01', '#4CAF50', '#2196F3', '#9C27B0', '#FF5722'
 
 export function DashboardCharts({ data }: DashboardChartsProps) {
   // Transform data for branch registrations and payments
-  const branchData = data.map(branch => ({
-    name: branch.filial,
-    total: branch.total_inscritos || 0,
-    pago: branch.valor_total_pago ? Number(branch.valor_total_pago) : 0,
-    pendente: branch.valor_total_pendente ? Number(branch.valor_total_pendente) : 0
-  })).sort((a, b) => b.total - a.total);
+  const branchData = data
+    .filter(branch => branch.filial !== '_Nenhuma_') // Exclude placeholder branches
+    .map(branch => ({
+      name: branch.filial,
+      total: branch.total_inscritos || 0,
+      pago: branch.valor_total_pago || 0,
+      pendente: branch.valor_total_pendente || 0
+    }))
+    .filter(branch => branch.total > 0) // Only show branches with registrations
+    .sort((a, b) => b.total - a.total);
 
   // Transform data for payment status distribution
-  const paymentStatusData = data.reduce((acc, branch) => {
-    const statusData = branch.inscritos_por_status_pagamento as Record<string, number> || {};
-    Object.entries(statusData).forEach(([status, count]) => {
-      if (status && count > 0) {
-        const existingStatus = acc.find(item => item.name === status);
-        if (existingStatus) {
-          existingStatus.value += count;
-        } else {
-          acc.push({ name: status, value: count });
-        }
+  const paymentStatusData = data.reduce((acc: { name: string; value: number }[], branch) => {
+    const statusData = branch.inscritos_por_status_pagamento || [];
+    statusData.forEach(({ status_pagamento, quantidade }) => {
+      if (!status_pagamento || quantidade === 0) return;
+      
+      const existingStatus = acc.find(item => item.name === status_pagamento);
+      if (existingStatus) {
+        existingStatus.value += quantidade;
+      } else {
+        acc.push({ name: status_pagamento, value: quantidade });
       }
     });
     return acc;
-  }, [] as { name: string; value: number }[]);
+  }, [])
+  .filter(item => item.value > 0); // Remove zero-count statuses
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -59,7 +65,15 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
               style={{ color: entry.color }}
               className="text-sm"
             >
-              {`${entry.name}: ${entry.value}`}
+              {`${entry.name === 'total' ? 'Total de Inscrições' : 
+                 entry.name === 'pago' ? 'Valor Pago (R$)' : 
+                 'Valor Pendente (R$)'}: ${
+                 entry.name === 'total' ? entry.value :
+                 new Intl.NumberFormat('pt-BR', {
+                   style: 'currency',
+                   currency: 'BRL'
+                 }).format(entry.value)
+              }`}
             </p>
           ))}
         </div>
@@ -75,11 +89,11 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
           <CardHeader>
             <CardTitle className="text-olimpics-text">Inscrições por Filial</CardTitle>
           </CardHeader>
-          <CardContent className="h-[500px]"> {/* Increased height for better spacing */}
+          <CardContent className="h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart 
                 data={branchData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 100 }} // Increased bottom margin
+                margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis 
@@ -88,15 +102,15 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                   interval={0}
                   angle={-45}
                   textAnchor="end"
-                  height={100} // Increased height for labels
-                  tickMargin={30} // Added margin between ticks and axis
+                  height={100}
+                  tickMargin={30}
                 />
                 <YAxis 
                   yAxisId="left" 
                   tick={{ fontSize: 12, fill: '#4b5563' }}
                   tickFormatter={(value) => `${value}`}
                   label={{ 
-                    value: 'Total de Inscrições Pagas',
+                    value: 'Total de Inscrições',
                     angle: -90,
                     position: 'insideLeft',
                     style: { textAnchor: 'middle' }
@@ -169,7 +183,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip />
                 <Legend 
                   verticalAlign="bottom" 
                   height={36}
