@@ -138,6 +138,13 @@ export type Database = {
             referencedRelation: "eventos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cronograma_atividades_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
+          },
         ]
       }
       cronogramas: {
@@ -178,6 +185,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "eventos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cronogramas_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
           },
         ]
       }
@@ -243,6 +257,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "eventos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "eventos_filiais_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
           },
           {
             foreignKeyName: "eventos_filiais_filial_id_fkey"
@@ -334,6 +355,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "eventos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscricoes_eventos_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
           },
           {
             foreignKeyName: "inscricoes_eventos_usuario_id_fkey"
@@ -430,6 +458,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "inscricoes_modalidades_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
+          },
+          {
             foreignKeyName: "inscricoes_modalidades_modalidade_id_fkey"
             columns: ["modalidade_id"]
             isOneToOne: false
@@ -492,6 +527,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "eventos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "modalidades_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
           },
         ]
       }
@@ -575,6 +617,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "pagamentos_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
+          },
+          {
             foreignKeyName: "pagamentos_taxa_inscricao_fk"
             columns: ["taxa_inscricao_id"]
             isOneToOne: false
@@ -609,6 +658,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "eventos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "papeis_usuarios_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
           },
           {
             foreignKeyName: "papeis_usuarios_perfil_id_fkey"
@@ -676,6 +732,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "eventos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perfis_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
           },
           {
             foreignKeyName: "perfis_tipo_perfil_fkey"
@@ -788,6 +851,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "pontuacoes_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
+          },
+          {
             foreignKeyName: "pontuacoes_juiz_id_fkey"
             columns: ["juiz_id"]
             isOneToOne: false
@@ -896,6 +966,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "premiacoes_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
+          },
+          {
             foreignKeyName: "premiacoes_modalidade_id_fkey"
             columns: ["modalidade_id"]
             isOneToOne: false
@@ -937,6 +1014,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "eventos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ranking_filiais_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
           },
           {
             foreignKeyName: "ranking_filiais_filial_id_fkey"
@@ -1028,6 +1112,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "eventos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "taxas_inscricao_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
           },
         ]
       }
@@ -1190,11 +1281,19 @@ export type Database = {
             referencedRelation: "eventos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "pagamentos_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
+          },
         ]
       }
       vw_analytics_inscricoes: {
         Row: {
           atletas_por_categoria: Json | null
+          evento_id: string | null
           filial: string | null
           filial_id: string | null
           inscritos_por_status: Json | null
@@ -1203,8 +1302,9 @@ export type Database = {
           modalidades_populares: Json | null
           ranking_filiais: Json | null
           total_inscritos: number | null
+          total_inscritos_confirmados: number | null
+          total_inscritos_pendentes: number | null
           valor_total_pago: number | null
-          valor_total_pendente: number | null
         }
         Relationships: []
       }
@@ -1331,6 +1431,13 @@ export type Database = {
             referencedRelation: "eventos"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cronograma_atividades_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "vw_analytics_inscricoes"
+            referencedColumns: ["evento_id"]
+          },
         ]
       }
       vw_cronograma_atividades_por_atleta: {
@@ -1396,6 +1503,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_current_event: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_role_priority: {
         Args: {
           role_name: string
@@ -1430,6 +1541,12 @@ export type Database = {
           p_event_id: string
           p_profile_id: number
           p_registration_fee_id: number
+        }
+        Returns: undefined
+      }
+      set_current_event: {
+        Args: {
+          p_event_id: string
         }
         Returns: undefined
       }
