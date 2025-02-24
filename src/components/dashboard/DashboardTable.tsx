@@ -1,171 +1,118 @@
-import { useState } from "react";
-import { BranchAnalytics } from "@/lib/api";
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpDown, Search, Tag } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+} from "@/components/ui/table"
+import { BranchAnalytics } from "@/lib/api";
+import { useState } from "react";
+import { ArrowDown, ArrowUp, SortAsc, SortDesc } from "lucide-react";
 
-interface DashboardTableProps {
+interface SortConfig {
+  key: keyof BranchAnalytics | null;
+  direction: 'asc' | 'desc';
+}
+
+interface ModalitiesTableProps {
   data: BranchAnalytics[];
 }
 
-interface ModalityCategory {
-  Masculino: number;
-  Feminino: number;
-  Misto: number;
-}
-
-interface ModalityData {
-  [key: string]: ModalityCategory;
-}
-
-export function DashboardTable({ data }: DashboardTableProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof BranchAnalytics;
-    direction: 'asc' | 'desc';
-  } | null>(null);
-
-  const sortedData = [...data].sort((a, b) => {
-    if (!sortConfig) return 0;
-
-    const aValue = a[sortConfig.key];
-    const bValue = b[sortConfig.key];
-
-    if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return sortConfig.direction === 'asc' ? aValue - bValue : bValue - aValue;
-    }
-
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return sortConfig.direction === 'asc'
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue);
-    }
-
-    return 0;
-  });
-
-  const filteredData = sortedData.filter(branch =>
-    branch.filial.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+export function ModalitiesTable({ data }: ModalitiesTableProps) {
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
 
   const handleSort = (key: keyof BranchAnalytics) => {
-    setSortConfig(current => ({
-      key,
-      direction: current?.key === key && current.direction === 'asc' ? 'desc' : 'asc',
-    }));
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
   };
 
-  const formatModalidadesPopulares = (modalidades: Array<{ modalidade: string; total_inscritos: number }> | null): JSX.Element => {
-    if (!modalidades || modalidades.length === 0) {
-      return (
-        <span className="text-muted-foreground">
-          Nenhuma modalidade popular disponível
-        </span>
-      );
+  const sortedBranches = sortBranches(data, sortConfig);
+
+  const getSortIndicator = (key: keyof BranchAnalytics) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === 'asc' ? <ArrowUp className="w-4 h-4 ml-1" /> : <ArrowDown className="w-4 h-4 ml-1" />;
     }
+    return null;
+  };
 
-    const getTagVariant = (index: number): "default" | "secondary" | "destructive" => {
-      const variants: ("default" | "secondary" | "destructive")[] = ["default", "secondary", "destructive"];
-      return variants[index % variants.length];
-    };
+  const sortBranches = (
+    branches: BranchAnalytics[],
+    sortConfig: SortConfig
+  ): BranchAnalytics[] => {
+    return [...branches].sort((a, b) => {
+      if (!sortConfig.key) return 0;
 
-    const modalityTags = modalidades.map(({ modalidade, total_inscritos }) => {
-      if (total_inscritos === 0) return null;
+      let aValue: any;
+      let bValue: any;
 
-      return (
-        <Badge
-          key={modalidade}
-          variant={getTagVariant(Math.floor(Math.random() * 3))}
-          className="inline-flex items-center gap-1 mr-2 mb-2"
-        >
-          <Tag className="w-3 h-3" />
-          <span>{modalidade}</span>
-          <span className="ml-1 text-xs opacity-75">
-            ({total_inscritos} {total_inscritos === 1 ? 'inscrição' : 'inscrições'})
-          </span>
-        </Badge>
-      );
-    }).filter(Boolean);
+      // Update sorting logic to use correct field names
+      switch (sortConfig.key) {
+        case 'total_inscritos_geral':
+          aValue = a.total_inscritos_geral || 0;
+          bValue = b.total_inscritos_geral || 0;
+          break;
+        case 'filial':
+          aValue = a.filial || '';
+          bValue = b.filial || '';
+          break;
+        case 'total_inscritos_modalidades':
+          aValue = a.total_inscritos_modalidades || 0;
+          bValue = b.total_inscritos_modalidades || 0;
+          break;
+        case 'valor_total_pago':
+          aValue = a.valor_total_pago || 0;
+          bValue = b.valor_total_pago || 0;
+          break;
+        default:
+          aValue = a[sortConfig.key];
+          bValue = b[sortConfig.key];
+      }
 
-    return (
-      <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto pr-2">
-        {modalityTags}
-      </div>
-    );
+      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
   };
 
   return (
-    <Card className="shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-olimpics-text">Dados por Filial</CardTitle>
-        <div className="flex items-center py-4">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por filial..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead
-                  className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => handleSort('filial')}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>Filial</span>
-                    <ArrowUpDown className="h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead
-                  className="cursor-pointer hover:bg-muted/50 transition-colors text-right"
-                  onClick={() => handleSort('total_inscritos')}
-                >
-                  <div className="flex items-center justify-end space-x-1">
-                    <span>Total de Inscrições</span>
-                    <ArrowUpDown className="h-4 w-4" />
-                  </div>
-                </TableHead>
-                <TableHead>
-                  Modalidades por Categoria
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredData.map((branch) => (
-                <TableRow key={branch.filial_id} className="hover:bg-muted/50 transition-colors">
-                  <TableCell className="font-medium">{branch.filial}</TableCell>
-                  <TableCell className="text-right">{branch.total_inscritos}</TableCell>
-                  <TableCell>{formatModalidadesPopulares(branch.modalidades_populares as Array<{ modalidade: string; total_inscritos: number }>)}</TableCell>
-                </TableRow>
-              ))}
-              {filteredData.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground">
-                    Nenhum resultado encontrado
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+    <Table>
+      <TableCaption>Dados detalhados das filiais e suas modalidades.</TableCaption>
+      <TableHeader>
+        <TableRow>
+          <TableHead onClick={() => handleSort('filial')}>
+            Filial {getSortIndicator('filial')}
+          </TableHead>
+          <TableHead onClick={() => handleSort('total_inscritos_geral')}>
+            Total de Inscritos {getSortIndicator('total_inscritos_geral')}
+          </TableHead>
+          <TableHead onClick={() => handleSort('total_inscritos_modalidades')}>
+            Inscritos em Modalidades {getSortIndicator('total_inscritos_modalidades')}
+          </TableHead>
+          <TableHead onClick={() => handleSort('valor_total_pago')}>
+            Valor Total Pago {getSortIndicator('valor_total_pago')}
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {sortedBranches.map((branch) => (
+          <TableRow key={branch.filial_id}>
+            <TableCell>{branch.filial}</TableCell>
+            <TableCell>{branch.total_inscritos_geral}</TableCell>
+            <TableCell>{branch.total_inscritos_modalidades}</TableCell>
+            <TableCell>
+              {new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+              }).format(branch.valor_total_pago)}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }

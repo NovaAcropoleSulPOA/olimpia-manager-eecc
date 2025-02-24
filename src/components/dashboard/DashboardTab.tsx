@@ -10,7 +10,7 @@ interface DashboardTabProps {
 export function DashboardTab({ branchAnalytics }: DashboardTabProps) {
   // Filter out any potential null or invalid entries
   const validAnalytics = branchAnalytics.filter(branch => 
-    branch && typeof branch.total_inscritos === 'number'
+    branch && typeof branch.total_inscritos_geral === 'number'
   );
 
   return (
