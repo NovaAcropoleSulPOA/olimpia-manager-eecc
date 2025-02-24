@@ -30,24 +30,26 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
     .filter(branch => branch.filial !== '_Nenhuma_') // Exclude placeholder branches
     .map(branch => ({
       name: branch.filial,
-      total: branch.total_inscritos || 0,
+      totalModalidades: branch.total_inscritos_modalidades || 0,
+      totalGeral: branch.inscritos_por_status_pagamento?.total_geral || 0,
+      totalConfirmados: branch.inscritos_por_status_pagamento?.total_confirmados || 0,
       pago: branch.valor_total_pago || 0,
       pendente: branch.valor_total_pendente || 0
     }))
-    .filter(branch => branch.total > 0) // Only show branches with registrations
-    .sort((a, b) => b.total - a.total);
+    .filter(branch => branch.totalModalidades > 0) // Only show branches with registrations
+    .sort((a, b) => b.totalModalidades - a.totalModalidades);
 
   // Transform data for payment status distribution
   const paymentStatusData = data.reduce((acc: { name: string; value: number }[], branch) => {
-    const statusData = branch.inscritos_por_status_pagamento || [];
-    statusData.forEach(({ status_pagamento, quantidade }) => {
-      if (!status_pagamento || quantidade === 0) return;
+    const statusData = branch.inscritos_por_status || [];
+    statusData.forEach(({ status_inscricao, quantidade }) => {
+      if (!status_inscricao || quantidade === 0) return;
       
-      const existingStatus = acc.find(item => item.name === status_pagamento);
+      const existingStatus = acc.find(item => item.name === status_inscricao);
       if (existingStatus) {
         existingStatus.value += quantidade;
       } else {
-        acc.push({ name: status_pagamento, value: quantidade });
+        acc.push({ name: status_inscricao, value: quantidade });
       }
     });
     return acc;
@@ -65,14 +67,17 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
               style={{ color: entry.color }}
               className="text-sm"
             >
-              {`${entry.name === 'total' ? 'Total de Inscrições' : 
+              {`${entry.name === 'totalModalidades' ? 'Total de Inscrições em Modalidades' :
+                 entry.name === 'totalGeral' ? 'Total de Inscritos' :
+                 entry.name === 'totalConfirmados' ? 'Inscritos Confirmados' :
                  entry.name === 'pago' ? 'Valor Pago (R$)' : 
                  'Valor Pendente (R$)'}: ${
-                 entry.name === 'total' ? entry.value :
-                 new Intl.NumberFormat('pt-BR', {
-                   style: 'currency',
-                   currency: 'BRL'
-                 }).format(entry.value)
+                 entry.name === 'totalModalidades' || entry.name === 'totalGeral' || entry.name === 'totalConfirmados' 
+                   ? entry.value 
+                   : new Intl.NumberFormat('pt-BR', {
+                       style: 'currency',
+                       currency: 'BRL'
+                     }).format(entry.value)
               }`}
             </p>
           ))}
@@ -136,23 +141,37 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                 />
                 <Bar 
                   yAxisId="left"
-                  dataKey="total" 
+                  dataKey="totalModalidades" 
                   fill="#009B40"
-                  name="Total de Inscrições"
+                  name="Total de Inscrições em Modalidades"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="totalGeral" 
+                  fill="#2196F3"
+                  name="Total de Inscritos"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="totalConfirmados" 
+                  fill="#4CAF50"
+                  name="Inscritos Confirmados"
                   radius={[4, 4, 0, 0]}
                 />
                 <Line
                   yAxisId="right"
                   type="monotone"
                   dataKey="pago"
-                  stroke="#2196F3"
+                  stroke="#FF5722"
                   name="Valor Pago (R$)"
                 />
                 <Line
                   yAxisId="right"
                   type="monotone"
                   dataKey="pendente"
-                  stroke="#FF5722"
+                  stroke="#9C27B0"
                   name="Valor Pendente (R$)"
                 />
               </ComposedChart>
