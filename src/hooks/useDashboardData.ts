@@ -25,27 +25,10 @@ export function useDashboardData(currentEventId: string | null) {
     enabled: !!currentEventId
   });
 
-  // Fetch analytics data with direct event filtering
+  // Fetch analytics data
   const analyticsQuery = useQuery({
     queryKey: ['branch-analytics', currentEventId],
-    queryFn: async () => {
-      if (!currentEventId) return [];
-
-      console.log('Fetching analytics for event:', currentEventId);
-      
-      // Fetch analytics data directly filtering by event_id
-      const { data, error } = await supabase.rpc('get_event_analytics', {
-        p_event_id: currentEventId
-      });
-
-      if (error) {
-        console.error('Error fetching analytics:', error);
-        throw error;
-      }
-
-      console.log('Analytics data fetched:', data);
-      return data || [];
-    },
+    queryFn: () => fetchBranchAnalytics(currentEventId),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
     enabled: !!currentEventId
