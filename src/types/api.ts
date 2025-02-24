@@ -66,11 +66,10 @@ export interface BranchAnalytics {
   filial_id: string;
   filial: string;
   total_inscritos: number;
-  total_inscritos_confirmados: number;
-  total_inscritos_pendentes: number;
   valor_total_pago: number;
-  inscritos_por_status_pagamento: StatusQuantidade[];
+  valor_total_pendente: number;
   modalidades_populares: ModalidadePopular[];
+  inscritos_por_status_pagamento: StatusQuantidade[];
   inscritos_por_status: StatusInscricao[];
   ranking_filiais: RankingFilial[];
   atletas_por_categoria: CategoriaQuantidade[];
