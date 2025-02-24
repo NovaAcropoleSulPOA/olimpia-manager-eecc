@@ -1,6 +1,6 @@
 
-import { DashboardMetrics } from "../DashboardMetrics";
-import { DashboardCharts } from "../DashboardCharts";
+import { DashboardMetrics } from "./DashboardMetrics";
+import { DashboardCharts } from "./DashboardCharts";
 import { BranchAnalytics } from "@/lib/api";
 
 interface DashboardTabProps {
