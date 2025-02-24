@@ -33,20 +33,18 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
   })).sort((a, b) => b.total - a.total);
 
   // Transform data for payment status distribution
-  const paymentStatusData = data.reduce((acc, branch) => {
-    const statusData = branch.inscritos_por_status_pagamento as Record<string, number> || {};
-    Object.entries(statusData).forEach(([status, count]) => {
-      if (status && count > 0) {
-        const existingStatus = acc.find(item => item.name === status);
-        if (existingStatus) {
-          existingStatus.value += count;
-        } else {
-          acc.push({ name: status, value: count });
-        }
+  const paymentStatusData = data.reduce((acc: { name: string; value: number }[], branch) => {
+    const statusData = branch.inscritos_por_status_pagamento || [];
+    statusData.forEach(({ status_pagamento, quantidade }) => {
+      const existingStatus = acc.find(item => item.name === status_pagamento);
+      if (existingStatus) {
+        existingStatus.value += quantidade;
+      } else if (status_pagamento && quantidade > 0) {
+        acc.push({ name: status_pagamento, value: quantidade });
       }
     });
     return acc;
-  }, [] as { name: string; value: number }[]);
+  }, []);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -75,11 +73,11 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
           <CardHeader>
             <CardTitle className="text-olimpics-text">Inscrições por Filial</CardTitle>
           </CardHeader>
-          <CardContent className="h-[500px]"> {/* Increased height for better spacing */}
+          <CardContent className="h-[500px]">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart 
                 data={branchData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 100 }} // Increased bottom margin
+                margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis 
@@ -88,8 +86,8 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                   interval={0}
                   angle={-45}
                   textAnchor="end"
-                  height={100} // Increased height for labels
-                  tickMargin={30} // Added margin between ticks and axis
+                  height={100}
+                  tickMargin={30}
                 />
                 <YAxis 
                   yAxisId="left" 
