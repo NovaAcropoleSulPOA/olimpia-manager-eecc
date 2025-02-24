@@ -1,5 +1,5 @@
 
-import { DashboardMetrics } from "./DashboardMetrics";
+import { DashboardMetrics } from "./metrics/DashboardMetrics";
 import { DashboardCharts } from "./DashboardCharts";
 import { BranchAnalytics } from "@/lib/api";
 
