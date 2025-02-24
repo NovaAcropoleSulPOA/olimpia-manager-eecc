@@ -1,6 +1,5 @@
 
 import { BranchAnalytics } from "@/lib/api";
-import { PaymentStatus } from "./types";
 
 export function useMetricsData(data: BranchAnalytics[]) {
   // Calculate totals from the analytics data
@@ -12,7 +11,8 @@ export function useMetricsData(data: BranchAnalytics[]) {
   
   // Calculate pending payments count
   const totalAthletesPendingPayment = data.reduce((acc, branch) => {
-    const pendingCount = branch.inscritos_por_status_pagamento?.pendente || 0;
+    const statusData = branch.inscritos_por_status_pagamento as { status_pagamento: string; quantidade: number }[];
+    const pendingCount = statusData?.find(s => s.status_pagamento === 'pendente')?.quantidade || 0;
     return acc + pendingCount;
   }, 0);
 

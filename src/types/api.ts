@@ -1,4 +1,3 @@
-
 export interface AthleteModality {
   id: string;
   modalidade: string;
@@ -36,17 +35,30 @@ export interface Branch {
 export interface BranchAnalytics {
   filial_id: string;
   filial: string;
-  evento_id: string;
   total_inscritos: number;
-  total_confirmados: number;
   valor_total_pago: number;
   valor_total_pendente: number;
-  total_atletas_pendentes_pagamento: number;
-  inscritos_por_status_pagamento: Record<'confirmado' | 'pendente' | 'cancelado', number>;
-  modalidades_populares: Record<string, {
-    Masculino: number;
-    Feminino: number;
-    Misto: number;
+  modalidades_populares: Array<{
+    modalidade: string;
+    total_inscritos: number;
+  }>;
+  inscritos_por_status_pagamento: Array<{
+    status_pagamento: string;
+    quantidade: number;
+  }>;
+  inscritos_por_status: Array<{
+    status_inscricao: string;
+    quantidade: number;
+  }>;
+  ranking_filiais: Array<{
+    total_pontos: number;
+  }>;
+  atletas_por_categoria: Array<{
+    categoria: string;
+    quantidade: number;
+  }>;
+  media_pontuacao_por_modalidade: Array<{
+    modalidade: string;
+    media_pontuacao: number;
   }>;
 }
-
