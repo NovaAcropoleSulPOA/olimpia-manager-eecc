@@ -17,14 +17,12 @@ interface DashboardTableProps {
   data: BranchAnalytics[];
 }
 
-interface ModalityCategory {
-  Masculino: number;
-  Feminino: number;
-  Misto: number;
-}
-
 interface ModalityData {
-  [key: string]: ModalityCategory;
+  [key: string]: {
+    Masculino: number;
+    Feminino: number;
+    Misto: number;
+  };
 }
 
 export function DashboardTable({ data }: DashboardTableProps) {
@@ -64,8 +62,10 @@ export function DashboardTable({ data }: DashboardTableProps) {
     }));
   };
 
-  const formatModalidadesPopulares = (modalidades: Array<{ modalidade: string; total_inscritos: number }> | null): JSX.Element => {
-    if (!modalidades || modalidades.length === 0) {
+  const formatModalidadesPopulares = (modalidadesPopulares: ModalityData | null): JSX.Element => {
+    console.log("Formatting modalidades populares:", modalidadesPopulares);
+    
+    if (!modalidadesPopulares || Object.keys(modalidadesPopulares).length === 0) {
       return (
         <span className="text-muted-foreground">
           Nenhuma modalidade popular disponível
@@ -78,23 +78,27 @@ export function DashboardTable({ data }: DashboardTableProps) {
       return variants[index % variants.length];
     };
 
-    const modalityTags = modalidades.map(({ modalidade, total_inscritos }) => {
-      if (total_inscritos === 0) return null;
+    const modalityTags = Object.entries(modalidadesPopulares)
+      .map(([modalidade, categorias]) => {
+        const totalInscritos = Object.values(categorias).reduce((sum, count) => sum + count, 0);
+        
+        if (totalInscritos === 0) return null;
 
-      return (
-        <Badge
-          key={modalidade}
-          variant={getTagVariant(Math.floor(Math.random() * 3))}
-          className="inline-flex items-center gap-1 mr-2 mb-2"
-        >
-          <Tag className="w-3 h-3" />
-          <span>{modalidade}</span>
-          <span className="ml-1 text-xs opacity-75">
-            ({total_inscritos} {total_inscritos === 1 ? 'inscrição' : 'inscrições'})
-          </span>
-        </Badge>
-      );
-    }).filter(Boolean);
+        return (
+          <Badge
+            key={modalidade}
+            variant={getTagVariant(Math.floor(Math.random() * 3))}
+            className="inline-flex items-center gap-1 mr-2 mb-2"
+          >
+            <Tag className="w-3 h-3" />
+            <span>{modalidade}</span>
+            <span className="ml-1 text-xs opacity-75">
+              ({totalInscritos} {totalInscritos === 1 ? 'inscrição(ões)' : 'inscrições nas modalidades'})
+            </span>
+          </Badge>
+        );
+      })
+      .filter(Boolean);
 
     return (
       <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto pr-2">
@@ -152,7 +156,7 @@ export function DashboardTable({ data }: DashboardTableProps) {
                 <TableRow key={branch.filial_id} className="hover:bg-muted/50 transition-colors">
                   <TableCell className="font-medium">{branch.filial}</TableCell>
                   <TableCell className="text-right">{branch.total_inscritos}</TableCell>
-                  <TableCell>{formatModalidadesPopulares(branch.modalidades_populares as Array<{ modalidade: string; total_inscritos: number }>)}</TableCell>
+                  <TableCell>{formatModalidadesPopulares(branch.modalidades_populares as ModalityData)}</TableCell>
                 </TableRow>
               ))}
               {filteredData.length === 0 && (
