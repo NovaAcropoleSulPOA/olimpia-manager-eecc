@@ -2,7 +2,7 @@
 import { BranchAnalytics } from "@/lib/api";
 
 export function useMetricsData(data: BranchAnalytics[]) {
-  // Calculate total unique athletes (using total_inscritos which is already deduplicated in the view)
+  // Calculate total unique athletes from the new structure
   const totalAthletes = data.reduce((acc, branch) => acc + (branch.total_inscritos || 0), 0);
   
   // Calculate payment status totals
@@ -24,10 +24,10 @@ export function useMetricsData(data: BranchAnalytics[]) {
   const totalRevenuePaid = data.reduce((acc, branch) => 
     acc + (branch.valor_total_pago || 0), 0
   );
-  
-  const totalRevenuePending = data.reduce((acc, branch) => 
-    acc + (branch.valor_total_pendente || 0), 0
-  );
+
+  // Calculate pending revenue using status quantities and average payment amount
+  const averagePaymentAmount = totalRevenuePaid / (paymentTotals.confirmed || 1);
+  const totalRevenuePending = paymentTotals.pending * averagePaymentAmount;
 
   return {
     totalAthletes,
