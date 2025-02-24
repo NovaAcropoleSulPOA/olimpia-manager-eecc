@@ -8,10 +8,16 @@ interface DashboardTabProps {
 }
 
 export function DashboardTab({ branchAnalytics }: DashboardTabProps) {
+  console.log('Raw analytics data:', branchAnalytics); // Debug log
+
   // Filter out any invalid entries and ensure we have proper data
   const validAnalytics = branchAnalytics.filter(branch => 
-    branch && typeof branch.total_inscritos_geral === 'number'
+    branch && 
+    branch.filial_id && 
+    typeof branch.total_inscritos_geral !== 'undefined'
   );
+
+  console.log('Filtered analytics data:', validAnalytics); // Debug log
 
   return (
     <div className="grid gap-6">

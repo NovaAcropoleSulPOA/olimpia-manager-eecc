@@ -1,4 +1,3 @@
-
 export * from './athletes';
 export * from './branches';
 export * from './modalities';
@@ -13,6 +12,35 @@ export type {
   Branch,
   BranchAnalytics
 } from '../../types/api';
+
+export interface PaymentStatus {
+  status_pagamento: string;
+  quantidade: number;
+}
+
+export interface BranchAnalytics {
+  filial_id: string;
+  filial: string;
+  total_inscritos_geral: number;
+  total_inscritos_modalidades: number;
+  valor_total_pago: number;
+  modalidades_populares: Array<{
+    modalidade: string;
+    total_inscritos: number;
+  }>;
+  total_inscritos_por_status: PaymentStatus[];
+  inscritos_por_status_modalidades: Array<{
+    status_inscricao: string;
+    quantidade: number;
+  }>;
+  ranking_filiais: Array<{
+    total_pontos: number;
+  }>;
+  atletas_por_categoria: Array<{
+    categoria: string;
+    quantidade: number;
+  }>;
+}
 
 export const fetchBranchAnalytics = async (eventId: string | null, filialId?: string) => {
   if (!eventId) return [];

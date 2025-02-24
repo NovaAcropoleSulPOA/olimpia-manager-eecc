@@ -28,7 +28,10 @@ export function useDashboardData(currentEventId: string | null) {
   // Fetch analytics data
   const analyticsQuery = useQuery({
     queryKey: ['branch-analytics', currentEventId],
-    queryFn: () => fetchBranchAnalytics(currentEventId),
+    queryFn: () => {
+      console.log('Fetching analytics for event:', currentEventId);
+      return fetchBranchAnalytics(currentEventId);
+    },
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
     enabled: !!currentEventId

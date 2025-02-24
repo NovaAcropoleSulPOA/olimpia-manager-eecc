@@ -3,20 +3,24 @@ import { BranchAnalytics } from "@/lib/api";
 import { PaymentStatus } from "./types";
 
 export function useMetricsData(data: BranchAnalytics[]) {
-  // Calculate total unique athletes (using total_inscritos_geral)
-  const totalAthletes = data.reduce((acc, branch) => 
-    acc + (branch.total_inscritos_geral || 0), 0
-  );
+  console.log('Analytics data received:', data); // Debug log
+
+  // Calculate total unique athletes
+  const totalAthletes = data.reduce((acc, branch) => {
+    console.log('Branch total_inscritos_geral:', branch.total_inscritos_geral);
+    return acc + (Number(branch.total_inscritos_geral) || 0);
+  }, 0);
   
-  // Calculate payment status totals from the JSON field
+  // Calculate payment status totals
   const paymentTotals = data.reduce((acc, branch) => {
-    const statusData: PaymentStatus[] = branch.total_inscritos_por_status || [];
+    console.log('Branch total_inscritos_por_status:', branch.total_inscritos_por_status);
+    const statusData = branch.total_inscritos_por_status || [];
     
-    statusData.forEach(({ status_pagamento, quantidade }) => {
-      if (status_pagamento === 'confirmado') {
-        acc.confirmed += quantidade;
-      } else if (status_pagamento === 'pendente') {
-        acc.pending += quantidade;
+    statusData.forEach((status) => {
+      if (status.status_pagamento === 'confirmado') {
+        acc.confirmed += Number(status.quantidade) || 0;
+      } else if (status.status_pagamento === 'pendente') {
+        acc.pending += Number(status.quantidade) || 0;
       }
     });
     
@@ -24,19 +28,21 @@ export function useMetricsData(data: BranchAnalytics[]) {
   }, { confirmed: 0, pending: 0 });
 
   // Calculate revenue totals
-  const totalRevenuePaid = data.reduce((acc, branch) => 
-    acc + (branch.valor_total_pago || 0), 0
-  );
+  const totalRevenuePaid = data.reduce((acc, branch) => {
+    console.log('Branch valor_total_pago:', branch.valor_total_pago);
+    return acc + (Number(branch.valor_total_pago) || 0);
+  }, 0);
 
-  // Now we'll calculate the pending revenue
-  // This is a placeholder - you might want to add valor_total_pendente to the view
-  // For now, we'll show 0
-  const totalRevenuePending = 0;
+  console.log('Calculated metrics:', {
+    totalAthletes,
+    totalRevenuePaid,
+    paymentTotals
+  });
 
   return {
     totalAthletes,
     totalRevenuePaid,
-    totalRevenuePending,
+    totalRevenuePending: 0, // Since this isn't in the view currently
     totalAthletesPendingPayment: paymentTotals.pending
   };
 }
