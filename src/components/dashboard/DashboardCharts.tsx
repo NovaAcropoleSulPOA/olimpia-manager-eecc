@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BranchAnalytics } from "@/lib/api";
 import {
@@ -25,26 +26,33 @@ const COLORS = ['#009B40', '#EE7E01', '#4CAF50', '#2196F3', '#9C27B0', '#FF5722'
 
 export function DashboardCharts({ data }: DashboardChartsProps) {
   // Transform data for branch registrations and payments
-  const branchData = data.map(branch => ({
-    name: branch.filial,
-    total: branch.total_inscritos || 0,
-    pago: branch.valor_total_pago ? Number(branch.valor_total_pago) : 0,
-    pendente: branch.valor_total_pendente ? Number(branch.valor_total_pendente) : 0
-  })).sort((a, b) => b.total - a.total);
+  const branchData = data
+    .filter(branch => branch.filial !== '_Nenhuma_') // Exclude placeholder branches
+    .map(branch => ({
+      name: branch.filial,
+      total: branch.total_inscritos || 0,
+      pago: branch.valor_total_pago || 0,
+      pendente: branch.valor_total_pendente || 0
+    }))
+    .filter(branch => branch.total > 0) // Only show branches with registrations
+    .sort((a, b) => b.total - a.total);
 
   // Transform data for payment status distribution
   const paymentStatusData = data.reduce((acc: { name: string; value: number }[], branch) => {
     const statusData = branch.inscritos_por_status_pagamento || [];
     statusData.forEach(({ status_pagamento, quantidade }) => {
+      if (!status_pagamento || quantidade === 0) return;
+      
       const existingStatus = acc.find(item => item.name === status_pagamento);
       if (existingStatus) {
         existingStatus.value += quantidade;
-      } else if (status_pagamento && quantidade > 0) {
+      } else {
         acc.push({ name: status_pagamento, value: quantidade });
       }
     });
     return acc;
-  }, []);
+  }, [])
+  .filter(item => item.value > 0); // Remove zero-count statuses
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -57,7 +65,15 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
               style={{ color: entry.color }}
               className="text-sm"
             >
-              {`${entry.name}: ${entry.value}`}
+              {`${entry.name === 'total' ? 'Total de Inscrições' : 
+                 entry.name === 'pago' ? 'Valor Pago (R$)' : 
+                 'Valor Pendente (R$)'}: ${
+                 entry.name === 'total' ? entry.value :
+                 new Intl.NumberFormat('pt-BR', {
+                   style: 'currency',
+                   currency: 'BRL'
+                 }).format(entry.value)
+              }`}
             </p>
           ))}
         </div>
@@ -94,7 +110,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                   tick={{ fontSize: 12, fill: '#4b5563' }}
                   tickFormatter={(value) => `${value}`}
                   label={{ 
-                    value: 'Total de Inscrições Pagas',
+                    value: 'Total de Inscrições',
                     angle: -90,
                     position: 'insideLeft',
                     style: { textAnchor: 'middle' }
@@ -167,7 +183,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip content={<CustomTooltip />} />
+                <Tooltip />
                 <Legend 
                   verticalAlign="bottom" 
                   height={36}
