@@ -8,15 +8,22 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
   Legend,
+  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
   ComposedChart,
   Line
 } from "recharts";
-import { ModalitiesTable } from "./ModalitiesTable";
+import { Badge } from "@/components/ui/badge";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
 
 interface DashboardChartsProps {
   data: BranchAnalytics[];
@@ -25,22 +32,25 @@ interface DashboardChartsProps {
 const COLORS = ['#009B40', '#EE7E01', '#4CAF50', '#2196F3', '#9C27B0', '#FF5722'];
 
 export function DashboardCharts({ data }: DashboardChartsProps) {
+  const [expandedBranch, setExpandedBranch] = useState<string | null>(null);
+
   // Transform data for branch registrations and payments
   const branchData = data
-    .filter(branch => branch.filial !== '_Nenhuma_') // Exclude placeholder branches
+    .filter(branch => branch.filial !== '_Nenhuma_')
     .map(branch => ({
       name: branch.filial,
-      total: branch.total_inscritos || 0,
-      pago: branch.valor_total_pago || 0,
-      pendente: branch.valor_total_pendente || 0
+      total: branch.total_inscritos,
+      pago: branch.valor_total_pago,
+      pendente: branch.valor_total_pendente
     }))
-    .filter(branch => branch.total > 0) // Only show branches with registrations
+    .filter(branch => branch.total > 0)
     .sort((a, b) => b.total - a.total);
 
   // Transform data for payment status distribution
   const paymentStatusData = data.reduce((acc: { name: string; value: number }[], branch) => {
-    const statusData = branch.inscritos_por_status_pagamento || [];
-    statusData.forEach(({ status_pagamento, quantidade }) => {
+    if (!branch.inscritos_por_status_pagamento) return acc;
+    
+    branch.inscritos_por_status_pagamento.forEach(({ status_pagamento, quantidade }) => {
       if (!status_pagamento || quantidade === 0) return;
       
       const existingStatus = acc.find(item => item.name === status_pagamento);
@@ -52,7 +62,7 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
     });
     return acc;
   }, [])
-  .filter(item => item.value > 0); // Remove zero-count statuses
+  .filter(item => item.value > 0);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -196,7 +206,70 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
       )}
 
       <Card className="col-span-2">
-        <ModalitiesTable data={data} />
+        <CardHeader>
+          <CardTitle className="text-olimpics-text">Detalhes por Filial</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {data.map((branch) => (
+              <Collapsible
+                key={branch.filial_id}
+                open={expandedBranch === branch.filial_id}
+                onOpenChange={() => 
+                  setExpandedBranch(
+                    expandedBranch === branch.filial_id ? null : branch.filial_id
+                  )
+                }
+              >
+                <CollapsibleTrigger className="w-full">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-4">
+                      <span className="font-medium">{branch.filial}</span>
+                      <Badge variant="outline" className="bg-olimpics-green-primary/10">
+                        {branch.total_inscritos} inscrições
+                      </Badge>
+                    </div>
+                    {expandedBranch === branch.filial_id ? (
+                      <ChevronUp className="h-5 w-5" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5" />
+                    )}
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="p-4 space-y-2">
+                    {branch.modalidades_populares?.map((modalidade) => (
+                      <div
+                        key={modalidade.modalidade}
+                        className="flex justify-between items-center py-2 px-4 bg-white rounded-lg shadow-sm"
+                      >
+                        <span className="text-olimpics-text">
+                          🏅 {modalidade.modalidade}
+                        </span>
+                        <Badge variant="secondary">
+                          {modalidade.total_inscritos} {modalidade.total_inscritos === 1 ? 'inscrito' : 'inscritos'}
+                        </Badge>
+                      </div>
+                    ))}
+                    {branch.atletas_por_categoria?.map((categoria) => (
+                      <div
+                        key={categoria.categoria}
+                        className="flex justify-between items-center py-2 px-4 bg-white rounded-lg shadow-sm"
+                      >
+                        <span className="text-olimpics-text">
+                          👥 {categoria.categoria}
+                        </span>
+                        <Badge variant="outline">
+                          {categoria.quantidade} atletas
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
+          </div>
+        </CardContent>
       </Card>
     </div>
   );
