@@ -1,4 +1,3 @@
-
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchBranchAnalytics, fetchAthleteManagement } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
@@ -25,10 +24,35 @@ export function useDashboardData(currentEventId: string | null) {
     enabled: !!currentEventId
   });
 
-  // Fetch analytics data
+  // Fetch analytics data with explicit event_id parameter
   const analyticsQuery = useQuery({
     queryKey: ['branch-analytics', currentEventId],
-    queryFn: () => fetchBranchAnalytics(currentEventId),
+    queryFn: async () => {
+      if (!currentEventId) return [];
+      
+      // First, set the current event ID in the session
+      const { error: sessionError } = await supabase.rpc('set_current_event', {
+        p_event_id: currentEventId
+      });
+
+      if (sessionError) {
+        console.error('Error setting current event:', sessionError);
+        throw sessionError;
+      }
+
+      // Then fetch the analytics data
+      const { data, error } = await supabase
+        .from('vw_analytics_inscricoes')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching analytics:', error);
+        throw error;
+      }
+
+      console.log('Analytics data fetched:', data);
+      return data || [];
+    },
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true,
     enabled: !!currentEventId
