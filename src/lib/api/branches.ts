@@ -21,6 +21,29 @@ export const fetchBranchAnalytics = async (eventId: string | null): Promise<Bran
   try {
     if (!eventId) return [];
     
+    // First, let's verify the event ID exists
+    const { data: eventExists, error: eventError } = await supabase
+      .from('eventos')
+      .select('id')
+      .eq('id', eventId)
+      .single();
+
+    if (eventError || !eventExists) {
+      console.error('Event not found:', eventError);
+      return [];
+    }
+
+    // Set the current event ID in session
+    const { error: configError } = await supabase.rpc('set_current_event', {
+      p_event_id: eventId
+    });
+
+    if (configError) {
+      console.error('Error setting current event:', configError);
+      // We'll continue anyway but log the error
+    }
+
+    // Now query the analytics view
     const { data, error } = await supabase
       .from('vw_analytics_inscricoes')
       .select('*')
@@ -31,13 +54,38 @@ export const fetchBranchAnalytics = async (eventId: string | null): Promise<Bran
       throw error;
     }
 
-    if (!data) {
+    if (!data || data.length === 0) {
       console.log('No data returned from analytics view');
-      return [];
+      // Let's verify if we have any filiais for this event
+      const { data: eventBranches, error: branchError } = await supabase
+        .from('eventos_filiais')
+        .select('filial_id')
+        .eq('evento_id', eventId);
+
+      console.log('Event branches:', eventBranches?.length || 0);
+
+      if (branchError) {
+        console.error('Error checking event branches:', branchError);
+      }
+
+      // Check raw inscricoes_modalidades data
+      const { data: rawData, error: rawError } = await supabase
+        .from('inscricoes_modalidades')
+        .select(`
+          id,
+          evento_id,
+          atleta_id,
+          modalidade_id,
+          status
+        `)
+        .eq('evento_id', eventId);
+
+      console.log('Raw inscricoes_modalidades data:', rawData?.length || 0, 'records found');
+      if (rawError) console.error('Error fetching raw data:', rawError);
     }
 
     // Parse JSON fields that come as strings
-    const formattedData = data.map(row => ({
+    const formattedData = (data || []).map(row => ({
       ...row,
       inscritos_por_status_pagamento: typeof row.inscritos_por_status_pagamento === 'string' 
         ? JSON.parse(row.inscritos_por_status_pagamento)
@@ -54,4 +102,3 @@ export const fetchBranchAnalytics = async (eventId: string | null): Promise<Bran
     throw error;
   }
 };
-

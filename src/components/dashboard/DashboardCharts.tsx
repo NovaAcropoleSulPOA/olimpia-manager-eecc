@@ -10,6 +10,14 @@ interface DashboardChartsProps {
 }
 
 export function DashboardCharts({ data }: DashboardChartsProps) {
+  if (!data || data.length === 0) {
+    return (
+      <Card className="p-6 text-center">
+        <p className="text-muted-foreground">Nenhum dado disponível para visualização</p>
+      </Card>
+    );
+  }
+
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <BranchRegistrationsChart data={data} />
