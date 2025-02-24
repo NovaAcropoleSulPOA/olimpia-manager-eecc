@@ -25,9 +25,13 @@ export function useMetricsData(data: BranchAnalytics[]) {
     acc + (branch.valor_total_pago || 0), 0
   );
   
-  const totalRevenuePending = data.reduce((acc, branch) => 
-    acc + (branch.valor_total_pendente || 0), 0
-  );
+  // Calculate pending revenue from payment status
+  const totalRevenuePending = data.reduce((acc, branch) => {
+    const pendingPayments = branch.inscritos_por_status_pagamento?.find(
+      status => status.status_pagamento === 'pendente'
+    );
+    return acc + (pendingPayments?.quantidade || 0);
+  }, 0);
 
   return {
     totalAthletes,

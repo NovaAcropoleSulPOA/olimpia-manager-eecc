@@ -28,12 +28,18 @@ export function DashboardCharts({ data }: DashboardChartsProps) {
   // Transform data for branch registrations and payments
   const branchData = data
     .filter(branch => branch.filial !== '_Nenhuma_') // Exclude placeholder branches
-    .map(branch => ({
-      name: branch.filial,
-      total: branch.total_inscritos || 0,
-      pago: branch.valor_total_pago || 0,
-      pendente: branch.valor_total_pendente || 0
-    }))
+    .map(branch => {
+      const pendingAmount = branch.inscritos_por_status_pagamento
+        .find(status => status.status_pagamento === 'pendente')
+        ?.quantidade || 0;
+      
+      return {
+        name: branch.filial,
+        total: branch.total_inscritos || 0,
+        pago: branch.valor_total_pago || 0,
+        pendente: pendingAmount
+      };
+    })
     .filter(branch => branch.total > 0) // Only show branches with registrations
     .sort((a, b) => b.total - a.total);
 
