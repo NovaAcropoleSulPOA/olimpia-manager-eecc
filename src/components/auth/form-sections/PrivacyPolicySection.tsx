@@ -48,16 +48,16 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
       }
 
       return viewData;
-    },
-    onError: (error) => {
-      console.error('Query error:', error);
-      toast.error('Não foi possível carregar a política de privacidade. Por favor, tente novamente.');
     }
   });
 
-  if (error) {
-    console.error('Privacy policy fetch error:', error);
-  }
+  // Handle error state separately
+  React.useEffect(() => {
+    if (error) {
+      console.error('Privacy policy fetch error:', error);
+      toast.error('Não foi possível carregar a política de privacidade. Por favor, tente novamente.');
+    }
+  }, [error]);
 
   return (
     <>
