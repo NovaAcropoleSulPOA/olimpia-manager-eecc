@@ -1031,6 +1031,36 @@ export type Database = {
           },
         ]
       }
+      taxas_inscricao_perfis: {
+        Row: {
+          perfil_id: number
+          taxa_inscricao_id: number
+        }
+        Insert: {
+          perfil_id: number
+          taxa_inscricao_id: number
+        }
+        Update: {
+          perfil_id?: number
+          taxa_inscricao_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "taxas_inscricao_perfis_perfil_id_fkey"
+            columns: ["perfil_id"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "taxas_inscricao_perfis_taxa_inscricao_id_fkey"
+            columns: ["taxa_inscricao_id"]
+            isOneToOne: false
+            referencedRelation: "taxas_inscricao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usuarios: {
         Row: {
           confirmado: boolean | null
