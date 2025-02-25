@@ -7,7 +7,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Loader2 } from "lucide-react";
 
 interface PrivacyPolicySectionProps {
   form: UseFormReturn<any>;
@@ -16,7 +15,7 @@ interface PrivacyPolicySectionProps {
 export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
-  const { data: privacyPolicy, isLoading, error } = useQuery({
+  const { data: privacyPolicy } = useQuery({
     queryKey: ['privacy-policy'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -28,7 +27,6 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
         .maybeSingle();
 
       if (error) throw error;
-      if (!data) throw new Error('Política de privacidade não encontrada');
       return data;
     }
   });
@@ -44,7 +42,6 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
               <Checkbox
                 checked={field.value}
                 onCheckedChange={field.onChange}
-                disabled={!privacyPolicy}
               />
             </FormControl>
             <div className="space-y-1 leading-none">
@@ -54,7 +51,6 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
                   type="button"
                   className="text-olimpics-green-primary hover:underline"
                   onClick={() => setDialogOpen(true)}
-                  disabled={!privacyPolicy}
                 >
                   Política de Privacidade
                 </button>
@@ -72,25 +68,7 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
           </DialogHeader>
           <ScrollArea className="h-[60vh] mt-4 rounded-md border p-4">
             <div className="prose prose-sm max-w-none">
-              {isLoading && (
-                <div className="flex items-center justify-center h-full">
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                </div>
-              )}
-              
-              {error && (
-                <div className="text-center text-red-500 p-4">
-                  Não foi possível carregar a política de privacidade. Por favor, tente novamente mais tarde.
-                </div>
-              )}
-              
-              {!isLoading && !error && !privacyPolicy?.termo_texto && (
-                <div className="text-center text-gray-500 p-4">
-                  Nenhum conteúdo disponível no momento.
-                </div>
-              )}
-              
-              {!isLoading && !error && privacyPolicy?.termo_texto?.split('\n').map((paragraph, index) => (
+              {privacyPolicy?.termo_texto?.split('\n').map((paragraph, index) => (
                 <p key={index} className="mb-4 text-sm leading-relaxed">
                   {paragraph}
                 </p>
