@@ -21,10 +21,8 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
     queryKey: ['privacy-policy'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('termos_privacidade')
+        .from('vw_latest_termo_privacidade')
         .select('termo_texto')
-        .order('data_criacao', { ascending: false })
-        .limit(1)
         .single();
 
       if (error) {
