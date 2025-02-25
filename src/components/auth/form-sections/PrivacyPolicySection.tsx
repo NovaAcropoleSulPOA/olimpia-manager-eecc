@@ -31,6 +31,18 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
     }
   });
 
+  const handleViewPrivacyPolicy = () => {
+    if (privacyPolicy?.link_pdf) {
+      // Handle relative URLs by adding the public URL base
+      const pdfUrl = privacyPolicy.link_pdf.startsWith('/')
+        ? `${window.location.origin}${privacyPolicy.link_pdf}`
+        : privacyPolicy.link_pdf;
+      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      setDialogOpen(true);
+    }
+  };
+
   return (
     <>
       <FormField
@@ -50,7 +62,7 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
                 <button
                   type="button"
                   className="text-olimpics-green-primary hover:underline"
-                  onClick={() => setDialogOpen(true)}
+                  onClick={handleViewPrivacyPolicy}
                 >
                   Política de Privacidade
                 </button>
@@ -74,7 +86,9 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
               {privacyPolicy?.link_pdf && (
                 <p className="mt-4">
                   <a 
-                    href={privacyPolicy.link_pdf}
+                    href={privacyPolicy.link_pdf.startsWith('/') 
+                      ? `${window.location.origin}${privacyPolicy.link_pdf}`
+                      : privacyPolicy.link_pdf}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-olimpics-green-primary hover:underline"
@@ -90,3 +104,4 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
     </>
   );
 };
+
