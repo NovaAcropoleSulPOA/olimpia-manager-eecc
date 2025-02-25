@@ -1,17 +1,68 @@
 
 import { BranchAnalytics } from "@/types/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Activity, Coins, Users } from "lucide-react";
 import { formatToCurrency } from "@/utils/formatters";
 import { ChartContainer, ChartLegendContent } from "@/components/ui/chart";
-import { BarChart, XAxis, YAxis, Tooltip, Bar, Legend, PieChart, Pie, Cell } from "recharts";
+import { BarChart, XAxis, YAxis, Tooltip, Bar, Legend, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { Tooltip as UITooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 
-const CHART_COLORS = ['#10B981', '#F59E0B', '#EF4444', '#6366F1', '#8B5CF6', '#EC4899'];
+// Define a consistent color palette
+const CHART_COLORS = {
+  green: '#10B981',
+  yellow: '#F59E0B',
+  red: '#EF4444',
+  blue: '#6366F1',
+  purple: '#8B5CF6',
+  pink: '#EC4899'
+};
+
+const PAYMENT_STATUS_COLORS = {
+  'confirmado': CHART_COLORS.green,
+  'pendente': CHART_COLORS.yellow,
+  'cancelado': CHART_COLORS.red
+};
 
 interface StatisticsTabProps {
   data: BranchAnalytics[];
   currentBranchId?: string;
 }
+
+interface InfoIconProps {
+  tooltip: string;
+}
+
+const InfoIcon = ({ tooltip }: InfoIconProps) => (
+  <TooltipProvider>
+    <UITooltip>
+      <TooltipTrigger className="ml-2 cursor-help">
+        <Activity className="h-4 w-4 text-muted-foreground opacity-70" />
+      </TooltipTrigger>
+      <TooltipContent>
+        <p className="max-w-xs text-sm">{tooltip}</p>
+      </TooltipContent>
+    </UITooltip>
+  </TooltipProvider>
+);
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-4 rounded-lg shadow-lg border">
+        <p className="font-medium">{label}</p>
+        {payload.map((entry: any, index: number) => (
+          <p key={index} style={{ color: entry.color }}>
+            {entry.name}: {typeof entry.value === 'number' 
+              ? entry.value.toLocaleString()
+              : entry.value
+            }
+          </p>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
   // Filter data for delegation view if currentBranchId is provided
@@ -32,118 +83,196 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
       name: item.modalidade,
       count: item.total_inscritos
     }))
-  ).slice(0, 6); // Show top 6 modalities
+  )
+  .slice(0, 6)
+  .sort((a, b) => b.count - a.count); // Sort by count descending
 
   // Transform data for payment status chart
   const paymentStatusData = filteredData.flatMap(branch =>
     branch.inscritos_por_status_pagamento || []
-  ).slice(0, 5);
+  )
+  .reduce((acc, curr) => {
+    const existing = acc.find(item => item.status_pagamento === curr.status_pagamento);
+    if (existing) {
+      existing.quantidade += curr.quantidade;
+    } else {
+      acc.push({ ...curr });
+    }
+    return acc;
+  }, [] as typeof filteredData[0]['inscritos_por_status_pagamento'])
+  .sort((a, b) => b.quantidade - a.quantidade);
 
   // Transform data for categories chart
   const categoriesData = filteredData.flatMap(branch =>
     branch.atletas_por_categoria || []
-  ).slice(0, 6);
+  )
+  .reduce((acc, curr) => {
+    const existing = acc.find(item => item.categoria === curr.categoria);
+    if (existing) {
+      existing.quantidade += curr.quantidade;
+    } else {
+      acc.push({ ...curr });
+    }
+    return acc;
+  }, [] as typeof filteredData[0]['atletas_por_categoria'])
+  .sort((a, b) => b.quantidade - a.quantidade)
+  .slice(0, 6);
 
   return (
     <div className="space-y-8">
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+      {/* Summary Cards Section */}
+      <div className="grid gap-6 md:grid-cols-3">
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Inscritos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <div className="space-y-1">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total de Inscritos
+                <InfoIcon tooltip="Número total de atletas inscritos no evento" />
+              </CardTitle>
+            </div>
+            <Users className="h-4 w-4 text-olimpics-green-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totals.inscricoes}</div>
+            <div className="text-2xl font-bold">{totals.inscricoes.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Inscrições confirmadas e pendentes
+            </p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pago</CardTitle>
-            <Coins className="h-4 w-4 text-muted-foreground" />
+            <div className="space-y-1">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Pago
+                <InfoIcon tooltip="Valor total confirmado em pagamentos" />
+              </CardTitle>
+            </div>
+            <Coins className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
               {formatToCurrency(totals.pago)}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Pagamentos já confirmados
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Pendente</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <div className="space-y-1">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Pendente
+                <InfoIcon tooltip="Valor total pendente de confirmação" />
+              </CardTitle>
+            </div>
+            <Activity className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
               {formatToCurrency(totals.pendente)}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Pagamentos aguardando confirmação
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts Section */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2">
         {/* Popular Modalities Chart */}
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
-            <CardTitle>Modalidades Populares</CardTitle>
+            <CardTitle>Modalidades Mais Populares</CardTitle>
+            <CardDescription>
+              Top 6 modalidades com maior número de inscrições
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer className="h-[300px]" config={{}}>
-              <BarChart data={modalitiesData}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#10B981" />
-              </BarChart>
-            </ChartContainer>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={modalitiesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="count" name="Inscritos" fill={CHART_COLORS.blue}>
+                    {modalitiesData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS.blue} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
         {/* Payment Status Chart */}
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle>Status de Pagamento</CardTitle>
+            <CardDescription>
+              Distribuição dos pagamentos por status
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer className="h-[300px]" config={{}}>
-              <PieChart>
-                <Pie
-                  data={paymentStatusData}
-                  dataKey="quantidade"
-                  nameKey="status_pagamento"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  label
-                >
-                  {paymentStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend content={<ChartLegendContent />} />
-              </PieChart>
-            </ChartContainer>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={paymentStatusData}
+                    dataKey="quantidade"
+                    nameKey="status_pagamento"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    label={({ name, percent }) => 
+                      `${name} (${(percent * 100).toFixed(0)}%)`
+                    }
+                  >
+                    {paymentStatusData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={PAYMENT_STATUS_COLORS[entry.status_pagamento as keyof typeof PAYMENT_STATUS_COLORS] || CHART_COLORS.blue} 
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend 
+                    formatter={(value) => value.charAt(0).toUpperCase() + value.slice(1)}
+                    content={<ChartLegendContent />}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
         {/* Categories Chart */}
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow col-span-2">
           <CardHeader>
-            <CardTitle>Atletas por Categoria</CardTitle>
+            <CardTitle>Distribuição por Categoria</CardTitle>
+            <CardDescription>
+              Número de atletas inscritos por categoria
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer className="h-[300px]" config={{}}>
-              <BarChart data={categoriesData}>
-                <XAxis dataKey="categoria" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="quantidade" fill="#6366F1" />
-              </BarChart>
-            </ChartContainer>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={categoriesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <XAxis dataKey="categoria" angle={-45} textAnchor="end" height={80} />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar 
+                    dataKey="quantidade" 
+                    name="Atletas" 
+                    fill={CHART_COLORS.purple}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
       </div>
