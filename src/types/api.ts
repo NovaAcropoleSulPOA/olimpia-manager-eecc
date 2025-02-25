@@ -1,4 +1,3 @@
-
 export interface AthleteModality {
   id: string;
   modalidade: string;
@@ -44,7 +43,7 @@ interface StatusPagamento {
 }
 
 interface StatusInscricao {
-  status_inscricao: string;
+  status_pagamento: string;
   quantidade: number;
 }
 
