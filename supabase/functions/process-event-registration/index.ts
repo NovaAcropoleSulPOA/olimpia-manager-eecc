@@ -37,52 +37,71 @@ serve(async (req) => {
     const today = new Date();
     const age = today.getFullYear() - birthDateObj.getFullYear();
     
-    // Get the correct profile type code based on age
-    const profileTypeCode = age <= 6 ? 'C-6' : 'C+7';
-    console.log('Determined profile type code:', profileTypeCode);
-
-    // First, get the perfil_tipo_id for the age-based profile
-    const { data: profileTypeData, error: profileTypeError } = await supabaseAdmin
-      .from('perfis_tipo')
-      .select('id')
-      .eq('codigo', profileTypeCode)
-      .single();
-
-    if (profileTypeError || !profileTypeData) {
-      console.error('Error getting profile type:', profileTypeError);
-      throw new Error(`Profile type not found for code: ${profileTypeCode}`);
+    // Determine age range for profile lookup
+    let ageBasedProfileName = '';
+    if (age <= 6) {
+      ageBasedProfileName = 'Criança 0 a 6 anos';
+    } else if (age <= 12) {
+      ageBasedProfileName = 'Criança 7 a 12 anos';
+    } else {
+      throw new Error('Age exceeds dependent registration limit (12 years)');
     }
 
-    // Then, get the actual perfis.id that we'll use for selected_role
-    const { data: profileData, error: profileError } = await supabaseAdmin
+    console.log('Looking for age-based profile:', ageBasedProfileName);
+
+    // Directly get the age-based profile ID from perfis table
+    const { data: ageBasedProfile, error: profileError } = await supabaseAdmin
       .from('perfis')
       .select('id')
       .eq('evento_id', eventId)
-      .eq('perfil_tipo_id', profileTypeData.id)
+      .eq('nome', ageBasedProfileName)
       .single();
 
-    if (profileError || !profileData) {
-      console.error('Error getting profile:', profileError);
-      throw new Error(`Profile not found for event and profile type`);
+    if (profileError || !ageBasedProfile) {
+      console.error('Error getting age-based profile:', profileError);
+      throw new Error(`Age-based profile not found: ${ageBasedProfileName}`);
     }
 
-    console.log('Found profile ID for registration:', profileData.id);
+    console.log('Found age-based profile:', ageBasedProfile);
 
-    // Call the database function with the correct profile ID
-    const { data, error } = await supabaseAdmin.rpc(
+    // Get the dependent profile type ID
+    const { data: dependentProfileType } = await supabaseAdmin
+      .from('perfis_tipo')
+      .select('id')
+      .eq('codigo', 'DEP')
+      .single();
+
+    if (!dependentProfileType) {
+      throw new Error('Dependent profile type not found');
+    }
+
+    // Get the dependent profile for this event
+    const { data: dependentProfile } = await supabaseAdmin
+      .from('perfis')
+      .select('id')
+      .eq('evento_id', eventId)
+      .eq('perfil_tipo_id', dependentProfileType.id)
+      .single();
+
+    if (!dependentProfile) {
+      throw new Error('Dependent profile not found for event');
+    }
+
+    // Call the database function with the correct age-based profile ID
+    const { error: registrationError } = await supabaseAdmin.rpc(
       'process_dependent_registration',
       {
         p_dependent_id: dependentId,
         p_event_id: eventId,
         p_birth_date: birthDate,
-        p_profile_id: profileData.id // Pass the actual perfis.id
+        p_profile_id: ageBasedProfile.id // Pass the age-based profile ID
       }
     );
 
-    if (error) {
-      console.error('Error in process_dependent_registration:', error);
+    if (registrationError) {
+      console.error('Error in process_dependent_registration:', registrationError);
       return new Response(
-        JSON.stringify({ error: error.message }),
+        JSON.stringify({ error: registrationError.message }),
         {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -90,10 +109,26 @@ serve(async (req) => {
       );
     }
 
-    console.log('Successfully processed dependent registration');
+    // Verify that the registration was successful
+    const { data: registration, error: verificationError } = await supabaseAdmin
+      .from('inscricoes_eventos')
+      .select('selected_role')
+      .eq('usuario_id', dependentId)
+      .eq('evento_id', eventId)
+      .single();
+
+    if (verificationError || !registration) {
+      throw new Error('Failed to verify registration');
+    }
+
+    if (registration.selected_role !== ageBasedProfile.id) {
+      throw new Error('Failed to set correct selected_role for dependent');
+    }
+
+    console.log('Successfully processed dependent registration with age-based profile');
 
     return new Response(
-      JSON.stringify({ success: true, data }),
+      JSON.stringify({ success: true, profileId: ageBasedProfile.id }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
