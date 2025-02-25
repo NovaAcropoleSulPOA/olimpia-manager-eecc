@@ -1328,7 +1328,8 @@ export type Database = {
           media_pontuacao_por_modalidade: Json | null
           modalidades_populares: Json | null
           ranking_filiais: Json | null
-          total_inscritos: number | null
+          total_inscritos_geral: number | null
+          total_inscritos_modalidades: number | null
           valor_total_pago: number | null
           valor_total_pendente: number | null
         }
