@@ -23,6 +23,31 @@ const PAYMENT_STATUS_COLORS = {
   'cancelado': CHART_COLORS.red
 };
 
+const CHART_CONFIG = {
+  modalities: {
+    color: CHART_COLORS.blue,
+    label: 'Modalidades'
+  },
+  payments: {
+    confirmado: {
+      color: CHART_COLORS.green,
+      label: 'Confirmado'
+    },
+    pendente: {
+      color: CHART_COLORS.yellow,
+      label: 'Pendente'
+    },
+    cancelado: {
+      color: CHART_COLORS.red,
+      label: 'Cancelado'
+    }
+  },
+  categories: {
+    color: CHART_COLORS.purple,
+    label: 'Categorias'
+  }
+};
+
 interface StatisticsTabProps {
   data: BranchAnalytics[];
   currentBranchId?: string;
@@ -192,7 +217,7 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <ChartContainer config={CHART_CONFIG} className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={modalitiesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
@@ -205,7 +230,7 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </ChartContainer>
           </CardContent>
         </Card>
 
@@ -218,7 +243,7 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <ChartContainer config={CHART_CONFIG} className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -246,7 +271,7 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
                   />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
+            </ChartContainer>
           </CardContent>
         </Card>
 
@@ -259,7 +284,7 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <ChartContainer config={CHART_CONFIG} className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoriesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <XAxis dataKey="categoria" angle={-45} textAnchor="end" height={80} />
@@ -272,7 +297,7 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
                   />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
+            </ChartContainer>
           </CardContent>
         </Card>
       </div>
