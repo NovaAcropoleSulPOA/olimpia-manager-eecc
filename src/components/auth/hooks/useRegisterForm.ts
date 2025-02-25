@@ -17,10 +17,18 @@ export const useRegisterForm = () => {
       console.log('Starting registration process...');
       setIsSubmitting(true);
 
-      // Validate birth date
-      if (!values.data_nascimento) {
-        console.error('Birth date is missing');
-        toast.error('Data de nascimento é obrigatória');
+      // Get the latest privacy policy version
+      const { data: privacyPolicy, error: policyError } = await supabase
+        .from('termos_privacidade')
+        .select('*')
+        .eq('ativo', true)
+        .order('data_criacao', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (policyError || !privacyPolicy) {
+        console.error('Error fetching privacy policy:', policyError);
+        toast.error('Erro ao verificar política de privacidade');
         return;
       }
 
@@ -44,7 +52,7 @@ export const useRegisterForm = () => {
         return;
       }
 
-      // Prepare user metadata (excluding password)
+      // Prepare user metadata
       const userMetadata = prepareUserMetadata(values, formattedBirthDate);
 
       // Sign up user
@@ -68,7 +76,24 @@ export const useRegisterForm = () => {
         return;
       }
 
-      // Registration successful
+      // Log privacy policy acceptance
+      const { error: acceptanceError } = await supabase
+        .from('logs_aceite_privacidade')
+        .insert({
+          usuario_id: signUpResult.user.id,
+          nome_completo: values.nome,
+          tipo_documento: values.tipo_documento,
+          numero_documento: values.numero_documento,
+          versao_termo: privacyPolicy.versao_termo,
+          termo_texto: privacyPolicy.termo_texto
+        });
+
+      if (acceptanceError) {
+        console.error('Error logging privacy policy acceptance:', acceptanceError);
+        // Don't block registration if logging fails
+        // but log the error for monitoring
+      }
+
       toast.success('Cadastro realizado com sucesso! Por favor, selecione um evento para continuar.');
       navigate('/event-selection');
 

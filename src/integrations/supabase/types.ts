@@ -445,6 +445,75 @@ export type Database = {
           },
         ]
       }
+      logs_aceite_privacidade: {
+        Row: {
+          data_aceite: string | null
+          id: string
+          nome_completo: string
+          numero_documento: string
+          termo_texto: string
+          tipo_documento: string
+          usuario_id: string
+          versao_termo: string
+        }
+        Insert: {
+          data_aceite?: string | null
+          id?: string
+          nome_completo: string
+          numero_documento: string
+          termo_texto: string
+          tipo_documento: string
+          usuario_id: string
+          versao_termo: string
+        }
+        Update: {
+          data_aceite?: string | null
+          id?: string
+          nome_completo?: string
+          numero_documento?: string
+          termo_texto?: string
+          tipo_documento?: string
+          usuario_id?: string
+          versao_termo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logs_aceite_privacidade_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logs_aceite_privacidade_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "view_perfil_atleta"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "logs_aceite_privacidade_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_athletes_management"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "logs_aceite_privacidade_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "vw_pontuacoes_gerais_atletas"
+            referencedColumns: ["atleta_id"]
+          },
+          {
+            foreignKeyName: "logs_aceite_privacidade_versao_termo_fkey"
+            columns: ["versao_termo"]
+            isOneToOne: false
+            referencedRelation: "termos_privacidade"
+            referencedColumns: ["versao_termo"]
+          },
+        ]
+      }
       modalidades: {
         Row: {
           categoria: string
@@ -1060,6 +1129,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      termos_privacidade: {
+        Row: {
+          ativo: boolean | null
+          data_criacao: string | null
+          id: string
+          link_pdf: string | null
+          termo_texto: string
+          versao_termo: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          data_criacao?: string | null
+          id?: string
+          link_pdf?: string | null
+          termo_texto: string
+          versao_termo: string
+        }
+        Update: {
+          ativo?: boolean | null
+          data_criacao?: string | null
+          id?: string
+          link_pdf?: string | null
+          termo_texto?: string
+          versao_termo?: string
+        }
+        Relationships: []
       }
       usuarios: {
         Row: {

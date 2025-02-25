@@ -10,6 +10,7 @@ import { fetchBranches } from '@/lib/api';
 import { PersonalInfoSection } from './form-sections/PersonalInfoSection';
 import { ContactSection } from './form-sections/ContactSection';
 import { AuthSection } from './form-sections/AuthSection';
+import { PrivacyPolicySection } from './form-sections/PrivacyPolicySection';
 import { registerSchema, RegisterFormData } from './types/form-types';
 import { useRegisterForm } from './hooks/useRegisterForm';
 
@@ -30,6 +31,7 @@ export const SignUpForm = () => {
       numero_documento: '',
       genero: 'Masculino',
       data_nascimento: undefined,
+      acceptPrivacyPolicy: false,
     },
   });
 
@@ -52,6 +54,7 @@ export const SignUpForm = () => {
             isLoadingBranches={isLoadingBranches} 
           />
           <AuthSection form={form} />
+          <PrivacyPolicySection form={form} />
         </div>
 
         <div className="text-sm text-gray-500 p-4 bg-gray-50 rounded-lg">
@@ -62,7 +65,7 @@ export const SignUpForm = () => {
         <Button
           type="submit"
           className="w-full bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={isSubmitting}
+          disabled={isSubmitting || !form.watch('acceptPrivacyPolicy')}
         >
           {isSubmitting ? (
             <>

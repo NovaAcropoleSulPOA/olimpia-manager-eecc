@@ -1,76 +1,60 @@
-
 import { z } from "zod";
-import { validateCPF } from "@/utils/documentValidation";
+
+export interface RegisterFormData {
+  nome: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  branchId: string | null;
+  ddi: string;
+  telefone: string;
+  tipo_documento: string;
+  numero_documento: string;
+  genero: string;
+  data_nascimento: Date | undefined;
+  acceptPrivacyPolicy: boolean;
+}
 
 export const registerSchema = z.object({
-  nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
+  nome: z.string().min(1, 'Nome é obrigatório'),
   email: z.string().email('Email inválido'),
-  ddi: z.string().default('+55'),
-  telefone: z.string().min(14, 'Telefone inválido').max(15),
   password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres'),
   confirmPassword: z.string(),
-  branchId: z.string({
-    required_error: "Sede inválida"
-  }).uuid('Sede inválida'),
-  tipo_documento: z.enum(['CPF', 'RG'], {
-    required_error: "Selecione o tipo de documento",
-  }),
-  numero_documento: z.string()
-    .min(1, 'Número do documento é obrigatório')
-    .refine((val) => {
-      if (!val) return false;
-      const clean = val.replace(/\D/g, '');
-      return clean.length >= 9;
-    }, 'Documento inválido')
-    .refine((val) => {
-      const clean = val.replace(/\D/g, '');
-      if (clean.length !== 11) return true;
-      return validateCPF(clean);
-    }, 'CPF inválido'),
-  genero: z.enum(['Masculino', 'Feminino'], {
-    required_error: "Selecione o gênero",
-  }),
+  branchId: z.string().nullable(),
+  ddi: z.string(),
+  telefone: z.string().min(1, 'Telefone é obrigatório'),
+  tipo_documento: z.string().min(1, 'Tipo de documento é obrigatório'),
+  numero_documento: z.string().min(1, 'Número do documento é obrigatório'),
+  genero: z.string().min(1, 'Gênero é obrigatório'),
   data_nascimento: z.date({
-    required_error: "Data de nascimento é obrigatória",
-  })
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "As senhas não coincidem",
+    required_error: 'Data de nascimento é obrigatória',
+    invalid_type_error: 'Data de nascimento inválida',
+  }),
+  acceptPrivacyPolicy: z.literal(true, {
+    errorMap: () => ({ message: "Você deve aceitar a política de privacidade para continuar" }),
+  }),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "As senhas não conferem",
   path: ["confirmPassword"],
 });
 
-export type RegisterFormData = z.infer<typeof registerSchema>;
-
-export type DependentRegisterFormData = {
+export interface DependentRegisterFormData {
   nome: string;
-  tipo_documento: 'CPF' | 'RG';
+  tipo_documento: string;
   numero_documento: string;
-  genero: 'Masculino' | 'Feminino';
-  data_nascimento: Date;
-  modalidades: number[];
-};
+  genero: string;
+  data_nascimento: Date | undefined;
+  modalidades: string[];
+}
 
 export const dependentRegisterSchema = z.object({
-  nome: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
-  tipo_documento: z.enum(['CPF', 'RG'], {
-    required_error: "Selecione o tipo de documento",
-  }),
-  numero_documento: z.string()
-    .min(1, 'Número do documento é obrigatório')
-    .refine((val) => {
-      if (!val) return false;
-      const clean = val.replace(/\D/g, '');
-      return clean.length >= 9;
-    }, 'Documento inválido')
-    .refine((val) => {
-      const clean = val.replace(/\D/g, '');
-      if (clean.length !== 11) return true;
-      return validateCPF(clean);
-    }, 'CPF inválido'),
-  genero: z.enum(['Masculino', 'Feminino'], {
-    required_error: "Selecione o gênero",
-  }),
+  nome: z.string().min(1, 'Nome é obrigatório'),
+  tipo_documento: z.string().min(1, 'Tipo de documento é obrigatório'),
+  numero_documento: z.string().min(1, 'Número do documento é obrigatório'),
+  genero: z.string().min(1, 'Gênero é obrigatório'),
   data_nascimento: z.date({
-    required_error: "Data de nascimento é obrigatória",
+    required_error: 'Data de nascimento é obrigatória',
+    invalid_type_error: 'Data de nascimento inválida',
   }),
-  modalidades: z.array(z.number()).min(1, 'Selecione pelo menos uma modalidade')
+  modalidades: z.array(z.string()).optional(),
 });
