@@ -2,7 +2,7 @@
 import { BranchAnalytics } from "@/types/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, Coins, Users } from "lucide-react";
-import { formatCurrency } from "@/utils/formatters";
+import { formatToCurrency } from "@/utils/formatters";
 import { ChartContainer, ChartLegendContent } from "@/components/ui/chart";
 import { BarChart, XAxis, YAxis, Tooltip, Bar, Legend, PieChart, Pie, Cell } from "recharts";
 
@@ -21,25 +21,27 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
 
   // Calculate totals
   const totals = filteredData.reduce((acc, branch) => ({
-    inscricoes: acc.inscricoes + Number(branch.total_inscritos || 0),
+    inscricoes: acc.inscricoes + Number(branch.total_inscritos_geral || 0),
     pago: acc.pago + Number(branch.valor_total_pago || 0),
     pendente: acc.pendente + Number(branch.valor_total_pendente || 0)
   }), { inscricoes: 0, pago: 0, pendente: 0 });
 
   // Transform data for popular modalities chart
   const modalitiesData = filteredData.flatMap(branch => 
-    Object.entries(branch.modalidades_populares || {})
-      .map(([name, count]) => ({ name, count }))
+    (branch.modalidades_populares || []).map(item => ({
+      name: item.modalidade,
+      count: item.total_inscritos
+    }))
   ).slice(0, 6); // Show top 6 modalities
 
   // Transform data for payment status chart
   const paymentStatusData = filteredData.flatMap(branch =>
-    (branch.inscritos_por_status_pagamento || [])
+    branch.inscritos_por_status_pagamento || []
   ).slice(0, 5);
 
   // Transform data for categories chart
   const categoriesData = filteredData.flatMap(branch =>
-    (branch.atletas_por_categoria || [])
+    branch.atletas_por_categoria || []
   ).slice(0, 6);
 
   return (
@@ -63,7 +65,7 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(totals.pago)}
+              {formatToCurrency(totals.pago)}
             </div>
           </CardContent>
         </Card>
@@ -75,7 +77,7 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
-              {formatCurrency(totals.pendente)}
+              {formatToCurrency(totals.pendente)}
             </div>
           </CardContent>
         </Card>

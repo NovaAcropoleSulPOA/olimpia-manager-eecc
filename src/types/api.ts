@@ -1,3 +1,4 @@
+
 export interface AthleteModality {
   id: string;
   modalidade: string;
@@ -69,13 +70,9 @@ export interface BranchAnalytics {
   valor_total_pago: number;
   modalidades_populares: ModalidadePopular[];
   total_inscritos_por_status: StatusPagamento[];
-  inscritos_por_status_modalidades: StatusInscricao[];
+  inscritos_por_status_pagamento: StatusInscricao[];
   ranking_filiais: RankingFilial[];
   atletas_por_categoria: CategoriaQuantidade[];
   media_pontuacao_por_modalidade: PontuacaoModalidade[];
-}
-
-export interface PaymentStatus {
-  status_pagamento: string;
-  quantidade: number;
+  valor_total_pendente: number;
 }
