@@ -20,6 +20,7 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
   const { data: privacyPolicy, isLoading } = useQuery({
     queryKey: ['privacy-policy'],
     queryFn: async () => {
+      console.log('Fetching privacy policy...');
       const { data, error } = await supabase
         .from('termos_privacidade')
         .select('termo_texto')
@@ -28,7 +29,17 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
         .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching privacy policy:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.log('No privacy policy found');
+        throw new Error('No privacy policy found');
+      }
+
+      console.log('Privacy policy found:', data);
       return data;
     }
   });
