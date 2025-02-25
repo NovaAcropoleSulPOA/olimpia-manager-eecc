@@ -3,13 +3,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LayoutDashboard, Users, ListChecks } from "lucide-react";
+import { Users, ListChecks } from "lucide-react";
 import { EmptyState } from "./dashboard/components/EmptyState";
 import { LoadingState } from "./dashboard/components/LoadingState";
 import { ErrorState } from "./dashboard/components/ErrorState";
 import { DashboardHeader } from "./dashboard/components/DashboardHeader";
 import { NoEventSelected } from "./dashboard/components/NoEventSelected";
-import { DashboardTab } from "./dashboard/tabs/DashboardTab";
 import { AthletesTab } from "./dashboard/tabs/AthletesTab";
 import { EnrollmentsTab } from "./dashboard/tabs/EnrollmentsTab";
 import { useDashboardData } from "@/hooks/useDashboardData";
@@ -26,7 +25,6 @@ export default function OrganizerDashboard() {
   const {
     isRefreshing,
     branches,
-    branchAnalytics,
     athletes,
     confirmedEnrollments,
     isLoading,
@@ -44,11 +42,11 @@ export default function OrganizerDashboard() {
 
   if (error) {
     console.error('Error fetching data:', error);
-    toast.error('Erro ao carregar dados do dashboard');
+    toast.error('Erro ao carregar dados');
     return <ErrorState onRetry={handleRefresh} />;
   }
 
-  if (!branchAnalytics || branchAnalytics.length === 0) {
+  if (!athletes || athletes.length === 0) {
     return <EmptyState />;
   }
 
@@ -56,15 +54,8 @@ export default function OrganizerDashboard() {
     <div className="container mx-auto py-6 space-y-6">
       <DashboardHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
 
-      <Tabs defaultValue="dashboard" className="w-full">
+      <Tabs defaultValue="athletes" className="w-full">
         <TabsList className="w-full border-b mb-8 bg-background flex justify-start space-x-2 p-0">
-          <TabsTrigger 
-            value="dashboard"
-            className="flex items-center gap-2 px-6 py-3 text-base font-medium data-[state=active]:border-b-2 data-[state=active]:border-olimpics-green-primary rounded-none"
-          >
-            <LayoutDashboard className="h-5 w-5" />
-            Dashboards
-          </TabsTrigger>
           <TabsTrigger 
             value="athletes"
             className="flex items-center gap-2 px-6 py-3 text-base font-medium data-[state=active]:border-b-2 data-[state=active]:border-olimpics-green-primary rounded-none"
@@ -80,10 +71,6 @@ export default function OrganizerDashboard() {
             Inscrições por Modalidade
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="dashboard" className="mt-6">
-          <DashboardTab branchAnalytics={branchAnalytics} />
-        </TabsContent>
 
         <TabsContent value="athletes" className="mt-6">
           <AthletesTab

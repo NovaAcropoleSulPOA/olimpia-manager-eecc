@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { DashboardMetrics } from "./dashboard/DashboardMetrics";
-import { DashboardCharts } from "./dashboard/DashboardCharts";
 import { AthleteRegistrationCard } from "./AthleteRegistrationCard";
 import { ModalityEnrollments } from "./dashboard/ModalityEnrollments";
 import { toast } from "sonner";
-import { LayoutDashboard, Users, ListChecks, RefreshCw } from "lucide-react";
+import { Users, ListChecks } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -51,21 +49,6 @@ export default function DelegationDashboard() {
       return data;
     },
     enabled: !!user?.id
-  });
-
-  const { 
-    data: branchAnalytics, 
-    isLoading: isLoadingAnalytics,
-    error: analyticsError,
-    refetch: refetchAnalytics 
-  } = useQuery({
-    queryKey: ['branch-analytics', userProfile?.filial_id, currentEventId],
-    queryFn: async () => {
-      console.log('Fetching branch analytics for filial:', userProfile?.filial_id, 'and event:', currentEventId);
-      const data = await fetchBranchAnalytics(currentEventId, userProfile?.filial_id);
-      return data;
-    },
-    enabled: !!userProfile?.filial_id && !!currentEventId,
   });
 
   const { 
@@ -154,13 +137,8 @@ export default function DelegationDashboard() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    console.log('Refreshing delegation dashboard data...');
     try {
-      await Promise.all([
-        refetchAnalytics(),
-        refetchAthletes()
-      ]);
-      console.log('Dashboard data refreshed successfully');
+      await refetchAthletes();
       toast.success("Dados atualizados com sucesso!");
     } catch (error) {
       console.error('Error refreshing data:', error);
@@ -207,7 +185,7 @@ export default function DelegationDashboard() {
     }
   };
 
-  if (isLoadingAnalytics || isLoadingAthletes) {
+  if (isLoadingAthletes) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
@@ -215,8 +193,8 @@ export default function DelegationDashboard() {
     );
   }
 
-  if (analyticsError || athletesError) {
-    console.error('Error fetching data:', analyticsError || athletesError);
+  if (athletesError) {
+    console.error('Error fetching data:', athletesError);
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -227,10 +205,6 @@ export default function DelegationDashboard() {
         </div>
       </div>
     );
-  }
-
-  if (!branchAnalytics || branchAnalytics.length === 0) {
-    return <EmptyState />;
   }
 
   const filteredAthletes = athletes?.filter(athlete => 
@@ -247,29 +221,12 @@ export default function DelegationDashboard() {
           disabled={isRefreshing}
           className="bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
         >
-          {isRefreshing ? (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-              Atualizando...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Atualizar Dados
-            </>
-          )}
+          {isRefreshing ? "Atualizando..." : "Atualizar Dados"}
         </Button>
       </div>
 
-      <Tabs defaultValue="dashboard" className="w-full">
+      <Tabs defaultValue="athletes" className="w-full">
         <TabsList className="w-full border-b mb-8 bg-background flex justify-start space-x-2 p-0">
-          <TabsTrigger 
-            value="dashboard"
-            className="flex items-center gap-2 px-6 py-3 text-base font-medium data-[state=active]:border-b-2 data-[state=active]:border-olimpics-green-primary rounded-none"
-          >
-            <LayoutDashboard className="h-5 w-5" />
-            Dashboards
-          </TabsTrigger>
           <TabsTrigger 
             value="athletes"
             className="flex items-center gap-2 px-6 py-3 text-base font-medium data-[state=active]:border-b-2 data-[state=active]:border-olimpics-green-primary rounded-none"
@@ -285,13 +242,6 @@ export default function DelegationDashboard() {
             Inscrições por Modalidade
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="dashboard" className="mt-6">
-          <div className="grid gap-6">
-            <DashboardMetrics data={branchAnalytics} />
-            <DashboardCharts data={branchAnalytics} />
-          </div>
-        </TabsContent>
 
         <TabsContent value="athletes" className="mt-6">
           <div className="space-y-6">
@@ -332,15 +282,4 @@ export default function DelegationDashboard() {
       </Tabs>
     </div>
   );
-}
-
-async function fetchBranchAnalytics(eventId: string, filialId: string) {
-  const { data, error } = await supabase
-    .from('vw_analytics_inscricoes')
-    .select('*')
-    .eq('filial_id', filialId)
-    .eq('evento_id', eventId);
-  
-  if (error) throw error;
-  return data || [];
 }
