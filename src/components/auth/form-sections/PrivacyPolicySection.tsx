@@ -34,11 +34,6 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
         throw error;
       }
 
-      if (!data) {
-        console.log('No privacy policy found');
-        throw new Error('No privacy policy found');
-      }
-
       console.log('Privacy policy found:', data);
       return data;
     }
