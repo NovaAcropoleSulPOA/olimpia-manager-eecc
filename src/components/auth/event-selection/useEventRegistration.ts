@@ -18,7 +18,6 @@ interface ProfileAndFeeInfo {
   taxaInscricaoId: number;
   perfilId: number;
   valor: number;
-  numeroIdentificador: string;
   profileName: string;
 }
 
@@ -137,24 +136,10 @@ async function getProfileAndFeeInfo(
     console.log('Found profile data:', profileData);
     console.log('Found fee data:', feeData);
 
-    // Step 2: Get user identifier
-    const { data: userData, error: userError } = await supabase
-      .from('usuarios')
-      .select('numero_identificador')
-      .eq('id', userId)
-      .single();
-
-    if (userError || !userData) {
-      console.error('Error fetching user data:', userError);
-      throw new Error('Could not fetch user information');
-    }
-
-    // Step 3: Compile registration information
     const result: ProfileAndFeeInfo = {
       taxaInscricaoId: feeData.id,
       perfilId: profileData.id,
       valor: feeData.valor,
-      numeroIdentificador: userData.numero_identificador,
       profileName: profileData.nome
     };
 
