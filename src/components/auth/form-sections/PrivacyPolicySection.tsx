@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import ReactMarkdown from 'react-markdown';
+import { Loader2 } from "lucide-react";
 
 interface PrivacyPolicySectionProps {
   form: UseFormReturn<any>;
@@ -15,12 +17,12 @@ interface PrivacyPolicySectionProps {
 export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
-  const { data: privacyPolicy } = useQuery({
+  const { data: privacyPolicy, isLoading } = useQuery({
     queryKey: ['privacy-policy'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('termos_privacidade')
-        .select('*')
+        .select('termo_texto')
         .eq('ativo', true)
         .order('data_criacao', { ascending: false })
         .limit(1)
@@ -67,13 +69,21 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
             <DialogTitle>Política de Privacidade</DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[60vh] mt-4 rounded-md border p-4">
-            <div className="prose prose-sm max-w-none">
-              {privacyPolicy?.termo_texto?.split('\n').map((paragraph, index) => (
-                <p key={index} className="mb-4 text-sm leading-relaxed">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : (
+              <div className="prose prose-sm max-w-none dark:prose-invert">
+                {privacyPolicy?.termo_texto ? (
+                  <ReactMarkdown>{privacyPolicy.termo_texto}</ReactMarkdown>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">
+                    Nenhuma política de privacidade encontrada.
+                  </p>
+                )}
+              </div>
+            )}
           </ScrollArea>
         </DialogContent>
       </Dialog>
