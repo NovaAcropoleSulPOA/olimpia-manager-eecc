@@ -14,6 +14,7 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
 
   const handleSubmit = async (values: DependentRegisterFormData) => {
     let toastId: string | number | undefined;
+    let createdDependentId: string | null = null;
     
     try {
       console.log('[Dependent Registration] Starting process with values:', values);
@@ -67,6 +68,7 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
 
       console.log('[Dependent Registration] Creating dependent user...');
 
+      // First, create the dependent user
       const { data: dependent, error: userCreationError } = await supabase
         .from('usuarios')
         .insert({
@@ -92,51 +94,43 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
         throw new Error('Erro ao criar usuário dependente');
       }
 
+      createdDependentId = dependent.id;
       console.log('[Dependent Registration] Dependent user created:', dependent);
 
-      try {
-        const { error: registrationError } = await supabase
-          .rpc('process_dependent_registration', {
-            p_dependent_id: dependent.id,
-            p_event_id: eventId,
-            p_birth_date: formattedBirthDate
-          });
+      // Process registration using the database function
+      const { error: registrationError } = await supabase
+        .rpc('process_dependent_registration', {
+          p_dependent_id: dependent.id,
+          p_event_id: eventId,
+          p_birth_date: formattedBirthDate
+        });
 
-        if (registrationError) {
-          console.error('[Dependent Registration] Process registration error:', registrationError);
-          throw registrationError;
-        }
-
-        console.log('[Dependent Registration] Registration processed successfully');
-      } catch (processError) {
-        console.error('[Dependent Registration] Process registration error:', processError);
-        await supabase.from('usuarios').delete().eq('id', dependent.id);
-        throw processError;
+      if (registrationError) {
+        console.error('[Dependent Registration] Process registration error:', registrationError);
+        throw registrationError;
       }
 
+      console.log('[Dependent Registration] Registration processed successfully');
+
+      // Handle modality registrations if any are selected
       if (values.modalidades.length > 0) {
         console.log('[Dependent Registration] Registering modalities:', values.modalidades);
         
-        try {
-          const modalityRegistrations = values.modalidades.map(modalityId => ({
-            atleta_id: dependent.id,
-            modalidade_id: modalityId,
-            evento_id: eventId,
-            status: 'pendente',
-            data_inscricao: new Date().toISOString()
-          }));
+        const modalityRegistrations = values.modalidades.map(modalityId => ({
+          atleta_id: dependent.id,
+          modalidade_id: modalityId,
+          evento_id: eventId,
+          status: 'pendente',
+          data_inscricao: new Date().toISOString()
+        }));
 
-          const { error: modalitiesError } = await supabase
-            .from('inscricoes_modalidades')
-            .insert(modalityRegistrations);
+        const { error: modalitiesError } = await supabase
+          .from('inscricoes_modalidades')
+          .insert(modalityRegistrations);
 
-          if (modalitiesError) {
-            console.error('[Dependent Registration] Modalities registration error:', modalitiesError);
-            throw modalitiesError;
-          }
-        } catch (modalityError) {
-          console.error('[Dependent Registration] Error registering modalities:', modalityError);
-          toast.error('Algumas modalidades não puderam ser registradas');
+        if (modalitiesError) {
+          console.error('[Dependent Registration] Modalities registration error:', modalitiesError);
+          throw modalitiesError;
         }
       }
 
@@ -152,6 +146,14 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
 
     } catch (error: any) {
       console.error('[Dependent Registration] Error:', error);
+      // If we created a dependent user but registration failed, clean up
+      if (createdDependentId) {
+        try {
+          await supabase.from('usuarios').delete().eq('id', createdDependentId);
+        } catch (cleanupError) {
+          console.error('[Dependent Registration] Cleanup error:', cleanupError);
+        }
+      }
       toast.dismiss(toastId);
       toast.error(error.message || 'Erro ao cadastrar dependente');
     } finally {
