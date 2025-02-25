@@ -1557,14 +1557,24 @@ export type Database = {
         }
         Returns: boolean
       }
-      process_dependent_registration: {
-        Args: {
-          p_dependent_id: string
-          p_event_id: string
-          p_birth_date: string
-        }
-        Returns: undefined
-      }
+      process_dependent_registration:
+        | {
+            Args: {
+              p_dependent_id: string
+              p_event_id: string
+              p_birth_date: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_dependent_id: string
+              p_event_id: string
+              p_birth_date: string
+              p_profile_id: number
+            }
+            Returns: undefined
+          }
       process_event_registration: {
         Args: {
           p_user_id: string
