@@ -82,7 +82,7 @@ export const useEventRegistration = (userId: string | undefined) => {
 
       } catch (error: any) {
         console.error('Registration error:', error);
-        toast.error(error.message || 'Erro ao realizar inscrição');
+        toast.error('Erro ao realizar inscrição. Por favor, tente novamente.');
         throw error;
       }
     }
@@ -112,7 +112,7 @@ async function getProfileAndFeeInfo(
       `)
       .eq('evento_id', eventId)
       .eq('nome', profileName)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('Error fetching profile:', error);
