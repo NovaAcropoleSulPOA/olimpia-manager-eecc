@@ -98,19 +98,49 @@ export const useDependentRegistration = (onSuccess?: () => void) => {
       console.log('[Dependent Registration] Dependent user created:', dependent);
 
       // Process registration using the database function
-      const { error: registrationError } = await supabase
-        .rpc('process_dependent_registration', {
-          p_dependent_id: dependent.id,
-          p_event_id: eventId,
-          p_birth_date: formattedBirthDate
-        });
+      const { error: registrationError } = await supabase.rpc('process_dependent_registration', {
+        p_dependent_id: dependent.id,
+        p_event_id: eventId,
+        p_birth_date: formattedBirthDate
+      });
 
       if (registrationError) {
         console.error('[Dependent Registration] Process registration error:', registrationError);
         throw registrationError;
       }
 
-      console.log('[Dependent Registration] Registration processed successfully');
+      // Verify that the registration was successful by checking the profile assignments
+      const { data: assignedProfiles, error: profileCheckError } = await supabase
+        .from('papeis_usuarios')
+        .select('perfil_id')
+        .eq('usuario_id', dependent.id)
+        .eq('evento_id', eventId);
+
+      if (profileCheckError) {
+        console.error('[Dependent Registration] Error checking profiles:', profileCheckError);
+        throw new Error('Failed to verify profile assignments');
+      }
+
+      if (!assignedProfiles || assignedProfiles.length === 0) {
+        throw new Error('No profiles were assigned to the dependent');
+      }
+
+      console.log('[Dependent Registration] Assigned profiles:', assignedProfiles);
+
+      // Verify the event registration
+      const { data: eventRegistration, error: registrationCheckError } = await supabase
+        .from('inscricoes_eventos')
+        .select('selected_role')
+        .eq('usuario_id', dependent.id)
+        .eq('evento_id', eventId)
+        .single();
+
+      if (registrationCheckError || !eventRegistration) {
+        console.error('[Dependent Registration] Error checking event registration:', registrationCheckError);
+        throw new Error('Failed to verify event registration');
+      }
+
+      console.log('[Dependent Registration] Event registration:', eventRegistration);
 
       // Handle modality registrations if any are selected
       if (values.modalidades.length > 0) {
