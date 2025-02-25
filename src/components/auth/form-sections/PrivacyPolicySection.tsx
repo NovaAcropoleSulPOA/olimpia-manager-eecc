@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import ReactMarkdown from 'react-markdown';
 import { Loader2 } from "lucide-react";
+import remarkGfm from 'remark-gfm';
 
 interface PrivacyPolicySectionProps {
   form: UseFormReturn<any>;
@@ -75,8 +76,26 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
             ) : privacyPolicy?.termo_texto ? (
-              <article className="prose prose-sm max-w-none dark:prose-invert prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-a:text-olimpics-green-primary prose-a:no-underline hover:prose-a:underline prose-p:text-muted-foreground prose-li:text-muted-foreground">
-                <ReactMarkdown>{privacyPolicy.termo_texto}</ReactMarkdown>
+              <article className="prose prose-sm max-w-none dark:prose-invert prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-a:text-olimpics-green-primary prose-a:no-underline hover:prose-a:underline prose-p:text-muted-foreground prose-li:text-muted-foreground prose-headings:mb-4 prose-p:mb-4 prose-ul:my-4 prose-li:my-1">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    h1: ({node, ...props}) => <h1 className="text-xl font-bold mb-4" {...props} />,
+                    h2: ({node, ...props}) => <h2 className="text-lg font-semibold mb-3" {...props} />,
+                    ul: ({node, ...props}) => <ul className="list-disc pl-6 my-4" {...props} />,
+                    li: ({node, ...props}) => <li className="my-1" {...props} />,
+                    a: ({node, ...props}) => (
+                      <a
+                        className="text-olimpics-green-primary hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        {...props}
+                      />
+                    ),
+                  }}
+                >
+                  {privacyPolicy.termo_texto}
+                </ReactMarkdown>
               </article>
             ) : null}
           </ScrollArea>
