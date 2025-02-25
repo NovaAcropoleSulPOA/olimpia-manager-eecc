@@ -5,13 +5,13 @@ import { toast } from 'sonner';
 
 export const fetchUserProfile = async (userId: string) => {
   try {
-    console.log('Fetching user profile for ID:', userId);
+    console.log('Fetching user profile data...');
     
     // Get current event ID from localStorage since roles are now event-specific
     const currentEventId = localStorage.getItem('currentEventId');
     
     if (!currentEventId) {
-      console.log('No current event ID found, fetching user profile without roles');
+      console.log('No current event ID found');
       const { data: userProfile, error: profileError } = await supabase
         .from('usuarios')
         .select('nome_completo, telefone, filial_id, confirmado')
@@ -21,7 +21,7 @@ export const fetchUserProfile = async (userId: string) => {
       if (profileError) throw profileError;
 
       if (!userProfile) {
-        console.log('No user profile found, returning minimal profile');
+        console.log('No user profile found');
         return {
           confirmado: false,
           papeis: [] as UserRole[],
@@ -62,7 +62,7 @@ export const fetchUserProfile = async (userId: string) => {
     if (profileError) throw profileError;
 
     if (!userProfile) {
-      console.log('No user profile found, returning minimal profile');
+      console.log('No user profile found');
       return {
         confirmado: false,
         papeis: [] as UserRole[],
@@ -75,33 +75,30 @@ export const fetchUserProfile = async (userId: string) => {
       descricao: ur.perfis.perfis_tipo.descricao
     })) as UserRole[] || [];
     
-    console.log('User roles fetched:', papeis);
+    console.log('User roles loaded:', papeis.length);
     
     return {
       ...userProfile,
       papeis,
     };
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    console.error('Error fetching user profile data');
     throw error;
   }
 };
 
 export const handleAuthRedirect = (userProfile: any, pathname: string, navigate: Function) => {
-  console.log('AuthContext - Handling auth redirect');
-  console.log('AuthContext - Current location:', pathname);
-  console.log('AuthContext - User profile for redirect:', userProfile);
+  console.log('Processing auth redirect...');
   
   // Don't redirect if we're on the reset-password page and came from profile
   if (pathname === '/reset-password') {
-    console.log('AuthContext - Skipping redirect for password reset');
+    console.log('Skipping redirect for password reset page');
     return;
   }
   
   // If user is on a public route, redirect to event selection
   if (['/login', '/', '/forgot-password'].includes(pathname)) {
-    console.log('AuthContext - Redirecting to event selection');
+    console.log('Redirecting to event selection');
     navigate('/event-selection');
   }
 };
-

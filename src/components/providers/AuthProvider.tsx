@@ -17,13 +17,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { signIn, signOut, signUp, resendVerificationEmail } = useAuthOperations({ setUser, navigate, location });
 
   useEffect(() => {
-    console.log('AuthContext - Setting up auth state...');
+    console.log('Setting up authentication state...');
     let mounted = true;
 
     const setupAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('AuthContext - Initial session:', session?.user?.id);
+        console.log('Session status:', session ? 'Active' : 'No active session');
 
         if (!session?.user && !PUBLIC_ROUTES.includes(location.pathname as PublicRoute) && 
             location.pathname !== '/reset-password') {
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            console.log('AuthContext - Auth state changed:', event, session?.user?.id);
+            console.log('Auth state changed:', event);
 
             if (event === 'SIGNED_OUT') {
               if (mounted) {
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   setUser({ ...session.user, ...userProfile });
                 }
               } catch (error) {
-                console.error('AuthContext - Error setting up user session:', error);
+                console.error('Error in auth setup:', error);
                 toast.error(handleSupabaseError(error));
                 if (mounted) {
                   setUser(null);
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           subscription.unsubscribe();
         };
       } catch (error) {
-        console.error('AuthContext - Error in auth setup:', error);
+        console.error('Error in auth setup:', error);
         if (mounted) {
           setUser(null);
           if (!PUBLIC_ROUTES.includes(location.pathname as PublicRoute)) {
