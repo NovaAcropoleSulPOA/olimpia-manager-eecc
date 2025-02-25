@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabase';
 import ReactMarkdown from 'react-markdown';
 import { Loader2 } from "lucide-react";
 import remarkGfm from 'remark-gfm';
+import { toast } from "sonner";
 
 interface PrivacyPolicySectionProps {
   form: UseFormReturn<any>;
@@ -18,22 +19,45 @@ interface PrivacyPolicySectionProps {
 export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
-  const { data: privacyPolicy, isLoading } = useQuery({
+  const { data: privacyPolicy, isLoading, error } = useQuery({
     queryKey: ['privacy-policy'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First try the view
+      let { data: viewData, error: viewError } = await supabase
         .from('vw_latest_termo_privacidade')
         .select('termo_texto')
-        .single();
+        .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching privacy policy:', error);
-        throw error;
+      if (viewError) {
+        console.error('Error fetching from view:', viewError);
+        // If view fails, try direct table query
+        const { data: tableData, error: tableError } = await supabase
+          .from('termos_privacidade')
+          .select('termo_texto')
+          .eq('ativo', true)
+          .order('data_criacao', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (tableError) {
+          console.error('Error fetching from table:', tableError);
+          throw new Error('Failed to fetch privacy policy');
+        }
+
+        return tableData;
       }
 
-      return data;
+      return viewData;
+    },
+    onError: (error) => {
+      console.error('Query error:', error);
+      toast.error('Não foi possível carregar a política de privacidade. Por favor, tente novamente.');
     }
   });
+
+  if (error) {
+    console.error('Privacy policy fetch error:', error);
+  }
 
   return (
     <>
@@ -54,7 +78,13 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
                 <button
                   type="button"
                   className="text-olimpics-green-primary hover:underline"
-                  onClick={() => setDialogOpen(true)}
+                  onClick={() => {
+                    if (!privacyPolicy?.termo_texto) {
+                      toast.error('Política de privacidade não disponível no momento. Por favor, tente novamente mais tarde.');
+                      return;
+                    }
+                    setDialogOpen(true);
+                  }}
                 >
                   Política de Privacidade
                 </button>
@@ -97,7 +127,11 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
                   {privacyPolicy.termo_texto}
                 </ReactMarkdown>
               </article>
-            ) : null}
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                Política de privacidade não disponível no momento.
+              </div>
+            )}
           </ScrollArea>
         </DialogContent>
       </Dialog>
