@@ -75,9 +75,9 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
             ) : privacyPolicy?.termo_texto ? (
-              <div className="prose prose-sm max-w-none dark:prose-invert">
+              <article className="prose prose-sm max-w-none dark:prose-invert prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-a:text-olimpics-green-primary prose-a:no-underline hover:prose-a:underline prose-p:text-muted-foreground prose-li:text-muted-foreground">
                 <ReactMarkdown>{privacyPolicy.termo_texto}</ReactMarkdown>
-              </div>
+              </article>
             ) : null}
           </ScrollArea>
         </DialogContent>
