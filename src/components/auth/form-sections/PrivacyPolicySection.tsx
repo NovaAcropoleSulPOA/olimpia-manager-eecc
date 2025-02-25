@@ -20,21 +20,18 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
   const { data: privacyPolicy, isLoading } = useQuery({
     queryKey: ['privacy-policy'],
     queryFn: async () => {
-      console.log('Fetching privacy policy...');
       const { data, error } = await supabase
         .from('termos_privacidade')
         .select('termo_texto')
-        .eq('ativo', true)
         .order('data_criacao', { ascending: false })
         .limit(1)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error('Error fetching privacy policy:', error);
         throw error;
       }
 
-      console.log('Privacy policy found:', data);
       return data;
     }
   });
@@ -79,17 +76,11 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
-            ) : (
+            ) : privacyPolicy?.termo_texto ? (
               <div className="prose prose-sm max-w-none dark:prose-invert">
-                {privacyPolicy?.termo_texto ? (
-                  <ReactMarkdown>{privacyPolicy.termo_texto}</ReactMarkdown>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">
-                    Nenhuma política de privacidade encontrada.
-                  </p>
-                )}
+                <ReactMarkdown>{privacyPolicy.termo_texto}</ReactMarkdown>
               </div>
-            )}
+            ) : null}
           </ScrollArea>
         </DialogContent>
       </Dialog>
