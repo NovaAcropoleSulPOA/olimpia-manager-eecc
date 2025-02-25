@@ -24,7 +24,7 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
         .eq('ativo', true)
         .order('data_criacao', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
@@ -33,10 +33,19 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
 
   const handleViewPrivacyPolicy = () => {
     if (privacyPolicy?.link_pdf) {
-      // Handle relative URLs by adding the public URL base
-      const pdfUrl = privacyPolicy.link_pdf.startsWith('/')
-        ? `${window.location.origin}${privacyPolicy.link_pdf}`
-        : privacyPolicy.link_pdf;
+      console.log('PDF URL:', privacyPolicy.link_pdf); // Debug log
+      
+      // Ensure we handle both absolute and relative URLs
+      let pdfUrl = privacyPolicy.link_pdf;
+      if (pdfUrl.startsWith('/')) {
+        // For relative URLs, prefix with the origin
+        pdfUrl = `${window.location.origin}${pdfUrl}`;
+      } else if (!pdfUrl.startsWith('http')) {
+        // If it's not absolute and doesn't start with /, assume it's relative
+        pdfUrl = `${window.location.origin}/${pdfUrl}`;
+      }
+      
+      console.log('Final PDF URL:', pdfUrl); // Debug log
       window.open(pdfUrl, '_blank', 'noopener,noreferrer');
     } else {
       setDialogOpen(true);
@@ -80,7 +89,7 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
           </DialogHeader>
           <ScrollArea className="h-[60vh] mt-4 rounded-md border p-4">
             <div className="prose prose-sm max-w-none">
-              {privacyPolicy?.termo_texto.split('\n').map((paragraph, index) => (
+              {privacyPolicy?.termo_texto?.split('\n').map((paragraph, index) => (
                 <p key={index}>{paragraph}</p>
               ))}
               {privacyPolicy?.link_pdf && (
@@ -88,7 +97,9 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
                   <a 
                     href={privacyPolicy.link_pdf.startsWith('/') 
                       ? `${window.location.origin}${privacyPolicy.link_pdf}`
-                      : privacyPolicy.link_pdf}
+                      : privacyPolicy.link_pdf.startsWith('http')
+                        ? privacyPolicy.link_pdf
+                        : `${window.location.origin}/${privacyPolicy.link_pdf}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-olimpics-green-primary hover:underline"
@@ -104,4 +115,3 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
     </>
   );
 };
-
