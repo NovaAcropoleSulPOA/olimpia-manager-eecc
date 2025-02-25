@@ -1,4 +1,3 @@
-
 import { BranchAnalytics } from "@/types/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Activity, Coins, Users } from "lucide-react";
@@ -23,24 +22,23 @@ const PAYMENT_STATUS_COLORS = {
   'cancelado': CHART_COLORS.red
 };
 
+// Flatten the chart config to match ChartConfig type
 const CHART_CONFIG = {
   modalities: {
     color: CHART_COLORS.blue,
     label: 'Modalidades'
   },
-  payments: {
-    confirmado: {
-      color: CHART_COLORS.green,
-      label: 'Confirmado'
-    },
-    pendente: {
-      color: CHART_COLORS.yellow,
-      label: 'Pendente'
-    },
-    cancelado: {
-      color: CHART_COLORS.red,
-      label: 'Cancelado'
-    }
+  confirmado: {
+    color: CHART_COLORS.green,
+    label: 'Confirmado'
+  },
+  pendente: {
+    color: CHART_COLORS.yellow,
+    label: 'Pendente'
+  },
+  cancelado: {
+    color: CHART_COLORS.red,
+    label: 'Cancelado'
   },
   categories: {
     color: CHART_COLORS.purple,
