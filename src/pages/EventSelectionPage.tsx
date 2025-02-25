@@ -26,14 +26,16 @@ export default function EventSelectionPage() {
         return null;
       }
 
+      // Using maybeSingle() instead of single() to handle null case gracefully
       const { data: userData, error } = await supabase
         .from('usuarios')
         .select('data_nascimento')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching user birth date:', error);
+        toast.error('Erro ao buscar informações do usuário');
         return null;
       }
 
@@ -45,7 +47,8 @@ export default function EventSelectionPage() {
       console.log('Calculated user age:', age);
       return age;
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    retry: 1 // Only retry once to avoid excessive retries on permanent errors
   });
 
   const handleEventSelect = (eventId: string) => {
