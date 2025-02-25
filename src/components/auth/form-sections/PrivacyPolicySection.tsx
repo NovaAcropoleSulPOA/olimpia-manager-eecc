@@ -31,27 +31,6 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
     }
   });
 
-  const handleViewPrivacyPolicy = () => {
-    if (privacyPolicy?.link_pdf) {
-      console.log('PDF URL:', privacyPolicy.link_pdf); // Debug log
-      
-      // Ensure we handle both absolute and relative URLs
-      let pdfUrl = privacyPolicy.link_pdf;
-      if (pdfUrl.startsWith('/')) {
-        // For relative URLs, prefix with the origin
-        pdfUrl = `${window.location.origin}${pdfUrl}`;
-      } else if (!pdfUrl.startsWith('http')) {
-        // If it's not absolute and doesn't start with /, assume it's relative
-        pdfUrl = `${window.location.origin}/${pdfUrl}`;
-      }
-      
-      console.log('Final PDF URL:', pdfUrl); // Debug log
-      window.open(pdfUrl, '_blank', 'noopener,noreferrer');
-    } else {
-      setDialogOpen(true);
-    }
-  };
-
   return (
     <>
       <FormField
@@ -71,7 +50,7 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
                 <button
                   type="button"
                   className="text-olimpics-green-primary hover:underline"
-                  onClick={handleViewPrivacyPolicy}
+                  onClick={() => setDialogOpen(true)}
                 >
                   Política de Privacidade
                 </button>
@@ -90,24 +69,10 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
           <ScrollArea className="h-[60vh] mt-4 rounded-md border p-4">
             <div className="prose prose-sm max-w-none">
               {privacyPolicy?.termo_texto?.split('\n').map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))}
-              {privacyPolicy?.link_pdf && (
-                <p className="mt-4">
-                  <a 
-                    href={privacyPolicy.link_pdf.startsWith('/') 
-                      ? `${window.location.origin}${privacyPolicy.link_pdf}`
-                      : privacyPolicy.link_pdf.startsWith('http')
-                        ? privacyPolicy.link_pdf
-                        : `${window.location.origin}/${privacyPolicy.link_pdf}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-olimpics-green-primary hover:underline"
-                  >
-                    Baixar PDF da Política de Privacidade
-                  </a>
+                <p key={index} className="mb-4 text-sm leading-relaxed">
+                  {paragraph}
                 </p>
-              )}
+              ))}
             </div>
           </ScrollArea>
         </DialogContent>
