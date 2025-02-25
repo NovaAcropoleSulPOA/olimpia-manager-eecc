@@ -512,6 +512,13 @@ export type Database = {
             referencedRelation: "termos_privacidade"
             referencedColumns: ["versao_termo"]
           },
+          {
+            foreignKeyName: "logs_aceite_privacidade_versao_termo_fkey"
+            columns: ["versao_termo"]
+            isOneToOne: false
+            referencedRelation: "vw_latest_termo_privacidade"
+            referencedColumns: ["versao_termo"]
+          },
         ]
       }
       modalidades: {
@@ -1472,6 +1479,24 @@ export type Database = {
           local: string | null
           modalidade_nome: string | null
           modalidade_status: string | null
+        }
+        Relationships: []
+      }
+      vw_latest_termo_privacidade: {
+        Row: {
+          data_criacao: string | null
+          termo_texto: string | null
+          versao_termo: string | null
+        }
+        Insert: {
+          data_criacao?: string | null
+          termo_texto?: string | null
+          versao_termo?: string | null
+        }
+        Update: {
+          data_criacao?: string | null
+          termo_texto?: string | null
+          versao_termo?: string | null
         }
         Relationships: []
       }
