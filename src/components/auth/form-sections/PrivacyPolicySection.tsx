@@ -26,7 +26,8 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
       let { data: viewData, error: viewError } = await supabase
         .from('vw_latest_termo_privacidade')
         .select('termo_texto')
-        .maybeSingle();
+        .limit(1)
+        .single();
 
       if (viewError) {
         console.error('Error fetching from view:', viewError);
@@ -37,21 +38,29 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
           .eq('ativo', true)
           .order('data_criacao', { ascending: false })
           .limit(1)
-          .maybeSingle();
+          .single();
 
         if (tableError) {
           console.error('Error fetching from table:', tableError);
           throw new Error('Failed to fetch privacy policy');
         }
 
+        if (!tableData) {
+          throw new Error('No active privacy policy found');
+        }
+
         return tableData;
+      }
+
+      if (!viewData) {
+        throw new Error('No privacy policy found in view');
       }
 
       return viewData;
     }
   });
 
-  // Handle error state separately
+  // Handle error state
   React.useEffect(() => {
     if (error) {
       console.error('Privacy policy fetch error:', error);
