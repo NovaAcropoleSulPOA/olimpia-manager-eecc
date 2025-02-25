@@ -13,7 +13,8 @@ export const useRegisterForm = () => {
 
   const handleSubmit = async (values: RegisterFormData) => {
     try {
-      console.log('Starting registration process with values:', values);
+      // Log only non-sensitive data for debugging
+      console.log('Starting registration process for:', values.email);
       setIsSubmitting(true);
 
       // Validate birth date
@@ -33,7 +34,7 @@ export const useRegisterForm = () => {
       // Check for existing user
       const { data: existingUser, error: checkError } = await checkExistingUser(values.email);
       if (checkError) {
-        console.error('Error checking existing user:', checkError);
+        console.error('Error checking existing user');
         toast.error('Erro ao verificar cadastro existente.');
         return;
       }
@@ -43,8 +44,10 @@ export const useRegisterForm = () => {
         return;
       }
 
-      // Prepare and submit user data
+      // Prepare user metadata (excluding password)
       const userMetadata = prepareUserMetadata(values, formattedBirthDate);
+
+      // Sign up user
       const signUpResult = await signUp({
         email: values.email,
         password: values.password,
@@ -54,7 +57,7 @@ export const useRegisterForm = () => {
       });
 
       if (signUpResult.error) {
-        console.error('Signup error details:', signUpResult.error);
+        console.error('Signup error occurred');
         toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
         return;
       }
@@ -68,8 +71,8 @@ export const useRegisterForm = () => {
       toast.success('Cadastro realizado com sucesso! Por favor, selecione um evento para continuar.');
       navigate('/event-selection');
 
-    } catch (error) {
-      console.error('Registration process error:', error);
+    } catch (error: any) {
+      console.error('Registration process error');
       toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
     } finally {
       setIsSubmitting(false);

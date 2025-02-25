@@ -38,13 +38,20 @@ export const checkExistingUser = async (email: string) => {
 };
 
 export const prepareUserMetadata = (values: RegisterFormData, formattedBirthDate: string) => {
+  // Explicitly exclude password and confirmPassword
+  const {
+    password,
+    confirmPassword,
+    ...safeData
+  } = values;
+
   return {
-    nome_completo: values.nome,
-    telefone: formatPhoneNumber(values.ddi, values.telefone),
-    filial_id: values.branchId || null,
-    tipo_documento: values.tipo_documento,
-    numero_documento: values.numero_documento ? values.numero_documento.replace(/\D/g, '') : '',
-    genero: values.genero,
+    nome_completo: safeData.nome,
+    telefone: formatPhoneNumber(safeData.ddi, safeData.telefone),
+    filial_id: safeData.branchId || null,
+    tipo_documento: safeData.tipo_documento,
+    numero_documento: safeData.numero_documento ? safeData.numero_documento.replace(/\D/g, '') : '',
+    genero: safeData.genero,
     data_nascimento: formattedBirthDate
   };
 };
