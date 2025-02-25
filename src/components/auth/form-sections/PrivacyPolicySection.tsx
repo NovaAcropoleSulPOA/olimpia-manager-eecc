@@ -3,8 +3,10 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { FileText } from "lucide-react";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
@@ -30,6 +32,10 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
       return data;
     }
   });
+
+  const handleViewPdf = (pdfUrl: string) => {
+    window.open(pdfUrl, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <>
@@ -71,20 +77,21 @@ export const PrivacyPolicySection = ({ form }: PrivacyPolicySectionProps) => {
               {privacyPolicy?.termo_texto.split('\n').map((paragraph, index) => (
                 <p key={index}>{paragraph}</p>
               ))}
-              {privacyPolicy?.link_pdf && (
-                <p className="mt-4">
-                  <a 
-                    href={privacyPolicy.link_pdf}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-olimpics-green-primary hover:underline"
-                  >
-                    Baixar PDF da Política de Privacidade
-                  </a>
-                </p>
-              )}
             </div>
           </ScrollArea>
+          <DialogFooter className="sm:justify-start">
+            {privacyPolicy?.link_pdf && (
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2"
+                onClick={() => handleViewPdf(privacyPolicy.link_pdf!)}
+              >
+                <FileText className="h-4 w-4" />
+                Visualizar PDF completo
+              </Button>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
