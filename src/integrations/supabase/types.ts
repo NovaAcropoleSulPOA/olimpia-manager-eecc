@@ -1551,6 +1551,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_delegation_rep: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
       is_event_admin: {
         Args: {
           user_id: string
@@ -1607,6 +1613,13 @@ export type Database = {
       sync_user_roles_reverse: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      user_belongs_to_branch: {
+        Args: {
+          user_id: string
+          branch_id: string
+        }
+        Returns: boolean
       }
     }
     Enums: {

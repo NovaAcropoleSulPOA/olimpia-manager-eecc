@@ -1,4 +1,3 @@
-
 import { BranchAnalytics } from "@/types/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Activity, Coins, Users } from "lucide-react";
@@ -89,7 +88,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
-  // Filter data for delegation view if currentBranchId is provided
   const filteredData = currentBranchId 
     ? data.filter(item => item.filial_id === currentBranchId)
     : data;
@@ -303,4 +301,3 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
     </div>
   );
 }
-
