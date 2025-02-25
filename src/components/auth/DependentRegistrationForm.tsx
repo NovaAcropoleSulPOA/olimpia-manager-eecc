@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Form } from "@/components/ui/form";
@@ -14,10 +15,12 @@ import { supabase } from '@/lib/supabase';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
 interface DependentRegistrationFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
 }
+
 export const DependentRegistrationForm = ({
   onSuccess,
   onCancel
@@ -39,6 +42,7 @@ export const DependentRegistrationForm = ({
       return data as Modality[];
     }
   });
+
   const form = useForm<DependentRegisterFormData>({
     resolver: zodResolver(dependentRegisterSchema),
     defaultValues: {
@@ -50,12 +54,16 @@ export const DependentRegistrationForm = ({
       modalidades: []
     }
   });
+
   const {
     isSubmitting,
     handleSubmit: onSubmit
   } = useDependentRegistration(onSuccess);
-  const selectedModalities = form.watch('modalidades');
-  return <Form {...form}>
+
+  const selectedModalities = form.watch('modalidades') || [];
+
+  return (
+    <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Alert className="bg-lime-700 hover:bg-lime-600">
           <Info className="h-4 w-4" />
@@ -80,20 +88,34 @@ export const DependentRegistrationForm = ({
                 </AlertDescription>
               </Alert>
 
-              <FormField control={form.control} name="modalidades" rules={{
-              required: 'Selecione pelo menos uma modalidade',
-              validate: value => value.length > 0 || 'Selecione pelo menos uma modalidade'
-            }} render={() => <FormItem>
+              <FormField
+                control={form.control}
+                name="modalidades"
+                rules={{
+                  required: 'Selecione pelo menos uma modalidade',
+                  validate: value => (value?.length ?? 0) > 0 || 'Selecione pelo menos uma modalidade'
+                }}
+                render={() => (
+                  <FormItem>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {modalities?.map(modality => <FormField key={modality.id} control={form.control} name="modalidades" render={({
-                  field
-                }) => {
-                  return <FormItem key={modality.id} className="flex flex-row items-start space-x-3 space-y-0">
+                      {modalities?.map(modality => (
+                        <FormField
+                          key={modality.id}
+                          control={form.control}
+                          name="modalidades"
+                          render={({ field }) => {
+                            return (
+                              <FormItem key={modality.id} className="flex flex-row items-start space-x-3 space-y-0">
                                 <FormControl>
-                                  <Checkbox checked={field.value?.includes(modality.id)} onCheckedChange={checked => {
-                        const updatedValue = checked ? [...(field.value || []), modality.id] : field.value?.filter(id => id !== modality.id) || [];
-                        field.onChange(updatedValue);
-                      }} />
+                                  <Checkbox
+                                    checked={field.value?.includes(modality.id.toString())}
+                                    onCheckedChange={checked => {
+                                      const updatedValue = checked
+                                        ? [...(field.value || []), modality.id.toString()]
+                                        : field.value?.filter(id => id !== modality.id.toString()) || [];
+                                      field.onChange(updatedValue);
+                                    }}
+                                  />
                                 </FormControl>
                                 <FormLabel className="text-sm font-normal">
                                   {modality.nome}
@@ -101,11 +123,16 @@ export const DependentRegistrationForm = ({
                                     {modality.tipo_modalidade} • {modality.categoria}
                                   </p>
                                 </FormLabel>
-                              </FormItem>;
-                }} />)}
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      ))}
                     </div>
                     <FormMessage />
-                  </FormItem>} />
+                  </FormItem>
+                )}
+              />
             </CardContent>
           </Card>
         </div>
@@ -114,13 +141,22 @@ export const DependentRegistrationForm = ({
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit" className="bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white" disabled={isSubmitting || selectedModalities.length === 0}>
-            {isSubmitting ? <>
+          <Button
+            type="submit"
+            className="bg-olimpics-green-primary hover:bg-olimpics-green-secondary text-white"
+            disabled={isSubmitting || selectedModalities.length === 0}
+          >
+            {isSubmitting ? (
+              <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Cadastrando...
-              </> : 'Cadastrar Dependente'}
+              </>
+            ) : (
+              'Cadastrar Dependente'
+            )}
           </Button>
         </div>
       </form>
-    </Form>;
+    </Form>
+  );
 };

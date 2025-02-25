@@ -84,7 +84,9 @@ describe('prepareUserMetadata', () => {
       genero: 'Masculino' as const,
       email: 'test@example.com',
       password: 'password123',
-      data_nascimento: new Date('1990-01-01')
+      confirmPassword: 'password123',
+      data_nascimento: new Date('1990-01-01'),
+      acceptPrivacyPolicy: true
     };
 
     const formattedBirthDate = '1990-01-01';
@@ -113,7 +115,9 @@ describe('prepareUserMetadata', () => {
       genero: 'Masculino' as const,
       email: 'test@example.com',
       password: 'password123',
-      data_nascimento: new Date('1990-01-01')
+      confirmPassword: 'password123',
+      data_nascimento: new Date('1990-01-01'),
+      acceptPrivacyPolicy: true
     };
 
     const formattedBirthDate = '1990-01-01';
