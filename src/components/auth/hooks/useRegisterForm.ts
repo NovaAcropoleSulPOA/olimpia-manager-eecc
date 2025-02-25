@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import { RegisterFormData } from '../types/form-types';
 import { formatBirthDate, checkExistingUser, prepareUserMetadata } from '../utils/registrationUtils';
+import { supabase } from '@/lib/supabase';
 
 export const useRegisterForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -13,7 +14,6 @@ export const useRegisterForm = () => {
 
   const handleSubmit = async (values: RegisterFormData) => {
     try {
-      // Log only non-sensitive data for debugging
       console.log('Starting registration process for:', values.email);
       setIsSubmitting(true);
 
@@ -34,7 +34,7 @@ export const useRegisterForm = () => {
       // Check for existing user
       const { data: existingUser, error: checkError } = await checkExistingUser(values.email);
       if (checkError) {
-        console.error('Error checking existing user');
+        console.error('Error checking existing user:', checkError);
         toast.error('Erro ao verificar cadastro existente.');
         return;
       }
@@ -57,7 +57,7 @@ export const useRegisterForm = () => {
       });
 
       if (signUpResult.error) {
-        console.error('Signup error occurred');
+        console.error('Signup error:', signUpResult.error);
         toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
         return;
       }
@@ -68,11 +68,12 @@ export const useRegisterForm = () => {
         return;
       }
 
+      // Registration successful
       toast.success('Cadastro realizado com sucesso! Por favor, selecione um evento para continuar.');
       navigate('/event-selection');
 
     } catch (error: any) {
-      console.error('Registration process error');
+      console.error('Registration process error:', error);
       toast.error('Erro ao realizar cadastro. Por favor, tente novamente.');
     } finally {
       setIsSubmitting(false);
