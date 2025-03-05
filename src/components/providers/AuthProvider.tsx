@@ -12,6 +12,9 @@ import { useAuthOperations } from '@/hooks/useAuthOperations';
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentEventId, setCurrentEventId] = useState<string | null>(() => {
+    return localStorage.getItem('currentEventId');
+  });
   const navigate = useNavigate();
   const location = useLocation();
   const { signIn, signOut, signUp, resendVerificationEmail } = useAuthOperations({ setUser, navigate, location });
@@ -116,7 +119,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn, 
       signOut, 
       signUp,
-      resendVerificationEmail 
+      resendVerificationEmail,
+      currentEventId
     }}>
       {children}
     </AuthContext.Provider>
