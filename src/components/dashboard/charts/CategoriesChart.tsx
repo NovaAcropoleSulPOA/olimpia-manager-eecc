@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
 import { EmptyChartMessage } from "./EmptyChartMessage";
+import { CustomTooltip } from "./CustomTooltip";
 
 interface CategoryData {
   categoria: string;
@@ -31,26 +32,7 @@ export function CategoriesChart({ data, chartColors, chartConfig }: CategoriesCh
               <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <XAxis dataKey="categoria" angle={-45} textAnchor="end" height={80} />
                 <YAxis />
-                <Tooltip 
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-white p-4 rounded-lg shadow-lg border">
-                          <p className="font-medium">{label}</p>
-                          {payload.map((entry: any, index: number) => (
-                            <p key={index} style={{ color: entry.color }}>
-                              {entry.name}: {typeof entry.value === 'number' 
-                                ? entry.value.toLocaleString()
-                                : entry.value
-                              }
-                            </p>
-                          ))}
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
+                <Tooltip content={<CustomTooltip />} />
                 <Bar 
                   dataKey="quantidade" 
                   name="Atletas" 

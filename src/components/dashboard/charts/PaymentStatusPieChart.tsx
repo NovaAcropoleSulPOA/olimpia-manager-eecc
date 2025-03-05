@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { ChartContainer, ChartLegendContent } from "@/components/ui/chart";
 import { EmptyChartMessage } from "./EmptyChartMessage";
+import { CustomTooltip } from "./CustomTooltip";
 
 interface PaymentStatusData {
   name: string;
@@ -47,26 +48,7 @@ export function PaymentStatusPieChart({ data, chartConfig }: PaymentStatusPieCha
                     />
                   ))}
                 </Pie>
-                <Tooltip 
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-white p-4 rounded-lg shadow-lg border">
-                          <p className="font-medium">{payload[0].name}</p>
-                          {payload.map((entry: any, index: number) => (
-                            <p key={index} style={{ color: entry.color }}>
-                              {entry.name}: {typeof entry.value === 'number' 
-                                ? entry.value.toLocaleString()
-                                : entry.value
-                              }
-                            </p>
-                          ))}
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend 
                   formatter={(value) => value.charAt(0).toUpperCase() + value.slice(1)}
                   content={<ChartLegendContent />}
