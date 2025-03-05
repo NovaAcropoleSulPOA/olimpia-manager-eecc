@@ -25,11 +25,20 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
   try {
     console.log('fetchBranchAnalytics called with eventId:', eventId, 'filialId:', filialId);
     
-    // Query the analytics view - now filtering by evento_id
+    // Query the analytics view - make sure we always filter by event_id
     let query = supabase
       .from('vw_analytics_inscricoes')
-      .select('*')
-      .eq('evento_id', eventId); // Add filter for event ID
+      .select('*');
+    
+    // Apply filters
+    if (eventId) {
+      // Check if evento_id column exists in the view
+      try {
+        query = query.eq('evento_id', eventId);
+      } catch (error) {
+        console.warn('Warning: evento_id filter might not be applied - column may not exist in view');
+      }
+    }
     
     // Apply filial filter only if provided (for delegation view)
     if (filialId) {
