@@ -25,7 +25,7 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
   try {
     console.log('fetchBranchAnalytics called with eventId:', eventId, 'filialId:', filialId);
     
-    // Instead of setting config, we'll use the eventId directly in our query
+    // Query the analytics view
     let query = supabase
       .from('vw_analytics_inscricoes')
       .select('*')
@@ -48,7 +48,6 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
       console.warn('No analytics data found for event:', eventId, 'with filial filter:', filialId);
       
       // If no data is found through the view, let's create mock data for development/testing
-      // This helps visualize what the UI should look like even if no data exists yet
       if (process.env.NODE_ENV === 'development') {
         console.log('Creating mock data for development');
         
@@ -87,19 +86,35 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
       }
     } else {
       console.log('Analytics data retrieved:', data.length, 'records');
+      console.log('First record sample:', JSON.stringify(data[0], null, 2));
     }
 
-    // Ensure returned data has the correct structure
-    return data?.map(item => ({
-      ...item,
-      // Make sure arrays are properly initialized even if null in database
-      modalidades_populares: item.modalidades_populares || [],
-      total_inscritos_por_status: item.total_inscritos_por_status || [],
-      inscritos_por_status_pagamento: item.inscritos_por_status_pagamento || [],
-      ranking_filiais: item.ranking_filiais ? [item.ranking_filiais] : [{ total_pontos: 0 }],
-      atletas_por_categoria: item.atletas_por_categoria || [],
-      media_pontuacao_por_modalidade: item.media_pontuacao_por_modalidade || []
-    })) || [];
+    // Process the JSON fields to ensure they're properly parsed
+    return data?.map(item => {
+      // Parse JSON string fields if they came as strings
+      const parseJsonField = (field: any) => {
+        if (typeof field === 'string') {
+          try {
+            return JSON.parse(field);
+          } catch (e) {
+            console.warn(`Failed to parse JSON field:`, field, e);
+            return [];
+          }
+        }
+        return field || [];
+      };
+
+      return {
+        ...item,
+        // Make sure arrays are properly initialized even if null in database
+        modalidades_populares: parseJsonField(item.modalidades_populares),
+        total_inscritos_por_status: parseJsonField(item.total_inscritos_por_status),
+        inscritos_por_status_pagamento: parseJsonField(item.inscritos_por_status_pagamento),
+        ranking_filiais: parseJsonField(item.ranking_filiais) || [{ total_pontos: 0 }],
+        atletas_por_categoria: parseJsonField(item.atletas_por_categoria),
+        media_pontuacao_por_modalidade: parseJsonField(item.media_pontuacao_por_modalidade)
+      };
+    }) || [];
   } catch (error) {
     console.error('Error in fetchBranchAnalytics:', error);
     throw error;

@@ -93,7 +93,7 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
         return result;
       } catch (error) {
         console.error('Error in branch analytics query:', error);
-        throw error; // Let the error propagate to show error state instead of empty data
+        throw error; // Let the error propagate to show error state
       }
     },
     enabled: !!eventId,

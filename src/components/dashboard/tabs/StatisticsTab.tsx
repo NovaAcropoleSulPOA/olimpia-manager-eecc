@@ -92,18 +92,29 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
   console.log("StatisticsTab data:", data);
   console.log("currentBranchId:", currentBranchId);
   
+  // Check if data is valid and properly structured 
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <p className="text-lg text-muted-foreground">Não há dados estatísticos disponíveis</p>
+        <p className="text-sm text-muted-foreground">Verifique se existem inscrições registradas para este evento</p>
+      </div>
+    );
+  }
+
+  // Filter data by branch if we're in delegation view
   const filteredData = currentBranchId 
     ? data.filter(item => item.filial_id === currentBranchId)
     : data;
     
-  console.log("filteredData for statistics:", filteredData);
+  console.log("Filtered data for statistics:", filteredData);
 
   // If no data after filtering, show no data message
   if (!filteredData || filteredData.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
-        <p className="text-lg text-muted-foreground">Não há dados estatísticos disponíveis</p>
-        <p className="text-sm text-muted-foreground">Verifique se existem inscrições confirmadas para este evento</p>
+        <p className="text-lg text-muted-foreground">Não há dados estatísticos disponíveis para esta filial</p>
+        <p className="text-sm text-muted-foreground">Verifique se existem inscrições confirmadas para esta filial</p>
       </div>
     );
   }
@@ -115,21 +126,38 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
     pendente: acc.pendente + Number(branch.valor_total_pendente || 0)
   }), { inscricoes: 0, pago: 0, pendente: 0 });
 
+  console.log("Calculated totals:", totals);
+
   // Transform data for popular modalities chart
-  const modalitiesData = filteredData.flatMap(branch => 
-    (branch.modalidades_populares || []).map(item => ({
+  const modalitiesData = filteredData.flatMap(branch => {
+    if (!branch.modalidades_populares || !Array.isArray(branch.modalidades_populares)) {
+      console.warn('modalidades_populares is not an array:', branch.modalidades_populares);
+      return [];
+    }
+    
+    return branch.modalidades_populares.map(item => ({
       name: item.modalidade,
       count: item.total_inscritos
-    }))
-  )
+    }));
+  })
+  .filter(item => item.name && item.count)
   .slice(0, 6)
   .sort((a, b) => b.count - a.count);
 
+  console.log("Modalities chart data:", modalitiesData);
+
   // Transform data for payment status chart
-  const paymentStatusData = filteredData.flatMap(branch =>
-    branch.inscritos_por_status_pagamento || []
-  )
+  const paymentStatusData = filteredData.flatMap(branch => {
+    if (!branch.inscritos_por_status_pagamento || !Array.isArray(branch.inscritos_por_status_pagamento)) {
+      console.warn('inscritos_por_status_pagamento is not an array:', branch.inscritos_por_status_pagamento);
+      return [];
+    }
+    
+    return branch.inscritos_por_status_pagamento;
+  })
   .reduce((acc, curr) => {
+    if (!curr || !curr.status_pagamento) return acc;
+    
     const existing = acc.find(item => item.status_pagamento === curr.status_pagamento);
     if (existing) {
       existing.quantidade += curr.quantidade;
@@ -137,14 +165,28 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
       acc.push({ ...curr });
     }
     return acc;
-  }, [] as typeof filteredData[0]['inscritos_por_status_pagamento'])
-  .sort((a, b) => b.quantidade - a.quantidade);
+  }, [] as any[])
+  .sort((a, b) => b.quantidade - a.quantidade)
+  .map(item => ({
+    name: item.status_pagamento,
+    value: item.quantidade,
+    color: PAYMENT_STATUS_COLORS[item.status_pagamento as keyof typeof PAYMENT_STATUS_COLORS] || CHART_COLORS.blue
+  }));
+
+  console.log("Payment status chart data:", paymentStatusData);
 
   // Transform data for categories chart
-  const categoriesData = filteredData.flatMap(branch =>
-    branch.atletas_por_categoria || []
-  )
+  const categoriesData = filteredData.flatMap(branch => {
+    if (!branch.atletas_por_categoria || !Array.isArray(branch.atletas_por_categoria)) {
+      console.warn('atletas_por_categoria is not an array:', branch.atletas_por_categoria);
+      return [];
+    }
+    
+    return branch.atletas_por_categoria;
+  })
   .reduce((acc, curr) => {
+    if (!curr || !curr.categoria) return acc;
+    
     const existing = acc.find(item => item.categoria === curr.categoria);
     if (existing) {
       existing.quantidade += curr.quantidade;
@@ -152,9 +194,11 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
       acc.push({ ...curr });
     }
     return acc;
-  }, [] as typeof filteredData[0]['atletas_por_categoria'])
+  }, [] as any[])
   .sort((a, b) => b.quantidade - a.quantidade)
   .slice(0, 6);
+
+  console.log("Categories chart data:", categoriesData);
 
   return (
     <div className="space-y-8">
@@ -230,20 +274,26 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={CHART_CONFIG} className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={modalitiesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="count" name="Inscritos" fill={CHART_COLORS.blue}>
-                    {modalitiesData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={CHART_COLORS.blue} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            {modalitiesData.length > 0 ? (
+              <ChartContainer config={CHART_CONFIG} className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={modalitiesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                    <YAxis />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="count" name="Inscritos" fill={CHART_COLORS.blue}>
+                      {modalitiesData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={CHART_COLORS.blue} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px]">
+                <p className="text-muted-foreground">Sem dados de modalidades disponíveis</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -256,35 +306,41 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={CHART_CONFIG} className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={paymentStatusData}
-                    dataKey="quantidade"
-                    nameKey="status_pagamento"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    label={({ name, percent }) => 
-                      `${name} (${(percent * 100).toFixed(0)}%)`
-                    }
-                  >
-                    {paymentStatusData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={PAYMENT_STATUS_COLORS[entry.status_pagamento as keyof typeof PAYMENT_STATUS_COLORS] || CHART_COLORS.blue} 
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend 
-                    formatter={(value) => value.charAt(0).toUpperCase() + value.slice(1)}
-                    content={<ChartLegendContent />}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            {paymentStatusData.length > 0 ? (
+              <ChartContainer config={CHART_CONFIG} className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={paymentStatusData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label={({ name, percent }) => 
+                        `${name} (${(percent * 100).toFixed(0)}%)`
+                      }
+                    >
+                      {paymentStatusData.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={entry.color} 
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend 
+                      formatter={(value) => value.charAt(0).toUpperCase() + value.slice(1)}
+                      content={<ChartLegendContent />}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px]">
+                <p className="text-muted-foreground">Sem dados de status de pagamento disponíveis</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -297,20 +353,26 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={CHART_CONFIG} className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={categoriesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <XAxis dataKey="categoria" angle={-45} textAnchor="end" height={80} />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar 
-                    dataKey="quantidade" 
-                    name="Atletas" 
-                    fill={CHART_COLORS.purple}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            {categoriesData.length > 0 ? (
+              <ChartContainer config={CHART_CONFIG} className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={categoriesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <XAxis dataKey="categoria" angle={-45} textAnchor="end" height={80} />
+                    <YAxis />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar 
+                      dataKey="quantidade" 
+                      name="Atletas" 
+                      fill={CHART_COLORS.purple}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px]">
+                <p className="text-muted-foreground">Sem dados de categorias disponíveis</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
