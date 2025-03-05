@@ -1,4 +1,3 @@
-
 export * from './athletes';
 export * from './branches';
 export * from './modalities';
