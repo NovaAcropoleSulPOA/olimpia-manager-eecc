@@ -54,8 +54,34 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
     queryKey: ['branch-analytics', eventId, filterByBranch],
     queryFn: async () => {
       try {
+        console.log('Fetching branch analytics with filterByBranch:', filterByBranch);
         const { data: { user } } = await supabase.auth.getUser();
-        return fetchBranchAnalytics(eventId, filterByBranch ? user?.id : undefined);
+        
+        if (filterByBranch && !user?.id) {
+          console.warn('User ID not available for filtering branch analytics');
+          return [];
+        }
+        
+        // Get the user's filial_id if we're filtering by branch
+        let filialId;
+        if (filterByBranch && user) {
+          const { data: userProfile, error: userError } = await supabase
+            .from('usuarios')
+            .select('filial_id')
+            .eq('id', user.id)
+            .single();
+            
+          if (userError) {
+            console.error('Error fetching user profile for branch filtering:', userError);
+          } else {
+            filialId = userProfile?.filial_id;
+            console.log('User filial_id for analytics filtering:', filialId);
+          }
+        }
+        
+        const result = await fetchBranchAnalytics(eventId, filialId);
+        console.log('Branch analytics result:', result);
+        return result;
       } catch (error) {
         console.error('Error in branch analytics query:', error);
         return []; // Return empty array on error to prevent UI breakage

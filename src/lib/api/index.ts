@@ -23,6 +23,8 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
   if (!eventId) return [];
   
   try {
+    console.log('fetchBranchAnalytics called with eventId:', eventId, 'filialId:', filialId);
+    
     // Set the current event ID in the session
     const { error: configError } = await supabase.rpc('set_config', {
       parameter: 'app.current_event_id',
@@ -36,10 +38,12 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
     
     let query = supabase
       .from('vw_analytics_inscricoes')
-      .select('*');
+      .select('*')
+      .eq('evento_id', eventId);
     
     // Apply filial filter only if provided (for delegation view)
     if (filialId) {
+      console.log('Applying filial filter with ID:', filialId);
       query = query.eq('filial_id', filialId);
     }
 
@@ -51,7 +55,9 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
     }
 
     if (!data || data.length === 0) {
-      console.warn('No analytics data found for event:', eventId);
+      console.warn('No analytics data found for event:', eventId, 'with filial filter:', filialId);
+    } else {
+      console.log('Analytics data retrieved:', data.length, 'records');
     }
 
     return data || [];

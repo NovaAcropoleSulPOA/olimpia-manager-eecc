@@ -17,6 +17,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 export default function OrganizerDashboard() {
   const { user } = useAuth();
   const currentEventId = localStorage.getItem('currentEventId');
+  const [activeTab, setActiveTab] = useState("statistics");
   
   // Filter states
   const [nameFilter, setNameFilter] = useState("");
@@ -38,25 +39,74 @@ export default function OrganizerDashboard() {
     return <NoEventSelected />;
   }
 
-  if (isLoading) {
-    return <LoadingState />;
-  }
+  const renderTabContent = (tabName: string) => {
+    switch (tabName) {
+      case "statistics":
+        if (isLoading.analytics) {
+          return <LoadingState />;
+        }
+        if (error.analytics) {
+          return <ErrorState onRetry={handleRefresh} />;
+        }
+        if (!branchAnalytics || branchAnalytics.length === 0) {
+          return <EmptyState message="Não há dados estatísticos disponíveis" 
+                            description="Não encontramos dados de análise para exibir neste momento" />;
+        }
+        return <StatisticsTab data={branchAnalytics} />;
+      
+      case "athletes":
+        if (isLoading.athletes || isLoading.branches) {
+          return <LoadingState />;
+        }
+        if (error.athletes || error.branches) {
+          return <ErrorState onRetry={handleRefresh} />;
+        }
+        if (!athletes || athletes.length === 0) {
+          return <EmptyState message="Nenhum atleta encontrado"
+                            description="Não há atletas cadastrados para este evento" />;
+        }
+        return (
+          <AthletesTab
+            athletes={athletes}
+            branches={branches || []}
+            currentUserId={user?.id}
+            currentEventId={currentEventId}
+            filters={{
+              nameFilter,
+              branchFilter,
+              paymentStatusFilter
+            }}
+            onFilterChange={{
+              setNameFilter,
+              setBranchFilter,
+              setPaymentStatusFilter
+            }}
+          />
+        );
+      
+      case "enrollments":
+        if (isLoading.enrollments) {
+          return <LoadingState />;
+        }
+        if (error.enrollments) {
+          return <ErrorState onRetry={handleRefresh} />;
+        }
+        if (!confirmedEnrollments || confirmedEnrollments.length === 0) {
+          return <EmptyState message="Nenhuma inscrição confirmada"
+                            description="Não há inscrições confirmadas para este evento" />;
+        }
+        return <EnrollmentsTab enrollments={confirmedEnrollments} />;
 
-  if (error) {
-    console.error('Error fetching data:', error);
-    toast.error('Erro ao carregar dados');
-    return <ErrorState onRetry={handleRefresh} />;
-  }
-
-  if (!athletes || athletes.length === 0) {
-    return <EmptyState />;
-  }
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="container mx-auto py-6 space-y-6">
       <DashboardHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
 
-      <Tabs defaultValue="statistics" className="w-full">
+      <Tabs defaultValue="statistics" className="w-full" onValueChange={setActiveTab} value={activeTab}>
         <TabsList className="w-full border-b mb-8 bg-background flex justify-start space-x-2 p-0">
           <TabsTrigger 
             value="statistics"
@@ -82,30 +132,15 @@ export default function OrganizerDashboard() {
         </TabsList>
 
         <TabsContent value="statistics" className="mt-6">
-          <StatisticsTab data={branchAnalytics || []} />
+          {renderTabContent("statistics")}
         </TabsContent>
 
         <TabsContent value="athletes" className="mt-6">
-          <AthletesTab
-            athletes={athletes || []}
-            branches={branches || []}
-            currentUserId={user?.id}
-            currentEventId={currentEventId}
-            filters={{
-              nameFilter,
-              branchFilter,
-              paymentStatusFilter
-            }}
-            onFilterChange={{
-              setNameFilter,
-              setBranchFilter,
-              setPaymentStatusFilter
-            }}
-          />
+          {renderTabContent("athletes")}
         </TabsContent>
 
         <TabsContent value="enrollments" className="mt-6">
-          <EnrollmentsTab enrollments={confirmedEnrollments || []} />
+          {renderTabContent("enrollments")}
         </TabsContent>
       </Tabs>
     </div>
