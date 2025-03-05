@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -22,26 +23,46 @@ interface AthleteScore {
 
 interface AthleteScoresSectionProps {
   athleteId: string;
+  eventId: string | null;
 }
 
-export default function AthleteScoresSection({ athleteId }: AthleteScoresSectionProps) {
+export default function AthleteScoresSection({ athleteId, eventId }: AthleteScoresSectionProps) {
   const { data: scores, isLoading } = useQuery({
-    queryKey: ['athlete-scores', athleteId],
+    queryKey: ['athlete-scores', athleteId, eventId],
     queryFn: async () => {
-      console.log('Fetching athlete scores for:', athleteId);
+      if (!eventId) {
+        console.warn('No event ID provided, cannot fetch scores');
+        return [];
+      }
+      
+      console.log('Fetching athlete scores for:', athleteId, 'in event:', eventId);
+      
+      // Set the current event ID in the session context
+      const { error: configError } = await supabase.rpc('set_config', {
+        parameter: 'app.current_event_id',
+        value: eventId
+      });
+
+      if (configError) {
+        console.error('Error setting event ID in session:', configError);
+        // Continue anyway
+      }
+      
       const { data, error } = await supabase
         .from('vw_pontuacoes_gerais_atletas')
         .select('*')
-        .eq('atleta_id', athleteId);
+        .eq('atleta_id', athleteId)
+        .eq('evento_id', eventId);
 
       if (error) {
         console.error('Error fetching athlete scores:', error);
         throw error;
       }
 
+      console.log(`Found ${data?.length || 0} scores for athlete ${athleteId} in event ${eventId}`);
       return data as AthleteScore[];
     },
-    enabled: !!athleteId,
+    enabled: !!athleteId && !!eventId,
   });
 
   if (isLoading) {
