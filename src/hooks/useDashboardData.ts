@@ -46,7 +46,7 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
     }
   });
 
-  // The analytics query needs to be updated to use the event ID properly
+  // The analytics query needs to get the current user's filial_id if we're filtering by branch
   const { 
     data: branchAnalytics,
     isLoading: isLoadingAnalytics,
@@ -63,16 +63,16 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
           return [];
         }
         
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (filterByBranch && !user?.id) {
-          console.warn('User ID not available for filtering branch analytics');
-          return [];
-        }
-        
-        // Get the user's filial_id if we're filtering by branch
+        // Only get user's filial_id if we need to filter by branch
         let filialId;
-        if (filterByBranch && user) {
+        if (filterByBranch) {
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          if (!user?.id) {
+            console.warn('User ID not available for filtering branch analytics');
+            return [];
+          }
+          
           const { data: userProfile, error: userError } = await supabase
             .from('usuarios')
             .select('filial_id')
@@ -87,13 +87,13 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
           }
         }
         
-        // Call the API with the proper parameters
+        // Now fetch the analytics with the appropriate filter
         const result = await fetchBranchAnalytics(eventId, filterByBranch ? filialId : undefined);
         console.log('Branch analytics result:', result);
         return result;
       } catch (error) {
         console.error('Error in branch analytics query:', error);
-        return []; // Return empty array on error to prevent UI breakage
+        throw error; // Let the error propagate to show error state instead of empty data
       }
     },
     enabled: !!eventId,
