@@ -5,6 +5,7 @@ import { ModalitiesChart } from "../charts/ModalitiesChart";
 import { PaymentStatusPieChart } from "../charts/PaymentStatusPieChart";
 import { CategoriesChart } from "../charts/CategoriesChart";
 import { calculateTotals, transformModalitiesData, transformPaymentStatusData, transformCategoriesData } from "../charts/dataTransformers";
+import { ChartConfig } from "@/components/ui/chart/types";
 
 // Define a consistent color palette
 const CHART_COLORS = {
@@ -22,8 +23,8 @@ const PAYMENT_STATUS_COLORS = {
   'cancelado': CHART_COLORS.red
 };
 
-// Flatten the chart config to match ChartConfig type
-const CHART_CONFIG = {
+// Chart config that matches the ChartConfig type
+const CHART_CONFIG: ChartConfig = {
   modalities: {
     color: CHART_COLORS.blue,
     label: 'Modalidades'
@@ -114,6 +115,8 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
         <PaymentStatusPieChart 
           data={paymentStatusData} 
           chartConfig={CHART_CONFIG} 
+          title="Status de Pagamento"
+          description="Distribuição dos pagamentos por status"
         />
 
         {/* Categories Chart */}

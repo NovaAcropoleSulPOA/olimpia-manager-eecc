@@ -1,9 +1,9 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
-import { ChartContainer, ChartLegendContent } from "@/components/ui/chart";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend } from "@/components/ui/chart";
 import { EmptyChartMessage } from "./EmptyChartMessage";
-import { CustomTooltip } from "./CustomTooltip";
+import { ChartConfig } from "@/components/ui/chart/types";
 
 interface PaymentStatusData {
   name: string;
@@ -13,16 +13,23 @@ interface PaymentStatusData {
 
 interface PaymentStatusPieChartProps {
   data: PaymentStatusData[];
-  chartConfig: any;
+  chartConfig: ChartConfig;
+  title?: string;
+  description?: string;
 }
 
-export function PaymentStatusPieChart({ data, chartConfig }: PaymentStatusPieChartProps) {
+export function PaymentStatusPieChart({ 
+  data, 
+  chartConfig,
+  title = "Status de Pagamento",
+  description = "Distribuição dos pagamentos por status"
+}: PaymentStatusPieChartProps) {
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
-        <CardTitle>Status de Pagamento</CardTitle>
+        <CardTitle>{title}</CardTitle>
         <CardDescription>
-          Distribuição dos pagamentos por status
+          {description}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -48,11 +55,10 @@ export function PaymentStatusPieChart({ data, chartConfig }: PaymentStatusPieCha
                     />
                   ))}
                 </Pie>
-                <Tooltip content={<CustomTooltip />} />
-                <Legend 
-                  formatter={(value) => value.charAt(0).toUpperCase() + value.slice(1)}
-                  content={<ChartLegendContent />}
-                />
+                <ChartTooltip>
+                  <ChartTooltipContent />
+                </ChartTooltip>
+                <ChartLegend />
               </PieChart>
             </ResponsiveContainer>
           </ChartContainer>
