@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,8 +14,7 @@ import { StatisticsTab } from "./dashboard/tabs/StatisticsTab";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
 export default function OrganizerDashboard() {
-  const { user } = useAuth();
-  const currentEventId = localStorage.getItem('currentEventId');
+  const { user, currentEventId } = useAuth();
   const [activeTab, setActiveTab] = useState("statistics");
   
   // Filter states

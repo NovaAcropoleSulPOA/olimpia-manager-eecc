@@ -1,3 +1,4 @@
+
 import { BranchAnalytics } from "@/types/api";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Activity, Coins, Users } from "lucide-react";
@@ -88,9 +89,24 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
+  console.log("StatisticsTab data:", data);
+  console.log("currentBranchId:", currentBranchId);
+  
   const filteredData = currentBranchId 
     ? data.filter(item => item.filial_id === currentBranchId)
     : data;
+    
+  console.log("filteredData for statistics:", filteredData);
+
+  // If no data after filtering, show no data message
+  if (!filteredData || filteredData.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <p className="text-lg text-muted-foreground">Não há dados estatísticos disponíveis</p>
+        <p className="text-sm text-muted-foreground">Verifique se existem inscrições confirmadas para este evento</p>
+      </div>
+    );
+  }
 
   // Calculate totals
   const totals = filteredData.reduce((acc, branch) => ({

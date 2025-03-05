@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 export const useDashboardData = (eventId: string | null, filterByBranch: boolean = false) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Get the current user for branch filtering
   const { 
     data: athletes, 
     isLoading: isLoadingAthletes,
@@ -22,7 +23,6 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
     queryFn: () => fetchAthleteManagement(filterByBranch, eventId),
     enabled: !!eventId,
     retry: 1,
-    // Handle errors gracefully instead of failing the entire component
     meta: {
       onError: (error: any) => {
         console.error('Error fetching athletes:', error);
@@ -30,6 +30,7 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
     }
   });
 
+  // Get branch data for filtering and display
   const { 
     data: branches,
     isLoading: isLoadingBranches,
@@ -45,6 +46,7 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
     }
   });
 
+  // The analytics query needs to be updated to use the event ID properly
   const { 
     data: branchAnalytics,
     isLoading: isLoadingAnalytics,
@@ -54,7 +56,13 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
     queryKey: ['branch-analytics', eventId, filterByBranch],
     queryFn: async () => {
       try {
-        console.log('Fetching branch analytics with filterByBranch:', filterByBranch);
+        console.log('Fetching branch analytics with eventId:', eventId, 'filterByBranch:', filterByBranch);
+        
+        if (!eventId) {
+          console.warn('Event ID is required for analytics query');
+          return [];
+        }
+        
         const { data: { user } } = await supabase.auth.getUser();
         
         if (filterByBranch && !user?.id) {
@@ -79,7 +87,8 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
           }
         }
         
-        const result = await fetchBranchAnalytics(eventId, filialId);
+        // Call the API with the proper parameters
+        const result = await fetchBranchAnalytics(eventId, filterByBranch ? filialId : undefined);
         console.log('Branch analytics result:', result);
         return result;
       } catch (error) {

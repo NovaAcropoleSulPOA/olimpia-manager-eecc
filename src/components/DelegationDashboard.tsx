@@ -15,8 +15,7 @@ import { StatisticsTab } from "./dashboard/tabs/StatisticsTab";
 import { useDashboardData } from "@/hooks/useDashboardData";
 
 export default function DelegationDashboard() {
-  const { user } = useAuth();
-  const currentEventId = localStorage.getItem('currentEventId');
+  const { user, currentEventId } = useAuth();
   
   // Filter states
   const [nameFilter, setNameFilter] = useState("");
@@ -64,7 +63,8 @@ export default function DelegationDashboard() {
           return <ErrorState onRetry={handleRefresh} />;
         }
         if (!branchAnalytics || branchAnalytics.length === 0) {
-          return <EmptyState />;
+          return <EmptyState message="Não há dados estatísticos disponíveis" 
+                            description="Não encontramos dados de análise para exibir neste momento" />;
         }
         return (
           <StatisticsTab 
