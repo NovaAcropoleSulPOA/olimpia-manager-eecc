@@ -101,7 +101,7 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
               modalidade_id,
               status,
               modalidades(nome),
-              usuarios!atleta_id(nome_completo, filial_id, id)
+              usuarios!atleta_id(nome_completo, tipo_documento, numero_documento, telefone, email, filial_id, id)
             `)
             .eq('evento_id', eventId)
             .eq('status', 'confirmado');
@@ -126,17 +126,36 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
 
           if (error) throw error;
           
-          // Transform to match expected format
-          return (data || []).map((item: any) => ({
+          // Get all filial names to use in the transformation
+          const { data: filiais } = await supabase
+            .from('filiais')
+            .select('id, nome');
+          
+          const filiaisMap = new Map();
+          if (filiais) {
+            filiais.forEach((filial: any) => {
+              filiaisMap.set(filial.id, filial.nome);
+            });
+          }
+          
+          // Transform to match EnrolledUser interface
+          const transformedData: EnrolledUser[] = (data || []).map((item: any) => ({
             id: item.id,
             atleta_id: item.atleta_id,
             nome_atleta: item.usuarios?.nome_completo || 'Unknown',
+            tipo_documento: item.usuarios?.tipo_documento || 'Unknown',
+            numero_documento: item.usuarios?.numero_documento || 'Unknown',
+            telefone: item.usuarios?.telefone || 'Unknown',
+            email: item.usuarios?.email || 'Unknown',
             modalidade_id: item.modalidade_id,
             modalidade_nome: item.modalidades?.nome || 'Unknown',
             status_inscricao: item.status,
-            filial_id: item.usuarios?.filial_id,
+            filial_id: item.usuarios?.filial_id || '',
+            filial: filiaisMap.get(item.usuarios?.filial_id) || 'Unknown',
             evento_id: eventId
           }));
+
+          return transformedData;
         }
 
         // If view exists, use the original query

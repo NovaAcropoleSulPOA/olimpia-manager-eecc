@@ -8,6 +8,12 @@ export interface EnrolledUser {
   filial: string;
   filial_id: string;
   modalidade_nome: string;
+  // Optional properties from the alternative data source
+  id?: any;
+  atleta_id?: any;
+  modalidade_id?: any;
+  status_inscricao?: any;
+  evento_id?: string;
 }
 
 export interface GroupedEnrollments {
