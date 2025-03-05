@@ -42,6 +42,13 @@ export function PaginatedAthleteList({
       return athletes;
     }
     
+    // Log for debugging
+    console.log('Filtering athletes for delegation view', {
+      userBranchId: user.filial_id,
+      totalAthletes: athletes.length,
+      athleteBranches: athletes.map(a => a.filial_id)
+    });
+    
     return athletes.filter(athlete => athlete.filial_id === user.filial_id);
   }, [athletes, delegationOnly, user?.filial_id]);
 
@@ -153,7 +160,7 @@ export function PaginatedAthleteList({
       )}
 
       <div className="text-center text-sm text-muted-foreground">
-        Mostrando {startIndex + 1}-{Math.min(endIndex, filteredAthletes.length)} de {filteredAthletes.length} atletas
+        Mostrando {filteredAthletes.length > 0 ? startIndex + 1 : 0}-{Math.min(endIndex, filteredAthletes.length)} de {filteredAthletes.length} atletas
       </div>
     </div>
   );

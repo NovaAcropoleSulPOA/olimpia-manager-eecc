@@ -22,6 +22,7 @@ export default function DelegationDashboard() {
   const [nameFilter, setNameFilter] = useState("");
   const [branchFilter, setBranchFilter] = useState("all");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("statistics");
 
   // Check if the user is a delegation representative
   const isDelegationRep = user?.papeis?.some(role => role.codigo === 'RDD') || false;
@@ -41,25 +42,88 @@ export default function DelegationDashboard() {
     return <NoEventSelected />;
   }
 
-  if (isLoading) {
+  // Only show global loading state before the initial data fetch
+  if (isLoading.any && (!athletes && !branchAnalytics && !confirmedEnrollments)) {
     return <LoadingState />;
   }
 
-  if (error) {
-    console.error('Error fetching data:', error);
+  // Only show global error if everything failed
+  if (error.any && (!athletes && !branchAnalytics && !confirmedEnrollments)) {
+    console.error('Error fetching dashboard data:', error);
     toast.error('Erro ao carregar dados');
     return <ErrorState onRetry={handleRefresh} />;
   }
 
-  if (!athletes || athletes.length === 0) {
-    return <EmptyState />;
-  }
+  const renderTabContent = (tabName: string) => {
+    switch (tabName) {
+      case "statistics":
+        if (isLoading.analytics) {
+          return <LoadingState />;
+        }
+        if (error.analytics) {
+          return <ErrorState onRetry={handleRefresh} />;
+        }
+        if (!branchAnalytics || branchAnalytics.length === 0) {
+          return <EmptyState />;
+        }
+        return (
+          <StatisticsTab 
+            data={branchAnalytics} 
+            currentBranchId={user?.filial_id}
+          />
+        );
+      
+      case "athletes":
+        if (isLoading.athletes || isLoading.branches) {
+          return <LoadingState />;
+        }
+        if (error.athletes || error.branches) {
+          return <ErrorState onRetry={handleRefresh} />;
+        }
+        if (!athletes || athletes.length === 0) {
+          return <EmptyState />;
+        }
+        return (
+          <AthletesTab
+            athletes={athletes}
+            branches={branches || []}
+            currentUserId={user?.id}
+            currentEventId={currentEventId}
+            filters={{
+              nameFilter,
+              branchFilter,
+              paymentStatusFilter
+            }}
+            onFilterChange={{
+              setNameFilter,
+              setBranchFilter,
+              setPaymentStatusFilter
+            }}
+          />
+        );
+      
+      case "enrollments":
+        if (isLoading.enrollments) {
+          return <LoadingState />;
+        }
+        if (error.enrollments) {
+          return <ErrorState onRetry={handleRefresh} />;
+        }
+        if (!confirmedEnrollments || confirmedEnrollments.length === 0) {
+          return <EmptyState />;
+        }
+        return <EnrollmentsTab enrollments={confirmedEnrollments} />;
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="container mx-auto py-6 space-y-6">
       <DashboardHeader onRefresh={handleRefresh} isRefreshing={isRefreshing} />
 
-      <Tabs defaultValue="statistics" className="w-full">
+      <Tabs defaultValue="statistics" className="w-full" onValueChange={setActiveTab} value={activeTab}>
         <TabsList className="w-full border-b mb-8 bg-background flex justify-start space-x-2 p-0">
           <TabsTrigger 
             value="statistics"
@@ -85,33 +149,15 @@ export default function DelegationDashboard() {
         </TabsList>
 
         <TabsContent value="statistics" className="mt-6">
-          <StatisticsTab 
-            data={branchAnalytics || []} 
-            currentBranchId={user?.filial_id}
-          />
+          {renderTabContent("statistics")}
         </TabsContent>
 
         <TabsContent value="athletes" className="mt-6">
-          <AthletesTab
-            athletes={athletes || []}
-            branches={branches || []}
-            currentUserId={user?.id}
-            currentEventId={currentEventId}
-            filters={{
-              nameFilter,
-              branchFilter,
-              paymentStatusFilter
-            }}
-            onFilterChange={{
-              setNameFilter,
-              setBranchFilter,
-              setPaymentStatusFilter
-            }}
-          />
+          {renderTabContent("athletes")}
         </TabsContent>
 
         <TabsContent value="enrollments" className="mt-6">
-          <EnrollmentsTab enrollments={confirmedEnrollments || []} />
+          {renderTabContent("enrollments")}
         </TabsContent>
       </Tabs>
     </div>
