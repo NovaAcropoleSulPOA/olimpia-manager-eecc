@@ -1,3 +1,4 @@
+
 import { supabase } from '../supabase';
 import type { Branch, BranchAnalytics } from '../../types/api';
 

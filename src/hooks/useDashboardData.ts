@@ -96,7 +96,7 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
     }
   });
 
-  // Temporary solution to use local data for enrollments since the view doesn't exist
+  // Updated enrollment query to properly filter by user's branch
   const {
     data: confirmedEnrollments,
     isLoading: isLoadingEnrollments,
@@ -108,7 +108,32 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
       if (!eventId) return [];
 
       try {
-        // First check if the view exists
+        // First get the user's filial_id if we're in delegation mode
+        let userFilialId: string | undefined;
+        
+        if (filterByBranch) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            const { data: userProfile } = await supabase
+              .from('usuarios')
+              .select('filial_id')
+              .eq('id', user.id)
+              .single();
+              
+            userFilialId = userProfile?.filial_id;
+            console.log('Filtering enrollments by filial_id:', userFilialId);
+            
+            if (!userFilialId) {
+              console.warn('User has no branch assigned, returning empty enrollments list');
+              return [];
+            }
+          } else {
+            console.warn('No authenticated user found for branch filtering, returning empty enrollments list');
+            return [];
+          }
+        }
+
+        // Check if the view exists
         const { error: viewCheckError } = await supabase
           .from('information_schema.views')
           .select('table_name')
@@ -133,19 +158,8 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
             .eq('status', 'confirmado');
 
           // For delegation representatives, only show their branch
-          if (filterByBranch) {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-              const { data: userProfile } = await supabase
-                .from('usuarios')
-                .select('filial_id')
-                .eq('id', user.id)
-                .single();
-
-              if (userProfile?.filial_id) {
-                query = query.eq('usuarios.filial_id', userProfile.filial_id);
-              }
-            }
+          if (filterByBranch && userFilialId) {
+            query = query.eq('usuarios.filial_id', userFilialId);
           }
 
           const { data, error } = await query;
@@ -164,8 +178,11 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
             });
           }
           
+          // Filter out records where usuarios is null
+          const validData = (data || []).filter(item => item.usuarios !== null);
+          
           // Transform to match EnrolledUser interface
-          const transformedData: EnrolledUser[] = (data || []).map((item: any) => ({
+          const transformedData: EnrolledUser[] = validData.map((item: any) => ({
             id: item.id,
             atleta_id: item.atleta_id,
             nome_atleta: item.usuarios?.nome_completo || 'Unknown',
@@ -181,6 +198,7 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
             evento_id: eventId
           }));
 
+          console.log(`Found ${transformedData.length} confirmed enrollments after filtering`);
           return transformedData;
         }
 
@@ -192,24 +210,14 @@ export const useDashboardData = (eventId: string | null, filterByBranch: boolean
           .eq('status_inscricao', 'confirmado');
 
         // For delegation representatives, only show their branch
-        if (filterByBranch) {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const { data: userProfile } = await supabase
-              .from('usuarios')
-              .select('filial_id')
-              .eq('id', user.id)
-              .single();
-
-            if (userProfile?.filial_id) {
-              query = query.eq('filial_id', userProfile.filial_id);
-            }
-          }
+        if (filterByBranch && userFilialId) {
+          query = query.eq('filial_id', userFilialId);
         }
 
         const { data, error } = await query;
 
         if (error) throw error;
+        console.log(`Found ${data?.length || 0} enrollments using view`);
         return data as EnrolledUser[];
       } catch (error) {
         console.error('Error fetching enrollments:', error);
