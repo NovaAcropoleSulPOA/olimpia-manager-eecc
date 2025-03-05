@@ -6,6 +6,8 @@ import { PaymentStatusPieChart } from "../charts/PaymentStatusPieChart";
 import { CategoriesChart } from "../charts/CategoriesChart";
 import { calculateTotals, transformModalitiesData, transformPaymentStatusData, transformCategoriesData } from "../charts/dataTransformers";
 import { ChartConfig } from "@/components/ui/chart/types";
+import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
+import { EmptyChartMessage } from "../charts/EmptyChartMessage";
 
 // Define a consistent color palette
 const CHART_COLORS = {
@@ -105,11 +107,23 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
       {/* Charts Section */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Popular Modalities Chart */}
-        <ModalitiesChart 
-          data={modalitiesData} 
-          chartColors={CHART_COLORS} 
-          chartConfig={CHART_CONFIG} 
-        />
+        {modalitiesData.length > 0 ? (
+          <ModalitiesChart 
+            data={modalitiesData} 
+            chartColors={CHART_COLORS} 
+            chartConfig={CHART_CONFIG} 
+          />
+        ) : (
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle>Modalidades Populares</CardTitle>
+              <CardDescription>Distribuição das inscrições por modalidade</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EmptyChartMessage message="Sem dados de modalidades disponíveis" />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Payment Status Chart */}
         <PaymentStatusPieChart 
@@ -120,11 +134,23 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
         />
 
         {/* Categories Chart */}
-        <CategoriesChart 
-          data={categoriesData} 
-          chartColors={CHART_COLORS} 
-          chartConfig={CHART_CONFIG} 
-        />
+        {categoriesData.length > 0 ? (
+          <CategoriesChart 
+            data={categoriesData} 
+            chartColors={CHART_COLORS} 
+            chartConfig={CHART_CONFIG} 
+          />
+        ) : (
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle>Categorias</CardTitle>
+              <CardDescription>Distribuição dos atletas por categoria</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <EmptyChartMessage message="Sem dados de categorias disponíveis" />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

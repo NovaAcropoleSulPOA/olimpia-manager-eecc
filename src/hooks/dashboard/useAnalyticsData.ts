@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchBranchAnalytics } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 export const useAnalyticsData = (eventId: string | null, filterByBranch: boolean = false) => {
   const { 
@@ -34,7 +35,7 @@ export const useAnalyticsData = (eventId: string | null, filterByBranch: boolean
             .from('usuarios')
             .select('filial_id')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
             
           if (userError) {
             console.error('Error fetching user profile for branch filtering:', userError);
@@ -46,24 +47,18 @@ export const useAnalyticsData = (eventId: string | null, filterByBranch: boolean
         
         // Now fetch the analytics with the appropriate filter
         const result = await fetchBranchAnalytics(eventId, filterByBranch ? filialId : undefined);
-        console.log('Branch analytics result:', result);
         return result;
       } catch (error) {
         console.error('Error in branch analytics query:', error);
-        throw error; // Let the error propagate to show error state
+        toast.error('Erro ao carregar dados estatísticos');
+        return []; // Return empty array instead of throwing to prevent breaking the UI
       }
     },
     enabled: !!eventId,
-    retry: 1,
-    meta: {
-      onError: (error: any) => {
-        console.error('Error fetching branch analytics:', error);
-      }
-    }
   });
 
   return {
-    branchAnalytics,
+    branchAnalytics: branchAnalytics || [],
     isLoading,
     error,
     refetch

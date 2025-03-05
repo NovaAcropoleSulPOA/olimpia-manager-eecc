@@ -10,7 +10,11 @@ export function calculateTotals(filteredData: BranchAnalytics[]) {
 }
 
 export function transformModalitiesData(filteredData: BranchAnalytics[]) {
+  // Early return if no data
+  if (!filteredData || filteredData.length === 0) return [];
+  
   return filteredData.flatMap(branch => {
+    // Check if modalidades_populares exists and is an array
     if (!branch.modalidades_populares || !Array.isArray(branch.modalidades_populares)) {
       console.warn('modalidades_populares is not an array:', branch.modalidades_populares);
       return [];
@@ -27,13 +31,17 @@ export function transformModalitiesData(filteredData: BranchAnalytics[]) {
       };
     }).filter(Boolean); // Remove null items
   })
-  .filter(item => item.name && item.count > 0)
-  .slice(0, 6)
-  .sort((a, b) => b.count - a.count);
+  .filter(item => item && item.name && item.count > 0)  // Only include items with actual values
+  .slice(0, 6)  // Limit to top 6
+  .sort((a, b) => b.count - a.count);  // Sort by count
 }
 
 export function transformPaymentStatusData(filteredData: BranchAnalytics[], paymentStatusColors: Record<string, string>) {
+  // Early return if no data
+  if (!filteredData || filteredData.length === 0) return [];
+  
   return filteredData.flatMap(branch => {
+    // Check if inscritos_por_status_pagamento exists and is an array
     if (!branch.inscritos_por_status_pagamento || !Array.isArray(branch.inscritos_por_status_pagamento)) {
       console.warn('inscritos_por_status_pagamento is not an array:', branch.inscritos_por_status_pagamento);
       return [];
@@ -71,7 +79,11 @@ export function transformPaymentStatusData(filteredData: BranchAnalytics[], paym
 }
 
 export function transformCategoriesData(filteredData: BranchAnalytics[]) {
+  // Early return if no data
+  if (!filteredData || filteredData.length === 0) return [];
+  
   return filteredData.flatMap(branch => {
+    // Check if atletas_por_categoria exists and is an array
     if (!branch.atletas_por_categoria || !Array.isArray(branch.atletas_por_categoria)) {
       console.warn('atletas_por_categoria is not an array:', branch.atletas_por_categoria);
       return [];

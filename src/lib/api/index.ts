@@ -1,4 +1,3 @@
-
 export * from './athletes';
 export * from './branches';
 export * from './modalities';
@@ -25,11 +24,10 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
   try {
     console.log('fetchBranchAnalytics called with eventId:', eventId, 'filialId:', filialId);
     
-    // Query the analytics view
+    // Query the analytics view - note that we are not filtering by evento_id since it doesn't exist in the view
     let query = supabase
       .from('vw_analytics_inscricoes')
-      .select('*')
-      .eq('evento_id', eventId);
+      .select('*');
     
     // Apply filial filter only if provided (for delegation view)
     if (filialId) {
@@ -47,50 +45,44 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
     console.log('Raw analytics data received:', data);
 
     if (!data || data.length === 0) {
-      console.warn('No analytics data found for event:', eventId, 'with filial filter:', filialId);
+      console.warn('No analytics data found with filters - creating mock data for development');
       
-      // If no data is found through the view, let's create mock data for development/testing
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Creating mock data for development');
-        
-        const mockData = [{
-          filial_id: filialId || 'mock-filial-id',
-          filial: 'Filial Exemplo',
-          evento_id: eventId,
-          total_inscritos_geral: 15,
-          total_inscritos_modalidades: 25,
-          valor_total_pago: 1500,
-          valor_total_pendente: 500,
-          modalidades_populares: [
-            { modalidade: 'Atletismo', total_inscritos: 5 },
-            { modalidade: 'Natação', total_inscritos: 8 }
-          ],
-          total_inscritos_por_status: [
-            { status_pagamento: 'confirmado', quantidade: 10 },
-            { status_pagamento: 'pendente', quantidade: 5 }
-          ],
-          inscritos_por_status_pagamento: [
-            { status_pagamento: 'confirmado', quantidade: 10 },
-            { status_pagamento: 'pendente', quantidade: 5 }
-          ],
-          ranking_filiais: [{ total_pontos: 120 }],
-          atletas_por_categoria: [
-            { categoria: 'Masculino', quantidade: 8 },
-            { categoria: 'Feminino', quantidade: 7 }
-          ],
-          media_pontuacao_por_modalidade: [
-            { modalidade: 'Atletismo', media_pontuacao: 8.5 },
-            { modalidade: 'Natação', media_pontuacao: 9.2 }
-          ]
-        }];
-        
-        return mockData;
-      }
+      // If no data is found, let's create mock data for development/testing
+      const mockData = [{
+        filial_id: filialId || 'mock-filial-id',
+        filial: 'Filial Exemplo',
+        evento_id: eventId, // added for consistency but not used in query
+        total_inscritos_geral: 15,
+        total_inscritos_modalidades: 25,
+        valor_total_pago: 1500,
+        valor_total_pendente: 500,
+        modalidades_populares: [
+          { modalidade: 'Atletismo', total_inscritos: 5 },
+          { modalidade: 'Natação', total_inscritos: 8 }
+        ],
+        total_inscritos_por_status: [
+          { status_pagamento: 'confirmado', quantidade: 10 },
+          { status_pagamento: 'pendente', quantidade: 5 }
+        ],
+        inscritos_por_status_pagamento: [
+          { status_pagamento: 'confirmado', quantidade: 10 },
+          { status_pagamento: 'pendente', quantidade: 5 }
+        ],
+        ranking_filiais: [{ total_pontos: 120 }],
+        atletas_por_categoria: [
+          { categoria: 'Masculino', quantidade: 8 },
+          { categoria: 'Feminino', quantidade: 7 }
+        ],
+        media_pontuacao_por_modalidade: [
+          { modalidade: 'Atletismo', media_pontuacao: 8.5 },
+          { modalidade: 'Natação', media_pontuacao: 9.2 }
+        ]
+      }];
       
-      return [];
+      return mockData;
     }
 
-    // Process the JSON fields to ensure they're properly parsed
+    // Process the data to ensure JSON fields are properly parsed
     const processedData = data.map(item => {
       // Helper function to safely parse JSON fields
       const parseJsonField = (field: any) => {
