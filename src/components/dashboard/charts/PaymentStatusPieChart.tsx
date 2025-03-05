@@ -55,9 +55,7 @@ export function PaymentStatusPieChart({
                     />
                   ))}
                 </Pie>
-                <ChartTooltip>
-                  <ChartTooltipContent />
-                </ChartTooltip>
+                <ChartTooltip content={<ChartTooltipContent />} />
                 <ChartLegend />
               </PieChart>
             </ResponsiveContainer>
