@@ -88,6 +88,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+const EmptyChartMessage = ({ message = "Não há dados disponíveis" }: { message?: string }) => (
+  <div className="flex items-center justify-center h-[300px]">
+    <p className="text-muted-foreground">{message}</p>
+  </div>
+);
+
 export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
   console.log("StatisticsTab data:", data);
   console.log("currentBranchId:", currentBranchId);
@@ -135,12 +141,18 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
       return [];
     }
     
-    return branch.modalidades_populares.map(item => ({
-      name: item.modalidade,
-      count: item.total_inscritos
-    }));
+    return branch.modalidades_populares.map(item => {
+      if (!item || typeof item !== 'object') {
+        console.warn('Invalid modality item:', item);
+        return null;
+      }
+      return {
+        name: item.modalidade || 'Desconhecida',
+        count: Number(item.total_inscritos) || 0
+      };
+    }).filter(Boolean); // Remove null items
   })
-  .filter(item => item.name && item.count)
+  .filter(item => item.name && item.count > 0)
   .slice(0, 6)
   .sort((a, b) => b.count - a.count);
 
@@ -153,7 +165,16 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
       return [];
     }
     
-    return branch.inscritos_por_status_pagamento;
+    return branch.inscritos_por_status_pagamento.map(item => {
+      if (!item || typeof item !== 'object') {
+        console.warn('Invalid payment status item:', item);
+        return null;
+      }
+      return {
+        status_pagamento: item.status_pagamento || 'Desconhecido',
+        quantidade: Number(item.quantidade) || 0
+      };
+    }).filter(Boolean); // Remove null items
   })
   .reduce((acc, curr) => {
     if (!curr || !curr.status_pagamento) return acc;
@@ -171,7 +192,8 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
     name: item.status_pagamento,
     value: item.quantidade,
     color: PAYMENT_STATUS_COLORS[item.status_pagamento as keyof typeof PAYMENT_STATUS_COLORS] || CHART_COLORS.blue
-  }));
+  }))
+  .filter(item => item.value > 0); // Only include items with values
 
   console.log("Payment status chart data:", paymentStatusData);
 
@@ -182,7 +204,16 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
       return [];
     }
     
-    return branch.atletas_por_categoria;
+    return branch.atletas_por_categoria.map(item => {
+      if (!item || typeof item !== 'object') {
+        console.warn('Invalid category item:', item);
+        return null;
+      }
+      return {
+        categoria: item.categoria || 'Desconhecida',
+        quantidade: Number(item.quantidade) || 0
+      };
+    }).filter(Boolean); // Remove null items
   })
   .reduce((acc, curr) => {
     if (!curr || !curr.categoria) return acc;
@@ -196,7 +227,8 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
     return acc;
   }, [] as any[])
   .sort((a, b) => b.quantidade - a.quantidade)
-  .slice(0, 6);
+  .slice(0, 6)
+  .filter(item => item.quantidade > 0); // Only include items with values
 
   console.log("Categories chart data:", categoriesData);
 
@@ -290,9 +322,7 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
                 </ResponsiveContainer>
               </ChartContainer>
             ) : (
-              <div className="flex items-center justify-center h-[300px]">
-                <p className="text-muted-foreground">Sem dados de modalidades disponíveis</p>
-              </div>
+              <EmptyChartMessage message="Sem dados de modalidades disponíveis" />
             )}
           </CardContent>
         </Card>
@@ -337,9 +367,7 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
                 </ResponsiveContainer>
               </ChartContainer>
             ) : (
-              <div className="flex items-center justify-center h-[300px]">
-                <p className="text-muted-foreground">Sem dados de status de pagamento disponíveis</p>
-              </div>
+              <EmptyChartMessage message="Sem dados de status de pagamento disponíveis" />
             )}
           </CardContent>
         </Card>
@@ -369,9 +397,7 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
                 </ResponsiveContainer>
               </ChartContainer>
             ) : (
-              <div className="flex items-center justify-center h-[300px]">
-                <p className="text-muted-foreground">Sem dados de categorias disponíveis</p>
-              </div>
+              <EmptyChartMessage message="Sem dados de categorias disponíveis" />
             )}
           </CardContent>
         </Card>

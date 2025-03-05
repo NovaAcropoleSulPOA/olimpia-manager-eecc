@@ -44,6 +44,8 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
       throw error;
     }
 
+    console.log('Raw analytics data received:', data);
+
     if (!data || data.length === 0) {
       console.warn('No analytics data found for event:', eventId, 'with filial filter:', filialId);
       
@@ -84,29 +86,28 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
         
         return mockData;
       }
-    } else {
-      console.log('Analytics data retrieved:', data.length, 'records');
-      console.log('First record sample:', JSON.stringify(data[0], null, 2));
+      
+      return [];
     }
 
     // Process the JSON fields to ensure they're properly parsed
-    return data?.map(item => {
-      // Parse JSON string fields if they came as strings
+    const processedData = data.map(item => {
+      // Helper function to safely parse JSON fields
       const parseJsonField = (field: any) => {
         if (typeof field === 'string') {
           try {
             return JSON.parse(field);
           } catch (e) {
-            console.warn(`Failed to parse JSON field:`, field, e);
+            console.warn(`Failed to parse JSON field:`, field);
             return [];
           }
         }
         return field || [];
       };
 
+      // Parse all JSON fields
       return {
         ...item,
-        // Make sure arrays are properly initialized even if null in database
         modalidades_populares: parseJsonField(item.modalidades_populares),
         total_inscritos_por_status: parseJsonField(item.total_inscritos_por_status),
         inscritos_por_status_pagamento: parseJsonField(item.inscritos_por_status_pagamento),
@@ -114,7 +115,10 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
         atletas_por_categoria: parseJsonField(item.atletas_por_categoria),
         media_pontuacao_por_modalidade: parseJsonField(item.media_pontuacao_por_modalidade)
       };
-    }) || [];
+    });
+
+    console.log('Processed analytics data:', processedData);
+    return processedData;
   } catch (error) {
     console.error('Error in fetchBranchAnalytics:', error);
     throw error;
