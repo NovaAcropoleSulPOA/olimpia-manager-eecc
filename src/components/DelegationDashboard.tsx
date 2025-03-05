@@ -23,6 +23,9 @@ export default function DelegationDashboard() {
   const [branchFilter, setBranchFilter] = useState("all");
   const [paymentStatusFilter, setPaymentStatusFilter] = useState("all");
 
+  // Check if the user is a delegation representative
+  const isDelegationRep = user?.papeis?.some(role => role.codigo === 'RDD') || false;
+
   const {
     isRefreshing,
     branches,
@@ -32,7 +35,7 @@ export default function DelegationDashboard() {
     isLoading,
     error,
     handleRefresh
-  } = useDashboardData(currentEventId);
+  } = useDashboardData(currentEventId, isDelegationRep);
 
   if (!currentEventId) {
     return <NoEventSelected />;

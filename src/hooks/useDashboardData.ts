@@ -1,97 +1,114 @@
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchBranchAnalytics, fetchAthleteManagement } from "@/lib/api";
-import { supabase } from "@/lib/supabase";
-import { useState } from "react";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { 
+  fetchAthleteManagement, 
+  fetchBranchAnalytics,
+  fetchBranches
+} from '@/lib/api';
+import { EnrolledUser } from '@/components/dashboard/types/enrollmentTypes';
+import { supabase } from '@/lib/supabase';
 
-export function useDashboardData(currentEventId: string | null) {
-  const queryClient = useQueryClient();
+export const useDashboardData = (eventId: string | null, filterByBranch: boolean = false) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fetch branches for filter dropdown
-  const branchesQuery = useQuery({
-    queryKey: ['branches', currentEventId],
+  const { 
+    data: athletes, 
+    isLoading: isLoadingAthletes,
+    error: athletesError,
+    refetch: refetchAthletes
+  } = useQuery({
+    queryKey: ['athlete-management', eventId, filterByBranch],
+    queryFn: () => fetchAthleteManagement(filterByBranch, eventId),
+    enabled: !!eventId,
+  });
+
+  const { 
+    data: branches,
+    isLoading: isLoadingBranches,
+  } = useQuery({
+    queryKey: ['branches'],
+    queryFn: fetchBranches,
+  });
+
+  const { 
+    data: branchAnalytics,
+    isLoading: isLoadingAnalytics,
+    error: analyticsError,
+    refetch: refetchAnalytics 
+  } = useQuery({
+    queryKey: ['branch-analytics', eventId],
     queryFn: async () => {
-      if (!currentEventId) return [];
-      const { data, error } = await supabase
-        .from('filiais')
-        .select('id, nome')
-        .order('nome');
-      
-      if (error) throw error;
-      return data || [];
+      const { data: { user } } = await supabase.auth.getUser();
+      return fetchBranchAnalytics(eventId, filterByBranch ? user?.id : undefined);
     },
-    enabled: !!currentEventId
+    enabled: !!eventId,
   });
 
-  // Fetch analytics data
-  const analyticsQuery = useQuery({
-    queryKey: ['branch-analytics', currentEventId],
-    queryFn: () => {
-      console.log('Fetching analytics for event:', currentEventId);
-      return fetchBranchAnalytics(currentEventId);
-    },
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: true,
-    enabled: !!currentEventId
-  });
-
-  // Fetch athlete registrations
-  const athletesQuery = useQuery({
-    queryKey: ['athlete-management', currentEventId],
-    queryFn: () => fetchAthleteManagement(false, currentEventId),
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: true,
-    enabled: !!currentEventId
-  });
-
-  // Fetch confirmed enrollments
-  const enrollmentsQuery = useQuery({
-    queryKey: ['confirmed-enrollments', currentEventId],
+  const {
+    data: confirmedEnrollments,
+    isLoading: isLoadingEnrollments,
+    error: enrollmentsError,
+    refetch: refetchEnrollments
+  } = useQuery({
+    queryKey: ['confirmed-enrollments', eventId],
     queryFn: async () => {
-      if (!currentEventId) return [];
-      const { data, error } = await supabase
-        .from('vw_inscricoes_atletas')
+      if (!eventId) return [];
+
+      // Apply filterByBranch parameter based on user role
+      let query = supabase
+        .from('vw_inscricoes_com_confirmacao')
         .select('*')
-        .eq('status_inscricao', 'confirmado')
-        .eq('evento_id', currentEventId)
-        .order('modalidade_nome');
-      
+        .eq('evento_id', eventId)
+        .eq('status_inscricao', 'confirmado');
+
+      // For delegation representatives, only show their branch
+      if (filterByBranch) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: userProfile } = await supabase
+            .from('usuarios')
+            .select('filial_id')
+            .eq('id', user.id)
+            .single();
+
+          if (userProfile?.filial_id) {
+            query = query.eq('filial_id', userProfile.filial_id);
+          }
+        }
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
-      return data || [];
+      return data as EnrolledUser[];
     },
-    enabled: !!currentEventId
+    enabled: !!eventId,
   });
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    console.log('Refreshing dashboard data...');
     try {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['branch-analytics', currentEventId] }),
-        queryClient.invalidateQueries({ queryKey: ['athlete-management', currentEventId] }),
-        analyticsQuery.refetch(),
-        athletesQuery.refetch()
+        refetchAthletes(),
+        refetchAnalytics(),
+        refetchEnrollments()
       ]);
-      console.log('Dashboard data refreshed successfully');
-      toast.success("Dados atualizados com sucesso!");
     } catch (error) {
       console.error('Error refreshing data:', error);
-      toast.error("Erro ao atualizar dados");
     } finally {
       setIsRefreshing(false);
     }
   };
 
   return {
+    athletes,
+    branches,
+    branchAnalytics,
+    confirmedEnrollments,
+    isLoading: isLoadingAthletes || isLoadingBranches || isLoadingAnalytics || isLoadingEnrollments,
+    error: athletesError || analyticsError || enrollmentsError,
     isRefreshing,
-    branches: branchesQuery.data,
-    branchAnalytics: analyticsQuery.data,
-    athletes: athletesQuery.data,
-    confirmedEnrollments: enrollmentsQuery.data,
-    isLoading: analyticsQuery.isLoading || athletesQuery.isLoading,
-    error: analyticsQuery.error || athletesQuery.error,
     handleRefresh
   };
-}
+};

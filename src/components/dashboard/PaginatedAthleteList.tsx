@@ -1,3 +1,4 @@
+
 import { AthleteRegistrationCard } from "@/components/AthleteRegistrationCard";
 import {
   Pagination,
