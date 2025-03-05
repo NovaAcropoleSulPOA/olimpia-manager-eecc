@@ -1,3 +1,4 @@
+
 export * from './athletes';
 export * from './branches';
 export * from './modalities';
@@ -24,10 +25,11 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
   try {
     console.log('fetchBranchAnalytics called with eventId:', eventId, 'filialId:', filialId);
     
-    // Query the analytics view - note that we are not filtering by evento_id since it doesn't exist in the view
+    // Query the analytics view - now filtering by evento_id
     let query = supabase
       .from('vw_analytics_inscricoes')
-      .select('*');
+      .select('*')
+      .eq('evento_id', eventId); // Add filter for event ID
     
     // Apply filial filter only if provided (for delegation view)
     if (filialId) {
