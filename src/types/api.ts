@@ -1,4 +1,3 @@
-
 export interface AthleteModality {
   id: string;
   modalidade: string;
