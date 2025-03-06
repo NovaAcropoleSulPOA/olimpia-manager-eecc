@@ -35,6 +35,8 @@ export interface Branch {
 interface ModalidadePopular {
   modalidade: string;
   total_inscritos: number;
+  status_pagamento?: string;
+  filial?: string;
 }
 
 interface StatusPagamento {
@@ -79,7 +81,7 @@ export interface BranchAnalytics {
   total_inscritos_por_status: StatusPagamento[];
   inscritos_por_status_pagamento: StatusInscricao[];
   ranking_filiais: RankingFilial[];
+  registros_por_filial: RegistroFilial[];
   atletas_por_categoria: CategoriaQuantidade[];
   media_pontuacao_por_modalidade: PontuacaoModalidade[];
-  registros_por_filial: RegistroFilial[];
 }

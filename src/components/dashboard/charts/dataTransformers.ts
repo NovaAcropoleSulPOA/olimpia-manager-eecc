@@ -1,5 +1,6 @@
 
 import { BranchAnalytics } from "@/types/api";
+import { BranchRegistrationData } from "./BranchRegistrationsChart";
 
 export function calculateTotals(filteredData: BranchAnalytics[]) {
   return filteredData.reduce((acc, branch) => ({
@@ -33,7 +34,8 @@ export function transformModalitiesData(filteredData: BranchAnalytics[]) {
       }
       
       const modalidade = item.modalidade || 'Desconhecida';
-      const filial = item.filial || 'Desconhecida';
+      // Use the filial from the item if available, otherwise use the branch name
+      const filialName = item.filial || branch.filial || 'Desconhecida';
       const status = item.status_pagamento || 'pendente';
       const count = Number(item.total_inscritos) || 0;
       
@@ -46,11 +48,11 @@ export function transformModalitiesData(filteredData: BranchAnalytics[]) {
       
       const modalityData = modalitiesMap.get(modalidade)!;
       
-      if (!modalityData.branches.has(filial)) {
-        modalityData.branches.set(filial, { confirmed: 0, pending: 0 });
+      if (!modalityData.branches.has(filialName)) {
+        modalityData.branches.set(filialName, { confirmed: 0, pending: 0 });
       }
       
-      const branchData = modalityData.branches.get(filial)!;
+      const branchData = modalityData.branches.get(filialName)!;
       
       if (status === 'confirmado') {
         branchData.confirmed += count;
@@ -119,60 +121,48 @@ export function transformPaymentStatusData(filteredData: BranchAnalytics[], paym
     .filter(item => item.value > 0);
 }
 
-export function transformBranchRegistrationsData(filteredData: BranchAnalytics[]) {
+export function transformBranchRegistrationsData(filteredData: BranchAnalytics[]): BranchRegistrationData[] {
   // Early return if no data
   if (!filteredData || filteredData.length === 0) return [];
   
-  // First, get a unique list of all branches across all data
-  const allBranches = new Set<string>();
+  // Extract registros_por_filial from the first branch (should contain all branches for the event)
+  let allBranchRegistrations: any[] = [];
   
-  // Extract registros_por_filial from the first branch (should contain all branches)
   if (filteredData.length > 0 && filteredData[0].registros_por_filial && Array.isArray(filteredData[0].registros_por_filial)) {
-    filteredData[0].registros_por_filial.forEach(item => {
-      if (item && item.filial_nome) {
-        allBranches.add(item.filial_nome);
-      }
-    });
+    allBranchRegistrations = filteredData[0].registros_por_filial;
   }
   
   // Process the data
-  const branchMap = new Map<string, { name: string; confirmados: number; pendentes: number; total: number; }>();
+  const branchMap = new Map<string, BranchRegistrationData>();
   
-  filteredData.forEach(branch => {
-    if (!branch.registros_por_filial || !Array.isArray(branch.registros_por_filial)) {
-      console.warn('registros_por_filial is not an array:', branch.registros_por_filial);
+  allBranchRegistrations.forEach(item => {
+    if (!item || typeof item !== 'object') {
+      console.warn('Invalid branch registration item:', item);
       return;
     }
     
-    branch.registros_por_filial.forEach(item => {
-      if (!item || typeof item !== 'object') {
-        console.warn('Invalid branch registration item:', item);
-        return;
-      }
-      
-      const branchName = item.filial_nome || 'Desconhecida';
-      const status = item.status_pagamento || 'pendente';
-      const count = Number(item.quantidade) || 0;
-      
-      if (!branchMap.has(branchName)) {
-        branchMap.set(branchName, {
-          name: branchName,
-          confirmados: 0,
-          pendentes: 0,
-          total: 0
-        });
-      }
-      
-      const branchData = branchMap.get(branchName)!;
-      
-      if (status === 'confirmado') {
-        branchData.confirmados += count;
-      } else if (status === 'pendente') {
-        branchData.pendentes += count;
-      }
-      
-      branchData.total += count;
-    });
+    const branchName = item.filial_nome || 'Desconhecida';
+    const status = item.status_pagamento || 'pendente';
+    const count = Number(item.quantidade) || 0;
+    
+    if (!branchMap.has(branchName)) {
+      branchMap.set(branchName, {
+        name: branchName,
+        confirmados: 0,
+        pendentes: 0,
+        total: 0
+      });
+    }
+    
+    const branchData = branchMap.get(branchName)!;
+    
+    if (status === 'confirmado') {
+      branchData.confirmados += count;
+    } else if (status === 'pendente') {
+      branchData.pendentes += count;
+    }
+    
+    branchData.total += count;
   });
   
   return Array.from(branchMap.values())
