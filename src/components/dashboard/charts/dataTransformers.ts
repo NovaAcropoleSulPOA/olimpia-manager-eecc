@@ -1,169 +1,111 @@
-
-import { BranchAnalytics } from "@/types/api";
+import { 
+  BranchAnalytics, 
+  ModalidadePopular, 
+  StatusPagamento,
+  StatusInscricao
+} from "@/types/api";
 import { BranchRegistrationData } from "./BranchRegistrationsChart";
 
-export function calculateTotals(filteredData: BranchAnalytics[]) {
-  return filteredData.reduce((acc, branch) => ({
-    inscricoes: acc.inscricoes + Number(branch.total_inscritos_geral || 0),
-    pago: acc.pago + Number(branch.valor_total_pago || 0),
-    pendente: acc.pendente + Number(branch.valor_total_pendente || 0)
-  }), { inscricoes: 0, pago: 0, pendente: 0 });
+/**
+ * Calculates the total counts from the analytics data.
+ */
+export function calculateTotals(data: BranchAnalytics[]) {
+  let totalGeral = 0;
+  let totalModalidades = 0;
+  let totalConfirmados = 0;
+  let totalPendentes = 0;
+  let totalCancelados = 0;
+
+  data.forEach(branchData => {
+    totalGeral += branchData.total_inscritos_geral;
+    totalModalidades += branchData.total_inscritos_modalidades;
+
+    // Sum up the counts for each payment status
+    branchData.inscritos_por_status_pagamento.forEach(status => {
+      if (status.status_pagamento === 'confirmado') {
+        totalConfirmados += status.quantidade;
+      } else if (status.status_pagamento === 'pendente') {
+        totalPendentes += status.quantidade;
+      } else if (status.status_pagamento === 'cancelado') {
+        totalCancelados += status.quantidade;
+      }
+    });
+  });
+
+  return {
+    totalGeral,
+    totalModalidades,
+    totalConfirmados,
+    totalPendentes,
+    totalCancelados
+  };
 }
 
-export function transformModalitiesData(filteredData: BranchAnalytics[]) {
-  // Early return if no data
-  if (!filteredData || filteredData.length === 0) return [];
-  
-  // Collect all modalities from all branches
-  const modalitiesMap = new Map<string, {
-    name: string;
-    branches: Map<string, { confirmed: number; pending: number; }>
-  }>();
-  
-  filteredData.forEach(branch => {
-    // Check if modalidades_populares exists and is an array
-    if (!branch.modalidades_populares || !Array.isArray(branch.modalidades_populares)) {
-      console.warn('modalidades_populares is not an array:', branch.modalidades_populares);
-      return;
-    }
-    
-    branch.modalidades_populares.forEach(item => {
-      if (!item || typeof item !== 'object') {
-        console.warn('Invalid modality item:', item);
-        return;
-      }
-      
-      const modalidade = item.modalidade || 'Desconhecida';
-      // Use the filial from the item if available, otherwise use the branch name
-      const filialName = item.filial || branch.filial || 'Desconhecida';
-      const status = item.status_pagamento || 'pendente';
-      const count = Number(item.total_inscritos) || 0;
-      
-      if (!modalitiesMap.has(modalidade)) {
-        modalitiesMap.set(modalidade, {
-          name: modalidade,
-          branches: new Map()
-        });
-      }
-      
-      const modalityData = modalitiesMap.get(modalidade)!;
-      
-      if (!modalityData.branches.has(filialName)) {
-        modalityData.branches.set(filialName, { confirmed: 0, pending: 0 });
-      }
-      
-      const branchData = modalityData.branches.get(filialName)!;
-      
-      if (status === 'confirmado') {
-        branchData.confirmed += count;
+/**
+ * Transforms the analytics data to a format suitable for the modalities chart.
+ */
+export function transformModalitiesData(data: BranchAnalytics[]) {
+  const transformedData: any[] = [];
+
+  data.forEach(branchData => {
+    branchData.modalidades_populares.forEach(modalidade => {
+      // Find if the modality already exists in the transformed data
+      const existingModalidade = transformedData.find(item => item.name === modalidade.modalidade);
+
+      if (existingModalidade) {
+        // If the modality exists, update the count for the current branch
+        existingModalidade[branchData.filial] = modalidade.total_inscritos;
+        existingModalidade.total += modalidade.total_inscritos;
       } else {
-        branchData.pending += count;
+        // If the modality doesn't exist, create a new entry
+        const newModalidade: any = {
+          name: modalidade.modalidade,
+          total: modalidade.total_inscritos,
+        };
+        newModalidade[branchData.filial] = modalidade.total_inscritos;
+        transformedData.push(newModalidade);
       }
     });
   });
-  
-  // Convert the map to an array and format for the chart
-  return Array.from(modalitiesMap.values())
-    .map(item => {
-      // Sum up totals for each branch
-      let total = 0;
-      const branchData: { [key: string]: number } = {};
-      
-      item.branches.forEach((data, branchName) => {
-        const branchTotal = data.confirmed + data.pending;
-        branchData[branchName] = branchTotal;
-        total += branchTotal;
-      });
-      
-      return {
-        name: item.name,
-        total,
-        ...branchData
-      };
-    })
-    .filter(item => item.total > 0)
-    .sort((a, b) => b.total - a.total); // Show all modalities by removing the slice
+
+  // Sort the transformed data by total registrations
+  transformedData.sort((a, b) => b.total - a.total);
+
+  return transformedData;
 }
 
-export function transformPaymentStatusData(filteredData: BranchAnalytics[], paymentStatusColors: Record<string, string>) {
-  // Early return if no data
-  if (!filteredData || filteredData.length === 0) return [];
+/**
+ * Transforms the analytics data to properly format payment status for charts
+ */
+export function transformPaymentStatusData(data: any[], colorMap: Record<string, string>) {
+  // Extract and aggregate payment status data
+  const statusCounts: Record<string, number> = {};
   
-  const statusTotals = { confirmado: 0, pendente: 0, cancelado: 0 };
-  
-  filteredData.forEach(branch => {
-    // Check if inscritos_por_status_pagamento exists and is an array
-    if (!branch.inscritos_por_status_pagamento || !Array.isArray(branch.inscritos_por_status_pagamento)) {
-      console.warn('inscritos_por_status_pagamento is not an array:', branch.inscritos_por_status_pagamento);
-      return;
-    }
-    
-    branch.inscritos_por_status_pagamento.forEach(item => {
-      if (!item || typeof item !== 'object') {
-        console.warn('Invalid payment status item:', item);
-        return;
-      }
-      
-      const status = item.status_pagamento as keyof typeof statusTotals;
-      if (status in statusTotals) {
-        statusTotals[status] += Number(item.quantidade) || 0;
-      }
-    });
-  });
-  
-  return Object.entries(statusTotals)
-    .map(([status, value]) => ({
-      name: status,
-      value,
-      color: paymentStatusColors[status as keyof typeof paymentStatusColors] || '#6366F1'
-    }))
-    .filter(item => item.value > 0);
-}
-
-export function transformBranchRegistrationsData(filteredData: BranchAnalytics[]): BranchRegistrationData[] {
-  // Early return if no data
-  if (!filteredData || filteredData.length === 0) return [];
-  
-  // Extract registros_por_filial from the first branch (should contain all branches for the event)
-  let allBranchRegistrations: any[] = [];
-  
-  if (filteredData.length > 0 && filteredData[0].registros_por_filial && Array.isArray(filteredData[0].registros_por_filial)) {
-    allBranchRegistrations = filteredData[0].registros_por_filial;
-  }
-  
-  // Process the data
-  const branchMap = new Map<string, BranchRegistrationData>();
-  
-  allBranchRegistrations.forEach(item => {
-    if (!item || typeof item !== 'object') {
-      console.warn('Invalid branch registration item:', item);
-      return;
-    }
-    
-    const branchName = item.filial_nome || 'Desconhecida';
-    const status = item.status_pagamento || 'pendente';
-    const count = Number(item.quantidade) || 0;
-    
-    if (!branchMap.has(branchName)) {
-      branchMap.set(branchName, {
-        name: branchName,
-        confirmados: 0,
-        pendentes: 0,
-        total: 0
+  data.forEach(branchData => {
+    if (branchData.inscritos_por_status_pagamento && Array.isArray(branchData.inscritos_por_status_pagamento)) {
+      branchData.inscritos_por_status_pagamento.forEach((status: StatusInscricao) => {
+        const statusKey = status.status_pagamento.toLowerCase();
+        statusCounts[statusKey] = (statusCounts[statusKey] || 0) + status.quantidade;
       });
     }
-    
-    const branchData = branchMap.get(branchName)!;
-    
-    if (status === 'confirmado') {
-      branchData.confirmados += count;
-    } else if (status === 'pendente') {
-      branchData.pendentes += count;
-    }
-    
-    branchData.total += count;
   });
   
-  return Array.from(branchMap.values())
-    .sort((a, b) => b.total - a.total); // Show all branches by removing the slice
+  // Convert to pie chart data format
+  return Object.entries(statusCounts).map(([status, count]) => ({
+    name: status.charAt(0).toUpperCase() + status.slice(1),
+    value: count,
+    color: colorMap[status] || '#CCCCCC'
+  }));
+}
+
+/**
+ * Transforms the analytics data to a format suitable for the branch registrations chart.
+ */
+export function transformBranchRegistrationsData(data: BranchAnalytics[]): BranchRegistrationData[] {
+  return data.map(branchData => ({
+    name: branchData.filial,
+    confirmados: branchData.inscritos_por_status_pagamento.find(status => status.status_pagamento === 'confirmado')?.quantidade || 0,
+    pendentes: branchData.inscritos_por_status_pagamento.find(status => status.status_pagamento === 'pendente')?.quantidade || 0,
+    total: branchData.total_inscritos_geral
+  }));
 }

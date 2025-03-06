@@ -71,7 +71,7 @@ export function ModalitiesChart({ data, chartColors, chartConfig }: ModalitiesCh
           <ResponsiveContainer width="100%" height="100%">
             <BarChart 
               data={data} 
-              margin={{ top: 20, right: 30, left: 30, bottom: 100 }}
+              margin={{ top: 20, right: 40, left: 40, bottom: 100 }}
               barCategoryGap={15}
             >
               <CartesianGrid strokeDasharray="3 3" />
@@ -88,8 +88,10 @@ export function ModalitiesChart({ data, chartColors, chartConfig }: ModalitiesCh
                   value: 'Número de Inscrições', 
                   angle: -90, 
                   position: 'insideLeft',
-                  style: { textAnchor: 'middle' } 
+                  style: { textAnchor: 'middle' },
+                  offset: -10
                 }}
+                tick={{ fontSize: 11 }}
               />
               <Tooltip content={<CustomTooltip />} />
               <Legend 
@@ -98,7 +100,9 @@ export function ModalitiesChart({ data, chartColors, chartConfig }: ModalitiesCh
                   paddingBottom: 20,
                   fontSize: '12px',
                   overflowX: 'auto',
-                  width: '100%'
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center'
                 }}
                 layout="horizontal"
               />

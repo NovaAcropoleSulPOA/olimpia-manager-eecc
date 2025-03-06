@@ -86,3 +86,10 @@ export interface BranchAnalytics {
   atletas_por_categoria: CategoriaQuantidade[];
   media_pontuacao_por_modalidade: PontuacaoModalidade[];
 }
+
+export interface BranchRegistrationData {
+  name: string;
+  confirmados: number;
+  pendentes: number;
+  total: number;
+}

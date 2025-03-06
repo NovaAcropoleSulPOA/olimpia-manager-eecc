@@ -2,7 +2,7 @@
 import { BranchAnalytics } from "@/types/api";
 import { SummaryCards } from "../charts/SummaryCards";
 import { ModalitiesChart } from "../charts/ModalitiesChart";
-import { PaymentStatusPieChart } from "../charts/PaymentStatusPieChart";
+import { PaymentStatusBarChart } from "../charts/PaymentStatusBarChart";
 import { BranchRegistrationsChart } from "../charts/BranchRegistrationsChart";
 import { 
   calculateTotals, 
@@ -111,17 +111,17 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
       {/* Summary Cards Section */}
       <SummaryCards totals={totals} />
 
-      {/* Branch Registrations Chart - Full width */}
-      <div className="w-full">
-        <BranchRegistrationsChart 
-          data={branchRegistrationsData} 
-          chartColors={CHART_COLORS} 
-          chartConfig={CHART_CONFIG} 
-        />
-      </div>
+      {/* Charts Section - Using a consistent layout */}
+      <div className="space-y-8">
+        {/* Branch Registrations Chart - Full width */}
+        <div className="w-full">
+          <BranchRegistrationsChart 
+            data={branchRegistrationsData} 
+            chartColors={CHART_COLORS} 
+            chartConfig={CHART_CONFIG} 
+          />
+        </div>
 
-      {/* Charts Section - Now using full-width layout */}
-      <div className="grid gap-8">
         {/* Popular Modalities Chart - Full width */}
         <div className="w-full">
           <ModalitiesChart 
@@ -131,9 +131,9 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
           />
         </div>
 
-        {/* Payment Status Chart - Centered */}
-        <div className="mx-auto w-full max-w-md">
-          <PaymentStatusPieChart 
+        {/* Payment Status Bar Chart - Full width */}
+        <div className="w-full">
+          <PaymentStatusBarChart 
             data={paymentStatusData} 
             chartConfig={CHART_CONFIG} 
             title="Status de Pagamento"
