@@ -1,5 +1,4 @@
 
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   BarChart,
@@ -9,7 +8,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend
+  Legend,
+  ComposedChart,
+  Line
 } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
 import { EmptyChartMessage } from "./EmptyChartMessage";
@@ -37,7 +38,7 @@ interface BranchRegistrationsChartProps {
 export function BranchRegistrationsChart({ data, chartColors, chartConfig }: BranchRegistrationsChartProps) {
   if (!data || data.length === 0) {
     return (
-      <Card className="hover:shadow-lg transition-shadow col-span-2">
+      <Card className="hover:shadow-lg transition-shadow col-span-full">
         <CardHeader>
           <CardTitle>Inscrições por Filial</CardTitle>
           <CardDescription>
@@ -83,7 +84,7 @@ export function BranchRegistrationsChart({ data, chartColors, chartConfig }: Bra
     .slice(0, 10); // Limit to top 10 branches for readability
 
   return (
-    <Card className="hover:shadow-lg transition-shadow col-span-2">
+    <Card className="hover:shadow-lg transition-shadow col-span-full">
       <CardHeader>
         <CardTitle>Inscrições por Filial</CardTitle>
         <CardDescription>
@@ -91,13 +92,11 @@ export function BranchRegistrationsChart({ data, chartColors, chartConfig }: Bra
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[350px]">
+        <ChartContainer config={chartConfig} className="h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
+            <ComposedChart
               data={chartData}
               margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
-              barSize={20}
-              barGap={5}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
@@ -111,19 +110,37 @@ export function BranchRegistrationsChart({ data, chartColors, chartConfig }: Bra
               <YAxis />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
+              
+              {/* Total bar showing combined value */}
               <Bar 
+                dataKey="total" 
+                name="Total" 
+                fill={chartColors.blue} 
+                barSize={40}
+                radius={[4, 4, 0, 0]}
+              />
+              
+              {/* Lines for detailed breakdown */}
+              <Line 
+                type="monotone" 
                 dataKey="confirmados" 
                 name="Confirmados" 
-                fill={chartColors.green} 
-                stackId="stack"
+                stroke={chartColors.green} 
+                strokeWidth={2} 
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
               />
-              <Bar 
+              <Line 
+                type="monotone" 
                 dataKey="pendentes" 
                 name="Pendentes" 
-                fill={chartColors.yellow} 
-                stackId="stack"
+                stroke={chartColors.yellow} 
+                strokeWidth={2} 
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+                strokeDasharray="5 5"
               />
-            </BarChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </ChartContainer>
       </CardContent>

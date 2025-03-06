@@ -13,101 +13,169 @@ export function transformModalitiesData(filteredData: BranchAnalytics[]) {
   // Early return if no data
   if (!filteredData || filteredData.length === 0) return [];
   
-  return filteredData.flatMap(branch => {
+  // Collect all modalities from all branches
+  const modalitiesMap = new Map<string, {
+    name: string;
+    branches: Map<string, { confirmed: number; pending: number; }>
+  }>();
+  
+  filteredData.forEach(branch => {
     // Check if modalidades_populares exists and is an array
     if (!branch.modalidades_populares || !Array.isArray(branch.modalidades_populares)) {
       console.warn('modalidades_populares is not an array:', branch.modalidades_populares);
-      return [];
+      return;
     }
     
-    return branch.modalidades_populares.map(item => {
+    branch.modalidades_populares.forEach(item => {
       if (!item || typeof item !== 'object') {
         console.warn('Invalid modality item:', item);
-        return null;
+        return;
       }
+      
+      const modalidade = item.modalidade || 'Desconhecida';
+      const filial = item.filial || 'Desconhecida';
+      const status = item.status_pagamento || 'pendente';
+      const count = Number(item.total_inscritos) || 0;
+      
+      if (!modalitiesMap.has(modalidade)) {
+        modalitiesMap.set(modalidade, {
+          name: modalidade,
+          branches: new Map()
+        });
+      }
+      
+      const modalityData = modalitiesMap.get(modalidade)!;
+      
+      if (!modalityData.branches.has(filial)) {
+        modalityData.branches.set(filial, { confirmed: 0, pending: 0 });
+      }
+      
+      const branchData = modalityData.branches.get(filial)!;
+      
+      if (status === 'confirmado') {
+        branchData.confirmed += count;
+      } else {
+        branchData.pending += count;
+      }
+    });
+  });
+  
+  // Convert the map to an array and format for the chart
+  return Array.from(modalitiesMap.values())
+    .map(item => {
+      // Sum up totals for each branch
+      let total = 0;
+      const branchData: { [key: string]: number } = {};
+      
+      item.branches.forEach((data, branchName) => {
+        const branchTotal = data.confirmed + data.pending;
+        branchData[branchName] = branchTotal;
+        total += branchTotal;
+      });
+      
       return {
-        name: item.modalidade || 'Desconhecida',
-        count: Number(item.total_inscritos) || 0
+        name: item.name,
+        total,
+        ...branchData
       };
-    }).filter(Boolean); // Remove null items
-  })
-  .filter(item => item && item.name && item.count > 0)  // Only include items with actual values
-  .reduce((acc, curr) => {
-    const existing = acc.find(item => item.name === curr.name);
-    if (existing) {
-      existing.count += curr.count;
-    } else {
-      acc.push({ ...curr });
-    }
-    return acc;
-  }, [] as any[])
-  .sort((a, b) => b.count - a.count)
-  .slice(0, 6);  // Limit to top 6
+    })
+    .filter(item => item.total > 0)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 6); // Limit to top 6
 }
 
 export function transformPaymentStatusData(filteredData: BranchAnalytics[], paymentStatusColors: Record<string, string>) {
   // Early return if no data
   if (!filteredData || filteredData.length === 0) return [];
   
-  return filteredData.flatMap(branch => {
+  const statusTotals = { confirmado: 0, pendente: 0, cancelado: 0 };
+  
+  filteredData.forEach(branch => {
     // Check if inscritos_por_status_pagamento exists and is an array
     if (!branch.inscritos_por_status_pagamento || !Array.isArray(branch.inscritos_por_status_pagamento)) {
       console.warn('inscritos_por_status_pagamento is not an array:', branch.inscritos_por_status_pagamento);
-      return [];
+      return;
     }
     
-    return branch.inscritos_por_status_pagamento.map(item => {
+    branch.inscritos_por_status_pagamento.forEach(item => {
       if (!item || typeof item !== 'object') {
         console.warn('Invalid payment status item:', item);
-        return null;
+        return;
       }
-      return {
-        status_pagamento: item.status_pagamento || 'Desconhecido',
-        quantidade: Number(item.quantidade) || 0
-      };
-    }).filter(Boolean); // Remove null items
-  })
-  .reduce((acc, curr) => {
-    if (!curr || !curr.status_pagamento) return acc;
-    
-    const existing = acc.find(item => item.status_pagamento === curr.status_pagamento);
-    if (existing) {
-      existing.quantidade += curr.quantidade;
-    } else {
-      acc.push({ ...curr });
-    }
-    return acc;
-  }, [] as any[])
-  .sort((a, b) => b.quantidade - a.quantidade)
-  .map(item => ({
-    name: item.status_pagamento,
-    value: item.quantidade,
-    color: paymentStatusColors[item.status_pagamento as keyof typeof paymentStatusColors] || '#6366F1'
-  }))
-  .filter(item => item.value > 0); // Only include items with values
+      
+      const status = item.status_pagamento as keyof typeof statusTotals;
+      if (status in statusTotals) {
+        statusTotals[status] += Number(item.quantidade) || 0;
+      }
+    });
+  });
+  
+  return Object.entries(statusTotals)
+    .map(([status, value]) => ({
+      name: status,
+      value,
+      color: paymentStatusColors[status as keyof typeof paymentStatusColors] || '#6366F1'
+    }))
+    .filter(item => item.value > 0);
 }
 
 export function transformBranchRegistrationsData(filteredData: BranchAnalytics[]) {
   // Early return if no data
   if (!filteredData || filteredData.length === 0) return [];
   
-  // Extract registros_por_filial from all branches and flatten
-  return filteredData.flatMap(branch => {
+  // First, get a unique list of all branches across all data
+  const allBranches = new Set<string>();
+  
+  // Extract registros_por_filial from the first branch (should contain all branches)
+  if (filteredData.length > 0 && filteredData[0].registros_por_filial && Array.isArray(filteredData[0].registros_por_filial)) {
+    filteredData[0].registros_por_filial.forEach(item => {
+      if (item && item.filial_nome) {
+        allBranches.add(item.filial_nome);
+      }
+    });
+  }
+  
+  // Process the data
+  const branchMap = new Map<string, { name: string; confirmados: number; pendentes: number; total: number; }>();
+  
+  filteredData.forEach(branch => {
     if (!branch.registros_por_filial || !Array.isArray(branch.registros_por_filial)) {
       console.warn('registros_por_filial is not an array:', branch.registros_por_filial);
-      return [];
+      return;
     }
     
-    return branch.registros_por_filial.map(item => {
+    branch.registros_por_filial.forEach(item => {
       if (!item || typeof item !== 'object') {
         console.warn('Invalid branch registration item:', item);
-        return null;
+        return;
       }
-      return {
-        filial_nome: item.filial_nome || 'Desconhecida',
-        status_pagamento: item.status_pagamento || 'Desconhecido',
-        quantidade: Number(item.quantidade) || 0
-      };
-    }).filter(Boolean); // Remove null items
+      
+      const branchName = item.filial_nome || 'Desconhecida';
+      const status = item.status_pagamento || 'pendente';
+      const count = Number(item.quantidade) || 0;
+      
+      if (!branchMap.has(branchName)) {
+        branchMap.set(branchName, {
+          name: branchName,
+          confirmados: 0,
+          pendentes: 0,
+          total: 0
+        });
+      }
+      
+      const branchData = branchMap.get(branchName)!;
+      
+      if (status === 'confirmado') {
+        branchData.confirmados += count;
+      } else if (status === 'pendente') {
+        branchData.pendentes += count;
+      }
+      
+      branchData.total += count;
+    });
   });
+  
+  return Array.from(branchMap.values())
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10); // Limit to top 10 branches for readability
 }

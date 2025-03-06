@@ -11,8 +11,6 @@ import {
   transformBranchRegistrationsData 
 } from "../charts/dataTransformers";
 import { ChartConfig } from "@/components/ui/chart/types";
-import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
-import { EmptyChartMessage } from "../charts/EmptyChartMessage";
 
 // Define a consistent color palette
 const CHART_COLORS = {
@@ -51,6 +49,10 @@ const CHART_CONFIG: ChartConfig = {
   categories: {
     color: CHART_COLORS.purple,
     label: 'Categorias'
+  },
+  total: {
+    color: CHART_COLORS.blue,
+    label: 'Total'
   }
 };
 
@@ -109,26 +111,21 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
       {/* Summary Cards Section */}
       <SummaryCards totals={totals} />
 
-      {/* Charts Section */}
+      {/* Branch Registrations Chart - Now takes full width */}
+      <BranchRegistrationsChart 
+        data={branchRegistrationsData} 
+        chartColors={CHART_COLORS} 
+        chartConfig={CHART_CONFIG} 
+      />
+
+      {/* Charts Section - Now 2 columns */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Popular Modalities Chart */}
-        {modalitiesData.length > 0 ? (
-          <ModalitiesChart 
-            data={modalitiesData} 
-            chartColors={CHART_COLORS} 
-            chartConfig={CHART_CONFIG} 
-          />
-        ) : (
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle>Modalidades Populares</CardTitle>
-              <CardDescription>Distribuição das inscrições por modalidade</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <EmptyChartMessage message="Sem dados de modalidades disponíveis" />
-            </CardContent>
-          </Card>
-        )}
+        <ModalitiesChart 
+          data={modalitiesData} 
+          chartColors={CHART_COLORS} 
+          chartConfig={CHART_CONFIG} 
+        />
 
         {/* Payment Status Chart */}
         <PaymentStatusPieChart 
@@ -136,13 +133,6 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
           chartConfig={CHART_CONFIG} 
           title="Status de Pagamento"
           description="Distribuição dos pagamentos por status"
-        />
-
-        {/* Branch Registrations Chart (Replacing Categories Chart) */}
-        <BranchRegistrationsChart 
-          data={branchRegistrationsData} 
-          chartColors={CHART_COLORS} 
-          chartConfig={CHART_CONFIG} 
         />
       </div>
     </div>
