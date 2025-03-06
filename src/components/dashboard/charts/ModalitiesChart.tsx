@@ -66,8 +66,8 @@ export function ModalitiesChart({ data, chartColors, chartConfig }: ModalitiesCh
           Modalidades com maior número de inscrições por filial
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="h-[550px]">
+      <CardContent className="w-full">
+        <ChartContainer config={chartConfig} className="h-[550px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart 
               data={data} 

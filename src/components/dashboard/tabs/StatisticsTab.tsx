@@ -1,4 +1,3 @@
-
 import { BranchAnalytics } from "@/types/api";
 import { SummaryCards } from "../charts/SummaryCards";
 import { ModalitiesChart } from "../charts/ModalitiesChart";
@@ -121,15 +120,6 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
 
       {/* Charts Section - Using a consistent layout */}
       <div className="space-y-8">
-        {/* Popular Modalities Chart - Full width */}
-        <div className="w-full">
-          <ModalitiesChart 
-            data={modalitiesData} 
-            chartColors={CHART_COLORS} 
-            chartConfig={CHART_CONFIG} 
-          />
-        </div>
-
         {/* Payment Status Bar Chart - Battery style - Full width */}
         <div className="w-full">
           <PaymentStatusBarChart 
@@ -144,6 +134,15 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
         <div className="w-full">
           <BranchRegistrationsChart 
             data={branchRegistrationsData} 
+            chartColors={CHART_COLORS} 
+            chartConfig={CHART_CONFIG} 
+          />
+        </div>
+
+        {/* Popular Modalities Chart - Full width */}
+        <div className="w-full">
+          <ModalitiesChart 
+            data={modalitiesData} 
             chartColors={CHART_COLORS} 
             chartConfig={CHART_CONFIG} 
           />

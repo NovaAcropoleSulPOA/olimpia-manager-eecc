@@ -54,15 +54,22 @@ export function transformModalitiesData(data: BranchAnalytics[]) {
   data.forEach(branchData => {
     const branchName = branchData.filial;
     
+    // Iterate through each popular modality for this branch
     branchData.modalidades_populares.forEach(modalidade => {
       const modalityName = modalidade.modalidade;
       
+      // Initialize this modality in our map if it doesn't exist
       if (!modalityMap.has(modalityName)) {
         modalityMap.set(modalityName, { total: 0 });
       }
       
+      // Get the current data for this modality
       const modalityData = modalityMap.get(modalityName)!;
+      
+      // Add the count for this branch (use the actual count from the data)
       modalityData[branchName] = modalidade.total_inscritos;
+      
+      // Update the total count
       modalityData.total += modalidade.total_inscritos;
     });
   });
