@@ -8,16 +8,23 @@ import {
   Tooltip, 
   ResponsiveContainer, 
   Legend, 
-  CartesianGrid 
+  CartesianGrid,
+  Cell
 } from "recharts";
 import { ChartContainer } from "@/components/ui/chart";
 import { EmptyChartMessage } from "./EmptyChartMessage";
 import { CustomTooltip } from "./CustomTooltip";
+import { Progress } from "@/components/ui/progress";
 
 interface PaymentStatusData {
   name: string;
-  value: number;
-  color: string;
+  confirmado: number;
+  pendente: number;
+  cancelado: number;
+  total: number;
+  confirmadoPct: number;
+  pendentePct: number;
+  canceladoPct: number;
 }
 
 interface PaymentStatusBarChartProps {
@@ -33,56 +40,130 @@ export function PaymentStatusBarChart({
   title = "Status de Pagamento",
   description = "Distribuição dos pagamentos por status"
 }: PaymentStatusBarChartProps) {
-  // Convert pie data to horizontal bar chart data
-  const barData = data.map(item => ({
-    name: item.name,
-    value: item.value,
-    fill: item.color
-  }));
+  // If no data, show empty state
+  if (!data || data.length === 0) {
+    return (
+      <Card className="hover:shadow-lg transition-shadow w-full">
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EmptyChartMessage message="Sem dados de status de pagamento disponíveis" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Extract percentages from the first data item
+  const { confirmadoPct = 0, pendentePct = 0, canceladoPct = 0 } = data[0];
+  
+  // Format numbers for display
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat('pt-BR').format(num);
+  };
 
   return (
     <Card className="hover:shadow-lg transition-shadow w-full">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
-        <CardDescription>
-          {description}
-        </CardDescription>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent>
-        {data.length > 0 ? (
-          <ChartContainer config={chartConfig} className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={barData}
-                layout="vertical"
-                margin={{ top: 20, right: 30, left: 90, bottom: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                <XAxis type="number" label={{ value: 'Número de Inscrições', position: 'insideBottom', offset: -10 }} />
-                <YAxis 
-                  type="category" 
-                  dataKey="name" 
-                  tick={{ fontSize: 14 }}
-                  width={80}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ paddingTop: 20 }} />
-                {barData.map((entry, index) => (
-                  <Bar 
-                    key={`status-bar-${index}`}
-                    dataKey="value" 
-                    name={entry.name}
-                    fill={entry.fill}
-                    barSize={50}
-                    radius={[0, 4, 4, 0]}
+      <CardContent className="space-y-6">
+        <div className="space-y-6">
+          {/* Battery-style visualization */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm font-medium">
+              <div>
+                <span className="inline-block w-3 h-3 rounded-full bg-green-500 mr-1"></span>
+                Confirmado: {formatNumber(data[0].confirmado)} ({confirmadoPct.toFixed(1)}%)
+              </div>
+              <div>
+                <span className="inline-block w-3 h-3 rounded-full bg-yellow-500 mr-1"></span>
+                Pendente: {formatNumber(data[0].pendente)} ({pendentePct.toFixed(1)}%)
+              </div>
+              <div>
+                <span className="inline-block w-3 h-3 rounded-full bg-red-500 mr-1"></span>
+                Cancelado: {formatNumber(data[0].cancelado)} ({canceladoPct.toFixed(1)}%)
+              </div>
+            </div>
+            
+            {/* The battery visualization */}
+            <div className="relative h-10 w-full rounded-full bg-gray-200 overflow-hidden">
+              {/* Confirmed segment */}
+              <div 
+                className="absolute left-0 top-0 h-full bg-green-500" 
+                style={{ width: `${confirmadoPct}%` }}
+              ></div>
+              
+              {/* Pending segment */}
+              <div 
+                className="absolute top-0 h-full bg-yellow-500" 
+                style={{ 
+                  left: `${confirmadoPct}%`, 
+                  width: `${pendentePct}%` 
+                }}
+              ></div>
+              
+              {/* Canceled segment */}
+              <div 
+                className="absolute top-0 h-full bg-red-500" 
+                style={{ 
+                  left: `${confirmadoPct + pendentePct}%`, 
+                  width: `${canceladoPct}%` 
+                }}
+              ></div>
+            </div>
+            
+            <div className="text-center text-sm text-muted-foreground">
+              Total de Inscrições: {formatNumber(data[0].total)}
+            </div>
+          </div>
+
+          {/* Additional detailed breakdown using horizontal bars */}
+          <div className="h-[250px] pt-4">
+            <ChartContainer config={chartConfig} className="w-full h-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[
+                    { name: 'Confirmado', value: data[0].confirmado, color: '#10B981' },
+                    { name: 'Pendente', value: data[0].pendente, color: '#F59E0B' },
+                    { name: 'Cancelado', value: data[0].cancelado, color: '#EF4444' }
+                  ]}
+                  layout="vertical"
+                  margin={{ top: 20, right: 30, left: 100, bottom: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                  <XAxis 
+                    type="number" 
+                    label={{ value: 'Número de Inscrições', position: 'insideBottom', offset: -10 }} 
                   />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        ) : (
-          <EmptyChartMessage message="Sem dados de status de pagamento disponíveis" />
-        )}
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    tick={{ fontSize: 14 }}
+                    width={90}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar 
+                    dataKey="value" 
+                    name="Quantidade" 
+                    barSize={40}
+                    radius={[0, 4, 4, 0]}
+                  >
+                    {[
+                      { name: 'Confirmado', value: data[0].confirmado, color: '#10B981' },
+                      { name: 'Pendente', value: data[0].pendente, color: '#F59E0B' },
+                      { name: 'Cancelado', value: data[0].cancelado, color: '#EF4444' }
+                    ].map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

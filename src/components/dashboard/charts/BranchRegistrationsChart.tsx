@@ -55,7 +55,7 @@ export function BranchRegistrationsChart({ data, chartColors, chartConfig }: Bra
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[550px]">
+        <ChartContainer config={chartConfig} className="h-[600px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={data}

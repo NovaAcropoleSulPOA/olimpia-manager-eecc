@@ -121,15 +121,6 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
 
       {/* Charts Section - Using a consistent layout */}
       <div className="space-y-8">
-        {/* Branch Registrations Chart - Full width */}
-        <div className="w-full">
-          <BranchRegistrationsChart 
-            data={branchRegistrationsData} 
-            chartColors={CHART_COLORS} 
-            chartConfig={CHART_CONFIG} 
-          />
-        </div>
-
         {/* Popular Modalities Chart - Full width */}
         <div className="w-full">
           <ModalitiesChart 
@@ -139,13 +130,22 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
           />
         </div>
 
-        {/* Payment Status Bar Chart - Full width */}
+        {/* Payment Status Bar Chart - Battery style - Full width */}
         <div className="w-full">
           <PaymentStatusBarChart 
             data={paymentStatusData} 
             chartConfig={CHART_CONFIG} 
             title="Status de Pagamento"
             description="Distribuição dos pagamentos por status"
+          />
+        </div>
+
+        {/* Branch Registrations Chart - Full width */}
+        <div className="w-full">
+          <BranchRegistrationsChart 
+            data={branchRegistrationsData} 
+            chartColors={CHART_COLORS} 
+            chartConfig={CHART_CONFIG} 
           />
         </div>
       </div>

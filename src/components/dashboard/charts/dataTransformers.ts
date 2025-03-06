@@ -1,3 +1,4 @@
+
 import { 
   BranchAnalytics, 
   ModalidadePopular, 
@@ -43,59 +44,80 @@ export function calculateTotals(data: BranchAnalytics[]) {
 
 /**
  * Transforms the analytics data to a format suitable for the modalities chart.
+ * Correctly aggregates modalities by branch with accurate counts.
  */
 export function transformModalitiesData(data: BranchAnalytics[]) {
-  const transformedData: any[] = [];
-
+  // First, collect all unique modalities across all branches
+  const modalityMap = new Map<string, {[branch: string]: number, total: number}>();
+  
+  // Step 1: Collect all modalities and their counts per branch
   data.forEach(branchData => {
+    const branchName = branchData.filial;
+    
     branchData.modalidades_populares.forEach(modalidade => {
-      // Find if the modality already exists in the transformed data
-      const existingModalidade = transformedData.find(item => item.name === modalidade.modalidade);
-
-      if (existingModalidade) {
-        // If the modality exists, update the count for the current branch
-        existingModalidade[branchData.filial] = modalidade.total_inscritos;
-        existingModalidade.total += modalidade.total_inscritos;
-      } else {
-        // If the modality doesn't exist, create a new entry
-        const newModalidade: any = {
-          name: modalidade.modalidade,
-          total: modalidade.total_inscritos,
-        };
-        newModalidade[branchData.filial] = modalidade.total_inscritos;
-        transformedData.push(newModalidade);
+      const modalityName = modalidade.modalidade;
+      
+      if (!modalityMap.has(modalityName)) {
+        modalityMap.set(modalityName, { total: 0 });
       }
+      
+      const modalityData = modalityMap.get(modalityName)!;
+      modalityData[branchName] = modalidade.total_inscritos;
+      modalityData.total += modalidade.total_inscritos;
     });
   });
-
-  // Sort the transformed data by total registrations
-  transformedData.sort((a, b) => b.total - a.total);
-
-  return transformedData;
+  
+  // Step 2: Convert map to array format for the chart
+  const transformedData = Array.from(modalityMap.entries()).map(([modalityName, branchCounts]) => {
+    return {
+      name: modalityName,
+      ...branchCounts
+    };
+  });
+  
+  // Step 3: Sort by total count (most popular first)
+  return transformedData.sort((a, b) => b.total - a.total);
 }
 
 /**
- * Transforms the analytics data to properly format payment status for charts
+ * Transforms the analytics data for the battery-style payment status chart
  */
 export function transformPaymentStatusData(data: any[], colorMap: Record<string, string>) {
   // Extract and aggregate payment status data
-  const statusCounts: Record<string, number> = {};
+  let totalConfirmado = 0;
+  let totalPendente = 0;
+  let totalCancelado = 0;
   
   data.forEach(branchData => {
     if (branchData.inscritos_por_status_pagamento && Array.isArray(branchData.inscritos_por_status_pagamento)) {
       branchData.inscritos_por_status_pagamento.forEach((status: StatusInscricao) => {
-        const statusKey = status.status_pagamento.toLowerCase();
-        statusCounts[statusKey] = (statusCounts[statusKey] || 0) + status.quantidade;
+        if (status.status_pagamento === 'confirmado') {
+          totalConfirmado += status.quantidade;
+        } else if (status.status_pagamento === 'pendente') {
+          totalPendente += status.quantidade;
+        } else if (status.status_pagamento === 'cancelado') {
+          totalCancelado += status.quantidade;
+        }
       });
     }
   });
   
-  // Convert to pie chart data format
-  return Object.entries(statusCounts).map(([status, count]) => ({
-    name: status.charAt(0).toUpperCase() + status.slice(1),
-    value: count,
-    color: colorMap[status] || '#CCCCCC'
-  }));
+  const totalAll = totalConfirmado + totalPendente + totalCancelado;
+  
+  // For the battery chart we need percentages
+  return [
+    {
+      name: "Status de Pagamento",
+      confirmado: totalConfirmado,
+      pendente: totalPendente,
+      cancelado: totalCancelado,
+      total: totalAll,
+      // Calculate percentages for the battery visualization
+      confirmadoPct: totalAll > 0 ? (totalConfirmado / totalAll) * 100 : 0,
+      pendentePct: totalAll > 0 ? (totalPendente / totalAll) * 100 : 0,
+      canceladoPct: totalAll > 0 ? (totalCancelado / totalAll) * 100 : 0
+    }
+  ];
 }
 
 /**
