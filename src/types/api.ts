@@ -1,3 +1,4 @@
+
 export interface AthleteModality {
   id: string;
   modalidade: string;
@@ -32,38 +33,38 @@ export interface Branch {
   estado: string;
 }
 
-interface ModalidadePopular {
+export interface ModalidadePopular {
   modalidade: string;
   total_inscritos: number;
   status_pagamento?: string;
   filial?: string;
 }
 
-interface StatusPagamento {
+export interface StatusPagamento {
   status_pagamento: string;
   quantidade: number;
 }
 
-interface StatusInscricao {
+export interface StatusInscricao {
   status_pagamento: string;
   quantidade: number;
 }
 
-interface RankingFilial {
+export interface RankingFilial {
   total_pontos: number;
 }
 
-interface CategoriaQuantidade {
+export interface CategoriaQuantidade {
   categoria: string;
   quantidade: number;
 }
 
-interface PontuacaoModalidade {
+export interface PontuacaoModalidade {
   modalidade: string;
   media_pontuacao: number;
 }
 
-interface RegistroFilial {
+export interface RegistroFilial {
   filial_nome: string;
   status_pagamento: string;
   quantidade: number;

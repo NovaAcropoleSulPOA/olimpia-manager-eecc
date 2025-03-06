@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   BarChart,
@@ -31,7 +32,7 @@ interface BranchRegistrationsChartProps {
 export function BranchRegistrationsChart({ data, chartColors, chartConfig }: BranchRegistrationsChartProps) {
   if (!data || data.length === 0) {
     return (
-      <Card className="hover:shadow-lg transition-shadow col-span-full">
+      <Card className="hover:shadow-lg transition-shadow w-full">
         <CardHeader>
           <CardTitle>Inscrições por Filial</CardTitle>
           <CardDescription>
@@ -46,44 +47,60 @@ export function BranchRegistrationsChart({ data, chartColors, chartConfig }: Bra
   }
 
   return (
-    <Card className="hover:shadow-lg transition-shadow col-span-full">
+    <Card className="hover:shadow-lg transition-shadow w-full">
       <CardHeader>
         <CardTitle>Inscrições por Filial</CardTitle>
         <CardDescription>
-          Top 10 filiais com maior número de inscrições por status
+          Filiais com maior número de inscrições por status
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[500px]">
+        <ChartContainer config={chartConfig} className="h-[550px]">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={data}
-              margin={{ top: 20, right: 30, left: 20, bottom: 80 }}
+              margin={{ top: 20, right: 30, left: 30, bottom: 100 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey="name" 
                 angle={-45} 
                 textAnchor="end" 
-                height={80}
+                height={100}
                 interval={0}
                 tick={{ fontSize: 12 }}
               />
-              <YAxis />
+              <YAxis 
+                yAxisId="left"
+                label={{ 
+                  value: 'Número de Inscrições', 
+                  angle: -90, 
+                  position: 'insideLeft',
+                  style: { textAnchor: 'middle' } 
+                }}
+              />
               <Tooltip content={<CustomTooltip />} />
-              <Legend />
+              <Legend 
+                verticalAlign="top" 
+                wrapperStyle={{ 
+                  paddingBottom: 20,
+                  fontSize: '12px' 
+                }}
+              />
               
               {/* Total bar showing combined value */}
               <Bar 
+                yAxisId="left"
                 dataKey="total" 
                 name="Total" 
                 fill={chartColors.blue} 
-                barSize={40}
+                barSize={30}
                 radius={[4, 4, 0, 0]}
               />
               
               {/* Lines for detailed breakdown */}
               <Line 
+                yAxisId="left"
                 type="monotone" 
                 dataKey="confirmados" 
                 name="Confirmados" 
@@ -93,6 +110,7 @@ export function BranchRegistrationsChart({ data, chartColors, chartConfig }: Bra
                 activeDot={{ r: 6 }}
               />
               <Line 
+                yAxisId="left"
                 type="monotone" 
                 dataKey="pendentes" 
                 name="Pendentes" 

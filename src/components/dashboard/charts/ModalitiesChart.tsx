@@ -23,17 +23,18 @@ interface ModalitiesChartProps {
 // Custom colors for branches
 const BRANCH_COLORS = [
   "#8884d8", "#82ca9d", "#ffc658", "#ff8042", "#0088fe", 
-  "#00C49F", "#FFBB28", "#FF8042", "#a4de6c", "#d0ed57"
+  "#00C49F", "#FFBB28", "#FF8042", "#a4de6c", "#d0ed57",
+  "#e85de2", "#6d58f5", "#fa7f72", "#36a2eb", "#4bc0c0"
 ];
 
 export function ModalitiesChart({ data, chartColors, chartConfig }: ModalitiesChartProps) {
   if (!data || data.length === 0) {
     return (
-      <Card className="hover:shadow-lg transition-shadow">
+      <Card className="hover:shadow-lg transition-shadow w-full">
         <CardHeader>
           <CardTitle>Modalidades Mais Populares</CardTitle>
           <CardDescription>
-            Top 6 modalidades com maior número de inscrições por filial
+            Modalidades com maior número de inscrições por filial
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -58,20 +59,20 @@ export function ModalitiesChart({ data, chartColors, chartConfig }: ModalitiesCh
   const sortedBranchNames = Array.from(branchNames).sort();
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-lg transition-shadow w-full">
       <CardHeader>
         <CardTitle>Modalidades Mais Populares</CardTitle>
         <CardDescription>
-          Top 6 modalidades com maior número de inscrições por filial
+          Modalidades com maior número de inscrições por filial
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[400px]">
+        <ChartContainer config={chartConfig} className="h-[550px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart 
               data={data} 
-              margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
-              barCategoryGap={10}
+              margin={{ top: 20, right: 30, left: 30, bottom: 100 }}
+              barCategoryGap={15}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
@@ -82,9 +83,25 @@ export function ModalitiesChart({ data, chartColors, chartConfig }: ModalitiesCh
                 interval={0}
                 tick={{ fontSize: 12 }}
               />
-              <YAxis />
+              <YAxis 
+                label={{ 
+                  value: 'Número de Inscrições', 
+                  angle: -90, 
+                  position: 'insideLeft',
+                  style: { textAnchor: 'middle' } 
+                }}
+              />
               <Tooltip content={<CustomTooltip />} />
-              <Legend wrapperStyle={{ bottom: -10 }} />
+              <Legend 
+                verticalAlign="top"
+                wrapperStyle={{ 
+                  paddingBottom: 20,
+                  fontSize: '12px',
+                  overflowX: 'auto',
+                  width: '100%'
+                }}
+                layout="horizontal"
+              />
               
               {sortedBranchNames.map((branchName, index) => (
                 <Bar 
@@ -93,6 +110,7 @@ export function ModalitiesChart({ data, chartColors, chartConfig }: ModalitiesCh
                   name={branchName} 
                   stackId="a"
                   fill={BRANCH_COLORS[index % BRANCH_COLORS.length]} 
+                  radius={[index === 0 ? 4 : 0, index === sortedBranchNames.length - 1 ? 4 : 0, 0, 0]}
                 />
               ))}
             </BarChart>

@@ -111,29 +111,35 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
       {/* Summary Cards Section */}
       <SummaryCards totals={totals} />
 
-      {/* Branch Registrations Chart - Now takes full width */}
-      <BranchRegistrationsChart 
-        data={branchRegistrationsData} 
-        chartColors={CHART_COLORS} 
-        chartConfig={CHART_CONFIG} 
-      />
-
-      {/* Charts Section - Now 2 columns */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Popular Modalities Chart */}
-        <ModalitiesChart 
-          data={modalitiesData} 
+      {/* Branch Registrations Chart - Full width */}
+      <div className="w-full">
+        <BranchRegistrationsChart 
+          data={branchRegistrationsData} 
           chartColors={CHART_COLORS} 
           chartConfig={CHART_CONFIG} 
         />
+      </div>
 
-        {/* Payment Status Chart */}
-        <PaymentStatusPieChart 
-          data={paymentStatusData} 
-          chartConfig={CHART_CONFIG} 
-          title="Status de Pagamento"
-          description="Distribuição dos pagamentos por status"
-        />
+      {/* Charts Section - Now using full-width layout */}
+      <div className="grid gap-8">
+        {/* Popular Modalities Chart - Full width */}
+        <div className="w-full">
+          <ModalitiesChart 
+            data={modalitiesData} 
+            chartColors={CHART_COLORS} 
+            chartConfig={CHART_CONFIG} 
+          />
+        </div>
+
+        {/* Payment Status Chart - Centered */}
+        <div className="mx-auto w-full max-w-md">
+          <PaymentStatusPieChart 
+            data={paymentStatusData} 
+            chartConfig={CHART_CONFIG} 
+            title="Status de Pagamento"
+            description="Distribuição dos pagamentos por status"
+          />
+        </div>
       </div>
     </div>
   );

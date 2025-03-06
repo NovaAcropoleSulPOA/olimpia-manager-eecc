@@ -82,8 +82,7 @@ export function transformModalitiesData(filteredData: BranchAnalytics[]) {
       };
     })
     .filter(item => item.total > 0)
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 6); // Limit to top 6
+    .sort((a, b) => b.total - a.total); // Show all modalities by removing the slice
 }
 
 export function transformPaymentStatusData(filteredData: BranchAnalytics[], paymentStatusColors: Record<string, string>) {
@@ -166,6 +165,5 @@ export function transformBranchRegistrationsData(filteredData: BranchAnalytics[]
   });
   
   return Array.from(branchMap.values())
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 10); // Limit to top 10 branches for readability
+    .sort((a, b) => b.total - a.total); // Show all branches by removing the slice
 }
