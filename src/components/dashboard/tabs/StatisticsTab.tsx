@@ -93,8 +93,16 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
   }
 
   // Calculate totals
-  const totals = calculateTotals(filteredData);
-  console.log("Calculated totals:", totals);
+  const calculatedTotals = calculateTotals(filteredData);
+  console.log("Calculated totals:", calculatedTotals);
+
+  // Map the calculated totals to the format expected by SummaryCards
+  const summaryCardsTotals = {
+    inscricoes: calculatedTotals.totalGeral,
+    pago: filteredData.reduce((sum, branch) => sum + (Number(branch.valor_total_pago) || 0), 0),
+    pendente: filteredData.reduce((sum, branch) => sum + (Number(branch.valor_total_pendente) || 0), 0)
+  };
+  console.log("Summary cards totals:", summaryCardsTotals);
 
   // Transform data for charts
   const modalitiesData = transformModalitiesData(filteredData);
@@ -109,7 +117,7 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
   return (
     <div className="space-y-8">
       {/* Summary Cards Section */}
-      <SummaryCards totals={totals} />
+      <SummaryCards totals={summaryCardsTotals} />
 
       {/* Charts Section - Using a consistent layout */}
       <div className="space-y-8">
