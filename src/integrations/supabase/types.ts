@@ -1324,17 +1324,26 @@ export type Database = {
           evento_id: string | null
           filial: string | null
           filial_id: string | null
-          inscritos_por_status: Json | null
           inscritos_por_status_pagamento: Json | null
           media_pontuacao_por_modalidade: Json | null
           modalidades_populares: Json | null
           ranking_filiais: Json | null
+          registros_por_filial: Json | null
           total_inscritos_geral: number | null
           total_inscritos_modalidades: number | null
+          total_inscritos_por_status: Json | null
           valor_total_pago: number | null
           valor_total_pendente: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "inscricoes_modalidades_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vw_athletes_management: {
         Row: {

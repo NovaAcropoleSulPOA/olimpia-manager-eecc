@@ -1,4 +1,3 @@
-
 export * from './athletes';
 export * from './branches';
 export * from './modalities';
@@ -80,6 +79,12 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
         media_pontuacao_por_modalidade: [
           { modalidade: 'Atletismo', media_pontuacao: 8.5 },
           { modalidade: 'Natação', media_pontuacao: 9.2 }
+        ],
+        registros_por_filial: [
+          { filial_nome: 'Filial A', status_pagamento: 'confirmado', quantidade: 7 },
+          { filial_nome: 'Filial A', status_pagamento: 'pendente', quantidade: 3 },
+          { filial_nome: 'Filial B', status_pagamento: 'confirmado', quantidade: 5 },
+          { filial_nome: 'Filial B', status_pagamento: 'pendente', quantidade: 2 }
         ]
       }];
       
@@ -109,7 +114,8 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
         inscritos_por_status_pagamento: parseJsonField(item.inscritos_por_status_pagamento),
         ranking_filiais: parseJsonField(item.ranking_filiais) || [{ total_pontos: 0 }],
         atletas_por_categoria: parseJsonField(item.atletas_por_categoria),
-        media_pontuacao_por_modalidade: parseJsonField(item.media_pontuacao_por_modalidade)
+        media_pontuacao_por_modalidade: parseJsonField(item.media_pontuacao_por_modalidade),
+        registros_por_filial: parseJsonField(item.registros_por_filial) || []
       };
     });
 
