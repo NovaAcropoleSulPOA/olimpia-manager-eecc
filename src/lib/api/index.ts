@@ -30,15 +30,8 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
       .from('vw_analytics_inscricoes')
       .select('*');
     
-    // Apply filters
-    if (eventId) {
-      // Check if evento_id column exists in the view
-      try {
-        query = query.eq('evento_id', eventId);
-      } catch (error) {
-        console.warn('Warning: evento_id filter might not be applied - column may not exist in view');
-      }
-    }
+    // Apply event filter - this is now essential since our view has evento_id
+    query = query.eq('evento_id', eventId);
     
     // Apply filial filter only if provided (for delegation view)
     if (filialId) {
@@ -62,7 +55,7 @@ export const fetchBranchAnalytics = async (eventId: string | null, filialId?: st
       const mockData = [{
         filial_id: filialId || 'mock-filial-id',
         filial: 'Filial Exemplo',
-        evento_id: eventId, // added for consistency but not used in query
+        evento_id: eventId, 
         total_inscritos_geral: 15,
         total_inscritos_modalidades: 25,
         valor_total_pago: 1500,
