@@ -1,11 +1,10 @@
+
 import { BranchAnalytics } from "@/types/api";
 import { SummaryCards } from "../charts/SummaryCards";
-import { ModalitiesChart } from "../charts/ModalitiesChart";
 import { PaymentStatusBarChart } from "../charts/PaymentStatusBarChart";
 import { BranchRegistrationsChart } from "../charts/BranchRegistrationsChart";
 import { 
   calculateTotals, 
-  transformModalitiesData, 
   transformPaymentStatusData, 
   transformBranchRegistrationsData 
 } from "../charts/dataTransformers";
@@ -104,9 +103,6 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
   console.log("Summary cards totals:", summaryCardsTotals);
 
   // Transform data for charts
-  const modalitiesData = transformModalitiesData(filteredData);
-  console.log("Modalities chart data:", modalitiesData);
-
   const paymentStatusData = transformPaymentStatusData(filteredData, PAYMENT_STATUS_COLORS);
   console.log("Payment status chart data:", paymentStatusData);
 
@@ -134,15 +130,6 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
         <div className="w-full">
           <BranchRegistrationsChart 
             data={branchRegistrationsData} 
-            chartColors={CHART_COLORS} 
-            chartConfig={CHART_CONFIG} 
-          />
-        </div>
-
-        {/* Popular Modalities Chart - Full width */}
-        <div className="w-full">
-          <ModalitiesChart 
-            data={modalitiesData} 
             chartColors={CHART_COLORS} 
             chartConfig={CHART_CONFIG} 
           />
