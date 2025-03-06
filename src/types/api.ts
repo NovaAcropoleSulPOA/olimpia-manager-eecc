@@ -1,3 +1,4 @@
+
 export interface AthleteModality {
   id: string;
   modalidade: string;
@@ -61,10 +62,16 @@ interface PontuacaoModalidade {
   media_pontuacao: number;
 }
 
+interface RegistroFilial {
+  filial_nome: string;
+  status_pagamento: string;
+  quantidade: number;
+}
+
 export interface BranchAnalytics {
   filial_id: string;
   filial: string;
-  evento_id: string; // Add the event ID field to properly handle filtering
+  evento_id: string;
   total_inscritos_geral: number;
   total_inscritos_modalidades: number;
   valor_total_pago: number;
@@ -75,4 +82,5 @@ export interface BranchAnalytics {
   ranking_filiais: RankingFilial[];
   atletas_por_categoria: CategoriaQuantidade[];
   media_pontuacao_por_modalidade: PontuacaoModalidade[];
+  registros_por_filial: RegistroFilial[];
 }

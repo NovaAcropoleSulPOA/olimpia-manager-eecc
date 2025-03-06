@@ -3,8 +3,13 @@ import { BranchAnalytics } from "@/types/api";
 import { SummaryCards } from "../charts/SummaryCards";
 import { ModalitiesChart } from "../charts/ModalitiesChart";
 import { PaymentStatusPieChart } from "../charts/PaymentStatusPieChart";
-import { CategoriesChart } from "../charts/CategoriesChart";
-import { calculateTotals, transformModalitiesData, transformPaymentStatusData, transformCategoriesData } from "../charts/dataTransformers";
+import { BranchRegistrationsChart } from "../charts/BranchRegistrationsChart";
+import { 
+  calculateTotals, 
+  transformModalitiesData, 
+  transformPaymentStatusData, 
+  transformBranchRegistrationsData 
+} from "../charts/dataTransformers";
 import { ChartConfig } from "@/components/ui/chart/types";
 import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "@/components/ui/card";
 import { EmptyChartMessage } from "../charts/EmptyChartMessage";
@@ -96,8 +101,8 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
   const paymentStatusData = transformPaymentStatusData(filteredData, PAYMENT_STATUS_COLORS);
   console.log("Payment status chart data:", paymentStatusData);
 
-  const categoriesData = transformCategoriesData(filteredData);
-  console.log("Categories chart data:", categoriesData);
+  const branchRegistrationsData = transformBranchRegistrationsData(filteredData);
+  console.log("Branch registrations chart data:", branchRegistrationsData);
 
   return (
     <div className="space-y-8">
@@ -133,24 +138,12 @@ export function StatisticsTab({ data, currentBranchId }: StatisticsTabProps) {
           description="Distribuição dos pagamentos por status"
         />
 
-        {/* Categories Chart */}
-        {categoriesData.length > 0 ? (
-          <CategoriesChart 
-            data={categoriesData} 
-            chartColors={CHART_COLORS} 
-            chartConfig={CHART_CONFIG} 
-          />
-        ) : (
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle>Categorias</CardTitle>
-              <CardDescription>Distribuição dos atletas por categoria</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <EmptyChartMessage message="Sem dados de categorias disponíveis" />
-            </CardContent>
-          </Card>
-        )}
+        {/* Branch Registrations Chart (Replacing Categories Chart) */}
+        <BranchRegistrationsChart 
+          data={branchRegistrationsData} 
+          chartColors={CHART_COLORS} 
+          chartConfig={CHART_CONFIG} 
+        />
       </div>
     </div>
   );

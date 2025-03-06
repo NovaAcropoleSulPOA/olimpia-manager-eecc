@@ -32,8 +32,17 @@ export function transformModalitiesData(filteredData: BranchAnalytics[]) {
     }).filter(Boolean); // Remove null items
   })
   .filter(item => item && item.name && item.count > 0)  // Only include items with actual values
-  .slice(0, 6)  // Limit to top 6
-  .sort((a, b) => b.count - a.count);  // Sort by count
+  .reduce((acc, curr) => {
+    const existing = acc.find(item => item.name === curr.name);
+    if (existing) {
+      existing.count += curr.count;
+    } else {
+      acc.push({ ...curr });
+    }
+    return acc;
+  }, [] as any[])
+  .sort((a, b) => b.count - a.count)
+  .slice(0, 6);  // Limit to top 6
 }
 
 export function transformPaymentStatusData(filteredData: BranchAnalytics[], paymentStatusColors: Record<string, string>) {
@@ -78,40 +87,27 @@ export function transformPaymentStatusData(filteredData: BranchAnalytics[], paym
   .filter(item => item.value > 0); // Only include items with values
 }
 
-export function transformCategoriesData(filteredData: BranchAnalytics[]) {
+export function transformBranchRegistrationsData(filteredData: BranchAnalytics[]) {
   // Early return if no data
   if (!filteredData || filteredData.length === 0) return [];
   
+  // Extract registros_por_filial from all branches and flatten
   return filteredData.flatMap(branch => {
-    // Check if atletas_por_categoria exists and is an array
-    if (!branch.atletas_por_categoria || !Array.isArray(branch.atletas_por_categoria)) {
-      console.warn('atletas_por_categoria is not an array:', branch.atletas_por_categoria);
+    if (!branch.registros_por_filial || !Array.isArray(branch.registros_por_filial)) {
+      console.warn('registros_por_filial is not an array:', branch.registros_por_filial);
       return [];
     }
     
-    return branch.atletas_por_categoria.map(item => {
+    return branch.registros_por_filial.map(item => {
       if (!item || typeof item !== 'object') {
-        console.warn('Invalid category item:', item);
+        console.warn('Invalid branch registration item:', item);
         return null;
       }
       return {
-        categoria: item.categoria || 'Desconhecida',
+        filial_nome: item.filial_nome || 'Desconhecida',
+        status_pagamento: item.status_pagamento || 'Desconhecido',
         quantidade: Number(item.quantidade) || 0
       };
     }).filter(Boolean); // Remove null items
-  })
-  .reduce((acc, curr) => {
-    if (!curr || !curr.categoria) return acc;
-    
-    const existing = acc.find(item => item.categoria === curr.categoria);
-    if (existing) {
-      existing.quantidade += curr.quantidade;
-    } else {
-      acc.push({ ...curr });
-    }
-    return acc;
-  }, [] as any[])
-  .sort((a, b) => b.quantidade - a.quantidade)
-  .slice(0, 6)
-  .filter(item => item.quantidade > 0); // Only include items with values
+  });
 }
