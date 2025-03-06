@@ -47,34 +47,58 @@ export function calculateTotals(data: BranchAnalytics[]) {
  * Correctly aggregates modalities by branch with accurate counts.
  */
 export function transformModalitiesData(data: BranchAnalytics[]) {
-  // First, collect all unique modalities across all branches
+  // Step 1: Collect all unique modalities and branch names first
   const modalityMap = new Map<string, {[branch: string]: number, total: number}>();
   
-  // Step 1: Collect all modalities and their counts per branch
+  // Get all filial names to ensure we have entries for all branches in each modality
+  const allBranchNames = data.map(branch => branch.filial);
+  
+  // Process each branch's data
   data.forEach(branchData => {
     const branchName = branchData.filial;
     
-    // Iterate through each popular modality for this branch
-    branchData.modalidades_populares.forEach(modalidade => {
-      const modalityName = modalidade.modalidade;
+    // Check if modalidades_populares exists and is in correct format
+    if (!branchData.modalidades_populares || !Array.isArray(branchData.modalidades_populares)) {
+      console.warn(`Missing or invalid modalidades_populares for branch ${branchName}`);
+      return;
+    }
+    
+    // Process each modality's data
+    branchData.modalidades_populares.forEach(modalityData => {
+      // Skip if the data structure is invalid
+      if (typeof modalityData !== 'object' || !modalityData.modalidade || typeof modalityData.total_inscritos !== 'number') {
+        console.warn(`Invalid modality data format in branch ${branchName}`, modalityData);
+        return;
+      }
+      
+      const modalityName = modalityData.modalidade;
+      const inscriptions = modalityData.total_inscritos;
       
       // Initialize this modality in our map if it doesn't exist
       if (!modalityMap.has(modalityName)) {
-        modalityMap.set(modalityName, { total: 0 });
+        const initialData = { total: 0 };
+        // Initialize with zero for all branches to ensure all branches appear in the chart
+        allBranchNames.forEach(branch => {
+          initialData[branch] = 0;
+        });
+        modalityMap.set(modalityName, initialData);
       }
       
       // Get the current data for this modality
-      const modalityData = modalityMap.get(modalityName)!;
+      const currentModalityData = modalityMap.get(modalityName)!;
       
-      // Add the count for this branch (use the actual count from the data)
-      modalityData[branchName] = modalidade.total_inscritos;
+      // Add the count for this branch (replace any existing value)
+      currentModalityData[branchName] = inscriptions;
       
       // Update the total count
-      modalityData.total += modalidade.total_inscritos;
+      currentModalityData.total = 0; // Reset to recalculate total
+      allBranchNames.forEach(branch => {
+        currentModalityData.total += (currentModalityData[branch] || 0);
+      });
     });
   });
   
-  // Step 2: Convert map to array format for the chart
+  // Convert map to array format for the chart
   const transformedData = Array.from(modalityMap.entries()).map(([modalityName, branchCounts]) => {
     return {
       name: modalityName,
@@ -82,7 +106,7 @@ export function transformModalitiesData(data: BranchAnalytics[]) {
     };
   });
   
-  // Step 3: Sort by total count (most popular first)
+  // Sort by total count (most popular first)
   return transformedData.sort((a, b) => b.total - a.total);
 }
 
