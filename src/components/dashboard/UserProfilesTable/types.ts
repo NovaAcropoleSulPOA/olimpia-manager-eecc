@@ -22,5 +22,5 @@ export interface UsersTableProps {
 export interface TablePaginationProps {
   currentPage: number;
   totalPages: number;
-  setCurrentPage: (page: number) => void;
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
 }

@@ -50,7 +50,7 @@ export const TablePagination = ({ currentPage, totalPages, setCurrentPage }: Tab
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
           />
         </PaginationItem>
@@ -73,7 +73,7 @@ export const TablePagination = ({ currentPage, totalPages, setCurrentPage }: Tab
 
         <PaginationItem>
           <PaginationNext
-            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
             className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
           />
         </PaginationItem>
