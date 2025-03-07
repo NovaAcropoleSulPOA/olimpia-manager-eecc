@@ -51,9 +51,9 @@ export function MainNavigation() {
 
   return (
     <SidebarProvider defaultOpen={!sidebarCollapsed}>
-      <div className="flex min-h-screen w-full"> {/* Removed pt-16 because body has padding-top now */}
+      <div className="flex min-h-screen w-full">
         <Sidebar 
-          className="bg-olimpics-green-primary text-white z-40" /* Removed mt-16 as the sidebar will be positioned correctly with CSS */
+          className="bg-olimpics-green-primary text-white z-40"
           collapsible={sidebarCollapsed ? "icon" : "none"}
           style={{
             "--sidebar-width": "240px",

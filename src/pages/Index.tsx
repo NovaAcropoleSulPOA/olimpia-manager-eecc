@@ -6,6 +6,8 @@ import LandingPage from './LandingPage';
 const Index = () => {
   const { user } = useAuth();
   
+  console.log('Index component - User auth state:', user ? 'Authenticated' : 'Not authenticated');
+  
   // If user is authenticated, navigate to their dashboard
   if (user) {
     console.log('User is authenticated, redirecting to /home');

@@ -16,7 +16,6 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
 import RejectedAccess from './pages/RejectedAccess';
-import LandingPage from './pages/LandingPage';
 import Scores from './pages/Scores';
 import Cronograma from './pages/Cronograma';
 import Administration from './pages/Administration';
@@ -39,41 +38,43 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <div className="flex flex-col min-h-screen">
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <div className="flex flex-col min-h-screen">
             <GlobalHeader />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/esqueci-senha" element={<ForgotPassword />} />
-              <Route path="/redefinir-senha" element={<ResetPassword />} />
-              <Route path="/verificar-email" element={<VerifyEmail />} />
-              <Route path="/acesso-negado" element={<RejectedAccess />} />
-              <Route path="/home" element={<Dashboard />} />
-              <Route path="/event-selection" element={<EventSelectionPage />} />
-              
-              {/* Authenticated routes with sidebar */}
-              <Route element={<MainNavigation />}>
-                <Route path="/athlete-profile" element={<Dashboard />} />
-                <Route path="/delegation-dashboard" element={<DelegationDashboard />} />
-                <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
-                <Route path="/scores" element={<Scores />} />
-                <Route path="/cronograma" element={<Cronograma />} />
-                <Route path="/administration" element={<Administration />} />
-                <Route path="/judge-dashboard" element={<JudgeDashboard />} />
-              </Route>
-            </Routes>
+            <div className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/esqueci-senha" element={<ForgotPassword />} />
+                <Route path="/redefinir-senha" element={<ResetPassword />} />
+                <Route path="/verificar-email" element={<VerifyEmail />} />
+                <Route path="/acesso-negado" element={<RejectedAccess />} />
+                <Route path="/home" element={<Dashboard />} />
+                <Route path="/event-selection" element={<EventSelectionPage />} />
+                
+                {/* Authenticated routes with sidebar */}
+                <Route element={<MainNavigation />}>
+                  <Route path="/athlete-profile" element={<Dashboard />} />
+                  <Route path="/delegation-dashboard" element={<DelegationDashboard />} />
+                  <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
+                  <Route path="/scores" element={<Scores />} />
+                  <Route path="/cronograma" element={<Cronograma />} />
+                  <Route path="/administration" element={<Administration />} />
+                  <Route path="/judge-dashboard" element={<JudgeDashboard />} />
+                </Route>
+              </Routes>
+            </div>
             <Footer />
-            <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+            <div className="md:hidden">
               <MobileNavigationLink />
             </div>
             <Toaster />
-          </AuthProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </div>
+          </div>
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 
