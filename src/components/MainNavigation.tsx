@@ -56,15 +56,19 @@ export function MainNavigation() {
         <Sidebar 
           className="bg-olimpics-green-primary text-white h-screen z-50"
           collapsible={sidebarCollapsed ? "icon" : "none"}
+          style={{
+            "--sidebar-width": "240px",
+            "--sidebar-width-icon": "70px",
+          } as React.CSSProperties}
         >
           <SidebarHeader className="relative p-6 border-b border-olimpics-green-secondary">
             <div className="flex items-center justify-between">
               <h2 className={`text-xl font-bold ${sidebarCollapsed ? 'hidden' : 'block'}`}>Menu</h2>
               <button 
                 onClick={toggleSidebar}
-                className="p-1 rounded-full hover:bg-olimpics-green-secondary/20 transition-colors text-white"
+                className="p-2 rounded-full hover:bg-olimpics-green-secondary/20 transition-colors text-white"
               >
-                {sidebarCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+                {sidebarCollapsed ? <ChevronRight className="h-6 w-6" /> : <ChevronLeft className="h-6 w-6" />}
               </button>
             </div>
             <SidebarTrigger className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden text-white hover:text-olimpics-green-secondary">
@@ -77,7 +81,7 @@ export function MainNavigation() {
           <SidebarFooter className="mt-auto border-t border-olimpics-green-secondary p-4">
             <SidebarMenu>
               <SidebarMenuItem>
-                <EventSwitcher userId={user.id} />
+                <EventSwitcher userId={user.id} collapsed={sidebarCollapsed} />
                 <SidebarMenuButton
                   onClick={handleLogout}
                   className="w-full rounded-lg p-4 flex items-center gap-3 
@@ -85,7 +89,7 @@ export function MainNavigation() {
                     transition-all duration-200 text-lg font-medium"
                   tooltip="Sair"
                 >
-                  <LogOut className="h-6 w-6 flex-shrink-0" />
+                  <LogOut className="h-7 w-7 flex-shrink-0" />
                   <span className={`whitespace-nowrap ${sidebarCollapsed ? 'hidden' : 'block'}`}>Sair</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>

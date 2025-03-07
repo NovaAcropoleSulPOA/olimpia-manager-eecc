@@ -25,7 +25,7 @@ export const MenuItems = ({ collapsed = false }) => {
     menuItems.push({
       path: "/athlete-profile",
       label: "Perfil",
-      icon: <User className="h-5 w-5 mr-2" />,
+      icon: <User className="h-7 w-7 mr-3" />,
       tooltip: "Perfil do Atleta"
     });
   }
@@ -34,7 +34,7 @@ export const MenuItems = ({ collapsed = false }) => {
   menuItems.push({
     path: "/cronograma",
     label: "Cronograma",
-    icon: <Calendar className="h-5 w-5 mr-2" />,
+    icon: <Calendar className="h-7 w-7 mr-3" />,
     tooltip: "Cronograma"
   });
   
@@ -42,7 +42,7 @@ export const MenuItems = ({ collapsed = false }) => {
   menuItems.push({
     path: "/scores",
     label: "Pontuações",
-    icon: <Medal className="h-5 w-5 mr-2" />,
+    icon: <Medal className="h-7 w-7 mr-3" />,
     tooltip: "Pontuações"
   });
   
@@ -51,7 +51,7 @@ export const MenuItems = ({ collapsed = false }) => {
     menuItems.push({
       path: "/organizer-dashboard",
       label: "Organizador",
-      icon: <Users className="h-5 w-5 mr-2" />,
+      icon: <Users className="h-7 w-7 mr-3" />,
       tooltip: "Organizador"
     });
   }
@@ -61,7 +61,7 @@ export const MenuItems = ({ collapsed = false }) => {
     menuItems.push({
       path: "/delegation-dashboard",
       label: "Delegação",
-      icon: <Users className="h-5 w-5 mr-2" />,
+      icon: <Users className="h-7 w-7 mr-3" />,
       tooltip: "Delegação"
     });
   }
@@ -71,7 +71,7 @@ export const MenuItems = ({ collapsed = false }) => {
     menuItems.push({
       path: "/judge-dashboard",
       label: "Juiz",
-      icon: <Gavel className="h-5 w-5 mr-2" />,
+      icon: <Gavel className="h-7 w-7 mr-3" />,
       tooltip: "Juiz"
     });
   }
@@ -81,7 +81,7 @@ export const MenuItems = ({ collapsed = false }) => {
     menuItems.push({
       path: "/administration",
       label: "Administração",
-      icon: <Settings2 className="h-5 w-5 mr-2" />,
+      icon: <Settings2 className="h-7 w-7 mr-3" />,
       tooltip: "Administração"
     });
   }
@@ -93,11 +93,12 @@ export const MenuItems = ({ collapsed = false }) => {
           <SidebarMenuButton 
             asChild 
             isActive={location.pathname === item.path}
-            tooltip={item.tooltip}
+            tooltip={collapsed ? item.tooltip : undefined}
+            className="p-3 text-base hover:bg-olimpics-green-secondary/20"
           >
             <Link to={item.path} className="w-full flex items-center text-base">
               {item.icon}
-              <span className={collapsed ? 'hidden' : 'block'}>{item.label}</span>
+              <span className={collapsed ? 'hidden' : 'block text-lg'}>{item.label}</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

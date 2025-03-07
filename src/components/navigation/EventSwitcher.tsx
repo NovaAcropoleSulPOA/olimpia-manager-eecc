@@ -12,9 +12,10 @@ import { SidebarMenuItem, SidebarMenuButton } from '../ui/sidebar';
 
 interface EventSwitcherProps {
   userId: string;
+  collapsed?: boolean;
 }
 
-export function EventSwitcher({ userId }: EventSwitcherProps) {
+export function EventSwitcher({ userId, collapsed = false }: EventSwitcherProps) {
   const { data: userEvents } = useQuery({
     queryKey: ['user-events', userId],
     queryFn: async () => {
@@ -56,10 +57,10 @@ export function EventSwitcher({ userId }: EventSwitcherProps) {
           className="w-full rounded-lg p-4 flex items-center gap-3 
             text-white hover:bg-olimpics-green-secondary/20 
             transition-all duration-200 text-lg font-medium mb-2"
-          tooltip="Trocar Evento"
+          tooltip={collapsed ? "Trocar Evento" : undefined}
         >
-          <ArrowLeftRight className="h-6 w-6 flex-shrink-0" />
-          <span className="whitespace-nowrap">Trocar Evento</span>
+          <ArrowLeftRight className="h-7 w-7 flex-shrink-0 mr-3" />
+          <span className={`whitespace-nowrap ${collapsed ? 'hidden' : 'block'}`}>Trocar Evento</span>
         </SidebarMenuButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

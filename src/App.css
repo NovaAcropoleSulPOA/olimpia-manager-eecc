@@ -38,8 +38,17 @@
   min-width: var(--sidebar-width-icon) !important;
 }
 
+/* Expand collapsed sidebar width */
+.group-data-\[collapsible=icon\]:w-\[--sidebar-width-icon\] {
+  width: var(--sidebar-width-icon) !important;
+}
+
 /* Remove extra space above the sidebar */
 .fixed.inset-y-0 {
   top: 0 !important;
 }
 
+/* Adjust icon display in collapsed state */
+.group-data-\[collapsible=icon\]:p-0 {
+  padding: 0.5rem !important;
+}
