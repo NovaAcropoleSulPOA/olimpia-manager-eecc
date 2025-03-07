@@ -1,4 +1,3 @@
-
 import { supabase } from '../supabase';
 
 export const fetchUserProfiles = async (eventId: string | null) => {
@@ -9,8 +8,6 @@ export const fetchUserProfiles = async (eventId: string | null) => {
     return [];
   }
 
-  // Modified query to fetch ALL users with profiles in the current event
-  // without any filtering by branch or role
   const { data: users, error: usersError } = await supabase
     .from('usuarios')
     .select(`
@@ -53,7 +50,7 @@ export const fetchUserProfiles = async (eventId: string | null) => {
     }))
   }));
 
-  console.log('Formatted users:', formattedUsers);
+  console.log('Formatted users count:', formattedUsers.length);
   return formattedUsers;
 };
 
@@ -71,7 +68,6 @@ export const updateUserProfiles = async (userId: string, profileIds: number[]): 
   });
 
   try {
-    // Make a direct RPC call to assign_user_profiles with the correct parameters
     const { error, data } = await supabase
       .rpc('assign_user_profiles', {
         p_user_id: userId,
@@ -86,7 +82,6 @@ export const updateUserProfiles = async (userId: string, profileIds: number[]): 
 
     console.log('Profile update successful, response:', data);
 
-    // Verify the profiles were updated
     const { data: updatedProfiles, error: verifyError } = await supabase
       .from('papeis_usuarios')
       .select('perfil_id')
@@ -98,7 +93,6 @@ export const updateUserProfiles = async (userId: string, profileIds: number[]): 
     } else {
       console.log('Profile verification - Current profiles:', updatedProfiles);
       
-      // Check if all profiles were successfully assigned
       const updatedProfileIds = updatedProfiles.map((p: any) => p.perfil_id);
       const allProfilesUpdated = profileIds.every(id => updatedProfileIds.includes(id)) && 
                                profileIds.length === updatedProfileIds.length;

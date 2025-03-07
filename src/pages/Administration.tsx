@@ -6,6 +6,8 @@ import { fetchUserProfiles, fetchBranches } from '@/lib/api';
 import { UserProfilesTable } from '@/components/dashboard/UserProfilesTable';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Users } from 'lucide-react';
 
 export default function Administration() {
   const navigate = useNavigate();
@@ -64,6 +66,8 @@ export default function Administration() {
     return null;
   }
 
+  const totalUsers = userProfiles?.length || 0;
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center mb-8">
@@ -72,16 +76,28 @@ export default function Administration() {
         </h1>
       </div>
 
-      <div className="mt-4">
-        <h2 className="text-2xl font-bold mb-4 text-olimpics-text">
-          Gerenciamento de Perfis de Usuário
-        </h2>
-        <UserProfilesTable
-          data={userProfiles || []}
-          branches={branches || []}
-          isLoading={isLoadingProfiles}
-        />
-      </div>
+      <Card className="border-olimpics-green-primary/20">
+        <CardHeader className="bg-olimpics-green-primary/5">
+          <div className="flex items-center gap-3">
+            <Users className="h-6 w-6 text-olimpics-green-primary" />
+            <div>
+              <CardTitle className="text-olimpics-green-primary text-xl">
+                Gerenciamento de Perfis de Usuário
+              </CardTitle>
+              <CardDescription className="mt-1.5">
+                Total de usuários registrados: {totalUsers}
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <UserProfilesTable
+            data={userProfiles || []}
+            branches={branches || []}
+            isLoading={isLoadingProfiles}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }
