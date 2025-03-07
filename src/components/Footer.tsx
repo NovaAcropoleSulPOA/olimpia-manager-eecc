@@ -67,7 +67,8 @@ const Footer = () => {
     item.roles.some(roleCode => userRoles.some(userRole => userRole.codigo === roleCode))
   );
 
-  const isEventSelectionPage = location.pathname === '/' || location.pathname === '/event-selection';
+  // Only hide the footer on the event selection page
+  const isEventSelectionPage = location.pathname === '/event-selection';
 
   if (isEventSelectionPage) {
     return null;
@@ -84,16 +85,15 @@ const Footer = () => {
           onLogout={handleLogout}
         />
       )}
-      {!isMobile && (
-        <footer className="w-full bg-white/80 backdrop-blur-sm border-t py-4 px-4 mt-auto">
-          <div className="container mx-auto flex justify-between items-center">
-            <span className="text-xs text-gray-500">
-              Desenvolvido por: Olimar Teixeira Borges
-            </span>
-            <SocialLinks />
-          </div>
-        </footer>
-      )}
+      {/* Always render the standard footer, even on the index page */}
+      <footer className="w-full bg-white/80 backdrop-blur-sm border-t py-4 px-4 mt-auto">
+        <div className="container mx-auto flex justify-between items-center">
+          <span className="text-xs text-gray-500">
+            Desenvolvido por: Olimar Teixeira Borges
+          </span>
+          <SocialLinks />
+        </div>
+      </footer>
     </>
   );
 };
