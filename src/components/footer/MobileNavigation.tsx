@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigation } from "@/hooks/useNavigation";
 
 interface MobileNavigationProps {
   navigationItems: NavigationItem[];
@@ -84,20 +85,18 @@ export const MobileNavigationLink = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { roles } = useNavigation();
   
   // If user is not logged in, don't render navigation
   if (!user) {
     return null;
   }
   
-  // Check if user has the Judge role
-  const isJudge = user?.papeis?.some(role => role.codigo === 'JUZ') || false;
-  
-  // Define navigation items based on user roles
+  // Define navigation items to match desktop menu order
   const navigationItems = [];
   
-  // Add navigation items based on user roles
-  if (user.papeis?.some(role => role.codigo === 'ATL')) {
+  // Check for each role type and add corresponding items in same order as desktop
+  if (roles.isAthlete) {
     navigationItems.push({
       label: "Perfil",
       path: "/athlete-profile",
@@ -105,7 +104,22 @@ export const MobileNavigationLink = () => {
     });
   }
   
-  if (user.papeis?.some(role => role.codigo === 'ORE')) {
+  // Cronograma - available for all roles
+  navigationItems.push({
+    label: "Cronograma",
+    path: "/cronograma",
+    icon: function CalendarIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>; }
+  });
+  
+  // Pontuações - available for all roles
+  navigationItems.push({
+    label: "Pontuações",
+    path: "/scores",
+    icon: function MedalIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.11"/><path d="M15 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg>; }
+  });
+  
+  // Role-specific items
+  if (roles.isOrganizer) {
     navigationItems.push({
       label: "Organizador",
       path: "/organizer-dashboard",
@@ -113,7 +127,7 @@ export const MobileNavigationLink = () => {
     });
   }
   
-  if (user.papeis?.some(role => role.codigo === 'RDD')) {
+  if (roles.isDelegationRep) {
     navigationItems.push({
       label: "Delegação",
       path: "/delegation-dashboard",
@@ -121,7 +135,7 @@ export const MobileNavigationLink = () => {
     });
   }
   
-  if (isJudge) {
+  if (roles.isJudge) {
     navigationItems.push({
       label: "Juiz",
       path: "/judge-dashboard",
@@ -129,18 +143,13 @@ export const MobileNavigationLink = () => {
     });
   }
   
-  // Add common items for all authenticated users
-  navigationItems.push({
-    label: "Cronograma",
-    path: "/cronograma",
-    icon: function CalendarIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>; }
-  });
-  
-  navigationItems.push({
-    label: "Pontuações",
-    path: "/scores",
-    icon: function MedalIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.11"/><path d="M15 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg>; }
-  });
+  if (roles.isAdmin) {
+    navigationItems.push({
+      label: "Administração",
+      path: "/administration",
+      icon: function SettingsIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>; }
+    });
+  }
   
   // Default props
   const defaultProps: MobileNavigationProps = {

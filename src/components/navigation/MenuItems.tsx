@@ -9,7 +9,7 @@ export const MenuItems = ({ collapsed = false }) => {
   const location = useLocation();
   const { roles, user } = useNavigation();
 
-  // Check if the user has the 'JUZ' (Judge) role
+  // Check for specific roles
   const isJudge = user?.papeis?.some(role => role.codigo === 'JUZ') || false;
   const isAdmin = roles.isAdmin;
   const isOrganizer = roles.isOrganizer;
@@ -18,9 +18,9 @@ export const MenuItems = ({ collapsed = false }) => {
 
   const menuItems = [];
   
-  // Add items in the specified order
+  // Add items in the same order as the mobile menu
   
-  // 1. Perfil (Athlete Profile)
+  // 1. Perfil (Athlete Profile) - only for athletes
   if (isAthlete) {
     menuItems.push({
       path: "/athlete-profile",
@@ -30,7 +30,7 @@ export const MenuItems = ({ collapsed = false }) => {
     });
   }
   
-  // 2. Cronograma (Schedule)
+  // 2. Cronograma (Schedule) - for all roles
   menuItems.push({
     path: "/cronograma",
     label: "Cronograma",
@@ -38,7 +38,7 @@ export const MenuItems = ({ collapsed = false }) => {
     tooltip: "Cronograma"
   });
   
-  // 3. Pontuações (Scores)
+  // 3. Pontuações (Scores) - for all roles
   menuItems.push({
     path: "/scores",
     label: "Pontuações",
