@@ -4,23 +4,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { updateUserProfiles, swapUserProfile } from "@/lib/api";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-
-interface UserProfileModalProps {
-  user: any;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
 
 interface Profile {
   id: number;
@@ -38,7 +21,7 @@ interface UserProfile {
 
 const EXCLUSIVE_PROFILES = ['Atleta', 'Público Geral'];
 
-export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalProps) => {
+export const useUserProfiles = (user: any, open: boolean, onOpenChange: (open: boolean) => void) => {
   const queryClient = useQueryClient();
   const [selectedProfiles, setSelectedProfiles] = useState<number[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -201,71 +184,13 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Gerenciar Perfis - {user?.nome_completo}</DialogTitle>
-          <DialogDescription>
-            Selecione os perfis que deseja atribuir ao usuário.
-          </DialogDescription>
-        </DialogHeader>
-        
-        {isLoading ? (
-          <div className="flex justify-center py-4">
-            <Loader2 className="h-6 w-6 animate-spin" />
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            
-            <div className="space-y-2">
-              {filteredProfiles?.map((profile) => (
-                <div key={profile.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`profile-${profile.id}`}
-                    checked={selectedProfiles.includes(profile.id)}
-                    onCheckedChange={() => handleProfileToggle(profile.id)}
-                  />
-                  <label
-                    htmlFor={`profile-${profile.id}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {profile.nome}
-                  </label>
-                </div>
-              ))}
-            </div>
-            
-            <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={isUpdating}
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleSave}
-                disabled={isUpdating || selectedProfiles.length === 0}
-              >
-                {isUpdating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  'Salvar'
-                )}
-              </Button>
-            </div>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
+  return {
+    selectedProfiles,
+    filteredProfiles,
+    isLoading,
+    isUpdating,
+    error,
+    handleProfileToggle,
+    handleSave
+  };
 };
