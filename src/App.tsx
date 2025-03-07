@@ -22,8 +22,8 @@ import Administration from './pages/Administration';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './components/providers/AuthProvider';
 import { MobileNavigationLink } from './components/footer/MobileNavigation';
-import Footer from './components/Footer';
 import { GlobalHeader } from './components/GlobalHeader';
+import { Footer } from './components/Footer';
 
 const queryClient = new QueryClient({
   defaultOptions: {

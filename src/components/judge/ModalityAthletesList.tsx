@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
 interface ModalityAthletesListProps {
@@ -19,16 +19,6 @@ interface ModalityAthletesListProps {
   eventId: string | null;
   onAthleteSelect: (athleteId: string) => void;
   selectedAthleteId: string | null;
-}
-
-interface Athlete {
-  atleta_id: string;
-  atleta_nome: string;
-  atleta_telefone?: string;
-  atleta_email?: string;
-  tipo_documento: string;
-  numero_documento: string;
-  numero_identificador?: string;
 }
 
 export function ModalityAthletesList({ 
@@ -50,6 +40,8 @@ export function ModalityAthletesList({
         .select(`
           atleta_id,
           atleta_nome,
+          atleta_telefone: telefone,
+          atleta_email: email,
           tipo_documento,
           numero_documento,
           numero_identificador
@@ -68,7 +60,7 @@ export function ModalityAthletesList({
         return [];
       }
       
-      return data as Athlete[];
+      return data;
     },
     enabled: !!eventId && !!modalityId,
   });

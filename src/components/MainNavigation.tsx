@@ -54,7 +54,7 @@ export function MainNavigation() {
             </SidebarTrigger>
           </SidebarHeader>
           <SidebarContent>
-            <MenuItems />
+            <MenuItems {...roles} />
           </SidebarContent>
           <SidebarFooter className="mt-auto border-t border-olimpics-green-secondary p-4">
             <SidebarMenu>
