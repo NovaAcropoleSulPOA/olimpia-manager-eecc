@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { updateUserProfiles } from "@/lib/api";
+import { updateUserProfiles, swapUserProfile } from "@/lib/api";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -139,18 +139,56 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
     setError(null);
     
     try {
-      // Log selected profiles for debugging
-      console.log('Saving profiles:', {
-        userId: user.id,
-        eventId: currentEventId,
-        selectedProfiles
-      });
+      // Check if we're swapping exclusive profiles
+      const isSwappingExclusiveProfile = 
+        currentExclusiveProfile && 
+        !selectedProfiles.includes(currentExclusiveProfile.perfil_id);
       
-      await updateUserProfiles(user.id, selectedProfiles);
+      // If we're swapping exclusive profiles, we need to find the new exclusive profile
+      if (isSwappingExclusiveProfile && availableProfiles) {
+        const newExclusiveProfileId = selectedProfiles.find(id => {
+          const profileName = availableProfiles.find(p => p.id === id)?.nome;
+          return profileName && EXCLUSIVE_PROFILES.includes(profileName);
+        });
+        
+        if (newExclusiveProfileId && currentExclusiveProfile) {
+          console.log('Swapping exclusive profiles:', {
+            from: currentExclusiveProfile.perfil_id,
+            to: newExclusiveProfileId
+          });
+          
+          await swapUserProfile(
+            user.id, 
+            currentEventId!, 
+            newExclusiveProfileId, 
+            currentExclusiveProfile.perfil_id
+          );
+          
+          // Remove both old and new profile IDs from the selected profiles
+          // as they'll be handled by the swap function
+          const remainingProfiles = selectedProfiles.filter(
+            id => id !== currentExclusiveProfile.perfil_id && id !== newExclusiveProfileId
+          );
+          
+          // If there are remaining profiles, update them
+          if (remainingProfiles.length > 0) {
+            await updateUserProfiles(user.id, selectedProfiles);
+          }
+        } else {
+          // Regular update if no new exclusive profile is found
+          await updateUserProfiles(user.id, selectedProfiles);
+        }
+      } else {
+        // Regular update for non-exclusive profile changes
+        await updateUserProfiles(user.id, selectedProfiles);
+      }
       
       // Invalidate both queries to ensure fresh data
       await queryClient.invalidateQueries({ queryKey: ['user-profiles'] });
       await queryClient.invalidateQueries({ queryKey: ['user-profiles', user?.id, currentEventId] });
+      
+      // Dispatch custom event to notify that profiles have been updated
+      window.dispatchEvent(new CustomEvent('profile-updated'));
       
       toast.success("Perfis atualizados com sucesso!");
       onOpenChange(false);
