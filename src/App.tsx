@@ -49,7 +49,7 @@ function App() {
               <Route path="/redefinir-senha" element={<ResetPassword />} />
               <Route path="/verificar-email" element={<VerifyEmail />} />
               <Route path="/acesso-negado" element={<RejectedAccess />} />
-              <Route path="/home" element={<LandingPage />} />
+              <Route path="/home" element={<Dashboard />} />
               <Route path="/event-selection" element={<EventSelectionPage />} />
               
               {/* Authenticated routes with sidebar */}
