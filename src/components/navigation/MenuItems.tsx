@@ -101,14 +101,7 @@ export const MenuItems = () => {
         </>
       )}
 
-      {!user && (
-        <Link to="/login">
-          <Button variant="default" className="flex items-center gap-1">
-            <User className="h-4 w-4 mr-1" />
-            <span>Entrar</span>
-          </Button>
-        </Link>
-      )}
+      {/* Removed the login button that was here */}
     </div>
   );
 };
