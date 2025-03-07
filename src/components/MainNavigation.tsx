@@ -53,7 +53,10 @@ export function MainNavigation() {
   return (
     <SidebarProvider defaultOpen={!sidebarCollapsed}>
       <div className="flex flex-1 w-full">
-        <Sidebar className="bg-olimpics-green-primary text-white h-screen z-50">
+        <Sidebar 
+          className="bg-olimpics-green-primary text-white h-screen z-50"
+          collapsible={sidebarCollapsed ? "icon" : "none"}
+        >
           <SidebarHeader className="relative p-6 border-b border-olimpics-green-secondary">
             <div className="flex items-center justify-between">
               <h2 className={`text-xl font-bold ${sidebarCollapsed ? 'hidden' : 'block'}`}>Menu</h2>

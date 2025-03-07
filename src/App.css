@@ -32,7 +32,14 @@
   top: 0 !important;
 }
 
+/* Fix sidebar rail and content positioning */
+[data-collapsible="icon"] {
+  width: var(--sidebar-width-icon) !important;
+  min-width: var(--sidebar-width-icon) !important;
+}
+
 /* Remove extra space above the sidebar */
 .fixed.inset-y-0 {
   top: 0 !important;
 }
+
