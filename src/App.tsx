@@ -1,71 +1,74 @@
 
-import { BrowserRouter as Router } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './components/providers/AuthProvider';
-import { Toaster } from './components/ui/sonner';
-import { GlobalHeader } from './components/GlobalHeader';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from "@/components/ui/toaster";
 import './App.css';
-import { Routes, Route } from 'react-router-dom';
+
+// Import pages
+import Index from './pages/Index';
 import Login from './pages/Login';
-import { MainNavigation } from './components/MainNavigation';
-import LandingPage from './pages/LandingPage';
-import Footer from './components/Footer';
-import OrganizerDashboard from './components/OrganizerDashboard';
-import DelegationDashboard from './components/DelegationDashboard';
-import AthleteProfilePage from './components/AthleteProfilePage';
-import AthleteRegistrations from './components/AthleteRegistrations';
+import Dashboard from './pages/Dashboard';
+import JudgeDashboard from './pages/JudgeDashboard';
+import EventSelectionPage from './pages/EventSelectionPage';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
+import RejectedAccess from './pages/RejectedAccess';
+import LandingPage from './pages/LandingPage';
+import Scores from './pages/Scores';
 import Cronograma from './pages/Cronograma';
 import Administration from './pages/Administration';
-import EventSelectionPage from './pages/EventSelectionPage';
-import WhatsAppButton from './components/WhatsAppButton';
-import Scores from './pages/Scores';
-import React from 'react';
+
+// Import providers and components
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from './components/providers/AuthProvider';
+import { MobileNavigationLink } from './components/footer/MobileNavigation';
+import { GlobalHeader } from './components/GlobalHeader';
+import { Footer } from './components/Footer';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      staleTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
     },
   },
 });
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <AuthProvider>
-          <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col min-h-screen">
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
             <GlobalHeader />
-            <div className="flex-1 flex flex-col mt-16">
+            <div className="flex-1">
               <Routes>
-                <Route path="/" element={<LandingPage />} />
+                <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/esqueci-senha" element={<ForgotPassword />} />
+                <Route path="/redefinir-senha" element={<ResetPassword />} />
+                <Route path="/verificar-email" element={<VerifyEmail />} />
+                <Route path="/acesso-negado" element={<RejectedAccess />} />
+                <Route path="/home" element={<LandingPage />} />
                 <Route path="/event-selection" element={<EventSelectionPage />} />
-                <Route element={<MainNavigation />}>
-                  <Route path="/athlete-profile" element={<AthleteProfilePage />} />
-                  <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
-                  <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
-                  <Route path="/delegation-dashboard" element={<DelegationDashboard />} />
-                  <Route path="/cronograma" element={<Cronograma />} />
-                  <Route path="/administration" element={<Administration />} />
-                  <Route path="/scores" element={<Scores />} />
-                </Route>
+                <Route path="/delegation-dashboard" element={<Dashboard />} />
+                <Route path="/organizer-dashboard" element={<Dashboard />} />
+                <Route path="/athlete-profile" element={<Index />} />
+                <Route path="/scores" element={<Scores />} />
+                <Route path="/cronograma" element={<Cronograma />} />
+                <Route path="/administration" element={<Administration />} />
+                <Route path="/judge-dashboard" element={<JudgeDashboard />} />
               </Routes>
             </div>
             <Footer />
-            <WhatsAppButton />
+            <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+              <MobileNavigationLink />
+            </div>
             <Toaster />
-          </div>
-        </AuthProvider>
-      </Router>
-    </QueryClientProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </div>
   );
 }
 

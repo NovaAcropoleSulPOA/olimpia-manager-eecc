@@ -1,110 +1,114 @@
 
-import { User, BarChart3, ClipboardList, Users, Calendar, Settings2, Medal } from 'lucide-react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from '../ui/sidebar';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigation } from '@/hooks/useNavigation';
+import { Button } from '@/components/ui/button';
+import { LogOut, User, Users, Calendar, Medal, Gavel } from 'lucide-react';
 
-interface MenuItemsProps {
-  isOrganizer: boolean;
-  isAthlete: boolean;
-  isDelegationRep: boolean;
-  isAdmin: boolean;
-}
-
-export function MenuItems({ isOrganizer, isAthlete, isDelegationRep, isAdmin }: MenuItemsProps) {
+export const MenuItems = () => {
+  const { signOut } = useAuth();
   const location = useLocation();
+  const { roles, user } = useNavigation();
 
-  // Always include base menu items for all authenticated users
-  const menuItems = [
-    {
-      title: "Perfil",
-      icon: User,
-      path: "/athlete-profile"
-    },
-    {
-      title: "Cronograma",
-      icon: Calendar,
-      path: "/cronograma"
+  // Check if the user has the 'JUZ' (Judge) role
+  const isJudge = user?.papeis?.some(role => role.codigo === 'JUZ') || false;
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
     }
-  ];
-
-  // Add role-specific menu items
-  if (isAthlete) {
-    menuItems.push(
-      {
-        title: "Minhas Pontuações",
-        icon: Medal,
-        path: "/scores"
-      },
-      {
-        title: "Minhas Inscrições",
-        icon: ClipboardList,
-        path: "/athlete-registrations"
-      }
-    );
-  }
-
-  if (isOrganizer) {
-    menuItems.push({
-      title: "Organizador(a)",
-      icon: BarChart3,
-      path: "/organizer-dashboard"
-    });
-  }
-
-  if (isDelegationRep) {
-    menuItems.push({
-      title: "Delegação",
-      icon: Users,
-      path: "/delegation-dashboard"
-    });
-  }
-
-  if (isAdmin) {
-    menuItems.push({
-      title: "Administração",
-      icon: Settings2,
-      path: "/administration"
-    });
-  }
+  };
 
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel className="text-center px-4 py-2 text-sm font-medium uppercase tracking-wider text-white/70">
-        Navegação
-      </SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu className="px-3">
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                isActive={location.pathname === item.path}
-                tooltip={item.title}
-                className={`
-                  w-full rounded-lg transition-all duration-200
-                  hover:bg-olimpics-green-secondary
-                  ${location.pathname === item.path 
-                    ? 'bg-olimpics-green-secondary shadow-lg' 
-                    : 'hover:shadow-md'
-                  }
-                `}
+    <div className="flex gap-1 md:gap-2 items-center">
+      {user && (
+        <>
+          {roles.isAthlete && (
+            <Link to="/athlete-profile">
+              <Button
+                variant={location.pathname === '/athlete-profile' ? 'default' : 'ghost'}
+                className="flex gap-1 items-center"
               >
-                <Link to={item.path} className="flex items-center gap-3 p-3">
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
-                  <span className="font-medium whitespace-nowrap">{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+                <User className="h-4 w-4 mr-1" />
+                <span className="hidden md:inline">Perfil</span>
+              </Button>
+            </Link>
+          )}
+
+          {roles.isOrganizer && (
+            <Link to="/organizer-dashboard">
+              <Button
+                variant={location.pathname === '/organizer-dashboard' ? 'default' : 'ghost'}
+                className="flex gap-1 items-center"
+              >
+                <Users className="h-4 w-4 mr-1" />
+                <span className="hidden md:inline">Organizador</span>
+              </Button>
+            </Link>
+          )}
+
+          {roles.isDelegationRep && (
+            <Link to="/delegation-dashboard">
+              <Button
+                variant={location.pathname === '/delegation-dashboard' ? 'default' : 'ghost'}
+                className="flex gap-1 items-center"
+              >
+                <Users className="h-4 w-4 mr-1" />
+                <span className="hidden md:inline">Delegação</span>
+              </Button>
+            </Link>
+          )}
+
+          {isJudge && (
+            <Link to="/judge-dashboard">
+              <Button
+                variant={location.pathname === '/judge-dashboard' ? 'default' : 'ghost'}
+                className="flex gap-1 items-center"
+              >
+                <Gavel className="h-4 w-4 mr-1" />
+                <span className="hidden md:inline">Juiz</span>
+              </Button>
+            </Link>
+          )}
+
+          <Link to="/cronograma">
+            <Button
+              variant={location.pathname === '/cronograma' ? 'default' : 'ghost'}
+              className="flex gap-1 items-center"
+            >
+              <Calendar className="h-4 w-4 mr-1" />
+              <span className="hidden md:inline">Cronograma</span>
+            </Button>
+          </Link>
+
+          <Link to="/scores">
+            <Button
+              variant={location.pathname === '/scores' ? 'default' : 'ghost'}
+              className="flex gap-1 items-center"
+            >
+              <Medal className="h-4 w-4 mr-1" />
+              <span className="hidden md:inline">Pontuações</span>
+            </Button>
+          </Link>
+
+          <Button variant="ghost" onClick={handleSignOut} className="flex items-center gap-1">
+            <LogOut className="h-4 w-4 mr-1" />
+            <span className="hidden md:inline">Sair</span>
+          </Button>
+        </>
+      )}
+
+      {!user && (
+        <Link to="/login">
+          <Button variant="default" className="flex items-center gap-1">
+            <User className="h-4 w-4 mr-1" />
+            <span>Entrar</span>
+          </Button>
+        </Link>
+      )}
+    </div>
   );
-}
+};
