@@ -1,6 +1,6 @@
 
 import { ArrowLeftRight, LogOut } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { NavigationItem } from "./navigation-items";
 import { cn } from "@/lib/utils";
 import {
@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MobileNavigationProps {
   navigationItems: NavigationItem[];
@@ -78,4 +79,38 @@ const MobileNavigation = ({
   );
 };
 
+// Create a proper MobileNavigationLink component for backward compatibility
+const MobileNavigationLink = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // If user is not logged in, don't render navigation
+  if (!user) {
+    return null;
+  }
+  
+  // Default empty props to avoid TypeScript errors
+  const defaultProps = {
+    navigationItems: [],
+    currentPath: location.pathname,
+    userEvents: [],
+    onEventSwitch: (eventId: string) => {
+      localStorage.setItem('currentEventId', eventId);
+      window.location.reload();
+    },
+    onLogout: async () => {
+      try {
+        await signOut();
+        navigate('/');
+      } catch (error) {
+        console.error('Error during logout:', error);
+      }
+    }
+  };
+  
+  return <MobileNavigation {...defaultProps} />;
+};
+
 export default MobileNavigation;
+export { MobileNavigationLink };
