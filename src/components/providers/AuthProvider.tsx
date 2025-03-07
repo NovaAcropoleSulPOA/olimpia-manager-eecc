@@ -21,6 +21,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     console.log('Setting up authentication state...');
+    console.log('Current location:', location.pathname);
+    console.log('Public routes:', PUBLIC_ROUTES);
     let mounted = true;
 
     const setupAuth = async () => {
@@ -30,13 +32,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!session?.user && !PUBLIC_ROUTES.includes(location.pathname as PublicRoute) && 
             location.pathname !== '/reset-password') {
+          console.log('No active session and not on a public route, redirecting to /')
           navigate('/', { replace: true });
           return;
         }
 
         if (session?.user) {
+          console.log('User session found, fetching profile for user ID:', session.user.id);
           const userProfile = await fetchUserProfile(session.user.id);
           if (mounted) {
+            console.log('Setting user with profile data:', userProfile);
             setUser({ ...session.user, ...userProfile });
           }
         }
@@ -47,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (event === 'SIGNED_OUT') {
               if (mounted) {
+                console.log('User signed out, clearing state');
                 setUser(null);
                 localStorage.removeItem('currentEventId');
                 navigate('/', { replace: true });
@@ -56,8 +62,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (session?.user) {
               try {
+                console.log('User session updated, fetching profile');
                 const userProfile = await fetchUserProfile(session.user.id);
                 if (mounted) {
+                  console.log('Setting updated user with profile data');
                   setUser({ ...session.user, ...userProfile });
                 }
               } catch (error) {
@@ -70,8 +78,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             } else {
               if (mounted) {
+                console.log('No user session after auth state change');
                 setUser(null);
                 if (!PUBLIC_ROUTES.includes(location.pathname as PublicRoute)) {
+                  console.log('Not on a public route, redirecting to /');
                   navigate('/', { replace: true });
                 }
               }
@@ -92,6 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } finally {
         if (mounted) {
+          console.log('Auth setup complete, setting loading to false');
           setLoading(false);
         }
       }
@@ -104,6 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [navigate, location.pathname]);
 
   if (loading) {
+    console.log('Auth is still loading, showing loading state');
     return (
       <div className="flex flex-col items-center justify-center min-h-screen space-y-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olimpics-green-primary" />
@@ -112,6 +124,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
+  console.log('Auth provider rendering with user:', user ? 'Logged in' : 'Not logged in');
+  
   return (
     <AuthContext.Provider value={{ 
       user, 

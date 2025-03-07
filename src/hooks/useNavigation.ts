@@ -2,7 +2,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import { UserRole } from '@/types/auth';
 
 interface UserRoles {
   isOrganizer: boolean;
@@ -33,21 +32,23 @@ export const useNavigation = () => {
   };
 
   useEffect(() => {
-    if (location.pathname === '/') {
-      console.log('MainNavigation - Initial navigation based on roles');
+    // Only run if we're at the home page (not the root index page)
+    if (user && location.pathname === '/home') {
+      console.log('Navigation - Redirecting based on roles from /home path');
+      
       if (roles.isAthlete || roles.isPublicGeral) {
-        navigate('/athlete-profile');
+        navigate('/athlete-profile', { replace: true });
       } else if (roles.isOrganizer) {
-        navigate('/organizer-dashboard');
+        navigate('/organizer-dashboard', { replace: true });
       } else if (roles.isDelegationRep) {
-        navigate('/delegation-dashboard');
+        navigate('/delegation-dashboard', { replace: true });
       } else if (roles.isAdmin) {
-        navigate('/administration');
+        navigate('/administration', { replace: true });
       } else if (roles.isJudge) {
-        navigate('/judge-dashboard');
+        navigate('/judge-dashboard', { replace: true });
       }
     }
-  }, [roles, location.pathname, navigate]);
+  }, [roles, location.pathname, navigate, user]);
 
   return {
     user,
