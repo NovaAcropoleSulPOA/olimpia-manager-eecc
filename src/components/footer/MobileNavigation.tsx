@@ -90,9 +90,61 @@ export const MobileNavigationLink = () => {
     return null;
   }
   
-  // Default navigation items with empty array (will be handled by the parent component)
+  // Check if user has the Judge role
+  const isJudge = user?.papeis?.some(role => role.codigo === 'JUZ') || false;
+  
+  // Define navigation items based on user roles
+  const navigationItems = [];
+  
+  // Add navigation items based on user roles
+  if (user.papeis?.some(role => role.codigo === 'ATL')) {
+    navigationItems.push({
+      label: "Perfil",
+      path: "/athlete-profile",
+      icon: function UserIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>; }
+    });
+  }
+  
+  if (user.papeis?.some(role => role.codigo === 'ORE')) {
+    navigationItems.push({
+      label: "Organizador",
+      path: "/organizer-dashboard",
+      icon: function UsersIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>; }
+    });
+  }
+  
+  if (user.papeis?.some(role => role.codigo === 'RDD')) {
+    navigationItems.push({
+      label: "Delegação",
+      path: "/delegation-dashboard",
+      icon: function UsersIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>; }
+    });
+  }
+  
+  if (isJudge) {
+    navigationItems.push({
+      label: "Juiz",
+      path: "/judge-dashboard",
+      icon: function GavelIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m14 13-7.5 7.5c-.83.83-2.17.83-3 0 0 0 0 0 0 0a2.12 2.12 0 0 1 0-3L11 10"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/></svg>; }
+    });
+  }
+  
+  // Add common items for all authenticated users
+  navigationItems.push({
+    label: "Cronograma",
+    path: "/cronograma",
+    icon: function CalendarIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>; }
+  });
+  
+  navigationItems.push({
+    label: "Pontuações",
+    path: "/scores",
+    icon: function MedalIcon(props: any) { return <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.21 13.89 7 23l5-3 5 3-1.21-9.11"/><path d="M15 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"/></svg>; }
+  });
+  
+  // Default props
   const defaultProps: MobileNavigationProps = {
-    navigationItems: [],
+    navigationItems: navigationItems,
     currentPath: location.pathname,
     userEvents: [],
     onEventSwitch: (eventId: string) => {

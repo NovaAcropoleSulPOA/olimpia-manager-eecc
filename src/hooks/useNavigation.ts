@@ -10,6 +10,7 @@ interface UserRoles {
   isDelegationRep: boolean;
   isPublicGeral: boolean;
   isAdmin: boolean;
+  isJudge: boolean;
 }
 
 export const useNavigation = () => {
@@ -27,7 +28,8 @@ export const useNavigation = () => {
     isAthlete: userRoleCodes.includes('ATL'),
     isDelegationRep: userRoleCodes.includes('RDD'),
     isPublicGeral: userRoleCodes.includes('PGR'),
-    isAdmin: userRoleCodes.includes('ADM')
+    isAdmin: userRoleCodes.includes('ADM'),
+    isJudge: userRoleCodes.includes('JUZ')
   };
 
   useEffect(() => {
@@ -41,6 +43,8 @@ export const useNavigation = () => {
         navigate('/delegation-dashboard');
       } else if (roles.isAdmin) {
         navigate('/administration');
+      } else if (roles.isJudge) {
+        navigate('/judge-dashboard');
       }
     }
   }, [roles, location.pathname, navigate]);

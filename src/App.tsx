@@ -53,7 +53,7 @@ function App() {
                 <Route path="/event-selection" element={<EventSelectionPage />} />
                 <Route path="/delegation-dashboard" element={<Dashboard />} />
                 <Route path="/organizer-dashboard" element={<Dashboard />} />
-                <Route path="/athlete-profile" element={<Index />} />
+                <Route path="/athlete-profile" element={<Dashboard />} />
                 <Route path="/scores" element={<Scores />} />
                 <Route path="/cronograma" element={<Cronograma />} />
                 <Route path="/administration" element={<Administration />} />
