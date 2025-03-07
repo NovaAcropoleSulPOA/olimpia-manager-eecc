@@ -19,6 +19,7 @@ import RejectedAccess from './pages/RejectedAccess';
 import Scores from './pages/Scores';
 import Cronograma from './pages/Cronograma';
 import Administration from './pages/Administration';
+import AthleteRegistrations from './components/AthleteRegistrations';
 
 // Import providers and components
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -57,6 +58,7 @@ function App() {
                 {/* Authenticated routes with sidebar */}
                 <Route element={<MainNavigation />}>
                   <Route path="/athlete-profile" element={<Dashboard />} />
+                  <Route path="/athlete-registrations" element={<AthleteRegistrations />} />
                   <Route path="/delegation-dashboard" element={<DelegationDashboard />} />
                   <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
                   <Route path="/scores" element={<Scores />} />

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useNavigation } from '@/hooks/useNavigation';
-import { User, Users, Calendar, Medal, Gavel, Settings2 } from 'lucide-react';
+import { User, Users, Calendar, Medal, Gavel, Settings2, ClipboardList } from 'lucide-react';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 
 export const MenuItems = ({ collapsed = false }) => {
@@ -38,7 +38,15 @@ export const MenuItems = ({ collapsed = false }) => {
     tooltip: "Cronograma"
   });
   
-  // 3. Pontuações (Scores) - for all roles
+  // 3. Minhas Inscrições (My Registrations) - for all roles
+  menuItems.push({
+    path: "/athlete-registrations",
+    label: "Minhas Inscrições",
+    icon: <ClipboardList className="h-7 w-7" />,
+    tooltip: "Minhas Inscrições"
+  });
+  
+  // 4. Pontuações (Scores) - for all roles
   menuItems.push({
     path: "/scores",
     label: "Pontuações",
@@ -46,7 +54,7 @@ export const MenuItems = ({ collapsed = false }) => {
     tooltip: "Pontuações"
   });
   
-  // 4. Organizador (Organizer)
+  // 5. Organizador (Organizer)
   if (isOrganizer) {
     menuItems.push({
       path: "/organizer-dashboard",
@@ -56,7 +64,7 @@ export const MenuItems = ({ collapsed = false }) => {
     });
   }
   
-  // 5. Delegação (Delegation)
+  // 6. Delegação (Delegation)
   if (isDelegationRep) {
     menuItems.push({
       path: "/delegation-dashboard",
@@ -66,7 +74,7 @@ export const MenuItems = ({ collapsed = false }) => {
     });
   }
   
-  // 6. Juiz (Judge)
+  // 7. Juiz (Judge)
   if (isJudge) {
     menuItems.push({
       path: "/judge-dashboard",
@@ -76,7 +84,7 @@ export const MenuItems = ({ collapsed = false }) => {
     });
   }
   
-  // 7. Administração (Administration)
+  // 8. Administração (Administration)
   if (isAdmin) {
     menuItems.push({
       path: "/administration",

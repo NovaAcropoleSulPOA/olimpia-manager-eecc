@@ -23,6 +23,12 @@ export const getNavigationItems = (userRoles: UserRole[]) => {
       label: "Cronograma",
       path: "/cronograma",
       roles: ["ATL", "ORE", "RDD", "ADM"], // Available for all roles
+    },
+    {
+      icon: ClipboardList,
+      label: "Minhas Inscrições",
+      path: "/athlete-registrations",
+      roles: ["ATL", "ORE", "RDD", "ADM"], // Available for all roles
     }
   ];
 
@@ -35,12 +41,6 @@ export const getNavigationItems = (userRoles: UserRole[]) => {
           icon: Medal,
           label: "Minhas Pontuações",
           path: "/scores",
-          roles: ["ATL"],
-        },
-        {
-          icon: ClipboardList,
-          label: "Inscrições",
-          path: "/athlete-registrations",
           roles: ["ATL"],
         }
       );
