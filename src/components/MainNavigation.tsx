@@ -10,7 +10,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarTrigger,
-  SidebarRail
 } from './ui/sidebar';
 import { ChevronLeft, ChevronRight, LogOut, Menu } from 'lucide-react';
 import { toast } from 'sonner';
@@ -52,9 +51,9 @@ export function MainNavigation() {
 
   return (
     <SidebarProvider defaultOpen={!sidebarCollapsed}>
-      <div className="flex flex-1 w-full">
+      <div className="flex min-h-screen w-full">
         <Sidebar 
-          className="bg-olimpics-green-primary text-white h-screen z-50"
+          className="bg-olimpics-green-primary text-white z-50"
           collapsible={sidebarCollapsed ? "icon" : "none"}
           style={{
             "--sidebar-width": "240px",
@@ -96,8 +95,7 @@ export function MainNavigation() {
             </SidebarMenu>
           </SidebarFooter>
         </Sidebar>
-        <SidebarRail />
-        <main className="flex-1 p-6 bg-olimpics-background min-h-screen">
+        <main className="flex-1 overflow-auto p-6 bg-olimpics-background transition-all duration-200">
           <Outlet />
         </main>
       </div>

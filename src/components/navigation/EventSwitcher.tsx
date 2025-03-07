@@ -59,7 +59,7 @@ export function EventSwitcher({ userId, collapsed = false }: EventSwitcherProps)
             transition-all duration-200 text-lg font-medium mb-2"
           tooltip={collapsed ? "Trocar Evento" : undefined}
         >
-          <ArrowLeftRight className="h-7 w-7 flex-shrink-0 mr-3" />
+          <ArrowLeftRight className="h-7 w-7 flex-shrink-0" />
           <span className={`whitespace-nowrap ${collapsed ? 'hidden' : 'block'}`}>Trocar Evento</span>
         </SidebarMenuButton>
       </DropdownMenuTrigger>

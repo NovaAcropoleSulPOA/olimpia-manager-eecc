@@ -18,18 +18,21 @@
   }
 }
 
-/* Fix for sidebar positioning */
+/* Fix for sidebar positioning and height */
 .group\/sidebar-wrapper {
   margin-top: 0 !important;
   height: 100vh !important;
+  overflow: hidden !important;
 }
 
-/* Ensure sidebar takes full height */
+/* Ensure sidebar takes full height and is fixed in position */
 [data-sidebar="sidebar"] {
   height: 100vh !important;
   margin-top: 0 !important;
   position: sticky !important;
   top: 0 !important;
+  left: 0 !important;
+  overflow-y: auto !important;
 }
 
 /* Fix sidebar rail and content positioning */
@@ -43,6 +46,11 @@
   width: var(--sidebar-width-icon) !important;
 }
 
+/* Content positioning and transition */
+main {
+  transition: margin-left 0.2s ease-in-out !important;
+}
+
 /* Remove extra space above the sidebar */
 .fixed.inset-y-0 {
   top: 0 !important;
@@ -51,4 +59,31 @@
 /* Adjust icon display in collapsed state */
 .group-data-\[collapsible=icon\]:p-0 {
   padding: 0.5rem !important;
+}
+
+/* Proper transition for sidebar and main content */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Fix for sidebar width transition */
+.sidebar-transition {
+  transition: width 0.2s ease-in-out !important;
+}
+
+/* Ensure the main content area expands properly */
+.group-data-\[state=collapsed\] + div {
+  margin-left: var(--sidebar-width-icon) !important;
+}
+
+.group-data-\[state=expanded\] + div {
+  margin-left: var(--sidebar-width) !important;
+}
+
+/* Fix scrolling behavior of sidebar contents */
+[data-sidebar="content"] {
+  overflow-y: auto !important;
+  flex-grow: 1 !important;
 }
