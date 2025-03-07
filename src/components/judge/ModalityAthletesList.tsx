@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 
 interface ModalityAthletesListProps {
@@ -50,8 +50,6 @@ export function ModalityAthletesList({
         .select(`
           atleta_id,
           atleta_nome,
-          atleta_telefone: telefone,
-          atleta_email: email,
           tipo_documento,
           numero_documento,
           numero_identificador
