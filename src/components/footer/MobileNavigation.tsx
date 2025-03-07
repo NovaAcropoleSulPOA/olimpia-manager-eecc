@@ -79,8 +79,8 @@ const MobileNavigation = ({
   );
 };
 
-// Create a proper MobileNavigationLink component for backward compatibility
-const MobileNavigationLink = () => {
+// Export MobileNavigationLink for compatibility with existing code
+export const MobileNavigationLink = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -90,8 +90,8 @@ const MobileNavigationLink = () => {
     return null;
   }
   
-  // Default empty props to avoid TypeScript errors
-  const defaultProps = {
+  // Default navigation items with empty array (will be handled by the parent component)
+  const defaultProps: MobileNavigationProps = {
     navigationItems: [],
     currentPath: location.pathname,
     userEvents: [],
@@ -113,4 +113,3 @@ const MobileNavigationLink = () => {
 };
 
 export default MobileNavigation;
-export { MobileNavigationLink };

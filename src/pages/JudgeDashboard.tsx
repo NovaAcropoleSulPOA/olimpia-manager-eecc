@@ -4,16 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScoresTab } from '@/components/judge/tabs/ScoresTab';
-import { TeamsTab } from '@/components/judge/tabs/TeamsTab';
-import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
 export default function JudgeDashboard() {
   const { user, currentEventId } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('scores');
 
   // Check if the user has judge privileges
@@ -22,21 +21,14 @@ export default function JudgeDashboard() {
     queryFn: async () => {
       if (!user?.id) return false;
       
-      const { data, error } = await supabase.rpc('is_judge', {
-        user_id: user.id
-      });
+      // Check if user has the judge role (JUZ)
+      const hasJudgeRole = user.papeis?.some(role => role.codigo === 'JUZ') || false;
       
-      if (error) {
-        console.error('Error checking judge role:', error);
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível verificar suas permissões',
-          variant: 'destructive'
-        });
+      if (!hasJudgeRole) {
         return false;
       }
       
-      return data;
+      return true;
     },
     enabled: !!user?.id,
   });
@@ -44,14 +36,10 @@ export default function JudgeDashboard() {
   // Redirect if not a judge
   React.useEffect(() => {
     if (!isCheckingRole && !isJudge && user) {
-      toast({
-        title: 'Acesso Negado',
-        description: 'Você não tem permissão para acessar esta página',
-        variant: 'destructive',
-      });
+      toast.error('Você não tem permissão para acessar esta página');
       navigate('/');
     }
-  }, [isJudge, isCheckingRole, user, navigate, toast]);
+  }, [isJudge, isCheckingRole, user, navigate]);
 
   if (isCheckingRole) {
     return (
@@ -80,11 +68,47 @@ export default function JudgeDashboard() {
         </TabsList>
         
         <TabsContent value="scores" className="mt-6">
-          <ScoresTab userId={user.id} eventId={currentEventId} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Registrar Pontuações</CardTitle>
+              <CardDescription>
+                Registre pontuações para as modalidades e atletas sob sua responsabilidade
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Selecione uma modalidade e um atleta para registrar pontuações
+              </p>
+              {/* We'll implement the detailed score registration UI in a future update */}
+              <div className="mt-4">
+                <Button disabled>
+                  Funcionalidade em desenvolvimento
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
         
         <TabsContent value="teams" className="mt-6">
-          <TeamsTab userId={user.id} eventId={currentEventId} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Formação de Equipes</CardTitle>
+              <CardDescription>
+                Organize equipes para as modalidades coletivas
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Selecione uma modalidade para gerenciar equipes
+              </p>
+              {/* We'll implement the detailed team formation UI in a future update */}
+              <div className="mt-4">
+                <Button disabled>
+                  Funcionalidade em desenvolvimento
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

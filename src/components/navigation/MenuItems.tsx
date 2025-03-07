@@ -110,5 +110,4 @@ export const MenuItems = () => {
         </Link>
       )}
     </div>
-  );
-};
+  };
