@@ -69,6 +69,8 @@ export const updateUserProfiles = async (userId: string, profileIds: number[]): 
   });
 
   try {
+    // Call the assign_user_profiles RPC function directly without any reference to the 
+    // non-existent materialized view
     const { error, data } = await supabase
       .rpc('assign_user_profiles', {
         p_user_id: userId,
