@@ -1,4 +1,19 @@
+
 #root {
   margin: 0 auto;
   text-align: center;
+}
+
+/* Add responsive padding for content */
+@media (max-width: 768px) {
+  .pt-16 {
+    padding-top: 4rem; /* Adjust for smaller screens */
+  }
+}
+
+/* Ensure content doesn't overlap with the mobile navigation */
+@media (max-width: 768px) {
+  .pb-16 {
+    padding-bottom: 4rem;
+  }
 }

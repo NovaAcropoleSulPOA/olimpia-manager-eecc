@@ -41,7 +41,7 @@ function App() {
         <BrowserRouter>
           <AuthProvider>
             <GlobalHeader />
-            <div className="flex-1">
+            <div className="flex-1 pt-16"> {/* Added padding-top to account for fixed header */}
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
