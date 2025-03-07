@@ -14,6 +14,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface UserProfileModalProps {
   user: any;
@@ -41,6 +42,7 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
   const queryClient = useQueryClient();
   const [selectedProfiles, setSelectedProfiles] = useState<number[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const currentEventId = localStorage.getItem('currentEventId');
 
@@ -122,6 +124,9 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
         ? current.filter(id => id !== profileId)
         : [...current, profileId]
     );
+    
+    // Clear any previous errors when making new selections
+    if (error) setError(null);
   };
 
   const handleSave = async () => {
@@ -131,13 +136,27 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
     }
 
     setIsUpdating(true);
+    setError(null);
+    
     try {
+      // Log selected profiles for debugging
+      console.log('Saving profiles:', {
+        userId: user.id,
+        eventId: currentEventId,
+        selectedProfiles
+      });
+      
       await updateUserProfiles(user.id, selectedProfiles);
+      
+      // Invalidate both queries to ensure fresh data
       await queryClient.invalidateQueries({ queryKey: ['user-profiles'] });
+      await queryClient.invalidateQueries({ queryKey: ['user-profiles', user?.id, currentEventId] });
+      
       toast.success("Perfis atualizados com sucesso!");
       onOpenChange(false);
     } catch (error: any) {
       console.error('Error updating profiles:', error);
+      setError(error.message || "Erro ao atualizar perfis");
       toast.error(error.message || "Erro ao atualizar perfis");
     } finally {
       setIsUpdating(false);
@@ -160,6 +179,12 @@ export const UserProfileModal = ({ user, open, onOpenChange }: UserProfileModalP
           </div>
         ) : (
           <div className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             <div className="space-y-2">
               {filteredProfiles?.map((profile) => (
                 <div key={profile.id} className="flex items-center space-x-2">

@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchUserProfiles, fetchBranches } from '@/lib/api';
 import { UserProfilesTable } from '@/components/dashboard/UserProfilesTable';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 export default function Administration() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const currentEventId = localStorage.getItem('currentEventId');
 
   // Check if user has admin profile
@@ -29,7 +30,8 @@ export default function Administration() {
 
   const { 
     data: userProfiles,
-    isLoading: isLoadingProfiles
+    isLoading: isLoadingProfiles,
+    refetch: refetchUserProfiles
   } = useQuery({
     queryKey: ['user-profiles', currentEventId],
     queryFn: () => fetchUserProfiles(currentEventId),
@@ -43,6 +45,20 @@ export default function Administration() {
     queryFn: fetchBranches,
     enabled: hasAdminProfile
   });
+
+  // Set up event listener for profile updates
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      console.log('Profile update detected, refreshing data...');
+      refetchUserProfiles();
+    };
+
+    window.addEventListener('profile-updated', handleProfileUpdate);
+    
+    return () => {
+      window.removeEventListener('profile-updated', handleProfileUpdate);
+    };
+  }, [refetchUserProfiles, queryClient]);
 
   if (!hasAdminProfile || !currentEventId) {
     return null;
