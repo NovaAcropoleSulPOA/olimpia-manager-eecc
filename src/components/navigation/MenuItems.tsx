@@ -23,80 +23,80 @@ export const MenuItems = () => {
   };
 
   return (
-    <div className="flex gap-1 md:gap-2 items-center">
+    <div className="flex flex-col gap-1 md:gap-2 items-start w-full">
       {user && (
         <>
           {roles.isAthlete && (
-            <Link to="/athlete-profile">
+            <Link to="/athlete-profile" className="w-full">
               <Button
                 variant={location.pathname === '/athlete-profile' ? 'default' : 'ghost'}
-                className="flex gap-1 items-center"
+                className="flex gap-1 items-center w-full justify-start"
               >
                 <User className="h-4 w-4 mr-1" />
-                <span className="hidden md:inline">Perfil</span>
+                <span>Perfil</span>
               </Button>
             </Link>
           )}
 
           {roles.isOrganizer && (
-            <Link to="/organizer-dashboard">
+            <Link to="/organizer-dashboard" className="w-full">
               <Button
                 variant={location.pathname === '/organizer-dashboard' ? 'default' : 'ghost'}
-                className="flex gap-1 items-center"
+                className="flex gap-1 items-center w-full justify-start"
               >
                 <Users className="h-4 w-4 mr-1" />
-                <span className="hidden md:inline">Organizador</span>
+                <span>Organizador</span>
               </Button>
             </Link>
           )}
 
           {roles.isDelegationRep && (
-            <Link to="/delegation-dashboard">
+            <Link to="/delegation-dashboard" className="w-full">
               <Button
                 variant={location.pathname === '/delegation-dashboard' ? 'default' : 'ghost'}
-                className="flex gap-1 items-center"
+                className="flex gap-1 items-center w-full justify-start"
               >
                 <Users className="h-4 w-4 mr-1" />
-                <span className="hidden md:inline">Delegação</span>
+                <span>Delegação</span>
               </Button>
             </Link>
           )}
 
           {isJudge && (
-            <Link to="/judge-dashboard">
+            <Link to="/judge-dashboard" className="w-full">
               <Button
                 variant={location.pathname === '/judge-dashboard' ? 'default' : 'ghost'}
-                className="flex gap-1 items-center"
+                className="flex gap-1 items-center w-full justify-start"
               >
                 <Gavel className="h-4 w-4 mr-1" />
-                <span className="hidden md:inline">Juiz</span>
+                <span>Juiz</span>
               </Button>
             </Link>
           )}
 
-          <Link to="/cronograma">
+          <Link to="/cronograma" className="w-full">
             <Button
               variant={location.pathname === '/cronograma' ? 'default' : 'ghost'}
-              className="flex gap-1 items-center"
+              className="flex gap-1 items-center w-full justify-start"
             >
               <Calendar className="h-4 w-4 mr-1" />
-              <span className="hidden md:inline">Cronograma</span>
+              <span>Cronograma</span>
             </Button>
           </Link>
 
-          <Link to="/scores">
+          <Link to="/scores" className="w-full">
             <Button
               variant={location.pathname === '/scores' ? 'default' : 'ghost'}
-              className="flex gap-1 items-center"
+              className="flex gap-1 items-center w-full justify-start"
             >
               <Medal className="h-4 w-4 mr-1" />
-              <span className="hidden md:inline">Pontuações</span>
+              <span>Pontuações</span>
             </Button>
           </Link>
 
-          <Button variant="ghost" onClick={handleSignOut} className="flex items-center gap-1">
+          <Button variant="ghost" onClick={handleSignOut} className="flex items-center gap-1 w-full justify-start">
             <LogOut className="h-4 w-4 mr-1" />
-            <span className="hidden md:inline">Sair</span>
+            <span>Sair</span>
           </Button>
         </>
       )}

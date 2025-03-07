@@ -24,6 +24,7 @@ import { AuthProvider } from './components/providers/AuthProvider';
 import { MobileNavigationLink } from './components/footer/MobileNavigation';
 import Footer from './components/Footer';
 import { GlobalHeader } from './components/GlobalHeader';
+import { MainNavigation } from './components/MainNavigation';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,17 +41,18 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
-            <GlobalHeader />
-            <div className="flex-1 pt-16"> {/* Added padding-top to account for fixed header */}
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/esqueci-senha" element={<ForgotPassword />} />
-                <Route path="/redefinir-senha" element={<ResetPassword />} />
-                <Route path="/verificar-email" element={<VerifyEmail />} />
-                <Route path="/acesso-negado" element={<RejectedAccess />} />
-                <Route path="/home" element={<LandingPage />} />
-                <Route path="/event-selection" element={<EventSelectionPage />} />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/esqueci-senha" element={<ForgotPassword />} />
+              <Route path="/redefinir-senha" element={<ResetPassword />} />
+              <Route path="/verificar-email" element={<VerifyEmail />} />
+              <Route path="/acesso-negado" element={<RejectedAccess />} />
+              <Route path="/home" element={<LandingPage />} />
+              <Route path="/event-selection" element={<EventSelectionPage />} />
+              
+              {/* Authenticated routes with sidebar */}
+              <Route element={<MainNavigation />}>
                 <Route path="/delegation-dashboard" element={<Dashboard />} />
                 <Route path="/organizer-dashboard" element={<Dashboard />} />
                 <Route path="/athlete-profile" element={<Dashboard />} />
@@ -58,8 +60,8 @@ function App() {
                 <Route path="/cronograma" element={<Cronograma />} />
                 <Route path="/administration" element={<Administration />} />
                 <Route path="/judge-dashboard" element={<JudgeDashboard />} />
-              </Routes>
-            </div>
+              </Route>
+            </Routes>
             <Footer />
             <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
               <MobileNavigationLink />
