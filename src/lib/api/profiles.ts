@@ -69,8 +69,7 @@ export const updateUserProfiles = async (userId: string, profileIds: number[]): 
   });
 
   try {
-    // Call the assign_user_profiles RPC function directly without any reference to the 
-    // non-existent materialized view
+    // Make a direct RPC call to assign_user_profiles with the correct parameters
     const { error, data } = await supabase
       .rpc('assign_user_profiles', {
         p_user_id: userId,
@@ -100,7 +99,7 @@ export const updateUserProfiles = async (userId: string, profileIds: number[]): 
       // Check if all profiles were successfully assigned
       const updatedProfileIds = updatedProfiles.map((p: any) => p.perfil_id);
       const allProfilesUpdated = profileIds.every(id => updatedProfileIds.includes(id)) && 
-                                 profileIds.length === updatedProfileIds.length;
+                               profileIds.length === updatedProfileIds.length;
       
       if (!allProfilesUpdated) {
         console.warn('Not all profiles were updated correctly!', {
