@@ -4,7 +4,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigation } from '@/hooks/useNavigation';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, Users, Calendar, Medal, Gavel } from 'lucide-react';
+import { LogOut, User, Users, Calendar, Medal, Gavel, Settings2 } from 'lucide-react';
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 
 export const MenuItems = () => {
   const { signOut } = useAuth();
@@ -13,6 +14,7 @@ export const MenuItems = () => {
 
   // Check if the user has the 'JUZ' (Judge) role
   const isJudge = user?.papeis?.some(role => role.codigo === 'JUZ') || false;
+  const isAdmin = roles.isAdmin;
 
   const handleSignOut = async () => {
     try {
@@ -23,85 +25,111 @@ export const MenuItems = () => {
   };
 
   return (
-    <div className="flex flex-col gap-1 md:gap-2 items-start w-full">
+    <SidebarMenu className="flex flex-col gap-1 md:gap-2 items-start w-full">
       {user && (
         <>
           {roles.isAthlete && (
-            <Link to="/athlete-profile" className="w-full">
-              <Button
-                variant={location.pathname === '/athlete-profile' ? 'default' : 'ghost'}
-                className="flex gap-1 items-center w-full justify-start"
+            <SidebarMenuItem>
+              <SidebarMenuButton 
+                asChild 
+                isActive={location.pathname === '/athlete-profile'}
+                tooltip="Perfil do Atleta"
               >
-                <User className="h-4 w-4 mr-1" />
-                <span>Perfil</span>
-              </Button>
-            </Link>
+                <Link to="/athlete-profile" className="w-full">
+                  <User className="h-4 w-4 mr-1" />
+                  <span>Perfil</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              asChild 
+              isActive={location.pathname === '/cronograma'}
+              tooltip="Cronograma"
+            >
+              <Link to="/cronograma" className="w-full">
+                <Calendar className="h-4 w-4 mr-1" />
+                <span>Cronograma</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              asChild 
+              isActive={location.pathname === '/scores'}
+              tooltip="Pontuações"
+            >
+              <Link to="/scores" className="w-full">
+                <Medal className="h-4 w-4 mr-1" />
+                <span>Pontuações</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          {roles.isDelegationRep && (
+            <SidebarMenuItem>
+              <SidebarMenuButton 
+                asChild 
+                isActive={location.pathname === '/delegation-dashboard'}
+                tooltip="Delegação"
+              >
+                <Link to="/delegation-dashboard" className="w-full">
+                  <Users className="h-4 w-4 mr-1" />
+                  <span>Delegação</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           )}
 
           {roles.isOrganizer && (
-            <Link to="/organizer-dashboard" className="w-full">
-              <Button
-                variant={location.pathname === '/organizer-dashboard' ? 'default' : 'ghost'}
-                className="flex gap-1 items-center w-full justify-start"
+            <SidebarMenuItem>
+              <SidebarMenuButton 
+                asChild 
+                isActive={location.pathname === '/organizer-dashboard'}
+                tooltip="Organizador"
               >
-                <Users className="h-4 w-4 mr-1" />
-                <span>Organizador</span>
-              </Button>
-            </Link>
-          )}
-
-          {roles.isDelegationRep && (
-            <Link to="/delegation-dashboard" className="w-full">
-              <Button
-                variant={location.pathname === '/delegation-dashboard' ? 'default' : 'ghost'}
-                className="flex gap-1 items-center w-full justify-start"
-              >
-                <Users className="h-4 w-4 mr-1" />
-                <span>Delegação</span>
-              </Button>
-            </Link>
+                <Link to="/organizer-dashboard" className="w-full">
+                  <Users className="h-4 w-4 mr-1" />
+                  <span>Organizador</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           )}
 
           {isJudge && (
-            <Link to="/judge-dashboard" className="w-full">
-              <Button
-                variant={location.pathname === '/judge-dashboard' ? 'default' : 'ghost'}
-                className="flex gap-1 items-center w-full justify-start"
+            <SidebarMenuItem>
+              <SidebarMenuButton 
+                asChild 
+                isActive={location.pathname === '/judge-dashboard'}
+                tooltip="Juiz"
               >
-                <Gavel className="h-4 w-4 mr-1" />
-                <span>Juiz</span>
-              </Button>
-            </Link>
+                <Link to="/judge-dashboard" className="w-full">
+                  <Gavel className="h-4 w-4 mr-1" />
+                  <span>Juiz</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           )}
 
-          <Link to="/cronograma" className="w-full">
-            <Button
-              variant={location.pathname === '/cronograma' ? 'default' : 'ghost'}
-              className="flex gap-1 items-center w-full justify-start"
-            >
-              <Calendar className="h-4 w-4 mr-1" />
-              <span>Cronograma</span>
-            </Button>
-          </Link>
-
-          <Link to="/scores" className="w-full">
-            <Button
-              variant={location.pathname === '/scores' ? 'default' : 'ghost'}
-              className="flex gap-1 items-center w-full justify-start"
-            >
-              <Medal className="h-4 w-4 mr-1" />
-              <span>Pontuações</span>
-            </Button>
-          </Link>
-
-          <Button variant="ghost" onClick={handleSignOut} className="flex items-center gap-1 w-full justify-start">
-            <LogOut className="h-4 w-4 mr-1" />
-            <span>Sair</span>
-          </Button>
+          {isAdmin && (
+            <SidebarMenuItem>
+              <SidebarMenuButton 
+                asChild 
+                isActive={location.pathname === '/administration'}
+                tooltip="Administração"
+              >
+                <Link to="/administration" className="w-full">
+                  <Settings2 className="h-4 w-4 mr-1" />
+                  <span>Administração</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
         </>
       )}
-
-      {/* Removed the login button that was here */}
-    </div>
+    </SidebarMenu>
   );
 };

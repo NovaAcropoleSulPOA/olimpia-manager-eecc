@@ -17,3 +17,15 @@
     padding-bottom: 4rem;
   }
 }
+
+/* Fix for sidebar positioning */
+.group\/sidebar-wrapper {
+  margin-top: 0 !important;
+  height: 100vh !important;
+}
+
+/* Ensure sidebar takes full height */
+[data-sidebar="sidebar"] {
+  height: 100vh !important;
+  margin-top: 0 !important;
+}
