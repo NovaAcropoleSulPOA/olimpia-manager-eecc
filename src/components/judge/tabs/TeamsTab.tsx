@@ -18,12 +18,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core';
-import { 
-  SortableContext,
-  arrayMove,
-  verticalListSortingStrategy 
-} from '@dnd-kit/sortable';
 import { supabase } from '@/integrations/supabase/client';
 import { TeamFormation } from '@/components/judge/TeamFormation';
 import { useToast } from '@/components/ui/use-toast';
@@ -37,6 +31,15 @@ interface Team {
   id: number;
   name: string;
   athletes: any[];
+}
+
+interface Athlete {
+  atleta_id: string;
+  atleta_nome: string;
+  atleta_telefone?: string;
+  atleta_email?: string;
+  tipo_documento: string;
+  numero_documento: string;
 }
 
 export function TeamsTab({ userId, eventId }: TeamsTabProps) {
@@ -71,7 +74,7 @@ export function TeamsTab({ userId, eventId }: TeamsTabProps) {
       }
       
       // Remove duplicates (since the view joins with athletes)
-      const uniqueModalities = data.reduce((acc, current) => {
+      const uniqueModalities = data.reduce((acc: any[], current: any) => {
         const x = acc.find(item => item.modalidade_id === current.modalidade_id);
         if (!x) {
           return acc.concat([current]);
@@ -143,8 +146,8 @@ export function TeamsTab({ userId, eventId }: TeamsTabProps) {
         .select(`
           atleta_id,
           atleta_nome,
-          atleta_telefone: telefone,
-          atleta_email: email,
+          atleta_telefone,
+          atleta_email,
           tipo_documento,
           numero_documento
         `)
@@ -159,13 +162,13 @@ export function TeamsTab({ userId, eventId }: TeamsTabProps) {
       // Filter out athletes who are already in teams
       if (existingTeams && existingTeams.length > 0) {
         const athletesInTeams = new Set();
-        existingTeams.forEach(team => {
-          team.athletes.forEach(athlete => {
+        existingTeams.forEach((team: any) => {
+          team.athletes.forEach((athlete: any) => {
             athletesInTeams.add(athlete.atleta_id);
           });
         });
         
-        return data.filter(athlete => !athletesInTeams.has(athlete.atleta_id));
+        return data.filter((athlete: Athlete) => !athletesInTeams.has(athlete.atleta_id));
       }
       
       return data;
@@ -274,7 +277,7 @@ export function TeamsTab({ userId, eventId }: TeamsTabProps) {
                   <SelectValue placeholder="Selecione uma modalidade" />
                 </SelectTrigger>
                 <SelectContent>
-                  {modalities.map((modality) => (
+                  {modalities.map((modality: any) => (
                     <SelectItem 
                       key={modality.modalidade_id} 
                       value={modality.modalidade_id.toString()}

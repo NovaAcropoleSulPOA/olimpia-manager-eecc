@@ -21,6 +21,16 @@ interface ModalityAthletesListProps {
   selectedAthleteId: string | null;
 }
 
+interface Athlete {
+  atleta_id: string;
+  atleta_nome: string;
+  atleta_telefone?: string;
+  atleta_email?: string;
+  tipo_documento: string;
+  numero_documento: string;
+  numero_identificador?: string;
+}
+
 export function ModalityAthletesList({ 
   modalityId, 
   eventId, 
@@ -60,7 +70,7 @@ export function ModalityAthletesList({
         return [];
       }
       
-      return data;
+      return data as Athlete[];
     },
     enabled: !!eventId && !!modalityId,
   });

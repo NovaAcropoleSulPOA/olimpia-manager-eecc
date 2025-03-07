@@ -78,4 +78,10 @@ const MobileNavigation = ({
   );
 };
 
+// Create a placeholder MobileNavigationLink component for backward compatibility
+const MobileNavigationLink = () => {
+  return <div>Loading navigation...</div>;
+};
+
 export default MobileNavigation;
+export { MobileNavigationLink };

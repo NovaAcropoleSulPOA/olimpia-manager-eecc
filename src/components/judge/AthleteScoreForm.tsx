@@ -116,7 +116,7 @@ export function AthleteScoreForm({
     defaultValues: {
       score: existingScore?.valor_pontuacao || 0,
       position: existingScore?.posicao_final || 0,
-      medal: existingScore?.medalha || '',
+      medal: (existingScore?.medalha as 'Ouro' | 'Prata' | 'Bronze' | '') || '',
       unit: existingScore?.unidade || 'pontos',
       batch: existingScore?.bateria || '',
       observations: existingScore?.observacoes || '',
@@ -129,7 +129,7 @@ export function AthleteScoreForm({
       form.reset({
         score: existingScore.valor_pontuacao || 0,
         position: existingScore.posicao_final || 0,
-        medal: existingScore.medalha || '',
+        medal: (existingScore.medalha as 'Ouro' | 'Prata' | 'Bronze' | '') || '',
         unit: existingScore.unidade || 'pontos',
         batch: existingScore.bateria || '',
         observations: existingScore.observacoes || '',
