@@ -1,28 +1,17 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { useNavigation } from '@/hooks/useNavigation';
-import { Button } from '@/components/ui/button';
-import { LogOut, User, Users, Calendar, Medal, Gavel, Settings2 } from 'lucide-react';
+import { User, Users, Calendar, Medal, Gavel, Settings2 } from 'lucide-react';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 
-export const MenuItems = () => {
-  const { signOut } = useAuth();
+export const MenuItems = ({ collapsed = false }) => {
   const location = useLocation();
   const { roles, user } = useNavigation();
 
   // Check if the user has the 'JUZ' (Judge) role
   const isJudge = user?.papeis?.some(role => role.codigo === 'JUZ') || false;
   const isAdmin = roles.isAdmin;
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
 
   return (
     <SidebarMenu className="flex flex-col gap-1 md:gap-2 items-start w-full">
@@ -37,37 +26,11 @@ export const MenuItems = () => {
               >
                 <Link to="/athlete-profile" className="w-full">
                   <User className="h-4 w-4 mr-1" />
-                  <span>Perfil</span>
+                  <span className={collapsed ? 'hidden' : 'block'}>Perfil</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
-
-          <SidebarMenuItem>
-            <SidebarMenuButton 
-              asChild 
-              isActive={location.pathname === '/cronograma'}
-              tooltip="Cronograma"
-            >
-              <Link to="/cronograma" className="w-full">
-                <Calendar className="h-4 w-4 mr-1" />
-                <span>Cronograma</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          <SidebarMenuItem>
-            <SidebarMenuButton 
-              asChild 
-              isActive={location.pathname === '/scores'}
-              tooltip="Pontuações"
-            >
-              <Link to="/scores" className="w-full">
-                <Medal className="h-4 w-4 mr-1" />
-                <span>Pontuações</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
 
           {roles.isDelegationRep && (
             <SidebarMenuItem>
@@ -78,7 +41,7 @@ export const MenuItems = () => {
               >
                 <Link to="/delegation-dashboard" className="w-full">
                   <Users className="h-4 w-4 mr-1" />
-                  <span>Delegação</span>
+                  <span className={collapsed ? 'hidden' : 'block'}>Delegação</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -93,11 +56,37 @@ export const MenuItems = () => {
               >
                 <Link to="/organizer-dashboard" className="w-full">
                   <Users className="h-4 w-4 mr-1" />
-                  <span>Organizador</span>
+                  <span className={collapsed ? 'hidden' : 'block'}>Organizador</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
+
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              asChild 
+              isActive={location.pathname === '/cronograma'}
+              tooltip="Cronograma"
+            >
+              <Link to="/cronograma" className="w-full">
+                <Calendar className="h-4 w-4 mr-1" />
+                <span className={collapsed ? 'hidden' : 'block'}>Cronograma</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              asChild 
+              isActive={location.pathname === '/scores'}
+              tooltip="Pontuações"
+            >
+              <Link to="/scores" className="w-full">
+                <Medal className="h-4 w-4 mr-1" />
+                <span className={collapsed ? 'hidden' : 'block'}>Pontuações</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
 
           {isJudge && (
             <SidebarMenuItem>
@@ -108,7 +97,7 @@ export const MenuItems = () => {
               >
                 <Link to="/judge-dashboard" className="w-full">
                   <Gavel className="h-4 w-4 mr-1" />
-                  <span>Juiz</span>
+                  <span className={collapsed ? 'hidden' : 'block'}>Juiz</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -123,7 +112,7 @@ export const MenuItems = () => {
               >
                 <Link to="/administration" className="w-full">
                   <Settings2 className="h-4 w-4 mr-1" />
-                  <span>Administração</span>
+                  <span className={collapsed ? 'hidden' : 'block'}>Administração</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

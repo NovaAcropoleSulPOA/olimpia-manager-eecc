@@ -28,4 +28,11 @@
 [data-sidebar="sidebar"] {
   height: 100vh !important;
   margin-top: 0 !important;
+  position: sticky !important;
+  top: 0 !important;
+}
+
+/* Remove extra space above the sidebar */
+.fixed.inset-y-0 {
+  top: 0 !important;
 }

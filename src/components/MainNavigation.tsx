@@ -12,16 +12,18 @@ import {
   SidebarTrigger,
   SidebarRail
 } from './ui/sidebar';
-import { LogOut, Menu } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, Menu } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { MenuItems } from './navigation/MenuItems';
 import { EventSwitcher } from './navigation/EventSwitcher';
 import { useNavigation } from '@/hooks/useNavigation';
+import { useState } from 'react';
 
 export function MainNavigation() {
   const navigate = useNavigate();
   const { user, roles, signOut } = useNavigation();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -36,6 +38,10 @@ export function MainNavigation() {
     }
   };
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -45,17 +51,25 @@ export function MainNavigation() {
   }
 
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider defaultOpen={!sidebarCollapsed}>
       <div className="flex flex-1 w-full">
         <Sidebar className="bg-olimpics-green-primary text-white h-screen z-50">
           <SidebarHeader className="relative p-6 border-b border-olimpics-green-secondary">
-            <h2 className="text-xl font-bold text-center">Menu</h2>
+            <div className="flex items-center justify-between">
+              <h2 className={`text-xl font-bold ${sidebarCollapsed ? 'hidden' : 'block'}`}>Menu</h2>
+              <button 
+                onClick={toggleSidebar}
+                className="p-1 rounded-full hover:bg-olimpics-green-secondary/20 transition-colors text-white"
+              >
+                {sidebarCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+              </button>
+            </div>
             <SidebarTrigger className="absolute right-4 top-1/2 -translate-y-1/2 md:hidden text-white hover:text-olimpics-green-secondary">
               <Menu className="h-6 w-6" />
             </SidebarTrigger>
           </SidebarHeader>
           <SidebarContent>
-            <MenuItems />
+            <MenuItems collapsed={sidebarCollapsed} />
           </SidebarContent>
           <SidebarFooter className="mt-auto border-t border-olimpics-green-secondary p-4">
             <SidebarMenu>
@@ -69,7 +83,7 @@ export function MainNavigation() {
                   tooltip="Sair"
                 >
                   <LogOut className="h-6 w-6 flex-shrink-0" />
-                  <span className="whitespace-nowrap">Sair</span>
+                  <span className={`whitespace-nowrap ${sidebarCollapsed ? 'hidden' : 'block'}`}>Sair</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

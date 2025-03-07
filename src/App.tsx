@@ -7,6 +7,8 @@ import './App.css';
 import Index from './pages/Index';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import OrganizerDashboard from './components/OrganizerDashboard';
+import DelegationDashboard from './components/DelegationDashboard';
 import JudgeDashboard from './pages/JudgeDashboard';
 import EventSelectionPage from './pages/EventSelectionPage';
 import ForgotPassword from './pages/ForgotPassword';
@@ -23,7 +25,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './components/providers/AuthProvider';
 import { MobileNavigationLink } from './components/footer/MobileNavigation';
 import Footer from './components/Footer';
-import { GlobalHeader } from './components/GlobalHeader';
 import { MainNavigation } from './components/MainNavigation';
 
 const queryClient = new QueryClient({
@@ -53,9 +54,9 @@ function App() {
               
               {/* Authenticated routes with sidebar */}
               <Route element={<MainNavigation />}>
-                <Route path="/delegation-dashboard" element={<Dashboard />} />
-                <Route path="/organizer-dashboard" element={<Dashboard />} />
                 <Route path="/athlete-profile" element={<Dashboard />} />
+                <Route path="/delegation-dashboard" element={<DelegationDashboard />} />
+                <Route path="/organizer-dashboard" element={<OrganizerDashboard />} />
                 <Route path="/scores" element={<Scores />} />
                 <Route path="/cronograma" element={<Cronograma />} />
                 <Route path="/administration" element={<Administration />} />
