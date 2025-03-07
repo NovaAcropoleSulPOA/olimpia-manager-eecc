@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import './App.css';
+import { GlobalHeader } from './components/GlobalHeader';
 
 // Import pages
 import Index from './pages/Index';
@@ -42,6 +43,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
+            <GlobalHeader />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />

@@ -4,9 +4,14 @@
   text-align: center;
 }
 
+/* Add padding to body content to account for fixed header */
+body {
+  padding-top: 64px; /* 4rem / 16px = 64px, matches the header height */
+}
+
 /* Add responsive padding for content */
 @media (max-width: 768px) {
-  .pt-16 {
+  .content-padding {
     padding-top: 4rem; /* Adjust for smaller screens */
   }
 }
@@ -21,16 +26,16 @@
 /* Fix for sidebar positioning and height */
 .group\/sidebar-wrapper {
   margin-top: 0 !important;
-  height: 100vh !important;
+  height: calc(100vh - 64px) !important; /* Subtract header height */
   overflow: hidden !important;
 }
 
 /* Ensure sidebar takes full height and is fixed in position */
 [data-sidebar="sidebar"] {
-  height: 100vh !important;
+  height: calc(100vh - 64px) !important; /* Subtract header height */
   margin-top: 0 !important;
   position: sticky !important;
-  top: 0 !important;
+  top: 64px !important; /* Offset by header height */
   left: 0 !important;
   overflow-y: auto !important;
 }
@@ -53,7 +58,7 @@ main {
 
 /* Remove extra space above the sidebar */
 .fixed.inset-y-0 {
-  top: 0 !important;
+  top: 64px !important; /* Adjust for header height */
 }
 
 /* Adjust icon display in collapsed state */
@@ -86,4 +91,9 @@ main {
 [data-sidebar="content"] {
   overflow-y: auto !important;
   flex-grow: 1 !important;
+}
+
+/* Footer styling to ensure it stays at the bottom */
+footer {
+  margin-top: auto;
 }

@@ -51,9 +51,9 @@ export function MainNavigation() {
 
   return (
     <SidebarProvider defaultOpen={!sidebarCollapsed}>
-      <div className="flex min-h-screen w-full pt-16"> {/* Added pt-16 to account for fixed header height */}
+      <div className="flex min-h-screen w-full"> {/* Removed pt-16 because body has padding-top now */}
         <Sidebar 
-          className="bg-olimpics-green-primary text-white z-40 mt-16" /* Added mt-16 to position sidebar below header */
+          className="bg-olimpics-green-primary text-white z-40" /* Removed mt-16 as the sidebar will be positioned correctly with CSS */
           collapsible={sidebarCollapsed ? "icon" : "none"}
           style={{
             "--sidebar-width": "240px",
