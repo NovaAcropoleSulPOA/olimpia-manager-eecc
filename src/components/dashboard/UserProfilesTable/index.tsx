@@ -8,7 +8,7 @@ import { UserProfileModal } from "../UserProfileModal";
 
 export const UserProfilesTable = ({ data, branches, isLoading }: UserProfilesTableProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [branchFilter, setBranchFilter] = useState("all");
+  const [branchFilter, setBranchFilter] = useState("all"); // Default to "all" to show all branches
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -18,6 +18,7 @@ export const UserProfilesTable = ({ data, branches, isLoading }: UserProfilesTab
     a.nome_completo.localeCompare(b.nome_completo, 'pt-BR', { sensitivity: 'base' })
   );
 
+  // Filter users based on search term and selected branch
   const filteredUsers = sortedUsers.filter((user) => {
     const matchesSearch = 
       user.nome_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||

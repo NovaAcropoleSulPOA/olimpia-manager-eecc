@@ -9,6 +9,8 @@ export const fetchUserProfiles = async (eventId: string | null) => {
     return [];
   }
 
+  // Modified query to fetch ALL users with profiles in the current event
+  // without any filtering by branch or role
   const { data: users, error: usersError } = await supabase
     .from('usuarios')
     .select(`
