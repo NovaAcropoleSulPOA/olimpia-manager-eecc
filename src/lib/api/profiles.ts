@@ -1,3 +1,4 @@
+
 import { supabase } from '../supabase';
 
 export const fetchUserProfiles = async (eventId: string | null) => {
@@ -8,6 +9,27 @@ export const fetchUserProfiles = async (eventId: string | null) => {
     return [];
   }
 
+  // Query all users registered in this event through inscricoes_eventos
+  const { data: registeredUsers, error: registeredUsersError } = await supabase
+    .from('inscricoes_eventos')
+    .select('usuario_id')
+    .eq('evento_id', eventId);
+
+  if (registeredUsersError) {
+    console.error('Error fetching registered users:', registeredUsersError);
+    throw registeredUsersError;
+  }
+
+  if (!registeredUsers || registeredUsers.length === 0) {
+    console.log('No registered users found for this event');
+    return [];
+  }
+
+  // Extract the user IDs from the registered users
+  const userIds = registeredUsers.map(registration => registration.usuario_id);
+  console.log(`Found ${userIds.length} registered users for event ${eventId}`);
+
+  // Now fetch the detailed user information for these users
   const { data: users, error: usersError } = await supabase
     .from('usuarios')
     .select(`
@@ -18,7 +40,7 @@ export const fetchUserProfiles = async (eventId: string | null) => {
       filiais:filial_id (
         nome
       ),
-      papeis_usuarios!inner (
+      papeis_usuarios (
         perfil_id,
         evento_id,
         perfis:perfil_id (
@@ -26,7 +48,7 @@ export const fetchUserProfiles = async (eventId: string | null) => {
         )
       )
     `)
-    .eq('papeis_usuarios.evento_id', eventId)
+    .in('id', userIds)
     .order('nome_completo');
 
   if (usersError) {
@@ -38,17 +60,24 @@ export const fetchUserProfiles = async (eventId: string | null) => {
 
   if (!users) return [];
 
-  const formattedUsers = users.map((user: any) => ({
-    id: user.id,
-    nome_completo: user.nome_completo,
-    email: user.email,
-    filial_id: user.filial_id,
-    filial_nome: user.filiais?.nome || 'Sem filial',
-    profiles: (user.papeis_usuarios || []).map((papel: any) => ({
-      perfil_id: papel.perfil_id,
-      perfil_nome: papel.perfis?.nome || ''
-    }))
-  }));
+  const formattedUsers = users.map((user: any) => {
+    // Filter the user's roles to only include those for the current event
+    const eventRoles = user.papeis_usuarios?.filter((papel: any) => 
+      papel.evento_id === eventId
+    ) || [];
+
+    return {
+      id: user.id,
+      nome_completo: user.nome_completo,
+      email: user.email,
+      filial_id: user.filial_id,
+      filial_nome: user.filiais?.nome || 'Sem filial',
+      profiles: eventRoles.map((papel: any) => ({
+        perfil_id: papel.perfil_id,
+        perfil_nome: papel.perfis?.nome || ''
+      }))
+    };
+  });
 
   console.log('Formatted users count:', formattedUsers.length);
   return formattedUsers;
