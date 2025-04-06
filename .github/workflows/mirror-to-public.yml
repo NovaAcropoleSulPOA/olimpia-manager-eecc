@@ -1,9 +1,10 @@
-name: Espelhar para repositório público
+name: Espelhar release para release do repositório público
 
 on:
   push:
     branches:
       - release # Aciona quando há push na branch 'release' do privado
+  workflow_dispatch: # Permite acionar manualmente, se necessário
 
 jobs:
   mirror:
@@ -17,5 +18,5 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          git remote add public https://x-access-token:${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/NovaAcropoleSulPOA/olimpia-manager-eecc.git
-          git push --force public release:main  # Empurra a branch 'release' do privado para a branch 'main' do público
+          git remote add public https://x-access-token:${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/EECC-NA-POA/olimpia-manager-eecc.git
+          git push --force public release:release
